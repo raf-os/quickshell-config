@@ -120,17 +120,24 @@ Variants {
                 bar: bar
             }
 
-            BarWrapper {
-                id: bar
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-
+            InteractionHandler {
                 screen: scope.modelData
                 openPanels: openPanels
                 popouts: panels.popouts
+                bar: bar
 
-                Component.onCompleted: PanelService.bars.set(scope.modelData, this)
+                BarWrapper {
+                    id: bar
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+
+                    screen: scope.modelData
+                    openPanels: openPanels
+                    popouts: panels.popouts
+
+                    Component.onCompleted: PanelService.bars.set(scope.modelData, this)
+                }
             }
         }
     }

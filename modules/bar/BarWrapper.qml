@@ -17,6 +17,10 @@ Item {
     readonly property int exclusiveZone: contentHeight
     implicitHeight: contentHeight
 
+    function handleMouseWheel(x: real, angleDelta: point) {
+        content.item?.handleMouseWheel(x, angleDelta);
+    }
+
     Loader {
         id: content
 

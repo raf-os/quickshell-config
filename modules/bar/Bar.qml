@@ -5,6 +5,7 @@ import "components"
 import "components/workspaces"
 import "popouts"
 import Quickshell
+import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 
@@ -31,6 +32,14 @@ RowLayout {
         const currentCenter = item.mapToItem(root, item.implicitHeight / 2, 0).x;
         const newName = popouts.toggle(item, name, currentCenter);
         popoutHandler.selectedPopoutId = newName;
+    }
+
+    function handleMouseWheel(x: real, angleDelta: point) {
+        const ch = childAt(x, root.height / 2);
+        if (ch?.name === "leftContent" || ch?.name === "midContent") {
+            const angleDir = Math.sign(angleDelta.y);
+            Hyprland.dispatch(`workspace m${angleDir > 0 ? "-1" : "+1"}`);
+        }
     }
 
     Connections {
@@ -61,6 +70,7 @@ RowLayout {
 
     RowLayout {
         id: leftContent
+        property string name: "leftContent"
         // Layout.preferredWidth: Math.max(leftContent.implicitWidth, rightContent.implicitWidth)
         Layout.maximumWidth: root.sideSize
         spacing: root.spacing
@@ -73,6 +83,7 @@ RowLayout {
     }
 
     WindowTitle {
+        property string name: "midContent"
         Layout.fillWidth: true
     }
 
