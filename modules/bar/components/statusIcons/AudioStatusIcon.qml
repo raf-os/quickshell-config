@@ -9,7 +9,7 @@ RowLayout {
     id: root
     property real roundedVolume: Math.round((AudioService.volume * 10000)) / 100
 
-    spacing: Config.appearance.spacing.sm
+    spacing: Config.appearance.spacing.xs
 
     StyledText {
         text: `${root.roundedVolume}%`

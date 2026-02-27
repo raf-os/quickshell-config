@@ -112,6 +112,18 @@ Variants {
                 }
             }
 
+            InteractionHandler {
+                screen: scope.modelData
+                openPanels: openPanels
+                popouts: panels.popouts
+                bar: bar
+
+                // implicitWidth: bar.implicitWidth
+                // implicitHeight: bar.implicitHeight
+
+                anchors.fill: parent
+            }
+
             Panels {
                 id: panels
 
@@ -120,24 +132,17 @@ Variants {
                 bar: bar
             }
 
-            InteractionHandler {
+            BarWrapper {
+                id: bar
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+
                 screen: scope.modelData
                 openPanels: openPanels
                 popouts: panels.popouts
-                bar: bar
 
-                BarWrapper {
-                    id: bar
-
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    screen: scope.modelData
-                    openPanels: openPanels
-                    popouts: panels.popouts
-
-                    Component.onCompleted: PanelService.bars.set(scope.modelData, this)
-                }
+                Component.onCompleted: PanelService.bars.set(scope.modelData, this)
             }
         }
     }

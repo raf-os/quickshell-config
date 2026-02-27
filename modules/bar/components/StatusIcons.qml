@@ -21,6 +21,15 @@ StyledRect {
         id: iconRow
 
         anchors.fill: parent
+        spacing: Config.appearance.spacing.sm
+
+        WrappedLoader {
+            id: notifStatus
+            name: "Notifications"
+            active: true
+
+            sourceComponent: NotificationsIcon {}
+        }
 
         MouseArea {
             implicitWidth: audioStatus.implicitWidth

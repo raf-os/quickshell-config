@@ -12,8 +12,10 @@ MouseArea {
     required property PopoutWrapper popouts
     required property BarWrapper bar
 
-    acceptedButtons: Qt.LeftButton | Qt.RightButton
-    anchors.fill: parent
+    propagateComposedEvents: true
+
+    // acceptedButtons: Qt.LeftButton | Qt.RightButton
+    // anchors.fill: parent
 
     onClicked: event => {
         if (event.y < Config.border.thickness * 2 + Config.bar.sizes.innerHeight) {
