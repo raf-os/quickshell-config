@@ -75,7 +75,9 @@ RowLayout {
         Layout.maximumWidth: root.sideSize
         spacing: root.spacing
 
-        ArchIconBtw {}
+        ArchIconBtw {
+            openPanels: root.openPanels
+        }
         Workspaces {
             screen: root.screen
         }

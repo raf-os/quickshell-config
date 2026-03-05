@@ -1,5 +1,4 @@
 import qs.components
-import qs.modules.session
 import qs.services
 import qs.config
 import QtQuick

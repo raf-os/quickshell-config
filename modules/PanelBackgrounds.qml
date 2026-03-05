@@ -2,6 +2,7 @@ import qs.modules.bar
 import qs.config
 import qs.modules.session as Session
 // import qs.modules.bar.popouts as BPP
+import qs.modules.startmenu as StartMenu
 import Quickshell
 import QtQuick
 import QtQuick.Shapes
@@ -24,6 +25,13 @@ Shape {
     //     startX: wrapper.x
     //     startY: 0
     // }
+
+    StartMenu.Background {
+        wrapper: root.panels.startmenu
+
+        startX: 0
+        startY: 0
+    }
 
     Session.Background {
         wrapper: root.panels.session

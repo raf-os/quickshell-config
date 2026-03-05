@@ -30,6 +30,7 @@ Variants {
             name: "drawers"
 
             exclusionMode: ExclusionMode.Ignore
+            WlrLayershell.keyboardFocus: openPanels.startmenu ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
             mask: Region {
                 x: Config.border.thickness
@@ -99,6 +100,7 @@ Variants {
                 id: openPanels
 
                 property bool session
+                property bool startmenu
 
                 Component.onCompleted: PanelService.load(scope.modelData, this)
             }

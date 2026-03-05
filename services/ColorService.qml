@@ -20,6 +20,7 @@ Singleton {
         property color base4: "#776156"
 
         property color baseContent: "#d9d3cd"
+        property color baseContentMuted: "#847e78"
 
         property color primary: "#e25016"
         property color primary5: "#f4b17a"

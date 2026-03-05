@@ -1,14 +1,31 @@
+pragma ComponentBehavior: Bound
+
 import qs.services
 import qs.config
 import QtQuick
 import QtQuick.Effects
+import Quickshell
 import Quickshell.Widgets
 
 Item {
     id: root
 
+    required property PersistentProperties openPanels
+    readonly property bool isMenuActive: openPanels.startmenu
+
     implicitWidth: Config.appearance.fontSize.lg * 1.2
     implicitHeight: Config.appearance.fontSize.lg * 1.2
+
+    MouseArea {
+        cursorShape: Qt.PointingHandCursor
+        propagateComposedEvents: true
+        anchors.fill: parent
+
+        onClicked: ev => {
+            root.openPanels.startmenu = !root.openPanels.startmenu;
+            ev.accepted = false;
+        }
+    }
 
     IconImage {
         anchors.centerIn: parent
@@ -20,6 +37,10 @@ Item {
             brightness: 0.5
             colorization: 1
             colorizationColor: ColorService.current.baseContent
+            shadowEnabled: true
+            shadowColor: ColorService.current.baseContent
+            shadowOpacity: root.isMenuActive ? 1 : 0
+            blurMax: 16
         }
     }
 }
