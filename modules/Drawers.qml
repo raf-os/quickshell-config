@@ -121,9 +121,11 @@ Variants {
                 bar: bar
 
                 // implicitWidth: bar.implicitWidth
-                // implicitHeight: bar.implicitHeight
+                implicitHeight: bar.implicitHeight
 
-                anchors.fill: parent
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
             }
 
             Panels {
