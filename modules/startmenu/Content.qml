@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import "items"
 import qs.components
 import qs.services
 import qs.config
@@ -16,17 +17,16 @@ ColumnLayout {
     readonly property real padding: Config.appearance.padding.lg
     readonly property bool isActive: openPanels.startmenu
 
-    // focus: isActive
+    focus: isActive
 
     spacing: -padding
 
     Keys.onEscapePressed: {
         openPanels.startmenu = false;
     }
-    function triggerFocus(shouldFocus: bool) {
-    // if (shouldFocus)
-    //     cmdinputtxt.forceActiveFocus();
-    }
+
+    Keys.onUpPressed: lview.decrementCurrentIndex()
+    Keys.onDownPressed: lview.incrementCurrentIndex()
 
     StyledText {
         text: "Start"
@@ -66,7 +66,8 @@ ColumnLayout {
         TextInput {
             id: cmdinputtxt
 
-            // focus: root.isActive
+            focus: root.isActive
+            activeFocusOnTab: true
             Component.onCompleted: {
                 forceActiveFocus(Qt.PopupFocusReason);
             }
@@ -93,6 +94,8 @@ ColumnLayout {
 
             onTriggered: {
                 cmdinput.debouncedInput = cmdinputtxt.text;
+                if (lview)
+                    lview.currentIndex = 0;
             }
         }
     }
@@ -101,6 +104,8 @@ ColumnLayout {
         id: lview
         model: ScriptModel {
             values: [...DesktopEntries.applications.values].filter(app => {
+                if (app.runInTerminal === true)
+                    return false;
                 if (!cmdinput.debouncedInput || cmdinput.debouncedInput === "")
                     return true;
                 return app.name.toLowerCase().startsWith(cmdinput.debouncedInput.toLowerCase());
@@ -116,79 +121,13 @@ ColumnLayout {
 
         delegateModelAccess: DelegateModel.ReadOnly
 
-        delegate: CommandSelection {
-            required property DesktopEntry modelData
-
-            entryTitle: modelData?.name
-            entryDescription: modelData?.comment ?? "No description"
-
-            implicitWidth: lview.width
-
-            // anchors.left: parent?.left ?? null
-            // anchors.right: parent?.right ?? null
+        delegate: AppItem {
+            openPanels: root.openPanels
         }
     }
 
     Item {
         implicitWidth: 320
         Layout.fillHeight: true
-    }
-
-    component CommandSelection: Item {
-        id: commandSelection
-
-        property string entryTitle: "Title T"
-        property string entryDescription: "Content"
-
-        Layout.fillWidth: true
-        Layout.margins: root.padding
-
-        implicitHeight: cmdRect.implicitHeight
-
-        StyledRect {
-            id: cmdRect
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-
-            implicitHeight: 64
-            radius: root.rounding
-
-            color: ColorService.current.base2
-        }
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: root.padding
-            spacing: 8
-
-            Column {
-                Layout.fillWidth: false
-                Layout.minimumWidth: 48
-                StyledText {
-                    text: ""
-                    font.pixelSize: 32
-                }
-            }
-
-            Column {
-                id: cmdTitleDesc
-                Layout.fillWidth: true
-                spacing: 4
-                StyledText {
-                    text: commandSelection.entryTitle
-                    font.weight: 600
-                    font.pointSize: Config.appearance.fontSize.sm
-                }
-
-                StyledText {
-                    text: commandSelection.entryDescription
-
-                    font.pointSize: Config.appearance.fontSize.sm
-                    font.italic: true
-                    color: ColorService.current.baseContentMuted
-                }
-            }
-        }
     }
 }

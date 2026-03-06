@@ -6,6 +6,13 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 
+/**
+ * TODO:
+ * * Improve performance by caching whatever we can
+ * * Implement fuzzy finding, hopefully not through JS but with C++ plugin
+ * * Implement ranked search, putting most used apps at the top
+ */
+
 Item {
     id: root
 
@@ -82,7 +89,7 @@ Item {
 
         onRunningChanged: {
             if (running && !root.isActive) {
-                content.visible = false;
+                // content.visible = false;
                 content.active = false;
             } else {
                 content.active = Qt.binding(() => root.isActive || root.visible);
@@ -95,29 +102,24 @@ Item {
         }
     }
 
-    FocusScope {
-        anchors.fill: parent
+    Loader {
+        id: content
 
-        Loader {
-            id: content
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
 
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
+        visible: false
+        active: false
+        Component.onCompleted: timer.start()
 
-            visible: false
-            active: false
-            Component.onCompleted: timer.start()
+        onActiveChanged: {
+            if (!item)
+                return;
+        }
 
-            onActiveChanged: {
-                if (!item)
-                    return;
-                // item?.triggerFocus?.(active);
-            }
-
-            sourceComponent: Content {
-                openPanels: root.openPanels
-            }
+        sourceComponent: Content {
+            openPanels: root.openPanels
         }
     }
 }

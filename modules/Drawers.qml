@@ -98,6 +98,7 @@ Variants {
 
             PersistentProperties {
                 id: openPanels
+                reloadableId: "openPanelsState"
 
                 property bool session
                 property bool startmenu
