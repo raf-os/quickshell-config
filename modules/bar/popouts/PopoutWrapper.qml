@@ -5,7 +5,6 @@ import qs.services
 import qs.config
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
 
 Item {

@@ -8,6 +8,7 @@ JsonObject {
     property Rounding rounding: Rounding {}
     property Spacing spacing: Spacing {}
     property Padding padding: Padding {}
+    property AnimCurves animCurves: AnimCurves {}
 
     component FontFamily: JsonObject {
         property string sans: "DejaVu Sans"
@@ -49,5 +50,10 @@ JsonObject {
         property int md: 10 * scale
         property int lg: 12 * scale
         property int xl: 15 * scale
+    }
+
+    component AnimCurves: JsonObject {
+        property list<real> linear: [0, 0, 1, 1, 1, 1]
+        property list<real> defaultEase: [.45, 0, 0, 1, 1, 1]
     }
 }

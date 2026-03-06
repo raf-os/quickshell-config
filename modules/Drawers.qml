@@ -79,7 +79,7 @@ Variants {
 
             Item {
                 anchors.fill: parent
-                layer.enabled: true
+                layer.enabled: false
                 layer.effect: MultiEffect {
                     shadowEnabled: true
                     blurMax: 32
@@ -108,9 +108,10 @@ Variants {
             HyprlandFocusGrab {
                 id: focusHandler
                 windows: [win]
-                active: panels.popouts.hasCurrent
+                active: panels.popouts.hasCurrent || panels.startmenu.isActive
                 onCleared: {
                     panels.popouts.close();
+                    openPanels.startmenu = false;
                 }
             }
 

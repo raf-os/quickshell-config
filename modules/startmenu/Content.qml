@@ -16,7 +16,7 @@ ColumnLayout {
     readonly property real padding: Config.appearance.padding.lg
     readonly property bool isActive: openPanels.startmenu
 
-    focus: isActive
+    // focus: isActive
 
     spacing: -padding
 
@@ -34,6 +34,15 @@ ColumnLayout {
         font.weight: 700
 
         Layout.margins: root.padding
+    }
+
+    Connections {
+        target: root.openPanels
+
+        function onStartmenuChanged(): void {
+            if (!root.openPanels.startmenu)
+                cmdinputtxt.text = "";
+        }
     }
 
     Item {
@@ -57,7 +66,10 @@ ColumnLayout {
         TextInput {
             id: cmdinputtxt
 
-            focus: root.isActive
+            // focus: root.isActive
+            Component.onCompleted: {
+                forceActiveFocus(Qt.PopupFocusReason);
+            }
 
             font.pointSize: Config.appearance.fontSize.md
             font.family: Config.appearance.fontFamily.mono
@@ -98,7 +110,7 @@ ColumnLayout {
         implicitWidth: 320
         Layout.fillHeight: true
         Layout.margins: root.padding
-        spacing: root.padding / 2
+        spacing: root.padding
 
         clip: true
 

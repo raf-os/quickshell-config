@@ -13,6 +13,8 @@ Item {
     required property var panels
 
     readonly property real initialWidth: content.implicitWidth
+    readonly property int animDuration: 300
+    readonly property int isActive: openPanels.startmenu
 
     visible: width > 0
     clip: true
@@ -20,64 +22,102 @@ Item {
     implicitHeight: content.implicitHeight
     implicitWidth: 0
 
-    HyprlandFocusGrab {
-        id: grab
-        windows: [QsWindow.window]
-        active: root.openPanels.startmenu
-        onCleared: {
-            root.openPanels.startmenu = false;
+    onIsActiveChanged: {
+        if (isActive) {
+            timer.stop();
+            exitAnim.stop();
+            enterAnim.start();
+        } else {
+            enterAnim.stop();
+            exitAnim.start();
         }
     }
 
-    states: State {
-        name: "visible"
-        when: root.openPanels.startmenu
+    // HyprlandFocusGrab {
+    //     id: grab
+    //     windows: [QsWindow.window]
+    //     // active: root.isActive && root.visible && !timer.running
+    //     onCleared: {
+    //         root.openPanels.startmenu = false;
+    //     }
+    // }
 
-        PropertyChanges {
-            root.implicitWidth: root.initialWidth
+    SequentialAnimation {
+        id: enterAnim
+
+        NAnim {
+            target: root
+            property: "implicitWidth"
+            to: root.initialWidth
+            duration: root.animDuration
+            easing.bezierCurve: Config.appearance.animCurves.defaultEase
+        }
+        ScriptAction {
+            script: {
+                root.implicitWidth = Qt.binding(() => content.implicitWidth);
+            }
         }
     }
 
-    transitions: [
-        Transition {
-            from: ""
-            to: "visible"
+    SequentialAnimation {
+        id: exitAnim
 
-            NAnim {
-                target: root
-                property: "implicitWidth"
-            }
-        },
-        Transition {
-            from: "visible"
-            to: ""
-
-            NAnim {
-                target: root
-                property: "implicitWidth"
+        ScriptAction {
+            script: {
+                root.implicitWidth = root.implicitWidth;
             }
         }
-    ]
-
-    Loader {
-        id: content
-
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-
-        Component.onCompleted: {
-            active = Qt.binding(() => (root.openPanels.startmenu || root.visible));
+        NAnim {
+            target: root
+            property: "implicitWidth"
+            to: 0
+            easing.bezierCurve: Config.appearance.animCurves.defaultEase
         }
+    }
 
-        onActiveChanged: {
-            if (!item)
-                return;
-            item?.triggerFocus?.(active);
+    Timer {
+        id: timer
+
+        interval: root.animDuration
+
+        onRunningChanged: {
+            if (running && !root.isActive) {
+                content.visible = false;
+                content.active = false;
+            } else {
+                content.active = Qt.binding(() => root.isActive || root.visible);
+                content.visible = true;
+                if (enterAnim.running) {
+                    enterAnim.stop();
+                    enterAnim.start();
+                }
+            }
         }
+    }
 
-        sourceComponent: Content {
-            openPanels: root.openPanels
+    FocusScope {
+        anchors.fill: parent
+
+        Loader {
+            id: content
+
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            visible: false
+            active: false
+            Component.onCompleted: timer.start()
+
+            onActiveChanged: {
+                if (!item)
+                    return;
+                // item?.triggerFocus?.(active);
+            }
+
+            sourceComponent: Content {
+                openPanels: root.openPanels
+            }
         }
     }
 }
