@@ -11,6 +11,8 @@ import QtQuick.Layouts
 Item {
     id: root
 
+    readonly property string itemType: "appitem"
+
     required property DesktopEntry modelData
     required property PersistentProperties openPanels
 
@@ -20,6 +22,11 @@ Item {
     implicitHeight: 64
     anchors.left: parent?.left
     anchors.right: parent?.right
+
+    function triggerItem() {
+        AppService.launchDesktopApp(modelData);
+        root.openPanels.startmenu = false;
+    }
 
     Rectangle {
         id: rectBg
@@ -38,10 +45,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
 
-        onClicked: ev => {
-            AppService.launchDesktopApp(root.modelData);
-            root.openPanels.startmenu = false;
-        }
+        onClicked: ev => root.triggerItem()
     }
 
     RowLayout {

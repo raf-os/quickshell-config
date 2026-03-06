@@ -80,6 +80,15 @@ ColumnLayout {
             anchors.verticalCenter: parent.verticalCenter
             padding: 8
 
+            onAccepted: {
+                const item = lview.currentItem;
+                if (!item)
+                    return;
+
+                if ((item?.itemType ?? "") === "appitem")
+                    item?.triggerItem?.();
+            }
+
             color: ColorService.current.baseContent
 
             onTextChanged: {
