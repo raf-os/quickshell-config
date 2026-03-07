@@ -28,6 +28,10 @@ ColumnLayout {
     Keys.onUpPressed: lview.decrementCurrentIndex()
     Keys.onDownPressed: lview.incrementCurrentIndex()
 
+    function forceFocusInput() {
+        cmdinputtxt?.forceActiveFocus();
+    }
+
     StyledText {
         text: "Start"
         font.pointSize: Config.appearance.fontSize.lg
@@ -68,9 +72,6 @@ ColumnLayout {
 
             focus: root.isActive
             activeFocusOnTab: true
-            Component.onCompleted: {
-                forceActiveFocus(Qt.PopupFocusReason);
-            }
 
             font.pointSize: Config.appearance.fontSize.md
             font.family: Config.appearance.fontFamily.mono
@@ -99,7 +100,7 @@ ColumnLayout {
         Timer {
             id: debounceTimer
 
-            interval: 1000
+            interval: 500
 
             onTriggered: {
                 cmdinput.debouncedInput = cmdinputtxt.text;
@@ -129,6 +130,21 @@ ColumnLayout {
         clip: true
 
         delegateModelAccess: DelegateModel.ReadOnly
+
+        remove: Transition {
+            NAnim {
+                property: "opacity"
+                to: 0
+                duration: 150
+            }
+        }
+
+        move: Transition {
+            NumberAnimation {
+                properties: "x,y"
+                duration: 150
+            }
+        }
 
         delegate: AppItem {
             openPanels: root.openPanels

@@ -62,6 +62,7 @@ Item {
         ScriptAction {
             script: {
                 root.implicitWidth = Qt.binding(() => content.implicitWidth);
+                content?.item?.forceFocusInput();
             }
         }
     }

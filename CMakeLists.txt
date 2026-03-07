@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.16)
+
+set(PROJECT_NAME "myshell")
+
+if (NOT DEFINED VERSION)
+  execute_process(COMMAND git describe --tags --abbrev=0
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  if ("${VERSION}" STREQUAL "")
+    message(FATAL_ERROR "Failed to get VERSION from git")
+  endif()
+endif()
+
+string(REGEX REPLACE "^v" "" VERSION "${VERSION}")
+
+project(${PROJECT_NAME}
+  VERSION ${VERSION}
+  LANGUAGES CXX
+)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+add_subdirectory(plugin)
