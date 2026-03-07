@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_NAME "myshell")
-
 if (NOT DEFINED VERSION)
   execute_process(COMMAND git describe --tags --abbrev=0
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -16,7 +14,7 @@ endif()
 
 string(REGEX REPLACE "^v" "" VERSION "${VERSION}")
 
-project(${PROJECT_NAME}
+project(myshell
   VERSION ${VERSION}
   LANGUAGES CXX
 )
@@ -24,5 +22,8 @@ project(${PROJECT_NAME}
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+
+set(INSTALL_QMLDIR "/usr/lib/qt6/qml")
 
 add_subdirectory(plugin)

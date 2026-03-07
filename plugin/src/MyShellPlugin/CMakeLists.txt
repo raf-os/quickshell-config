@@ -26,16 +26,29 @@ function(qml_module arg_TARGET)
     TYPEINFO module_typeinfo
   )
 
+  message(STATUS "Created QML module ${module_uri}, version ${module_version}")
+
+  set(module_dir "${INSTALL_QMLDIR}/${module_target_path}")
+  install(TARGETS ${arg_TARGET}
+    LIBRARY DESTINATION "${module_dir}"
+    RUNTIME DESTINATION "${module_dir}"
+  )
+  install(TARGETS ${module_plugin_target}
+    LIBRARY DESTINATION "${module_dir}"
+    RUNTIME DESTINATION "${module_dir}"
+  )
+  install(FILES "${module_qmldir}" DESTINATION "${module_dir}")
+  install(FILES "${module_typeinfo}" DESTINATION "${module_dir}")
+
   target_link_libraries(${arg_TARGET}
     PRIVATE
       Qt::Core
       Qt::Qml
       ${arg_LIBRARIES}
     )
-  message(STATUS "Created QML module ${module_uri}, version ${module_version}")
 endfunction()
 
-qml_module(${PROJECT_NAME}
+qml_module(myshell
   URI MyShellPlugin
   SOURCES
     appdb.h appdb.cpp

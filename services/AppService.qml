@@ -1,5 +1,6 @@
 pragma Singleton
 
+import MyShellPlugin
 import Quickshell
 import QtQuick
 
