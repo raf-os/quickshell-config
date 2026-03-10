@@ -27,7 +27,7 @@ Item {
     anchors.right: parent?.right
 
     function triggerItem() {
-        AppService.launchDesktopApp(modelData);
+        AppService.launchDesktopApp(desktopEntry);
         root.openPanels.startmenu = false;
     }
 
