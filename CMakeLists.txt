@@ -26,4 +26,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 set(INSTALL_QMLDIR "/usr/lib/qt6/qml")
 
+include(FetchContent)
+
 add_subdirectory(plugin)

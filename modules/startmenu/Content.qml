@@ -16,6 +16,9 @@ ColumnLayout {
     readonly property int rounding: Config.appearance.rounding.md
     readonly property real padding: Config.appearance.padding.lg
     readonly property bool isActive: openPanels.startmenu
+    readonly property bool hasQuery: isActive && cmdinput?.debouncedInput && cmdinput.debouncedInput.trim().length > 0
+
+    property list<QtObject> filteredList
 
     focus: isActive
 
@@ -103,7 +106,11 @@ ColumnLayout {
             interval: 500
 
             onTriggered: {
-                cmdinput.debouncedInput = cmdinputtxt.text;
+                const newFilter = cmdinputtxt.text;
+                cmdinput.debouncedInput = newFilter;
+                if (root.hasQuery) {
+                    root.filteredList = AppService.query(newFilter);
+                }
                 if (lview)
                     lview.currentIndex = 0;
             }
@@ -112,15 +119,11 @@ ColumnLayout {
 
     ListView {
         id: lview
-        model: ScriptModel {
-            values: [...DesktopEntries.applications.values].filter(app => {
-                if (app.runInTerminal === true)
-                    return false;
-                if (!cmdinput.debouncedInput || cmdinput.debouncedInput === "")
-                    return true;
-                return app.name.toLowerCase().startsWith(cmdinput.debouncedInput.toLowerCase());
-            })
-        }
+        model: root.hasQuery ? [...AppService.filteredApps] : [...AppService.list].filter(app => {
+            if (app.runInTerminal === true)
+                return false;
+            return true;
+        })
 
         implicitWidth: 320
         Layout.fillHeight: true

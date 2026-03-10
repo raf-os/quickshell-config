@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.components
 import qs.config
 import qs.services
+import MyShellPlugin
 import Quickshell
 import Quickshell.Widgets
 import QtQuick
@@ -13,10 +14,12 @@ Item {
 
     readonly property string itemType: "appitem"
 
-    required property DesktopEntry modelData
+    required property AppEntry modelData
     required property PersistentProperties openPanels
 
-    property string iconPath: Quickshell.iconPath(modelData?.icon)
+    readonly property DesktopEntry desktopEntry: DesktopEntries.byId(modelData.id)
+
+    property string iconPath: Quickshell.iconPath(desktopEntry?.icon)
     readonly property int boxRounding: Config.appearance.rounding.sm
 
     implicitHeight: 64

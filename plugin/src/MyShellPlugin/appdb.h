@@ -1,13 +1,11 @@
 #pragma once
 
-#include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
 #include <qregularexpression.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <qtimer.h>
 
 // Credits to the Caelestia shell
 // https://github.com/caelestia-dots/shell/tree/main
@@ -26,6 +24,8 @@ class AppEntry : public QObject {
   Q_PROPERTY(QString comment READ comment NOTIFY commentChanged)
   Q_PROPERTY(QString execString READ execString NOTIFY execStringChanged)
   Q_PROPERTY(QString categories READ categories NOTIFY categoriesChanged)
+  Q_PROPERTY(QString genericName READ genericName NOTIFY genericNameChanged)
+  Q_PROPERTY(bool runInTerminal READ runInTerminal NOTIFY runInTerminalChanged)
 
 public:
   explicit AppEntry(QObject *entry, quint32 frequency,
@@ -42,6 +42,8 @@ public:
   [[nodiscard]] QString comment() const;
   [[nodiscard]] QString execString() const;
   [[nodiscard]] QString categories() const;
+  [[nodiscard]] QString genericName() const;
+  [[nodiscard]] bool runInTerminal() const;
 
 signals:
   void frequencyChanged();
@@ -49,6 +51,8 @@ signals:
   void commentChanged();
   void execStringChanged();
   void categoriesChanged();
+  void genericNameChanged();
+  void runInTerminalChanged();
 
 private:
   QObject *m_entry;
@@ -67,6 +71,8 @@ class AppDb : public QObject {
                  NOTIFY favoriteAppsChanged REQUIRED)
   Q_PROPERTY(
       QQmlListProperty<myqmlplugin::AppEntry> apps READ apps NOTIFY appsChanged)
+  Q_PROPERTY(QQmlListProperty<myqmlplugin::AppEntry> filteredApps READ
+                 filteredApps NOTIFY filteredAppsChanged)
 
 public:
   explicit AppDb(QObject *parent = nullptr);
@@ -84,15 +90,22 @@ public:
 
   [[nodiscard]] QQmlListProperty<AppEntry> apps();
 
+  [[nodiscard]] QQmlListProperty<AppEntry> filteredApps();
+
   Q_INVOKABLE void incrementFrequency(const QString &id);
+
+  Q_INVOKABLE QQmlListProperty<AppEntry> queryApps(const QString &query);
 
 signals:
   void pathChanged();
   void entriesChanged();
   void favoriteAppsChanged();
+  void filteredAppsChanged();
   void appsChanged();
 
 private:
+  QTimer *m_timer;
+
   const QString m_uuid;
   QString m_path;
   QObjectList m_entries;
@@ -100,6 +113,7 @@ private:
   QList<QRegularExpression> m_favoriteAppsRegex;
   QHash<QString, AppEntry *> m_apps;
   mutable QList<AppEntry *> m_sortedApps;
+  mutable QList<AppEntry *> m_filteredApps;
 
   QString regexifyString(const QString &original) const;
   void updateApps();

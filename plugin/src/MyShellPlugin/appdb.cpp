@@ -1,9 +1,15 @@
 #include "appdb.h"
 
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
 #include <qobject.h>
+#include <qqmllist.h>
 #include <qsqldatabase.h>
+#include <qsqlerror.h>
 #include <qsqlquery.h>
 #include <quuid.h>
+#include <rapidfuzz/fuzz.hpp>
 #include <utility>
 
 namespace myqmlplugin {
@@ -13,7 +19,8 @@ AppEntry::AppEntry(QObject *entry, unsigned int frequency, QObject *parent)
   const auto tmo = metaObject();
 
   // Shadowing quickshell's AppEntry props
-  for (const auto &prop : {"name", "comment", "execString", "categories"}) {
+  for (const auto &prop : {"name", "comment", "execString", "categories",
+                           "genericName", "runInTerminal"}) {
     const auto metaProp = mo->property(mo->indexOfProperty(prop));
     const auto thisMetaProp = tmo->property(tmo->indexOfProperty(prop));
     QObject::connect(m_entry, metaProp.notifySignal(), this,
@@ -52,7 +59,21 @@ QString AppEntry::name() const {
   if (!m_entry) {
     return "";
   }
-  return m_entry->property("comment").toString();
+  return m_entry->property("name").toString();
+}
+
+QString AppEntry::genericName() const {
+  if (!m_entry) {
+    return "";
+  }
+  return m_entry->property("genericName").toString();
+}
+
+bool AppEntry::runInTerminal() const {
+  if (!m_entry) {
+    return "";
+  }
+  return m_entry->property("runInTerminal").toBool();
 }
 
 QString AppEntry::comment() const {
@@ -73,18 +94,23 @@ QString AppEntry::categories() const {
   if (!m_entry) {
     return "";
   }
-  return m_entry->property("execString").toStringList().join(" ");
+  return m_entry->property("categories").toStringList().join(" ");
 }
 
 AppDb::AppDb(QObject *parent)
-    : QObject(parent), m_uuid(QUuid::createUuid().toString()) {
+    : QObject(parent), m_timer(new QTimer(this)),
+      m_uuid(QUuid::createUuid().toString()) {
+  m_timer->setSingleShot(true);
+  m_timer->setInterval(300);
+  QObject::connect(m_timer, &QTimer::timeout, this, &AppDb::updateApps);
+
   auto db = QSqlDatabase::addDatabase("QSQLITE", m_uuid);
   db.setDatabaseName(":memory:");
   db.open();
 
   QSqlQuery query(db);
-  query.exec("CREATE TABLE IF NOT EXISTS \
-      frequencies (id TEXT PRIMARY KEY, frequency INTEGER)");
+  query.exec("CREATE TABLE IF NOT EXISTS"
+             "frequencies (id TEXT PRIMARY KEY, frequency INTEGER)");
 }
 
 QString AppDb::uuid() const { return m_uuid; }
@@ -101,10 +127,10 @@ void AppDb::setPath(const QString &path) {
   m_path = newPath;
   emit pathChanged();
 
-  auto db = QSqlDatabase::database(m_uuid, false);
+  QSqlDatabase db = QSqlDatabase::database(m_uuid, false);
+  // qDebug() << "DB PATH:" << db.databaseName();
   db.close();
   db.setDatabaseName(newPath);
-  db.open();
 
   QSqlQuery query(db);
   query.exec("CREATE TABLE IF NOT EXISTS \
@@ -122,6 +148,8 @@ void AppDb::setEntries(const QObjectList &entries) {
 
   m_entries = entries;
   emit entriesChanged();
+
+  m_timer->start();
 }
 
 QStringList AppDb::favoriteApps() const { return m_favoriteApps; }
@@ -271,5 +299,44 @@ void AppDb::updateApps() {
   if (dirty) {
     emit appsChanged();
   }
+}
+
+QQmlListProperty<AppEntry> AppDb::filteredApps() {
+  return QQmlListProperty<AppEntry>(this, &m_filteredApps);
+}
+
+QQmlListProperty<AppEntry> AppDb::queryApps(const QString &query) {
+  if (query == "") {
+    return apps();
+  }
+
+  const auto &sorted_apps = getSortedApps();
+  m_filteredApps.clear();
+
+  std::string query_qstring = query.toStdString();
+
+  for (const auto &entry : sorted_apps) {
+    // HACK: TEMPORARY
+    if (entry->runInTerminal() == true) {
+      continue;
+    }
+    const auto entryName = entry->property("name").toString();
+    if (entryName.startsWith(query, Qt::CaseInsensitive)) {
+      m_filteredApps.append(entry);
+      continue;
+    }
+
+    const std::string name = entryName.toStdString();
+    double score =
+        rapidfuzz::fuzz::partial_ratio(std::string_view(query_qstring), name);
+
+    if (score >= 75.0) {
+      m_filteredApps.append(entry);
+    }
+  }
+
+  emit filteredAppsChanged();
+
+  return QQmlListProperty<AppEntry>(this, &m_filteredApps);
 }
 } // namespace myqmlplugin
