@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.config
 import qs.components
 import qs.services
+import qs.utils
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
@@ -40,7 +41,20 @@ Item {
         }
     }
 
-    StyledRect {
+    Loader {
+        anchors.fill: parent
+        active: !GlobalStateManager.isGameMode
+        sourceComponent: RectangularShadow {
+            anchors.fill: parent
+            radius: root.iconActiveSize / 2
+            color: ColorService.current.primary
+            blur: 12
+            spread: 6
+            opacity: indicator.shadowOpacity
+        }
+    }
+
+    Rectangle {
         id: indicator
 
         property real shadowOpacity: 0
@@ -70,7 +84,7 @@ Item {
                 NAnim {
                     target: indicator
                     property: "shadowOpacity"
-                    easing.bezierCurve: Config.appearance.animCurves.linear
+                    easing.bezierCurve: Config.appearance.animCurves.defaultEase
                     duration: 300
                 }
             },
@@ -81,19 +95,39 @@ Item {
                 NAnim {
                     target: indicator
                     property: "shadowOpacity"
-                    easing.bezierCurve: Config.appearance.animCurves.linear
+                    easing.bezierCurve: Config.appearance.animCurves.defaultEase
                     duration: 300
                 }
             }
         ]
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            blurMax: 20
-            shadowEnabled: true
-            shadowColor: "#e25016"
-            shadowOpacity: indicator.shadowOpacity
-            shadowScale: 1.5
+        Behavior on color {
+            CAnim {
+                duration: 300
+            }
         }
+
+        Behavior on implicitWidth {
+            NAnim {
+                easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                duration: 300
+            }
+        }
+
+        Behavior on implicitHeight {
+            NAnim {
+                easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                duration: 300
+            }
+        }
+
+        // layer.enabled: !GlobalStateManager.isGameMode
+        // layer.effect: MultiEffect {
+        //     blurMax: 20
+        //     shadowEnabled: true
+        //     shadowColor: "#e25016"
+        //     shadowOpacity: indicator.shadowOpacity
+        //     shadowScale: 1.5
+        // }
     }
 }

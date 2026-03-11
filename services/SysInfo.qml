@@ -9,7 +9,7 @@ Singleton {
 
     property string osName
     property string osId
-    property string osLogo: Qt.resolvedUrl(`${Quickshell.shellDir}/assets/os-logo.svg`)
+    property string osLogo: Qt.resolvedUrl(`${Quickshell.shellDir}/assets/launcher-default.svg`)
 
     readonly property string user: Quickshell.env("USER")
 

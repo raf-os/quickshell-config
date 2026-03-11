@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import qs.services
 import qs.config
+import qs.utils
 import QtQuick
 import QtQuick.Effects
 import Quickshell
@@ -37,7 +38,7 @@ Item {
             brightness: 0.5
             colorization: 1
             colorizationColor: ColorService.current.baseContent
-            shadowEnabled: true
+            shadowEnabled: !GlobalStateManager.isGameMode
             shadowColor: ColorService.current.baseContent
             shadowOpacity: root.isMenuActive ? 1 : 0
             shadowScale: 1.25
