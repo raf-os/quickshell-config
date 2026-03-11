@@ -11,6 +11,7 @@ Singleton {
     property alias appearance: adapter.appearance
     property alias border: adapter.border
     property alias bar: adapter.bar
+    property alias launcher: adapter.launcher
 
     property bool recentlySaved: false
 
@@ -40,10 +41,11 @@ Singleton {
                     config = {};
                 }
 
-                config = serializeConfig();
+                config = root.serializeConfig();
                 fileView.setText(JSON.stringify(config, null, 2));
             } catch (e) {
-                console.log("Failed to serialize config.");
+                // console.log("Failed to serialize config.");
+                Quickshell.execDetached(["notify-send", "Failed serializing config."]);
             }
         }
     }
@@ -53,13 +55,16 @@ Singleton {
 
         interval: 2000
         onTriggered: {
-            recentlySaved = false;
+            root.recentlySaved = false;
         }
     }
 
     function serializeConfig(): var {
         return {
-            appearance: serializeAppearance()
+            appearance: serializeAppearance(),
+            bar: serializeBar(),
+            border: serializeBorder(),
+            launcher: serializeLauncher()
         };
     }
 
@@ -75,7 +80,30 @@ Singleton {
             },
             spacing: {
                 scale: appearance.spacing.scale
+            },
+            padding: {
+                scale: appearance.padding.scale
             }
+        };
+    }
+
+    function serializeBar(): var {
+        return {
+            sizes: bar.sizes
+        };
+    }
+
+    function serializeBorder(): var {
+        return {
+            thickness: border.thickness,
+            rounding: border.rounding
+        };
+    }
+
+    function serializeLauncher(): var {
+        return {
+            enabled: launcher.enabled,
+            width: launcher.width
         };
     }
 
@@ -85,7 +113,7 @@ Singleton {
         path: `${Paths.config}/shell.json`
         watchChanges: true
         onFileChanged: {
-            if (!recentlySaved) {
+            if (!root.recentlySaved) {
                 timer.restart();
                 reload();
             } else {
@@ -98,12 +126,18 @@ Singleton {
                 JSON.parse(text());
             } catch (e) {
                 console.log("Failed to load configs.");
+                Quickshell.execDetached(["notify-send", "Failed loading shell configs."]);
             }
         }
 
         onLoadFailed: err => {
-            if (err !== FileViewError.FileNotFound)
-                console.log("Error loading file:", FileViewError.toString(err));
+            if (err === FileViewError.FileNotFound) {
+                console.log("No config file exists. Creating our own...");
+                root.save();
+                Quickshell.execDetached(["notify-send", qsTr(`Setting up initial shell configurations at ${Paths.config}/myshell`)]);
+            } else {
+                Quickshell.execDetached(["notify-send", qsTr("Failed loading shell configs.")]);
+            }
         }
 
         onSaveFailed: err => {
@@ -116,6 +150,7 @@ Singleton {
             property AppearanceConfig appearance: AppearanceConfig {}
             property BorderConfig border: BorderConfig {}
             property BarConfig bar: BarConfig {}
+            property LauncherConfig launcher: LauncherConfig {}
         }
     }
 }

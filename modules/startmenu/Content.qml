@@ -125,7 +125,7 @@ ColumnLayout {
             return true;
         })
 
-        implicitWidth: Config.bar.sizes.launcherWidth
+        implicitWidth: Config.launcher.width
         Layout.fillHeight: true
         Layout.margins: root.padding
         spacing: root.padding
