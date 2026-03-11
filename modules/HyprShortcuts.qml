@@ -1,5 +1,6 @@
 import qs.components.utils
 import qs.services
+import qs.utils
 import QtQuick
 import Quickshell
 
@@ -30,5 +31,11 @@ Scope {
         name: "startMenuInterrupt"
         description: "Interrupt start menu keybind"
         onPressed: root.startMenuInterrupted = true
+    }
+
+    CustomShortcut {
+        name: "toggleGamemode"
+        description: "Toggles game mode on/off"
+        onPressed: GlobalStateManager.toggleGamemodeState()
     }
 }

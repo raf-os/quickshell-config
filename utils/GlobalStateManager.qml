@@ -19,8 +19,15 @@ Singleton {
     }
 
     function toggleGamemodeState() {
-        root.isGameMode = !root.isGameMode;
-        Quickshell.execDetached(["sh", "-c", `echo ${root.isGameMode ? "true" : "false"} > ${Paths.state}/gamemode`]);
+        checkGamemodeState(() => {
+            root.isGameMode = !root.isGameMode;
+            Quickshell.execDetached(["sh", "-c", `echo ${root.isGameMode ? "true" : "false"} > ${Paths.state}/gamemode`]);
+        });
+    }
+
+    function syncHyprlandGamemode() {
+        const scriptPath = Quickshell.shellPath("utils/scripts");
+        Quickshell.execDetached(["sh", "-c", `${scriptPath}/HyprToggleGamemode.sh${root.isGameMode ? " true" : ""}`]);
     }
 
     Timer {
@@ -50,6 +57,7 @@ Singleton {
                     checkStateProcess.callback?.();
                     checkStateProcess.callback = null;
                 }
+                root.syncHyprlandGamemode();
             }
         }
     }

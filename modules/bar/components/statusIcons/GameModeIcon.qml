@@ -70,10 +70,10 @@ Item {
     StyledText {
         id: icon
         anchors.centerIn: parent
-        text: "󰊴"
-        color: root.isActive ? ColorService.current.primary : ColorService.current.baseContent
+        text: "󰖺"
+        color: root.isActive ? ColorService.current.baseContent : ColorService.current.baseContentMuted
 
-        font.pixelSize: Config.bar.sizes.innerHeight * 1.25
+        font.pixelSize: Config.bar.sizes.innerHeight * 1
         font.family: Config.appearance.fontFamily.monoIcon
 
         layer.enabled: true
@@ -81,7 +81,8 @@ Item {
             shadowEnabled: true
             shadowColor: ColorService.current.primary
             shadowOpacity: root.shadowOpacity
-            blurMax: 16
+            shadowScale: 1.25
+            blurMax: 32
         }
 
         Behavior on color {

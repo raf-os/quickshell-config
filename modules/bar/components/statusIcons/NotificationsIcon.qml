@@ -1,4 +1,5 @@
 import qs.components
+import qs.services
 import qs.config
 import Quickshell
 import Quickshell.Io
@@ -10,8 +11,8 @@ MouseArea {
     property int activeNotifications: 0
 
     cursorShape: Qt.PointingHandCursor
-    implicitWidth: icon.implicitWidth
-    implicitHeight: icon.implicitHeight
+    implicitWidth: Config.appearance.fontSize.lg * 1.2
+    implicitHeight: Config.appearance.fontSize.lg * 1.2
     acceptedButtons: Qt.LeftButton | Qt.RightButton
 
     onClicked: ev => {
@@ -20,8 +21,11 @@ MouseArea {
 
     StyledText {
         id: icon
-        text: root.activeNotifications > 0 ? "󱅫" : "󰂜"
-        font.pointSize: Config.appearance.fontSize.md
+        text: root.activeNotifications > 0 ? "󰂞" : "󰂜"
+        color: root.activeNotifications > 0 ? ColorService.current.baseContent : ColorService.current.baseContentMuted
+        font.pointSize: Config.appearance.fontSize.lg
+        font.family: Config.appearance.fontFamily.monoIcon
+        anchors.centerIn: parent
     }
 
     Process {
