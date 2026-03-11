@@ -17,7 +17,7 @@ Item {
 
     readonly property bool isActive: modelData === activeWsId
     readonly property bool isOccupied: occupied[modelData] ?? false
-    readonly property int iconActiveSize: 14
+    readonly property int iconActiveSize: 16
     readonly property int iconInactiveSize: 8
 
     Layout.alignment: Qt.AlignVCenter
@@ -84,7 +84,7 @@ Item {
 
         layer.enabled: true
         layer.effect: MultiEffect {
-            blurMax: 12
+            blurMax: 20
             shadowEnabled: true
             shadowColor: "#e25016"
             shadowOpacity: indicator.shadowOpacity

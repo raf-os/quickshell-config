@@ -40,7 +40,8 @@ Item {
             shadowEnabled: true
             shadowColor: ColorService.current.baseContent
             shadowOpacity: root.isMenuActive ? 1 : 0
-            blurMax: 16
+            shadowScale: 1.25
+            blurMax: 24
         }
     }
 }

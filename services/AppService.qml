@@ -34,6 +34,6 @@ Singleton {
 
         path: `${Paths.state}/apps.sqlite`
         favoriteApps: []
-        entries: DesktopEntries.applications.values
+        entries: DesktopEntries.applications.values.filter(app => app.noDisplay === false)
     }
 }

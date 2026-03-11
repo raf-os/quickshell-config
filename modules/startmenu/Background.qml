@@ -16,17 +16,33 @@ ShapePath {
     strokeWidth: 0
 
     PathLine {
-        relativeX: root.wrapper.width
+        relativeX: root.wrapper.width + root.roundingX
         relativeY: 0
+    }
+
+    PathArc {
+        relativeX: -root.roundingX
+        relativeY: root.rounding
+        radiusX: Math.min(root.rounding, root.wrapper.width)
+        radiusY: root.rounding
+        direction: PathArc.Counterclockwise
     }
 
     PathLine {
         relativeX: 0
-        relativeY: root.wrapper.height
+        relativeY: root.wrapper.height - root.rounding * 2
+    }
+
+    PathArc {
+        relativeX: root.roundingX
+        relativeY: root.rounding
+        radiusX: Math.min(root.rounding, root.wrapper.width)
+        radiusY: root.rounding
+        direction: PathArc.Counterclockwise
     }
 
     PathLine {
-        relativeX: -root.wrapper.width
+        relativeX: -root.wrapper.width - root.roundingX
         relativeY: 0
     }
 

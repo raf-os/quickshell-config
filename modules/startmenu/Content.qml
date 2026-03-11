@@ -6,7 +6,6 @@ import qs.services
 import qs.config
 import Quickshell
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 ColumnLayout {
@@ -103,7 +102,7 @@ ColumnLayout {
         Timer {
             id: debounceTimer
 
-            interval: 500
+            interval: 250
 
             onTriggered: {
                 const newFilter = cmdinputtxt.text;
@@ -119,13 +118,14 @@ ColumnLayout {
 
     ListView {
         id: lview
+        // HACK: moved away from "ScriptModel", but this means animations will be broken
         model: root.hasQuery ? [...AppService.filteredApps] : [...AppService.list].filter(app => {
             if (app.runInTerminal === true)
                 return false;
             return true;
         })
 
-        implicitWidth: 320
+        implicitWidth: Config.bar.sizes.launcherWidth
         Layout.fillHeight: true
         Layout.margins: root.padding
         spacing: root.padding
