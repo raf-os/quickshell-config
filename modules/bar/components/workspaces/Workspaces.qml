@@ -8,7 +8,7 @@ import Quickshell.Widgets
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Item {
     id: root
 
     required property ShellScreen screen
@@ -19,12 +19,19 @@ Rectangle {
         acc[curr.id] = curr.lastIpcObject.windows > 0;
         return acc;
     }, {})
+    readonly property var urgentWorkspaces: Hypr.workspaces.values.reduce((acc, curr) => {
+        acc[curr.id] = curr.urgent;
+        return acc;
+    }, {})
 
     implicitWidth: layout.implicitWidth + Config.appearance.padding.sm * 2
     implicitHeight: Config.bar.sizes.innerHeight
 
-    color: ColorService.current.base0
-    radius: Config.appearance.rounding.md
+    Rectangle {
+        anchors.fill: parent
+        color: ColorService.current.base0
+        radius: Config.appearance.rounding.md
+    }
 
     Item {
         anchors.fill: parent
@@ -43,12 +50,9 @@ Rectangle {
                 Workspace {
                     activeWsId: root.activeWsId
                     occupied: root.occupiedWorkspaces
+                    urgent: root.urgentWorkspaces
                 }
             }
         }
-    }
-
-    Behavior on color {
-        CAnim {}
     }
 }

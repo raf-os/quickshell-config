@@ -16,9 +16,11 @@ Item {
     required property int activeWsId
     required property int modelData
     required property var occupied
+    required property var urgent
 
     readonly property bool isActive: modelData === activeWsId
     readonly property bool isOccupied: occupied[modelData] ?? false
+    readonly property bool isUrgent: urgent[modelData] ?? false
     readonly property int iconActiveSize: 16
     readonly property int iconInactiveSize: 8
 
@@ -45,12 +47,76 @@ Item {
         anchors.fill: parent
         active: !GlobalStateManager.isGameMode
         sourceComponent: RectangularShadow {
+            id: glowLayer
+            property real shadowOpacity: 0
             anchors.fill: parent
             radius: root.iconActiveSize / 2
-            color: ColorService.current.primary
+            color: root.isUrgent ? ColorService.current.destructive : ColorService.current.primary
             blur: 12
             spread: 6
-            opacity: indicator.shadowOpacity
+            opacity: shadowOpacity
+
+            states: [
+                State {
+                    name: "active"
+                    when: root.isActive && !root.isUrgent
+
+                    PropertyChanges {
+                        glowLayer.shadowOpacity: 1
+                    }
+                },
+                State {
+                    name: "urgent"
+                    when: root.isUrgent
+                }
+            ]
+
+            transitions: [
+                Transition {
+                    from: ""
+                    to: "active"
+
+                    NAnim {
+                        target: glowLayer
+                        property: "shadowOpacity"
+                        easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                        duration: 300
+                    }
+                },
+                Transition {
+                    from: "active"
+                    to: ""
+
+                    NAnim {
+                        target: glowLayer
+                        property: "shadowOpacity"
+                        easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                        duration: 300
+                    }
+                },
+                Transition {
+                    to: "urgent"
+
+                    SequentialAnimation {
+                        loops: Animation.Infinite
+
+                        NumberAnimation {
+                            target: glowLayer
+                            property: "shadowOpacity"
+                            to: 1
+                            duration: 100
+                        }
+                        NumberAnimation {
+                            target: glowLayer
+                            property: "shadowOpacity"
+                            to: 0
+                            duration: 2000
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                        }
+                    }
+                }
+            ]
         }
     }
 
@@ -64,42 +130,8 @@ Item {
         implicitWidth: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
         implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
 
-        color: root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base2
+        color: root.isUrgent ? ColorService.current.destructiveHover : root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base2
         radius: 1000
-
-        states: State {
-            name: "active"
-            when: root.isActive
-
-            PropertyChanges {
-                indicator.shadowOpacity: 1
-            }
-        }
-
-        transitions: [
-            Transition {
-                from: ""
-                to: "active"
-
-                NAnim {
-                    target: indicator
-                    property: "shadowOpacity"
-                    easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                    duration: 300
-                }
-            },
-            Transition {
-                from: "active"
-                to: ""
-
-                NAnim {
-                    target: indicator
-                    property: "shadowOpacity"
-                    easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                    duration: 300
-                }
-            }
-        ]
 
         Behavior on color {
             CAnim {
