@@ -15,5 +15,6 @@ A bunch of the early code and structure was based off of the [Caelestia](https:/
 
 This list is incomplete as of now
 
+* [Hyprland](https://hypr.land/)
 * app2unit
 * [Sway Notification Center](https://github.com/ErikReider/SwayNotificationCenter)

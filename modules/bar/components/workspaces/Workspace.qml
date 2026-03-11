@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import qs.config
 import qs.components
 import qs.services
 import Quickshell.Hyprland
@@ -69,6 +70,8 @@ Item {
                 NAnim {
                     target: indicator
                     property: "shadowOpacity"
+                    easing.bezierCurve: Config.appearance.animCurves.linear
+                    duration: 300
                 }
             },
             Transition {
@@ -78,6 +81,8 @@ Item {
                 NAnim {
                     target: indicator
                     property: "shadowOpacity"
+                    easing.bezierCurve: Config.appearance.animCurves.linear
+                    duration: 300
                 }
             }
         ]

@@ -4,6 +4,7 @@ import qs.components
 import qs.config
 import qs.modules.bar
 import qs.services
+import qs.utils
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -79,7 +80,7 @@ Variants {
 
             Item {
                 anchors.fill: parent
-                layer.enabled: false
+                layer.enabled: !GlobalStateManager.isGameMode
                 layer.effect: MultiEffect {
                     shadowEnabled: true
                     blurMax: 32

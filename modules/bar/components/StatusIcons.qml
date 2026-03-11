@@ -24,6 +24,14 @@ StyledRect {
         spacing: Config.appearance.spacing.sm
 
         WrappedLoader {
+            id: gameModeStatus
+            name: "Game mode"
+            active: true
+
+            sourceComponent: GameModeIcon {}
+        }
+
+        WrappedLoader {
             id: notifStatus
             name: "Notifications"
             active: true
