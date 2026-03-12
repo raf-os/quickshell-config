@@ -23,8 +23,7 @@ Item {
     readonly property int boxRounding: Config.appearance.rounding.sm
 
     implicitHeight: 64
-    anchors.left: parent?.left
-    anchors.right: parent?.right
+    implicitWidth: parent?.width ?? 100
 
     function triggerItem() {
         AppService.launchDesktopApp(desktopEntry);
@@ -54,13 +53,13 @@ Item {
     RowLayout {
         id: appContent
         anchors.fill: parent
-        anchors.margins: 8
+        anchors.margins: Config.appearance.padding.md
         spacing: Config.appearance.spacing.sm
 
         IconImage {
             id: icon
             source: root.iconPath
-            implicitSize: parent.height * 0.65
+            implicitSize: parent.height * 0.8
             asynchronous: true
         }
 
@@ -79,7 +78,7 @@ Item {
 
                 color: ColorService.current.baseContentMuted
                 elide: Text.ElideRight
-                width: root.width - icon.width - appContent.anchors.margins * 2 - parent.spacing
+                width: root.width - icon.width - appContent.anchors.margins * 2 - parent.spacing * 2
             }
         }
     }

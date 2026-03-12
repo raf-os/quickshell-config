@@ -16,7 +16,7 @@ ColumnLayout {
     readonly property int rounding: Config.appearance.rounding.md
     readonly property real padding: Config.appearance.padding.lg
     readonly property bool isActive: openPanels.startmenu
-    readonly property bool hasQuery: isActive && cmdinput?.debouncedInput && cmdinput.debouncedInput.trim().length > 0
+    readonly property bool hasQuery: isActive && cmdinput?.debouncedInput && cmdinput.debouncedInput.length > 0
 
     property string mode: "apps"
     // Modes: apps | command
@@ -62,6 +62,8 @@ ColumnLayout {
 
         implicitHeight: cmdinputtxt.implicitHeight
 
+        clip: true
+
         Rectangle {
             id: cmdinputbg
             anchors.fill: parent
@@ -82,7 +84,7 @@ ColumnLayout {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            padding: 8
+            padding: Config.appearance.spacing.sm
 
             onAccepted: {
                 const item = lview.currentItem;
@@ -99,7 +101,7 @@ ColumnLayout {
                 if (!root.isActive) {
                     return;
                 }
-                if (text.startsWith("/")) {
+                if (text.startsWith(Config.launcher.commandPrefix)) {
                     root.mode = "command";
                 } else {
                     root.mode = "apps";
@@ -114,7 +116,9 @@ ColumnLayout {
             interval: 250
 
             onTriggered: {
-                const newFilter = cmdinputtxt.text;
+                const newFilter = cmdinputtxt.text.trim();
+                if (newFilter === cmdinput.debouncedInput)
+                    return;
                 cmdinput.debouncedInput = newFilter;
                 if (!root.isActive)
                     return;

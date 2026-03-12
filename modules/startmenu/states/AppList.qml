@@ -1,5 +1,6 @@
 import qs.components
 import qs.services
+import qs.utils
 import QtQuick
 import Quickshell
 
@@ -9,7 +10,7 @@ ListView {
     required property PersistentProperties openPanels
     required property string query
 
-    readonly property bool hasQuery: query.trim() !== ""
+    readonly property bool hasQuery: query !== ""
 
     model: ScriptModel {
         values: {
@@ -18,21 +19,57 @@ ListView {
     }
 
     clip: true
+    reuseItems: true
 
     delegateModelAccess: DelegateModel.ReadOnly
 
-    remove: Transition {
-        NAnim {
-            property: "opacity"
-            to: 0
-            duration: 150
+    add: Transition {
+        enabled: !GlobalStateManager.isGameMode
+        ParallelAnimation {
+            NAnim {
+                property: "x"
+                from: -root.width
+                to: 0
+                duration: 300
+            }
+            NAnim {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: 150
+            }
         }
     }
-
-    move: Transition {
-        NumberAnimation {
-            properties: "x,y"
-            duration: 150
+    displaced: Transition {
+        enabled: !GlobalStateManager.isGameMode
+        ParallelAnimation {
+            NAnim {
+                property: "x"
+                from: -root.width
+                to: 0
+                duration: 300
+            }
+            NAnim {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: 150
+            }
+        }
+    }
+    remove: Transition {
+        enabled: !GlobalStateManager.isGameMode
+        ParallelAnimation {
+            NAnim {
+                property: "opacity"
+                to: 0
+                duration: 150
+            }
+            NAnim {
+                property: "x"
+                to: root.width
+                duration: 300
+            }
         }
     }
 }
