@@ -103,7 +103,8 @@ Singleton {
     function serializeLauncher(): var {
         return {
             enabled: launcher.enabled,
-            width: launcher.width
+            width: launcher.width,
+            commandPrefix: launcher.commandPrefix
         };
     }
 

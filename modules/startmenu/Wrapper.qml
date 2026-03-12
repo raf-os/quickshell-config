@@ -89,7 +89,7 @@ Item {
 
         onRunningChanged: {
             if (running && !root.isActive) {
-                // content.visible = false;
+                content.visible = false;
                 content.active = false;
             } else {
                 content.active = Qt.binding(() => root.isActive || root.visible);

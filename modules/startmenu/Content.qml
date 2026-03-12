@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import "items"
+import "states"
 import qs.components
 import qs.services
 import qs.config
@@ -16,6 +17,9 @@ ColumnLayout {
     readonly property real padding: Config.appearance.padding.lg
     readonly property bool isActive: openPanels.startmenu
     readonly property bool hasQuery: isActive && cmdinput?.debouncedInput && cmdinput.debouncedInput.trim().length > 0
+
+    property string mode: "apps"
+    // Modes: apps | command
 
     property list<QtObject> filteredList
 
@@ -34,12 +38,9 @@ ColumnLayout {
         cmdinputtxt?.forceActiveFocus();
     }
 
-    StyledText {
-        text: "Start"
-        font.pointSize: Config.appearance.fontSize.lg
-        font.weight: 700
-
-        Layout.margins: root.padding
+    StateTitle {
+        currentState: root.mode
+        padding: root.padding
     }
 
     Connections {
@@ -95,6 +96,14 @@ ColumnLayout {
             color: ColorService.current.baseContent
 
             onTextChanged: {
+                if (!root.isActive) {
+                    return;
+                }
+                if (text.startsWith("/")) {
+                    root.mode = "command";
+                } else {
+                    root.mode = "apps";
+                }
                 debounceTimer.restart();
             }
         }
@@ -107,6 +116,8 @@ ColumnLayout {
             onTriggered: {
                 const newFilter = cmdinputtxt.text;
                 cmdinput.debouncedInput = newFilter;
+                if (!root.isActive)
+                    return;
                 if (root.hasQuery) {
                     root.filteredList = AppService.query(newFilter);
                 }
@@ -116,38 +127,18 @@ ColumnLayout {
         }
     }
 
-    ListView {
+    AppList {
         id: lview
-        // HACK: moved away from "ScriptModel", but this means animations will be broken
-        model: root.hasQuery ? [...AppService.filteredApps] : [...AppService.list].filter(app => {
-            if (app.runInTerminal === true)
-                return false;
-            return true;
-        })
 
-        implicitWidth: Config.launcher.width
+        openPanels: root.openPanels
+        query: cmdinput.debouncedInput
+
+        visible: root.mode === "apps"
+
+        implicitWidth: Config.launcher.width - root.padding * 2
         Layout.fillHeight: true
         Layout.margins: root.padding
         spacing: root.padding
-
-        clip: true
-
-        delegateModelAccess: DelegateModel.ReadOnly
-
-        remove: Transition {
-            NAnim {
-                property: "opacity"
-                to: 0
-                duration: 150
-            }
-        }
-
-        move: Transition {
-            NumberAnimation {
-                properties: "x,y"
-                duration: 150
-            }
-        }
 
         delegate: AppItem {
             openPanels: root.openPanels
@@ -155,7 +146,7 @@ ColumnLayout {
     }
 
     Item {
-        implicitWidth: 320
+        implicitWidth: Config.launcher.width
         Layout.fillHeight: true
     }
 }
