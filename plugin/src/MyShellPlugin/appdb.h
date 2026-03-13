@@ -34,7 +34,7 @@ public:
   [[nodiscard]] QObject *entry() const;
 
   [[nodiscard]] quint32 frequency() const;
-  void setFrequency(quint32 frequenct);
+  void setFrequency(quint32 frequency);
   void incrementFrequency();
 
   [[nodiscard]] QString id() const;

@@ -1,3 +1,5 @@
+IndentWidth: 2
+TabWidth: 2
 CompileFlags:
   Remove:
     - -mno-direct-extern-access

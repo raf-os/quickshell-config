@@ -134,7 +134,6 @@ ColumnLayout {
     AppList {
         id: lview
 
-        openPanels: root.openPanels
         query: cmdinput.debouncedInput
 
         visible: root.mode === "apps"

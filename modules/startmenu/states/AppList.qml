@@ -7,7 +7,6 @@ import Quickshell
 ListView {
     id: root
 
-    required property PersistentProperties openPanels
     required property string query
 
     readonly property bool hasQuery: query !== ""
