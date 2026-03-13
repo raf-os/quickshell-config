@@ -1,6 +1,7 @@
 #pragma once
 
 #include <qhash.h>
+#include <qjsonobject.h>
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
@@ -12,23 +13,37 @@ class CmdEntry : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("Cannot create.")
 
-  Q_PROPERTY(QString suffix READ suffix NOTIFY suffixChanged)
+  Q_PROPERTY(QString prefix READ prefix NOTIFY prefixChanged)
   Q_PROPERTY(QString separator READ separator NOTIFY separatorChanged)
-  Q_PROPERTY(QString relativePath READ relativePath NOTIFY relativePathChanged)
+  Q_PROPERTY(QString path READ path NOTIFY path)
   Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
+  Q_PROPERTY(QString label READ label NOTIFY labelChanged)
+  Q_PROPERTY(bool isCoreCommand READ isCoreCommand NOTIFY isCoreCommandChanged)
 
 public:
-  explicit CmdEntry(QString basePath, QObject *parent = nullptr);
+  explicit CmdEntry(QString basePath, QJsonObject jsonData,
+                    QObject *parent = nullptr);
 
-  [[nodiscard]] QString suffix() const;
+  [[nodiscard]] QString prefix() const;
   [[nodiscard]] QString separator() const;
-  [[nodiscard]] QString relativePath() const;
+  [[nodiscard]] QString path() const;
+  [[nodiscard]] QString description() const;
+  [[nodiscard]] QString label() const;
+  [[nodiscard]] bool isCoreCommand() const;
+  void setIsCoreCommand(bool coreCommand);
 
 signals:
-  void suffixChanged();
+  void prefixChanged();
   void separatorChanged();
-  void relativePathChanged();
+  void pathChanged();
   void descriptionChanged();
+  void labelChanged();
+  void isCoreCommandChanged();
+
+private:
+  QJsonObject m_data;
+  QString m_path;
+  bool m_isCoreCommand = false;
 };
 
 class CmdHandler : public QObject {
@@ -40,6 +55,8 @@ class CmdHandler : public QObject {
                  basePathChanged REQUIRED)
   Q_PROPERTY(QQmlListProperty<myqmlplugin::CmdEntry> entries READ entries NOTIFY
                  entriesChanged)
+  Q_PROPERTY(QString queryString READ queryString WRITE setQueryString NOTIFY
+                 queryStringChanged)
 
 public:
   explicit CmdHandler(QObject *parent = nullptr);
@@ -52,22 +69,34 @@ public:
 
   [[nodiscard]] QQmlListProperty<CmdEntry> entries();
 
+  [[nodiscard]] QString queryString();
+  void setQueryString(const QString &newString);
+
   Q_INVOKABLE void refreshCommandList();
 
   Q_INVOKABLE QString executeCommand(const QString &command);
 
 signals:
   void pathChanged();
+  void basePathChanged();
   void entriesChanged();
+  void queryStringChanged();
 
 private:
   QString m_path;
   QString m_basePath;
+  QString m_queryString;
   QHash<QString, CmdEntry *> m_cmdEntries;
+  mutable QList<CmdEntry *> m_sortedCommands;
 
-  void iterateAndUpdateFromPaths();
+  template <typename Func>
+  QSet<QString> pathIterate(const QString &path, bool *isDirty, Func callback);
+
   QSet<QString> pathIterate(const QString &path, bool *isDirty = nullptr);
+
   void updateEntries();
+  QList<CmdEntry *> &getFilteredCommands(const QString &filter);
+  QList<CmdEntry *> &getSortedCommands();
 };
 
 } // namespace myqmlplugin
