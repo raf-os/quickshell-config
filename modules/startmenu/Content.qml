@@ -33,6 +33,8 @@ ColumnLayout {
 
     Keys.onUpPressed: lview.decrementCurrentIndex()
     Keys.onDownPressed: lview.incrementCurrentIndex()
+    Keys.onTabPressed: lview.incrementCurrentIndex()
+    Keys.onBacktabPressed: lview.decrementCurrentIndex()
 
     function forceFocusInput() {
         cmdinputtxt?.forceActiveFocus();
@@ -76,7 +78,7 @@ ColumnLayout {
             id: cmdinputtxt
 
             focus: root.isActive
-            activeFocusOnTab: true
+            // activeFocusOnTab: true
 
             font.pointSize: Config.appearance.fontSize.md
             font.family: Config.appearance.fontFamily.mono

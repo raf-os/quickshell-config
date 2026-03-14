@@ -92,6 +92,8 @@ private:
   mutable QList<CmdEntry *> m_sortedCommands;
   mutable QList<CmdEntry *> m_filteredCommands;
 
+  bool m_shouldReSort = true;
+
   template <typename Func>
   QSet<QString> pathIterate(const QString &path, bool *isDirty, Func callback);
 

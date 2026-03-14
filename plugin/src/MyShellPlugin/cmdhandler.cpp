@@ -93,6 +93,10 @@ void CmdHandler::refreshCommandList() {
 }
 
 QList<CmdEntry *> &CmdHandler::getSortedCommands() {
+  if (!m_shouldReSort) {
+    return m_sortedCommands;
+  }
+
   m_sortedCommands = m_cmdEntries.values();
   std::sort(m_sortedCommands.begin(), m_sortedCommands.end(),
             [this](CmdEntry *a, CmdEntry *b) {
@@ -102,6 +106,7 @@ QList<CmdEntry *> &CmdHandler::getSortedCommands() {
                 return false;
               return a->label().localeAwareCompare(b->label()) < 0;
             });
+  m_shouldReSort = false;
   return m_sortedCommands;
 };
 
@@ -126,16 +131,19 @@ QList<CmdEntry *> &CmdHandler::getFilteredCommands() {
     return m_filteredCommands;
   }
 
-  QList<CmdEntry *> listBuffer;
+  m_filteredCommands.clear();
 
   for (const auto &entry : getSortedCommands()) {
-    if (entry->prefix().startsWith(m_queryString)) {
-      listBuffer.append(entry);
+    const auto cmdPrefix = entry->prefix();
+    QString sliced = m_queryString;
+    if (m_queryString.length() > cmdPrefix.length()) {
+      // Without this, the function was reading memory out of bounds
+      // This should fix it
+      sliced.slice(0, cmdPrefix.length());
     }
-  }
-
-  if (listBuffer != m_filteredCommands) {
-    m_filteredCommands = listBuffer;
+    if (cmdPrefix.startsWith(sliced)) {
+      m_filteredCommands.append(entry);
+    }
   }
 
   return m_filteredCommands;
@@ -165,6 +173,7 @@ void CmdHandler::updateEntries(int flag) {
   }
 
   if (dirty) {
+    m_shouldReSort = true;
     emit entriesChanged();
   }
 }
