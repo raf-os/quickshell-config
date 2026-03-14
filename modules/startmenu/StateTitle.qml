@@ -12,7 +12,7 @@ Item {
     property int padding: 10
 
     readonly property int fontPointsize: Config.appearance.fontSize.lg
-    readonly property int fontFamilyName: Config.appearance.fontFamily.sans
+    readonly property string fontFamilyName: Config.appearance.fontFamily.sans
     readonly property int fontWeightAmt: 600
 
     Layout.fillWidth: true

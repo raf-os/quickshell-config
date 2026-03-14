@@ -43,14 +43,14 @@ ColumnLayout {
         padding: root.padding
     }
 
-    Connections {
-        target: root.openPanels
-
-        function onStartmenuChanged(): void {
-            if (!root.openPanels.startmenu)
-                cmdinputtxt.text = "";
-        }
-    }
+    // Connections {
+    //     target: root.openPanels
+    //
+    //     function onStartmenuChanged(): void {
+    //         if (!root.openPanels.startmenu)
+    //             cmdinputtxt.text = "";
+    //     }
+    // }
 
     Item {
         id: cmdinput
@@ -146,6 +146,18 @@ ColumnLayout {
         delegate: AppItem {
             openPanels: root.openPanels
         }
+    }
+
+    CommandList {
+        id: cview
+
+        visible: root.mode === "command"
+        cmdQuery: cmdinputtxt.text
+
+        implicitWidth: Config.launcher.width - root.padding * 2
+        Layout.fillHeight: true
+        Layout.margins: root.padding
+        spacing: root.padding
     }
 
     Item {

@@ -1,7 +1,5 @@
 #include "cmdhandler.h"
 
-#include <algorithm>
-#include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qdirlisting.h>
 #include <qfiledevice.h>
@@ -12,6 +10,7 @@
 #include <qjsonparseerror.h>
 #include <qjsonvalue.h>
 #include <qlist.h>
+#include <qlogging.h>
 #include <qobject.h>
 #include <qqmllist.h>
 
@@ -19,7 +18,8 @@ namespace myqmlplugin {
 CmdEntry::CmdEntry(QString basePath, QJsonObject jsonData, QObject *parent)
     : QObject(parent), m_data(jsonData), m_path(basePath) {
   if (!jsonData.contains("prefix") || !jsonData.contains("path")) {
-    qWarning() << "Invalid config JSON config detected. Aborting.";
+    qWarning() << "Invalid config JSON config detected. Aborting. "
+               << jsonData["prefix"].toString("(NO FUNCTION PREFIX)");
     deleteLater();
     return;
   }
@@ -70,6 +70,7 @@ void CmdHandler::setPath(const QString &newPath) {
     return;
   }
 
+  updateEntries(EntryUpdateFlags::SkipBasePath);
   m_path = newPath;
   emit pathChanged();
 }
@@ -81,6 +82,7 @@ void CmdHandler::setBasePath(const QString &newPath) {
     return;
   }
 
+  updateEntries(EntryUpdateFlags::SkipPath);
   m_basePath = newPath;
   emit basePathChanged();
 }
@@ -104,23 +106,54 @@ QList<CmdEntry *> &CmdHandler::getSortedCommands() {
 };
 
 QQmlListProperty<CmdEntry> CmdHandler::entries() {
-  return QQmlListProperty<CmdEntry>(this, &getSortedCommands());
+  return QQmlListProperty<CmdEntry>(this, &getFilteredCommands());
 }
 
 QString CmdHandler::queryString() { return m_queryString; }
 
 void CmdHandler::setQueryString(const QString &newQuery) {
-  // TODO: This
+  if (newQuery == m_queryString)
+    return;
+
+  m_queryString = newQuery;
+  emit queryStringChanged();
+  emit entriesChanged();
 }
 
-void CmdHandler::updateEntries() {
+QList<CmdEntry *> &CmdHandler::getFilteredCommands() {
+  if (m_queryString == "") {
+    m_filteredCommands = getSortedCommands();
+    return m_filteredCommands;
+  }
+
+  QList<CmdEntry *> listBuffer;
+
+  for (const auto &entry : getSortedCommands()) {
+    if (entry->prefix().startsWith(m_queryString)) {
+      listBuffer.append(entry);
+    }
+  }
+
+  if (listBuffer != m_filteredCommands) {
+    m_filteredCommands = listBuffer;
+  }
+
+  return m_filteredCommands;
+}
+
+void CmdHandler::updateEntries(int flag) {
   bool dirty;
   QSet<QString> allCommands;
 
-  allCommands.unite(pathIterate(m_basePath, &dirty, [](CmdEntry *entry) {
-    entry->setIsCoreCommand(true);
-  }));
-  allCommands.unite(pathIterate(m_path, &dirty));
+  if ((flag & EntryUpdateFlags::SkipBasePath) !=
+      EntryUpdateFlags::SkipBasePath) {
+    allCommands.unite(pathIterate(m_basePath, &dirty, [](CmdEntry *entry) {
+      entry->setIsCoreCommand(true);
+    }));
+  }
+  if ((flag & EntryUpdateFlags::SkipPath) != EntryUpdateFlags::SkipPath) {
+    allCommands.unite(pathIterate(m_path, &dirty));
+  }
 
   // Iterates and removes all non-existing commands
   for (auto it = m_cmdEntries.keyBegin(); it != m_cmdEntries.keyEnd(); ++it) {

@@ -15,7 +15,7 @@ class CmdEntry : public QObject {
 
   Q_PROPERTY(QString prefix READ prefix NOTIFY prefixChanged)
   Q_PROPERTY(QString separator READ separator NOTIFY separatorChanged)
-  Q_PROPERTY(QString path READ path NOTIFY path)
+  Q_PROPERTY(QString path READ path NOTIFY pathChanged)
   Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
   Q_PROPERTY(QString label READ label NOTIFY labelChanged)
   Q_PROPERTY(bool isCoreCommand READ isCoreCommand NOTIFY isCoreCommandChanged)
@@ -61,6 +61,8 @@ class CmdHandler : public QObject {
 public:
   explicit CmdHandler(QObject *parent = nullptr);
 
+  enum EntryUpdateFlags { None = 0, SkipPath = 1 << 0, SkipBasePath = 1 << 1 };
+
   [[nodiscard]] QString path() const;
   void setPath(const QString &newPath);
 
@@ -85,17 +87,18 @@ signals:
 private:
   QString m_path;
   QString m_basePath;
-  QString m_queryString;
+  QString m_queryString = "";
   QHash<QString, CmdEntry *> m_cmdEntries;
   mutable QList<CmdEntry *> m_sortedCommands;
+  mutable QList<CmdEntry *> m_filteredCommands;
 
   template <typename Func>
   QSet<QString> pathIterate(const QString &path, bool *isDirty, Func callback);
 
   QSet<QString> pathIterate(const QString &path, bool *isDirty = nullptr);
 
-  void updateEntries();
-  QList<CmdEntry *> &getFilteredCommands(const QString &filter);
+  void updateEntries(int flag = 0);
+  QList<CmdEntry *> &getFilteredCommands();
   QList<CmdEntry *> &getSortedCommands();
 };
 

@@ -58,6 +58,7 @@ qml_module(myshell
   URI MyShellPlugin
   SOURCES
     appdb.h appdb.cpp
+    cmdhandler.h cmdhandler.cpp
   LIBRARIES
     Qt::Gui
     Qt::Quick
