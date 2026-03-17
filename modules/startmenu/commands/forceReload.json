@@ -1,5 +1,6 @@
 {
   "prefix": "forceReload",
   "label": "Force reload command list",
-  "path": ""
+  "path": "",
+  "icon": "󰑓"
 }

@@ -7,9 +7,12 @@ import Quickshell
 ListView {
     id: root
 
-    required property string query
+    required property TextInput textInput
 
-    readonly property bool hasQuery: query !== ""
+    readonly property bool hasQuery: debouncedInput !== ""
+
+    property string debouncedInput
+    property list<QtObject> filteredList
 
     model: ScriptModel {
         values: {
@@ -21,6 +24,45 @@ ListView {
     reuseItems: true
 
     delegateModelAccess: DelegateModel.ReadOnly
+
+    Connections {
+        target: root.textInput
+
+        function onTextChanged() {
+            debounceTimer.restart();
+        }
+
+        function onAccepted() {
+            const item = root.currentItem;
+            if (!item)
+                return;
+
+            item?.triggerItem?.();
+        }
+    }
+
+    function onKeyPressReceived(key: int): void {
+        if (key === Qt.Key_Up || key === Qt.Key_Backtab) {
+            root.decrementCurrentIndex();
+        } else if (key === Qt.Key_Down || key === Qt.Key_Tab) {
+            root.incrementCurrentIndex();
+        }
+    }
+
+    Timer {
+        id: debounceTimer
+        interval: 250
+
+        onTriggered: {
+            const newFilter = root.textInput.text.trim();
+            if (newFilter == root.debouncedInput)
+                return;
+
+            root.debouncedInput = newFilter;
+            root.filteredList = AppService.query(newFilter);
+            root.currentIndex = 0;
+        }
+    }
 
     add: Transition {
         enabled: !GlobalStateManager.isGameMode

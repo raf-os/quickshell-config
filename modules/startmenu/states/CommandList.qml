@@ -1,24 +1,46 @@
+pragma ComponentBehavior: Bound
+
+import "../items"
 import qs.config
 import qs.components
 import qs.services
-import MyShellPlugin
+import Quickshell
 import QtQuick
 
 ListView {
     id: root
 
-    required property string cmdQuery
+    required property PersistentProperties openPanels
+    required property TextInput textInput
+
     model: UserCommandService.entries
 
-    onCmdQueryChanged: {
-        UserCommandService.setQuery(cmdQuery.slice(Config.launcher.commandPrefix.length));
+    clip: true
+    reuseItems: true
+
+    Component.onCompleted: {
+        UserCommandService.attemptFirstLoad();
+    }
+
+    Connections {
+        target: root.textInput
+
+        function onTextChanged() {
+            UserCommandService.setQuery(root.textInput.text.slice(Config.launcher.commandPrefix.length));
+        }
     }
 
     delegateModelAccess: DelegateModel.ReadOnly
 
-    delegate: StyledText {
-        required property CmdEntry modelData
+    function onKeyPressReceived(key: int): void {
+    }
 
-        text: `${modelData.label}`
+    highlight: Rectangle {
+        implicitWidth: parent?.width ?? 100
+        implicitHeight: 32
+    }
+
+    delegate: CommandItem {
+        openPanels: root.openPanels
     }
 }

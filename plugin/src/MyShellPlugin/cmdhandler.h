@@ -18,6 +18,7 @@ class CmdEntry : public QObject {
   Q_PROPERTY(QString path READ path NOTIFY pathChanged)
   Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
   Q_PROPERTY(QString label READ label NOTIFY labelChanged)
+  Q_PROPERTY(QString icon READ icon NOTIFY iconChanged)
   Q_PROPERTY(bool isCoreCommand READ isCoreCommand NOTIFY isCoreCommandChanged)
 
 public:
@@ -29,6 +30,7 @@ public:
   [[nodiscard]] QString path() const;
   [[nodiscard]] QString description() const;
   [[nodiscard]] QString label() const;
+  [[nodiscard]] QString icon() const;
   [[nodiscard]] bool isCoreCommand() const;
   void setIsCoreCommand(bool coreCommand);
 
@@ -38,6 +40,7 @@ signals:
   void pathChanged();
   void descriptionChanged();
   void labelChanged();
+  void iconChanged();
   void isCoreCommandChanged();
 
 private:

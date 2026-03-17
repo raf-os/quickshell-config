@@ -55,6 +55,8 @@ QString CmdEntry::description() const {
 
 QString CmdEntry::label() const { return m_data["label"].toString(); }
 
+QString CmdEntry::icon() const { return m_data["icon"].toString(); }
+
 bool CmdEntry::isCoreCommand() const { return m_isCoreCommand; }
 
 void CmdEntry::setIsCoreCommand(bool coreCommand) {

@@ -31,10 +31,10 @@ ColumnLayout {
         openPanels.startmenu = false;
     }
 
-    Keys.onUpPressed: lview.decrementCurrentIndex()
-    Keys.onDownPressed: lview.incrementCurrentIndex()
-    Keys.onTabPressed: lview.incrementCurrentIndex()
-    Keys.onBacktabPressed: lview.decrementCurrentIndex()
+    Keys.onUpPressed: stateWrapper.receiveKeyPress(Qt.Key_Up)
+    Keys.onDownPressed: stateWrapper.receiveKeyPress(Qt.Key_Down)
+    Keys.onTabPressed: stateWrapper.receiveKeyPress(Qt.Key_Tab)
+    Keys.onBacktabPressed: stateWrapper.receiveKeyPress(Qt.Key_Backtab)
 
     function forceFocusInput() {
         cmdinputtxt?.forceActiveFocus();
@@ -88,15 +88,6 @@ ColumnLayout {
             anchors.verticalCenter: parent.verticalCenter
             padding: Config.appearance.spacing.sm
 
-            onAccepted: {
-                const item = lview.currentItem;
-                if (!item)
-                    return;
-
-                if ((item?.itemType ?? "") === "appitem")
-                    item?.triggerItem?.();
-            }
-
             color: ColorService.current.baseContent
 
             onTextChanged: {
@@ -108,62 +99,60 @@ ColumnLayout {
                 } else {
                     root.mode = "apps";
                 }
-                debounceTimer.restart();
             }
         }
-
-        Timer {
-            id: debounceTimer
-
-            interval: 250
-
-            onTriggered: {
-                const newFilter = cmdinputtxt.text.trim();
-                if (newFilter === cmdinput.debouncedInput)
-                    return;
-                cmdinput.debouncedInput = newFilter;
-                if (!root.isActive)
-                    return;
-                if (root.hasQuery) {
-                    root.filteredList = AppService.query(newFilter);
-                }
-                if (lview)
-                    lview.currentIndex = 0;
-            }
-        }
-    }
-
-    AppList {
-        id: lview
-
-        query: cmdinput.debouncedInput
-
-        visible: root.mode === "apps"
-
-        implicitWidth: Config.launcher.width - root.padding * 2
-        Layout.fillHeight: true
-        Layout.margins: root.padding
-        spacing: root.padding
-
-        delegate: AppItem {
-            openPanels: root.openPanels
-        }
-    }
-
-    CommandList {
-        id: cview
-
-        visible: root.mode === "command"
-        cmdQuery: cmdinputtxt.text
-
-        implicitWidth: Config.launcher.width - root.padding * 2
-        Layout.fillHeight: true
-        Layout.margins: root.padding
-        spacing: root.padding
     }
 
     Item {
+        id: stateWrapper
+
+        property StateWrapper activeChildItem: children.find(child => child.active === true)
+
         implicitWidth: Config.launcher.width
+
         Layout.fillHeight: true
+
+        function receiveKeyPress(key: int): void {
+            const activeList = activeChildItem.item;
+            if (!activeList)
+                return;
+            activeList?.onKeyPressReceived?.(key);
+        }
+
+        StateWrapper {
+            id: appStateWrap
+            myState: "apps"
+            currentState: root.mode
+
+            sourceComponent: AppList {
+                id: lview
+
+                textInput: cmdinputtxt
+
+                anchors.fill: parent
+                spacing: root.padding
+
+                delegate: AppItem {
+                    openPanels: root.openPanels
+                }
+            }
+        }
+
+        StateWrapper {
+            id: cmdStateWrap
+            myState: "command"
+            currentState: root.mode
+
+            sourceComponent: CommandList {
+                id: cview
+
+                anchors.fill: parent
+
+                spacing: root.padding
+
+                openPanels: root.openPanels
+                textInput: cmdinputtxt
+            }
+        }
     }
 }
