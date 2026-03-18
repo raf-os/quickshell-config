@@ -28,6 +28,10 @@ ListView {
         updateQueryString();
     }
 
+    function getCommandString(): string {
+        return root.textInput.text.slice(Config.launcher.commandPrefix.length);
+    }
+
     Connections {
         target: root.textInput
 
@@ -41,12 +45,20 @@ ListView {
                 const cmdSeparator = root.currentItem?.modelData?.separator ?? " ";
                 root.textInput.text = `${Config.launcher.commandPrefix}${cmdPrefix}${cmdSeparator}`;
                 root.isSelectionActive = false;
+            } else {
+                const msg = UserCommandService.executeCommand(root.getCommandString());
+                const isSuccess = msg["success"] === true ?? false;
+                if (!isSuccess) {
+                    root.sendStateMessage(msg["message"]);
+                } else {
+                    root.openPanels.startmenu = false;
+                }
             }
         }
     }
 
     function updateQueryString() {
-        UserCommandService.setQuery(root.textInput.text.slice(Config.launcher.commandPrefix.length));
+        UserCommandService.setQuery(root.getCommandString());
         root.currentIndex = 0;
         isSelectionActive = false;
     }

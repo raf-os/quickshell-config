@@ -56,5 +56,7 @@ JsonObject {
     component AnimCurves: JsonObject {
         property list<real> linear: [0, 0, 1, 1, 1, 1]
         property list<real> defaultEase: [.45, 0, 0, 1, 1, 1]
+        property list<real> easeInOut: [.45, 0, 0.5, 1, 1, 1]
+        property list<real> accelerateOverCorrect: [.3, 1.5, .2, .85, 1, 1]
     }
 }

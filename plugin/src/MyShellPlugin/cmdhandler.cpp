@@ -1,5 +1,6 @@
 #include "cmdhandler.h"
 
+#include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qdirlisting.h>
 #include <qfiledevice.h>
@@ -12,6 +13,7 @@
 #include <qlist.h>
 #include <qlogging.h>
 #include <qobject.h>
+#include <qprocess.h>
 #include <qqmllist.h>
 
 namespace myqmlplugin {
@@ -57,11 +59,19 @@ QString CmdEntry::label() const { return m_data["label"].toString(); }
 
 QString CmdEntry::icon() const { return m_data["icon"].toString(); }
 
+int CmdEntry::arguments() const { return m_data["arguments"].toInt(0); }
+
+bool CmdEntry::captureOutput() const {
+  return m_data["captureOutput"].toBool(false);
+}
+
 bool CmdEntry::isCoreCommand() const { return m_isCoreCommand; }
 
 void CmdEntry::setIsCoreCommand(bool coreCommand) {
   m_isCoreCommand = coreCommand;
 }
+
+// =============================================
 
 CmdHandler::CmdHandler(QObject *parent) : QObject(parent) {}
 
@@ -116,7 +126,7 @@ QQmlListProperty<CmdEntry> CmdHandler::entries() {
   return QQmlListProperty<CmdEntry>(this, &getFilteredCommands());
 }
 
-QString CmdHandler::queryString() { return m_queryString; }
+QString CmdHandler::queryString() const { return m_queryString; }
 
 void CmdHandler::setQueryString(const QString &newQuery) {
   if (newQuery == m_queryString)
@@ -256,5 +266,95 @@ QSet<QString> CmdHandler::pathIterate(const QString &path, bool *isDirty) {
   return pathIterate(path, isDirty, [](CmdEntry *) {});
 }
 
-QString CmdHandler::executeCommand(const QString &command) { return "0"; }
+bool CmdHandler::isProcessRunning() { return m_runningProcess != nullptr; }
+
+QList<QString> CmdHandler::processOutput() const { return m_processOutput; }
+
+QVariantMap CmdHandler::executeCommand(const QString &command) {
+  QVariantMap responseBuffer;
+  responseBuffer.insert("success", false);
+  if (isProcessRunning()) {
+    responseBuffer.insert("message", "A process is already running.");
+    return responseBuffer;
+  }
+
+  CmdEntry *entryBuffer = nullptr;
+
+  for (auto it = m_cmdEntries.cbegin(); it != m_cmdEntries.cend(); ++it) {
+    const auto &id = it.key();
+    if (command.startsWith(id)) {
+      entryBuffer = it.value();
+      break;
+    }
+  }
+
+  if (entryBuffer == nullptr) {
+    responseBuffer.insert("message", "Command does not exist.");
+    return responseBuffer;
+  }
+
+  const auto cmdPrefixLength = entryBuffer->prefix().length();
+
+  if (cmdPrefixLength > command.length()) {
+    qDebug()
+        << "myqmlplugin::CmdHandler::executeCommand potential buffer overflow."
+        << " Command name definition is larger than the actual command "
+           "received."
+        << " Aborting.";
+    responseBuffer.insert(
+        "messagge", "Something fucky is going on. Aborting now to prevent "
+                    "buffer overflow.");
+    return responseBuffer;
+  }
+
+  QString cmdArgs = command.sliced(entryBuffer->prefix().length()).trimmed();
+  QList<QString> args;
+
+  if (cmdArgs.length() > 0 && entryBuffer->separator().length() > 0) {
+    qDebug() << cmdArgs;
+    auto splitArgs = cmdArgs.split(entryBuffer->separator());
+    if (splitArgs.length() > entryBuffer->arguments()) {
+      responseBuffer.insert(
+          "message",
+          QString("Invalid amount of arguments for command. Expected "
+                  "maximum of %1, received %2.")
+              .arg(entryBuffer->arguments())
+              .arg(splitArgs.length()));
+      return responseBuffer;
+    }
+    args = splitArgs;
+  } else {
+    args = QList<QString>({cmdArgs});
+  }
+
+  m_processOutput.clear();
+
+  m_runningProcess = new QProcess(this);
+  m_runningProcess->setProgram(entryBuffer->path());
+  m_runningProcess->setArguments(args);
+  QObject::connect(m_runningProcess, &QProcess::finished, this, [this]() {
+    emit isProcessRunningChanged();
+    m_runningProcess->deleteLater();
+    m_runningProcess = nullptr;
+  });
+  QObject::connect(
+      m_runningProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+        auto output =
+            QString::fromUtf8(m_runningProcess->readAllStandardOutput());
+        m_processOutput.append(output);
+        emit processOutputChanged();
+      });
+  QObject::connect(
+      m_runningProcess, &QProcess::readyReadStandardError, this, [this]() {
+        auto output =
+            QString::fromUtf8(m_runningProcess->readAllStandardError());
+        m_processOutput.append("[ERROR] " + output);
+        emit processOutputChanged();
+      });
+  m_runningProcess->start();
+
+  responseBuffer["success"] = true;
+  responseBuffer.insert("captureOutput", entryBuffer->captureOutput());
+  return responseBuffer;
+}
 } // namespace myqmlplugin

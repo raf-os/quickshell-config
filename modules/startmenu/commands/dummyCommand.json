@@ -1,6 +1,7 @@
 {
   "prefix": "dummyCommand",
   "label": "Testing",
-  "path": "",
-  "icon": ""
+  "path": "./dummyCommand.py",
+  "icon": "",
+  "captureOutput": true
 }

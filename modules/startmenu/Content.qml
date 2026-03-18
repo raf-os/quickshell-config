@@ -18,6 +18,7 @@ ColumnLayout {
     readonly property bool isActive: openPanels.startmenu
     readonly property bool hasQuery: isActive && cmdinput?.debouncedInput && cmdinput.debouncedInput.length > 0
 
+    property string errorMessage: ""
     property string mode: "apps"
     // Modes: apps | command
 
@@ -55,10 +56,12 @@ ColumnLayout {
     // }
 
     function showStateMessage(message: string): void {
+        root.errorMessage = message;
+        stateMessage.displayMessage();
     }
 
-    Item {
-        id: stateMessage
+    function dismissStateMessage(): void {
+        stateMessage.clearMessage();
     }
 
     Item {
@@ -105,7 +108,136 @@ ColumnLayout {
                     root.mode = "command";
                 } else {
                     root.mode = "apps";
+                    root.dismissStateMessage();
                 }
+            }
+        }
+    }
+
+    Loader {
+        id: stateMessage
+
+        property bool isActive: false
+
+        active: isActive
+        visible: isActive
+
+        Layout.fillWidth: true
+        Layout.margins: root.padding
+
+        signal clearMessage
+
+        function displayMessage() {
+            stateMessage.isActive = true;
+            if (item) {
+                item?.exitTimer?.restart();
+            }
+        }
+
+        sourceComponent: Item {
+            id: errorWrapper
+
+            readonly property real initialHeight: errorText.implicitHeight ?? 24
+
+            implicitWidth: parent.width - root.padding * 2
+            implicitHeight: initialHeight
+
+            clip: true
+            scale: 0.8
+            opacity: 0
+
+            Component.onCompleted: {
+                entryAnim.start();
+                exitTimer.start();
+            }
+
+            Connections {
+                target: stateMessage
+
+                function onClearMessage() {
+                    if (entryAnim.running)
+                        entryAnim.stop();
+                    exitAnim.start();
+                }
+            }
+
+            Timer {
+                id: exitTimer
+                interval: 3000
+
+                onTriggered: {
+                    if (entryAnim.running)
+                        entryAnim.stop();
+                    exitAnim.start();
+                }
+            }
+
+            Behavior on implicitHeight {
+                NAnim {
+                    duration: 300
+                }
+            }
+
+            ParallelAnimation {
+                id: entryAnim
+
+                NAnim {
+                    target: errorWrapper
+                    property: "opacity"
+                    to: 1
+                    easing.bezierCurve: Config.appearance.animCurves.easeInOut
+                    duration: 400
+                }
+
+                NAnim {
+                    target: errorWrapper
+                    property: "scale"
+                    to: 1
+                    easing.bezierCurve: Config.appearance.animCurves.accelerateOverCorrect
+                    duration: 500
+                }
+            }
+
+            SequentialAnimation {
+                id: exitAnim
+
+                NAnim {
+                    target: errorWrapper
+                    property: "opacity"
+                    to: 0
+                    duration: 300
+                    easing.bezierCurve: Config.appearance.animCurves.linear
+                }
+                ScriptAction {
+                    script: stateMessage.isActive = false
+                }
+            }
+
+            StyledRect {
+                color: ColorService.current.destructive
+
+                anchors.fill: parent
+
+                radius: Config.appearance.rounding.sm
+            }
+
+            StyledText {
+                id: errorText
+
+                anchors.fill: parent
+
+                width: parent.width
+                text: root.errorMessage
+                color: ColorService.current.baseContent
+
+                topPadding: 6
+                bottomPadding: 6
+                leftPadding: 10
+                rightPadding: 10
+                font.pointSize: Config.appearance.fontSize.sm
+
+                maximumLineCount: 6
+                wrapMode: Text.Wrap
             }
         }
     }
@@ -113,7 +245,7 @@ ColumnLayout {
     Item {
         id: stateWrapper
 
-        property StateWrapper activeChildItem: children.find(child => child.active === true)
+        property var activeChildItem: children.find(child => child.active === true)
 
         implicitWidth: Config.launcher.width
 
@@ -139,6 +271,8 @@ ColumnLayout {
                 anchors.fill: parent
                 spacing: root.padding
 
+                onSendStateMessage: message => root.showStateMessage(message)
+
                 delegate: AppItem {
                     openPanels: root.openPanels
                 }
@@ -159,6 +293,8 @@ ColumnLayout {
 
                 openPanels: root.openPanels
                 textInput: cmdinputtxt
+
+                onSendStateMessage: message => root.showStateMessage(message)
             }
         }
     }

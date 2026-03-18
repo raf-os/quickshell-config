@@ -3,6 +3,7 @@
 #include <qhash.h>
 #include <qjsonobject.h>
 #include <qobject.h>
+#include <qprocess.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
 #include <qtmetamacros.h>
@@ -19,7 +20,8 @@ class CmdEntry : public QObject {
   Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
   Q_PROPERTY(QString label READ label NOTIFY labelChanged)
   Q_PROPERTY(QString icon READ icon NOTIFY iconChanged)
-  Q_PROPERTY(QList<QString> arguments READ arguments NOTIFY argumentsChanged)
+  Q_PROPERTY(int arguments READ arguments NOTIFY argumentsChanged)
+  Q_PROPERTY(bool captureOutput READ captureOutput)
   Q_PROPERTY(bool isCoreCommand READ isCoreCommand NOTIFY isCoreCommandChanged)
 
 public:
@@ -32,7 +34,8 @@ public:
   [[nodiscard]] QString description() const;
   [[nodiscard]] QString label() const;
   [[nodiscard]] QString icon() const;
-  [[nodiscard]] QList<QString> arguments() const;
+  [[nodiscard]] int arguments() const;
+  [[nodiscard]] bool captureOutput() const;
   [[nodiscard]] bool isCoreCommand() const;
   void setIsCoreCommand(bool coreCommand);
 
@@ -63,6 +66,10 @@ class CmdHandler : public QObject {
                  entriesChanged)
   Q_PROPERTY(QString queryString READ queryString WRITE setQueryString NOTIFY
                  queryStringChanged)
+  Q_PROPERTY(bool isProcessRunning READ isProcessRunning NOTIFY
+                 isProcessRunningChanged)
+  Q_PROPERTY(QList<QString> processOutput READ processOutput NOTIFY
+                 processOutputChanged)
 
 public:
   explicit CmdHandler(QObject *parent = nullptr);
@@ -77,23 +84,31 @@ public:
 
   [[nodiscard]] QQmlListProperty<CmdEntry> entries();
 
-  [[nodiscard]] QString queryString();
+  [[nodiscard]] QString queryString() const;
   void setQueryString(const QString &newString);
+
+  [[nodiscard]] QList<QString> processOutput() const;
+
+  [[nodiscard]] bool isProcessRunning();
 
   Q_INVOKABLE void refreshCommandList();
 
-  Q_INVOKABLE QString executeCommand(const QString &command);
+  Q_INVOKABLE QVariantMap executeCommand(const QString &command);
 
 signals:
   void pathChanged();
   void basePathChanged();
   void entriesChanged();
   void queryStringChanged();
+  void isProcessRunningChanged();
+  void processOutputChanged();
 
 private:
   QString m_path;
   QString m_basePath;
   QString m_queryString = "";
+  QProcess *m_runningProcess = nullptr;
+  QList<QString> m_processOutput;
   QHash<QString, CmdEntry *> m_cmdEntries;
   mutable QList<CmdEntry *> m_sortedCommands;
   mutable QList<CmdEntry *> m_filteredCommands;

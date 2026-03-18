@@ -103,6 +103,7 @@ Variants {
 
                 property bool session
                 property bool startmenu
+                property bool commandCapture
 
                 Component.onCompleted: PanelService.load(scope.modelData, this)
             }

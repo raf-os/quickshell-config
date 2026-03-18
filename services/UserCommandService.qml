@@ -1,6 +1,7 @@
 pragma Singleton
 
 import qs.utils
+import qs.modules
 import MyShellPlugin
 import Quickshell
 import Quickshell.Io
@@ -12,6 +13,7 @@ Singleton {
     property bool isFirstLoad: true
     property string cmdQuery
     property alias entries: cmdHandler.entries
+    property alias cmdHandler: cmdHandler
 
     function setQuery(newQuery: string): void {
         cmdQuery = newQuery;
@@ -23,12 +25,36 @@ Singleton {
         console.info("Starting up UserCommandService...");
     }
 
+    function showCapturePopup() {
+        capturePopup.visible = true;
+    }
+
+    function executeCommand(command: string): var {
+        const msg = cmdHandler.executeCommand(command);
+        const isSuccess = msg["success"] === true ?? false;
+        const captureOutput = msg["captureOutput"] === true ?? false;
+
+        if (capturePopup) {
+            showCapturePopup();
+        }
+
+        return {
+            success: isSuccess,
+            message: msg["message"] ?? "",
+            captureOutput: captureOutput
+        };
+    }
+
     function attemptFirstLoad() {
         if (!isFirstLoad)
             return;
 
         cmdHandler.refreshCommandList();
         isFirstLoad = false;
+    }
+
+    CommandCaptureWindow {
+        id: capturePopup
     }
 
     IpcHandler {
