@@ -54,6 +54,13 @@ ColumnLayout {
     //     }
     // }
 
+    function showStateMessage(message: string): void {
+    }
+
+    Item {
+        id: stateMessage
+    }
+
     Item {
         id: cmdinput
 

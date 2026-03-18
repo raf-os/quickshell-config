@@ -71,10 +71,14 @@ Item {
                 text: root.modelData.name
 
                 font.weight: 600
+                font.family: Config.appearance.fontFamily.sans
+                font.pointSize: Config.appearance.fontSize.sm
             }
 
             StyledText {
                 text: (root.modelData?.comment || root.modelData?.genericName) ?? "No description available."
+                font.family: Config.appearance.fontFamily.sans
+                font.pointSize: Config.appearance.fontSize.sm
 
                 color: ColorService.current.baseContentMuted
                 elide: Text.ElideRight

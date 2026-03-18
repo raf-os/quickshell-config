@@ -60,10 +60,6 @@ Item {
                 State {
                     name: "active"
                     when: root.isActive && !root.isUrgent
-
-                    PropertyChanges {
-                        glowLayer.shadowOpacity: 1
-                    }
                 },
                 State {
                     name: "urgent"
@@ -81,10 +77,11 @@ Item {
                         property: "shadowOpacity"
                         easing.bezierCurve: Config.appearance.animCurves.defaultEase
                         duration: 300
+                        to: 1
                     }
                 },
                 Transition {
-                    from: "active"
+                    // from: "active"
                     to: ""
 
                     NAnim {
@@ -92,6 +89,7 @@ Item {
                         property: "shadowOpacity"
                         easing.bezierCurve: Config.appearance.animCurves.defaultEase
                         duration: 300
+                        to: 0
                     }
                 },
                 Transition {

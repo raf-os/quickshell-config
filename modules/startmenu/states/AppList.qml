@@ -14,6 +14,8 @@ ListView {
     property string debouncedInput
     property list<QtObject> filteredList
 
+    signal sendStateMessage(message: string)
+
     model: ScriptModel {
         values: {
             root.hasQuery ? [...AppService.filteredApps] : [...AppService.list].filter(app => app.runInTerminal !== true);
@@ -24,6 +26,10 @@ ListView {
     reuseItems: true
 
     delegateModelAccess: DelegateModel.ReadOnly
+
+    Component.onCompleted: {
+        debouncedInput = textInput.text.trim();
+    }
 
     Connections {
         target: root.textInput

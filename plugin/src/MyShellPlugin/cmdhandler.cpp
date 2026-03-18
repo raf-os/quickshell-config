@@ -255,4 +255,6 @@ QSet<QString> CmdHandler::pathIterate(const QString &path, bool *isDirty,
 QSet<QString> CmdHandler::pathIterate(const QString &path, bool *isDirty) {
   return pathIterate(path, isDirty, [](CmdEntry *) {});
 }
+
+QString CmdHandler::executeCommand(const QString &command) { return "0"; }
 } // namespace myqmlplugin
