@@ -8,14 +8,13 @@ import QtQuick
 /**
  * TODO:
  * * Improve performance by caching whatever we can
- * * Implement fuzzy finding, hopefully not through JS but with C++ plugin
- * * Implement ranked search, putting most used apps at the top
  */
 
 Item {
     id: root
 
     required property PersistentProperties openPanels
+    required property ShellScreen screen
     required property var panels
 
     readonly property real initialWidth: content.implicitWidth
@@ -114,12 +113,14 @@ Item {
         Component.onCompleted: timer.start()
 
         onActiveChanged: {
+            // I forgor why this is here
             if (!item)
                 return;
         }
 
         sourceComponent: Content {
             openPanels: root.openPanels
+            screen: root.screen
         }
     }
 }

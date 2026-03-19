@@ -1,7 +1,7 @@
 pragma Singleton
 
 import qs.utils
-import qs.modules
+import qs.services
 import MyShellPlugin
 import Quickshell
 import Quickshell.Io
@@ -14,6 +14,9 @@ Singleton {
     property string cmdQuery
     property alias entries: cmdHandler.entries
     property alias cmdHandler: cmdHandler
+    property alias commandOutput: cmdHandler.processOutput
+
+    signal processCompleted
 
     function setQuery(newQuery: string): void {
         cmdQuery = newQuery;
@@ -25,17 +28,14 @@ Singleton {
         console.info("Starting up UserCommandService...");
     }
 
-    function showCapturePopup() {
-        capturePopup.visible = true;
-    }
-
     function executeCommand(command: string): var {
         const msg = cmdHandler.executeCommand(command);
         const isSuccess = msg["success"] === true ?? false;
         const captureOutput = msg["captureOutput"] === true ?? false;
 
-        if (capturePopup) {
-            showCapturePopup();
+        if (captureOutput) {
+            const propsForScreen = PanelService.getForActive();
+            propsForScreen["commandCapture"] = true;
         }
 
         return {
@@ -51,10 +51,6 @@ Singleton {
 
         cmdHandler.refreshCommandList();
         isFirstLoad = false;
-    }
-
-    CommandCaptureWindow {
-        id: capturePopup
     }
 
     IpcHandler {
@@ -73,5 +69,9 @@ Singleton {
         basePath: `${Quickshell.shellPath("modules/startmenu/commands")}`
         path: `${Paths.config}/commands`
         queryString: root.cmdQuery
+
+        onProcessFinished: {
+            root.processCompleted();
+        }
     }
 }

@@ -13,12 +13,14 @@ ColumnLayout {
     id: root
 
     required property PersistentProperties openPanels
+    required property ShellScreen screen
     readonly property int rounding: Config.appearance.rounding.md
     readonly property real padding: Config.appearance.padding.lg
     readonly property bool isActive: openPanels.startmenu
     readonly property bool hasQuery: isActive && cmdinput?.debouncedInput && cmdinput.debouncedInput.length > 0
 
     property string errorMessage: ""
+    // property string mode: openPanels.desiredStartMenuTab === "" ? "apps" : openPanels.desiredStartMenuTab ?? "apps"
     property string mode: "apps"
     // Modes: apps | command
 
@@ -44,6 +46,20 @@ ColumnLayout {
     StateTitle {
         currentState: root.mode
         padding: root.padding
+    }
+
+    Component.onCompleted: {
+        checkDesiredTab();
+    }
+
+    function checkDesiredTab() {
+        const desiredTab = root.openPanels.desiredStartMenuTab;
+        console.log(desiredTab);
+        if (desiredTab === "command") {
+            root.mode = "command";
+            cmdinputtxt.text = Config.launcher.commandPrefix;
+        }
+        root.openPanels.desiredStartMenuTab = "";
     }
 
     // Connections {
@@ -286,6 +302,8 @@ ColumnLayout {
 
             sourceComponent: CommandList {
                 id: cview
+
+                screen: root.screen
 
                 anchors.fill: parent
 

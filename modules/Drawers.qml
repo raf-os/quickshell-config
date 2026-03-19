@@ -105,6 +105,8 @@ Variants {
                 property bool startmenu
                 property bool commandCapture
 
+                property string desiredStartMenuTab: ""
+
                 Component.onCompleted: PanelService.load(scope.modelData, this)
             }
 

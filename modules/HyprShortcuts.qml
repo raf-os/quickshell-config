@@ -28,6 +28,23 @@ Scope {
     }
 
     CustomShortcut {
+        //TODO: this
+        name: "startmenuCommand"
+        description: "Toggle start menu in command mode"
+
+        onPressed: {
+            root.startMenuInterrupted = true;
+        }
+        onReleased: {
+            const openPanels = PanelService.getForActive();
+            if (openPanels.startmenu === true)
+                return;
+            openPanels.startmenu = true;
+            openPanels.desiredStartMenuTab = "command";
+        }
+    }
+
+    CustomShortcut {
         name: "startMenuInterrupt"
         description: "Interrupt start menu keybind"
         onPressed: root.startMenuInterrupted = true

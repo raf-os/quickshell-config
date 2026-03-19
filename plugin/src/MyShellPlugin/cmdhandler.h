@@ -102,6 +102,7 @@ signals:
   void queryStringChanged();
   void isProcessRunningChanged();
   void processOutputChanged();
+  void processFinished();
 
 private:
   QString m_path;

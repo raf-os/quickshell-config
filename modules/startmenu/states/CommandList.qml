@@ -12,6 +12,7 @@ ListView {
 
     required property PersistentProperties openPanels
     required property TextInput textInput
+    required property ShellScreen screen
 
     property bool isSelectionActive: false
 
@@ -66,21 +67,22 @@ ListView {
     delegateModelAccess: DelegateModel.ReadOnly
 
     function onKeyPressReceived(key: int): void {
-        if (key === Qt.Key_Tab || key === Qt.Key_Backtab) {
-            if (isSelectionActive) {
-                if (key === Qt.Key_Tab)
-                    root.incrementCurrentIndex();
-                else if (key === Qt.Key_Backtab)
-                    root.decrementCurrentIndex();
-            } else {
-                if (root.count === 0)
-                    return;
-                if (key === Qt.Key_Tab)
-                    root.currentIndex = 0;
-                else if (key === Qt.Key_Backtab)
-                    root.currentIndex = root.count - 1;
-                isSelectionActive = true;
-            }
+        const isDownMovement = (key === Qt.Key_Tab || key === Qt.Key_Down);
+        const isUpMovement = (key === Qt.Key_Backtab || key === Qt.Key_Up);
+
+        if (isSelectionActive) {
+            if (isDownMovement)
+                root.incrementCurrentIndex();
+            else if (isUpMovement)
+                root.decrementCurrentIndex();
+        } else {
+            if (root.count === 0)
+                return;
+            if (isDownMovement)
+                root.currentIndex = 0;
+            else if (isUpMovement)
+                root.currentIndex = root.count - 1;
+            isSelectionActive = true;
         }
     }
 

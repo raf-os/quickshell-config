@@ -1,6 +1,6 @@
 {
   "prefix": "forceReload",
   "label": "Force reload command list",
-  "path": "",
+  "path": "./forceReload.sh",
   "icon": "󰑓"
 }

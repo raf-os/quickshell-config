@@ -28,7 +28,7 @@ CmdEntry::CmdEntry(QString basePath, QJsonObject jsonData, QObject *parent)
 
   if (const QJsonValue v = jsonData["path"]; v.isString()) {
     QDir baseDir(basePath);
-    m_path = QFileInfo(baseDir, v.toString()).canonicalPath();
+    m_path = QFileInfo(baseDir, v.toString()).canonicalFilePath();
     QString scriptName = jsonData["prefix"].toString("<<INVALID SCRIPT>>");
 
     if (m_path == "") {
@@ -38,8 +38,7 @@ CmdEntry::CmdEntry(QString basePath, QJsonObject jsonData, QObject *parent)
       return;
     }
   } else {
-    qWarning()
-        << "myqmlplugin::CmdEntry: Undefined behavior occurred in constructor.";
+    qWarning() << "myqmlplugin::CmdEntry: Impossible script path reached.";
   }
 }
 
@@ -329,11 +328,17 @@ QVariantMap CmdHandler::executeCommand(const QString &command) {
 
   m_processOutput.clear();
 
+  qDebug() << entryBuffer->path();
+
   m_runningProcess = new QProcess(this);
   m_runningProcess->setProgram(entryBuffer->path());
   m_runningProcess->setArguments(args);
   QObject::connect(m_runningProcess, &QProcess::finished, this, [this]() {
+    m_processOutput.append(QString("[EXIT] Process exited with status %1.")
+                               .arg(m_runningProcess->exitStatus()));
+    emit processOutputChanged();
     emit isProcessRunningChanged();
+    emit processFinished();
     m_runningProcess->deleteLater();
     m_runningProcess = nullptr;
   });
@@ -349,7 +354,9 @@ QVariantMap CmdHandler::executeCommand(const QString &command) {
         auto output =
             QString::fromUtf8(m_runningProcess->readAllStandardError());
         m_processOutput.append("[ERROR] " + output);
+        qWarning() << "myqmlplugin::CmdHandler: Error in process: " << output;
         emit processOutputChanged();
+        m_runningProcess->kill();
       });
   m_runningProcess->start();
 

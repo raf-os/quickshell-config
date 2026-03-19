@@ -4,6 +4,7 @@ import qs.config
 import qs.modules.session as Session
 import qs.modules.bar.popouts as BarPopouts
 import qs.modules.startmenu as StartMenuPopout
+import qs.modules.commandcapture
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
@@ -23,10 +24,23 @@ Item {
     anchors.margins: Config.border.thickness
     anchors.topMargin: bar.implicitHeight
 
+    CommandCaptureWrapper {
+        id: commandcapture
+        openPanels: root.openPanels
+        panels: root
+
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        // anchors.verticalCenter: parent.verticalCenter
+        // anchors.top: parent.top
+        // anchors.bottom: parent.bottom
+    }
+
     StartMenuPopout.Wrapper {
         id: startmenu
         openPanels: root.openPanels
         panels: root
+        screen: root.screen
 
         anchors.left: parent.left
         anchors.top: parent.top
