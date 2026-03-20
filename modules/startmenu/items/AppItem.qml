@@ -22,6 +22,8 @@ Item {
     property string iconPath: Quickshell.iconPath(desktopEntry?.icon)
     readonly property int boxRounding: Config.appearance.rounding.sm
 
+    property bool isFavorite: Config.launcher.favoriteApps.includes(modelData.id)
+
     implicitHeight: 64
     implicitWidth: parent?.width ?? 100
 
@@ -46,8 +48,32 @@ Item {
         acceptedButtons: Qt.LeftButton
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
+        preventStealing: true
 
         onClicked: ev => root.triggerItem()
+
+        MouseArea {
+            id: favInteractionArea
+
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            acceptedButtons: Qt.LeftButton
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+
+            implicitWidth: 32
+
+            onClicked: {
+                if (Config.launcher.favoriteApps.includes(root.modelData.id)) {
+                    Config.launcher.favoriteApps = Config.launcher.favoriteApps.filter(a => a !== root.modelData.id);
+                } else {
+                    Config.launcher.favoriteApps.push(root.modelData.id);
+                }
+                Config.save();
+            }
+        }
     }
 
     RowLayout {
@@ -82,21 +108,43 @@ Item {
 
                 color: ColorService.current.baseContentMuted
                 elide: Text.ElideRight
-                width: root.width - icon.width - favIcon.width - appContent.anchors.margins * 2 - parent.spacing * 2
+                width: root.width - icon.width - favIconWrapper.width - appContent.anchors.margins * 2 - parent.spacing * 2
             }
         }
+    }
 
-        Item {
-            id: favIcon
-            implicitWidth: starIcon.implicitWidth
-            implicitHeight: starIcon.implicitHeight
+    Item {
+        id: favIconWrapper
 
-            StyledText {
-                id: starIcon
-                text: "󰓎"
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
 
-                font.pointSize: 16
-            }
+        implicitWidth: favInteractionArea.implicitWidth
+
+        Rectangle {
+            property int verticalMargins: Config.appearance.padding.sm
+
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            anchors.topMargin: verticalMargins
+            anchors.bottomMargin: verticalMargins
+
+            implicitWidth: 1
+
+            color: ColorService.current.base3
+        }
+
+        StyledText {
+            id: starIcon
+            text: "󰓎"
+
+            anchors.centerIn: parent
+
+            font.pointSize: 16
+            color: favInteractionArea.containsMouse ? ColorService.current.primary : root.isFavorite ? ColorService.current.emphasisFavorite : ColorService.current.baseContentMuted
         }
     }
 }
