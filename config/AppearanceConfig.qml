@@ -12,7 +12,7 @@ JsonObject {
 
     component FontFamily: JsonObject {
         property string sans: "DejaVu Sans"
-        property string mono: "CaskaydiaCove Nerd Font"
+        property string mono: "RobotoMono Nerd Font Propo"
         property string monoIcon: "0xProto Nerd Font Mono"
         property string material: "Material Symbols Rounded"
     }

@@ -100,6 +100,37 @@ ColumnLayout {
             color: ColorService.current.base0
         }
 
+        Item {
+            id: modeIconWrapper
+
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            implicitWidth: 24
+
+            StyledText {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+
+                font.family: Config.appearance.fontFamily.monoIcon
+                font.pixelSize: 24
+
+                verticalAlignment: Text.AlignVCenter
+
+                text: {
+                    switch (root.mode) {
+                    case "apps":
+                        return "󰍉";
+                    case "command":
+                        return "";
+                    default:
+                        return "";
+                    }
+                }
+            }
+        }
+
         TextInput {
             id: cmdinputtxt
 
@@ -109,7 +140,7 @@ ColumnLayout {
             font.pointSize: Config.appearance.fontSize.md
             font.family: Config.appearance.fontFamily.mono
 
-            anchors.left: parent.left
+            anchors.left: modeIconWrapper.right
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             padding: Config.appearance.spacing.sm

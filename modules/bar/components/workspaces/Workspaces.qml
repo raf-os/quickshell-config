@@ -40,7 +40,7 @@ Item {
             id: layout
 
             anchors.centerIn: parent
-            spacing: Config.appearance.spacing.sm
+            spacing: Config.appearance.spacing.xs
 
             Repeater {
                 id: workspaces

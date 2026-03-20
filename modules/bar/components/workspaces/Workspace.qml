@@ -125,7 +125,7 @@ Item {
 
         anchors.centerIn: parent
 
-        implicitWidth: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
+        implicitWidth: root.isOccupied || root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
         implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
 
         color: root.isUrgent ? ColorService.current.destructiveHover : root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base2
@@ -150,14 +150,5 @@ Item {
                 duration: 300
             }
         }
-
-        // layer.enabled: !GlobalStateManager.isGameMode
-        // layer.effect: MultiEffect {
-        //     blurMax: 20
-        //     shadowEnabled: true
-        //     shadowColor: "#e25016"
-        //     shadowOpacity: indicator.shadowOpacity
-        //     shadowScale: 1.5
-        // }
     }
 }

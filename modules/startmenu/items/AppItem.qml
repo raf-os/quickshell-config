@@ -145,6 +145,12 @@ Item {
 
             font.pointSize: 16
             color: favInteractionArea.containsMouse ? ColorService.current.primary : root.isFavorite ? ColorService.current.emphasisFavorite : ColorService.current.baseContentMuted
+
+            Behavior on color {
+                CAnim {
+                    duration: 200
+                }
+            }
         }
     }
 }
