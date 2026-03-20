@@ -82,7 +82,20 @@ Item {
 
                 color: ColorService.current.baseContentMuted
                 elide: Text.ElideRight
-                width: root.width - icon.width - appContent.anchors.margins * 2 - parent.spacing * 2
+                width: root.width - icon.width - favIcon.width - appContent.anchors.margins * 2 - parent.spacing * 2
+            }
+        }
+
+        Item {
+            id: favIcon
+            implicitWidth: starIcon.implicitWidth
+            implicitHeight: starIcon.implicitHeight
+
+            StyledText {
+                id: starIcon
+                text: "󰓎"
+
+                font.pointSize: 16
             }
         }
     }

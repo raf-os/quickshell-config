@@ -33,7 +33,7 @@ Singleton {
         id: appDb
 
         path: `${Paths.state}/apps.sqlite`
-        favoriteApps: []
+        favoriteApps: Config.launcher.favoriteApps
         entries: DesktopEntries.applications.values.filter(app => app.noDisplay === false)
     }
 }

@@ -19,7 +19,7 @@ Singleton {
         stdout: SplitParser {
             onRead: data => {
                 const lines = data.split(": ");
-                root.isConnected = lines[1];
+                root.isConnected = lines[1] === "online";
             }
         }
         onExited: connectionStatusTimer.start()

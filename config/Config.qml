@@ -104,7 +104,8 @@ Singleton {
         return {
             enabled: launcher.enabled,
             width: launcher.width,
-            commandPrefix: launcher.commandPrefix
+            commandPrefix: launcher.commandPrefix,
+            favoriteApps: launcher.favoriteApps
         };
     }
 

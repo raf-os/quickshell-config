@@ -27,5 +27,7 @@ Singleton {
 
         property color destructive: "#e32e35"
         property color destructiveHover: "#f87767"
+
+        property color emphasisFavorite: "#efe302"
     }
 }
