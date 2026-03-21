@@ -7,6 +7,7 @@ import qs.utils
 import Quickshell
 import Quickshell.Widgets
 import QtQuick
+import QtQuick.Effects
 
 Loader {
     id: root
@@ -23,6 +24,7 @@ Loader {
         id: content
 
         readonly property int animDuration: 400
+        readonly property int initialWidth: Config.bar.sizes.mediaInfoWidth
 
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
@@ -48,13 +50,15 @@ Loader {
                     NAnim {
                         target: content
                         property: "implicitWidth"
-                        to: 200
+                        to: content.initialWidth
                         duration: content.animDuration
                     }
                     NAnim {
                         target: content
                         property: "opacity"
                         to: 1
+                        duration: content.animDuration
+                        easing.bezierCurve: Config.appearance.animCurves.linear
                     }
                 }
             },
@@ -74,10 +78,21 @@ Loader {
                         property: "opacity"
                         to: 0
                         duration: content.animDuration
+                        easing.bezierCurve: Config.appearance.animCurves.linear
                     }
                 }
             }
         ]
+
+        MouseArea {
+            id: rootInteractionArea
+
+            anchors.fill: parent
+
+            cursorShape: Qt.PointingHandCursor
+
+            hoverEnabled: true
+        }
 
         StyledRect {
             id: bgRect
@@ -126,7 +141,8 @@ Loader {
                 anchors.left: parent.left
 
                 source: iconLoader.iconBuffer
-                implicitSize: 16
+                implicitSize: Config.bar.sizes.innerHeight * 0.75
+                asynchronous: true
             }
         }
 
@@ -149,7 +165,7 @@ Loader {
             clip: true
 
             function fetchTrackData() {
-                trackData.trackTitle = MprisService.currentActive?.trackTitle ?? "UNTITLED";
+                trackData.trackTitle = MprisService.currentActive?.trackTitle ?? "Unknown Title";
                 trackData.trackArtist = MprisService.currentActive?.trackArtist ?? "Unknown Artist";
             }
 
@@ -179,6 +195,10 @@ Loader {
                 target: MprisService
 
                 function onTrackChanged() {
+                    scrollingWrapper.fetchTrackData();
+                }
+
+                function onPlaybackStateChanged() {
                     scrollingWrapper.fetchTrackData();
                 }
             }

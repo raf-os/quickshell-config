@@ -18,12 +18,17 @@ Singleton {
     }
 
     signal trackChanged
+    signal playbackStateChanged
 
     Connections {
         target: root.currentActive
 
         function onPostTrackChanged() {
             root.trackChanged();
+        }
+
+        function onPlaybackStateChanged() {
+            root.playbackStateChanged();
         }
     }
 

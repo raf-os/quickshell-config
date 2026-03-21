@@ -7,5 +7,6 @@ JsonObject {
         property int innerHeight: 24
         property int trayMenuWidth: 200
         property int launcherWidth: 420
+        property int mediaInfoWidth: 180
     }
 }
