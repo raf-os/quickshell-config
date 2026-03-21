@@ -128,7 +128,7 @@ Item {
         implicitWidth: root.isOccupied || root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
         implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
 
-        color: root.isUrgent ? ColorService.current.destructiveHover : root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base2
+        color: root.isUrgent ? ColorService.current.destructiveHover : root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base3
         radius: 1000
 
         Behavior on color {

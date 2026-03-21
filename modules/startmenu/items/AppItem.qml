@@ -48,7 +48,6 @@ Item {
         acceptedButtons: Qt.LeftButton
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
-        preventStealing: true
 
         onClicked: ev => root.triggerItem()
 

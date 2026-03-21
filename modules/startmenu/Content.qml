@@ -54,7 +54,7 @@ ColumnLayout {
 
     function checkDesiredTab() {
         const desiredTab = root.openPanels.desiredStartMenuTab;
-        console.log(desiredTab);
+        // console.log(desiredTab);
         if (desiredTab === "command") {
             root.mode = "command";
             cmdinputtxt.text = Config.launcher.commandPrefix;

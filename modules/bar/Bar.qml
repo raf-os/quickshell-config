@@ -81,7 +81,10 @@ RowLayout {
         Workspaces {
             screen: root.screen
         }
+
         Spacing {}
+
+        MediaInfo {}
     }
 
     WindowTitle {

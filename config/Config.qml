@@ -12,6 +12,7 @@ Singleton {
     property alias border: adapter.border
     property alias bar: adapter.bar
     property alias launcher: adapter.launcher
+    property alias media: adapter.media
 
     property bool recentlySaved: false
 
@@ -64,7 +65,8 @@ Singleton {
             appearance: serializeAppearance(),
             bar: serializeBar(),
             border: serializeBorder(),
-            launcher: serializeLauncher()
+            launcher: serializeLauncher(),
+            media: serializeMedia()
         };
     }
 
@@ -106,6 +108,14 @@ Singleton {
             width: launcher.width,
             commandPrefix: launcher.commandPrefix,
             favoriteApps: launcher.favoriteApps
+        };
+    }
+
+    function serializeMedia(): var {
+        return {
+            enabled: media.enabled,
+            defaultPlayer: media.defaultPlayer,
+            playerAliases: media.playerAliases
         };
     }
 
@@ -153,6 +163,7 @@ Singleton {
             property BorderConfig border: BorderConfig {}
             property BarConfig bar: BarConfig {}
             property LauncherConfig launcher: LauncherConfig {}
+            property MediaConfig media: MediaConfig {}
         }
     }
 }

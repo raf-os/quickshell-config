@@ -24,20 +24,22 @@ Item {
         color: ColorService.current.base0
         radius: Config.appearance.rounding.sm
     }
+
     StyledText {
         anchors.centerIn: parent
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.family: Config.appearance.fontFamily.mono
-        font.pointSize: Config.appearance.fontSize.md
+        font.family: textMetrics.font.family
+        font.pointSize: textMetrics.font.pointSize
         text: textMetrics.elidedText
     }
+
     TextMetrics {
         id: textMetrics
         font.family: Config.appearance.fontFamily.mono
-        font.pointSize: Config.appearance.fontSize.md
+        font.pointSize: Config.appearance.fontSize.sm
         elide: Qt.ElideRight
-        elideWidth: rectBg.width - Config.appearance.padding.lg * 2
+        elideWidth: rectBg.width - Config.appearance.padding.md * 2
         text: Hypr.activeTopLevel?.title ?? qsTr("Desktop")
     }
 }
