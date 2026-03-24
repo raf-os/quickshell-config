@@ -128,6 +128,10 @@ Loader {
                 function onIsMediaActiveChanged() {
                     iconLoader.updateIconBuffer();
                 }
+
+                function onShouldBeActiveChanged() {
+                    iconLoader.updateIconBuffer();
+                }
             }
 
             function updateIconBuffer() {
@@ -176,8 +180,8 @@ Loader {
             QtObject {
                 id: trackData
 
-                property string trackTitle: ""
-                property string trackArtist: ""
+                property string trackTitle: MprisService.currentActive?.trackTitle ?? "Unknown Title"
+                property string trackArtist: MprisService.currentActive?.trackArtist ?? "Unknown Artist"
             }
 
             Connections {
@@ -211,21 +215,7 @@ Loader {
                 readonly property string displayText: `${currentTrackTitle} - ${currentTrackArtist}`
                 property string bufferedText: "No media"
 
-                Component.onCompleted: {
-                    updateBufferedText();
-                }
-
-                onCurrentTrackTitleChanged: {
-                    updateBufferedText();
-                }
-
-                function updateBufferedText() {
-                    if (root.shouldBeActive == false)
-                        return;
-                    bufferedText = displayText;
-                }
-
-                text: bufferedText
+                text: displayText
 
                 font.family: Config.appearance.fontFamily.sans
                 font.pointSize: Config.appearance.fontSize.xs
