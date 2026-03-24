@@ -83,8 +83,8 @@ Variants {
                 layer.enabled: !GlobalStateManager.isGameMode
                 layer.effect: MultiEffect {
                     shadowEnabled: true
-                    blurMax: 24
-                    shadowColor: Qt.alpha("black", 0.85)
+                    blurMax: 32
+                    shadowColor: Qt.alpha("black", 1)
                 }
 
                 Border {

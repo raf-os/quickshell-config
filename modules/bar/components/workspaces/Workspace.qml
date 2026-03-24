@@ -125,7 +125,7 @@ Item {
 
         anchors.centerIn: parent
 
-        implicitWidth: root.isOccupied || root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
+        implicitWidth: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
         implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
 
         color: root.isUrgent ? ColorService.current.destructiveHover : root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base3

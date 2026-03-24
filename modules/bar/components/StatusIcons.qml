@@ -5,23 +5,34 @@ import qs.components
 import qs.modules.bar
 import qs.services.network
 import qs.utils
+import qs.services
 import qs.config
 import QtQuick
 import QtQuick.Layouts
 
-StyledRect {
+Item {
     id: root
 
     required property PopoutHandler popoutHandler
 
-    implicitWidth: iconRow.implicitWidth + Config.appearance.padding.md
+    implicitWidth: iconRow.implicitWidth + Config.appearance.padding.xl
     implicitHeight: Config.bar.sizes.innerHeight
+
+    StyledRect {
+        id: bgRect
+
+        anchors.fill: parent
+
+        color: ColorService.current.base0
+        radius: Config.appearance.rounding.sm
+    }
 
     RowLayout {
         id: iconRow
 
-        anchors.fill: parent
-        spacing: Config.appearance.spacing.sm
+        anchors.centerIn: parent
+
+        spacing: Config.appearance.spacing.xs
 
         WrappedLoader {
             id: gameModeStatus

@@ -41,6 +41,6 @@ Singleton {
         else if (volume > 0)
             return "󰖀";
         else
-            return "󰖁";
+            return "󰕿";
     }
 }

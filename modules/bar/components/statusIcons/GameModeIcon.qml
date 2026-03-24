@@ -11,49 +11,14 @@ Item {
     id: root
 
     property bool isActive: GlobalStateManager.isGameMode
-    property real shadowOpacity: 0
     readonly property int animDuration: 200
 
-    implicitWidth: Config.appearance.fontSize.lg * 1.2
-    implicitHeight: Config.appearance.fontSize.lg * 1.2
+    implicitWidth: Config.appearance.fontSize.xl
+    implicitHeight: Config.bar.sizes.innerHeight
 
     function checkGamemodeState(callback: var): void {
         GlobalStateManager.checkGamemodeState(callback);
     }
-
-    states: State {
-        name: "active"
-        when: root.isActive
-
-        PropertyChanges {
-            root.shadowOpacity: 1
-        }
-    }
-
-    transitions: [
-        Transition {
-            from: ""
-            to: "active"
-
-            NAnim {
-                target: root
-                property: "shadowOpacity"
-                easing.bezierCurve: Config.appearance.animCurves.linear
-                duration: root.animDuration
-            }
-        },
-        Transition {
-            from: "active"
-            to: ""
-
-            NAnim {
-                target: root
-                property: "shadowOpacity"
-                easing.bezierCurve: Config.appearance.animCurves.linear
-                duration: root.animDuration
-            }
-        }
-    ]
 
     MouseArea {
         anchors.fill: parent
@@ -67,23 +32,36 @@ Item {
         }
     }
 
+    Rectangle {
+        anchors.centerIn: parent
+
+        readonly property int size: Config.appearance.fontSize.xl
+
+        implicitWidth: size
+        implicitHeight: size
+
+        color: ColorService.current.primary
+        radius: Config.appearance.rounding.xs
+
+        opacity: root.isActive ? 1 : 0
+
+        Behavior on opacity {
+            NAnim {
+                duration: 300
+            }
+        }
+    }
+
     StyledText {
         id: icon
         anchors.centerIn: parent
-        text: "󰖺"
+        text: root.isActive ? "󰖺" : "󰖻"
         color: root.isActive ? ColorService.current.baseContent : ColorService.current.baseContentMuted
 
-        font.pixelSize: Config.bar.sizes.innerHeight * 1
+        font.pixelSize: Config.appearance.fontSize.xxl
         font.family: Config.appearance.fontFamily.monoIcon
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: ColorService.current.primary
-            shadowOpacity: root.shadowOpacity
-            shadowScale: 1.25
-            blurMax: 32
-        }
+        horizontalAlignment: Qt.AlignHCenter
 
         Behavior on color {
             CAnim {

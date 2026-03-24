@@ -25,6 +25,7 @@ JsonObject {
         property int md: 12 * scale
         property int lg: 14 * scale
         property int xl: 17 * scale
+        property int xxl: 20 * scale
     }
 
     component Rounding: JsonObject {

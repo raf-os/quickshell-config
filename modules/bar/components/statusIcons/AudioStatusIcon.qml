@@ -5,21 +5,18 @@ import qs.services
 import QtQuick
 import QtQuick.Layouts
 
-RowLayout {
+Item {
     id: root
     property real roundedVolume: Math.round((AudioService.volume * 10000)) / 100
 
-    spacing: Config.appearance.spacing.xs
+    implicitHeight: Config.bar.sizes.innerHeight
+    implicitWidth: Config.appearance.fontSize.xl
 
     StyledText {
-        text: `${root.roundedVolume}%`
-        font.pointSize: Config.appearance.fontSize.sm
-        font.family: Config.appearance.fontFamily.mono
-    }
-
-    StyledText {
+        id: iconTxt
+        anchors.centerIn: parent
         text: `${Icons.getVolumeIcon(AudioService.volume, AudioService.isMuted)}`
-        font.pointSize: Config.appearance.fontSize.md
-        font.family: Config.appearance.fontFamily.mono
+        font.pixelSize: Config.appearance.fontSize.xl
+        font.family: Config.appearance.fontFamily.monoIcon
     }
 }

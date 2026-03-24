@@ -29,6 +29,8 @@ Item {
             Layout.bottomMargin: -Config.appearance.spacing.sm
             text: qsTr("Volume (%1)").arg(AudioService.isMuted ? qsTr("Muted") : `${Math.round(AudioService.volume * 100)}%`)
             font.weight: 500
+            font.family: Config.appearance.fontFamily.sans
+            font.pointSize: Config.appearance.fontSize.sm
         }
 
         MouseArea {

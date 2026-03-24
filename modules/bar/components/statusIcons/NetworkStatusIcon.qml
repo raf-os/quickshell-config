@@ -5,11 +5,14 @@ import QtQuick
 Item {
     id: root
     property string text: ""
-    implicitWidth: icon.implicitWidth
-    implicitHeight: icon.implicitHeight
+    implicitWidth: Config.appearance.fontSize.xl
+    implicitHeight: Config.bar.sizes.innerHeight
+
     StyledText {
         id: icon
+        anchors.centerIn: parent
         text: root.text
-        font.pointSize: Config.appearance.fontSize.md
+        font.pixelSize: Config.appearance.fontSize.xl
+        font.family: Config.appearance.fontFamily.monoIcon
     }
 }
