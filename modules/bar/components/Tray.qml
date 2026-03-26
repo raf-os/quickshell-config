@@ -8,7 +8,7 @@ import Quickshell.Services.SystemTray
 import QtQuick
 import QtQuick.Layouts
 
-StyledRect {
+Item {
     id: root
 
     required property PopoutHandler popoutHandler
@@ -19,14 +19,25 @@ StyledRect {
     readonly property int padding: Config.appearance.padding.sm
     readonly property int spacing: Config.appearance.spacing.md
 
-    implicitWidth: layout.implicitWidth + padding * 2
+    readonly property real initialWidth: layout.implicitWidth + padding * 2
+    readonly property bool hasItems: SystemTray.items.values.length > 0
+
+    implicitWidth: hasItems ? initialWidth : 0
     implicitHeight: Config.bar.sizes.innerHeight
 
     clip: true
     visible: width > 0
 
-    color: ColorService.current.base0
-    radius: Config.appearance.rounding.sm
+    Behavior on implicitWidth {
+        NAnim {}
+    }
+
+    Rectangle {
+        anchors.fill: parent
+
+        color: ColorService.current.base0
+        radius: Config.appearance.rounding.sm
+    }
 
     RowLayout {
         id: layout

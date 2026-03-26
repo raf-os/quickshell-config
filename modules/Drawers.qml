@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.components
 import qs.config
 import qs.modules.bar
+import qs.modules.osd as OSDWrapper
 import qs.services
 import qs.utils
 import Quickshell
@@ -153,6 +154,12 @@ Variants {
                 popouts: panels.popouts
 
                 Component.onCompleted: PanelService.bars.set(scope.modelData, this)
+            }
+
+            OSDWrapper.Wrapper {
+                id: osdWrapper
+                screen: scope.modelData
+                bar: bar
             }
         }
     }

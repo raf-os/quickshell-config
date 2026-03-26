@@ -26,6 +26,7 @@ MouseArea {
     cursorShape: Qt.PointingHandCursor
     implicitWidth: Config.appearance.fontSize.xl
     implicitHeight: Config.appearance.fontSize.xl
+    hoverEnabled: true
 
     onClicked: event => {
         if (event.button === Qt.LeftButton) {
@@ -35,11 +36,6 @@ MouseArea {
             modelData.activate();
         }
     }
-
-    // Rectangle {
-    //     anchors.fill: parent
-    //     color: root.popoutHandler.selectedPopoutId === root.name ? ColorService.current.base3 : "transparent"
-    // }
 
     IconImage {
         id: icon
