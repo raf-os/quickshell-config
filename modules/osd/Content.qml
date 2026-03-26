@@ -9,6 +9,7 @@ Item {
     id: root
 
     property string type
+    property bool isShowing: false
 
     anchors.bottomMargin: Config.appearance.spacing.lg
 
@@ -16,7 +17,9 @@ Item {
     implicitHeight: 64
 
     opacity: 0
-    scale: 0.8
+    scale: 0.9
+
+    visible: isShowing
 
     QtObject {
         id: osdProps
@@ -84,6 +87,7 @@ Item {
         } else {
             if (osdProps.applyProps(type)) {
                 root.type = type;
+                root.isShowing = true;
                 triggerEnterAnim();
             }
         }
@@ -194,7 +198,9 @@ Item {
                     radius: Config.appearance.rounding.md
 
                     Behavior on implicitWidth {
-                        NAnim {}
+                        NAnim {
+                            duration: 300
+                        }
                     }
                 }
 
@@ -247,27 +253,40 @@ Item {
             target: root
             property: "opacity"
             to: 1
+            easing.bezierCurve: Config.appearance.animCurves.linear
+            duration: 200
         }
 
         NAnim {
             target: root
             property: "scale"
             to: 1
+            duration: 300
         }
     }
 
-    ParallelAnimation {
+    SequentialAnimation {
         id: exitAnim
 
-        NAnim {
-            target: root
-            property: "opacity"
-            to: 0
+        ParallelAnimation {
+            NAnim {
+                target: root
+                property: "opacity"
+                to: 0
+                easing.bezierCurve: Config.appearance.animCurves.linear
+                duration: 200
+            }
+
+            NAnim {
+                target: root
+                property: "scale"
+                to: 0.9
+                duration: 300
+            }
         }
-        NAnim {
-            target: root
-            property: "scale"
-            to: 0.9
+
+        ScriptAction {
+            script: root.isShowing = false
         }
     }
 }
