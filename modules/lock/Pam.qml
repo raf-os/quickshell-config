@@ -9,12 +9,17 @@ Scope {
 
     required property WlSessionLock lock
 
+    readonly property alias passwordContext: passwordContext
+    readonly property alias maxTries: pamSettings.maxTries
     property string buffer
     property string lockMessage
-    property PamResult pamResult
+    property var pamResult
+    property int totalTries: 0
+
+    signal flashMessage
 
     function handleKey(event: KeyEvent): void {
-        if (pamResult === PamResult.MaxTries)
+        if (pamResult === PamResult.MaxTries || passwordContext.active)
             return;
 
         if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
@@ -28,6 +33,24 @@ Scope {
         } else if (" abcdefghijklmnopqrstuvwxyz1234567890`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?".includes(event.text.toLowerCase())) {
             // Only allow unicode
             buffer += event.text;
+        }
+    }
+
+    QtObject {
+        id: pamSettings
+
+        property int maxTries: 3
+        property int failInterval: 900
+        property int unlockTime: 600
+    }
+
+    Timer {
+        id: msgReset
+
+        interval: 5000
+        onTriggered: {
+            if (root.pamResult !== PamResult.MaxTries)
+                root.pamResult = null;
         }
     }
 
@@ -52,8 +75,12 @@ Scope {
         onCompleted: res => {
             if (res === PamResult.Success)
                 return root.lock.unlock();
+            else if (res === PamResult.Failed)
+                root.totalTries += 1;
 
             root.pamResult = res;
+            root.flashMessage();
+            msgReset.restart();
         }
     }
 
