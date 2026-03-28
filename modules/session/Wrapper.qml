@@ -10,44 +10,18 @@ Item {
 
     required property PersistentProperties openPanels
     required property var panels
-    readonly property real initialHeight: content.implicitHeight
+    readonly property real initialHeight: content.item ? content.implicitHeight : 0
 
     visible: height > 0
     clip: true
     implicitWidth: content.implicitWidth
-    implicitHeight: 0
+    implicitHeight: openPanels.session ? initialHeight : 0
 
-    states: State {
-        name: "visible"
-        when: root.openPanels.session
-
-        PropertyChanges {
-            root.implicitHeight: root.initialHeight
+    Behavior on implicitHeight {
+        NAnim {
+            duration: 300
         }
     }
-
-    transitions: [
-        Transition {
-            from: ""
-            to: "visible"
-
-            NAnim {
-                target: root
-                property: "implicitHeight"
-                easing.bezierCurve: [0.38, 1.21, 0.22, 1, 1, 1]
-            }
-        },
-        Transition {
-            from: "visible"
-            to: ""
-
-            NAnim {
-                target: root
-                property: "implicitHeight"
-                easing.bezierCurve: [0.38, 1.21, 0.22, 1, 1, 1]
-            }
-        }
-    ]
 
     Loader {
         id: content

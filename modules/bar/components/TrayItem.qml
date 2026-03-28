@@ -37,6 +37,14 @@ MouseArea {
         }
     }
 
+    Connections {
+        target: root.modelData
+
+        function onReady() {
+            console.log("readied");
+        }
+    }
+
     IconImage {
         id: icon
 
