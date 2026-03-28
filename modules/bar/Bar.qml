@@ -29,7 +29,7 @@ RowLayout {
     anchors.rightMargin: Config.appearance.padding.xl * 2
 
     function onTriggerPopout(item: Item, name: string): void {
-        const currentCenter = item.mapToItem(root, item.implicitHeight / 2, 0).x;
+        const currentCenter = item.mapToItem(root, item.implicitWidth / 2, item.implicitHeight / 2).x + (item.width ?? 0) / 2;
         const newName = popouts.toggle(item, name, currentCenter);
         popoutHandler.selectedPopoutId = newName;
     }

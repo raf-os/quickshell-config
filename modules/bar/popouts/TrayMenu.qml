@@ -95,7 +95,7 @@ StackView {
                             anchors.leftMargin: -Config.appearance.padding.xs
                             anchors.rightMargin: -Config.appearance.padding.xs
 
-                            color: ColorService.current.base4
+                            color: ColorService.current.base3
 
                             radius: item.radius
                             disabled: !(item.modelData?.enabled ?? false)
@@ -113,53 +113,56 @@ StackView {
                                 }
                             }
                         }
-                    }
 
-                    Loader {
-                        id: icon
+                        Loader {
+                            id: icon
 
-                        anchors.left: parent.left
+                            anchors.left: parent.left
 
-                        active: (item.modelData?.icon !== "") ?? false
+                            active: (item.modelData?.icon !== "") ?? false
 
-                        sourceComponent: IconImage {
-                            implicitSize: label.implicitHeight
-                            source: item.modelData?.icon ?? ""
+                            sourceComponent: IconImage {
+                                implicitSize: label.implicitHeight
+                                source: item.modelData?.icon ?? ""
+                            }
                         }
-                    }
 
-                    StyledText {
-                        id: label
+                        StyledText {
+                            id: label
 
-                        anchors.left: icon.right
-                        anchors.leftMargin: icon.active ? Config.appearance.spacing.xs : 0
+                            anchors.left: icon.right
+                            anchors.leftMargin: icon.active ? Config.appearance.spacing.xs : 0
 
-                        text: labelMetrics.elidedText
-                        color: item.modelData?.enabled ? ColorService.current.baseContent : ColorService.current.base3
-                    }
+                            text: labelMetrics.elidedText
+                            color: item.modelData?.enabled ? ColorService.current.baseContent : ColorService.current.base3
 
-                    TextMetrics {
-                        id: labelMetrics
+                            font.pointSize: Config.appearance.fontSize.sm
+                            font.family: Config.appearance.fontFamily.sans
+                        }
 
-                        text: item.modelData?.text ?? ""
-                        font.pointSize: label.font.pointSize
-                        font.family: label.font.family
+                        TextMetrics {
+                            id: labelMetrics
 
-                        elide: Text.ElideRight
-                        elideWidth: Config.bar.sizes.trayMenuWidth - (icon.active ? icon.implicitWidth + label.anchors.leftMargin : 0) - (expand.active ? expand.implicitWidth + Config.appearance.spacing.md : 0)
-                    }
+                            text: item.modelData?.text ?? ""
+                            font.pointSize: label.font.pointSize
+                            font.family: label.font.family
 
-                    Loader {
-                        id: expand
+                            elide: Text.ElideRight
+                            elideWidth: Config.bar.sizes.trayMenuWidth - (icon.active ? icon.implicitWidth + label.anchors.leftMargin : 0) - (expand.active ? expand.implicitWidth + Config.appearance.spacing.md : 0)
+                        }
 
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.right: parent.right
+                        Loader {
+                            id: expand
 
-                        active: item.modelData?.hasChildren ?? false
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.right: parent.right
 
-                        sourceComponent: MaterialIcon {
-                            text: "chevron_right"
-                            color: item.modelData?.enabled ? ColorService.current.baseContent : "gray"
+                            active: item.modelData?.hasChildren ?? false
+
+                            sourceComponent: MaterialIcon {
+                                text: "chevron_right"
+                                color: item.modelData?.enabled ? ColorService.current.baseContent : "gray"
+                            }
                         }
                     }
                 }

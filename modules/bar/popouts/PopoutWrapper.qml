@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.components
 import qs.services
 import qs.config
+import qs.config
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
@@ -24,7 +25,7 @@ Item {
     property bool hasCurrent
 
     property int animLength: 400
-    property list<real> animCurve: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
+    property list<real> animCurve: Config.appearance.animCurves.defaultEase
 
     function toggle(item: Item, name: string, _currentCenter: real): string {
         if (hasCurrent && currentName === name) {
@@ -51,7 +52,7 @@ Item {
     implicitWidth: baseWidth
     implicitHeight: baseHeight
 
-    y: hasCurrent ? 4 : 0
+    // y: hasCurrent ? Config.appearance.spacing.xs : 0
 
     focus: hasCurrent
 
@@ -59,14 +60,14 @@ Item {
         close();
     }
 
-    StyledRect {
-        id: background
-
-        anchors.fill: parent
-
-        color: ColorService.current.base
-        radius: Config.appearance.rounding.sm
-    }
+    // StyledRect {
+    //     id: background
+    //
+    //     anchors.fill: parent
+    //
+    //     color: ColorService.current.base
+    //     radius: Config.appearance.rounding.sm
+    // }
 
     Comp {
         id: content

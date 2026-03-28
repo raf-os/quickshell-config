@@ -1,5 +1,6 @@
 import qs.services
 import qs.config
+import qs.components
 import QtQuick
 
 MouseArea {
@@ -7,7 +8,7 @@ MouseArea {
 
     property bool disabled
     property bool showHoverBackground: true
-    property color color: "red"
+    property color color: "white"
     property real radius: parent?.radius ?? 0
 
     function onClicked(): void {
@@ -21,12 +22,26 @@ MouseArea {
 
     onClicked: event => !disabled && onClicked(event)
 
-    StyledRect {
+    Rectangle {
         id: hoverLayer
 
         anchors.fill: parent
         radius: root.radius
 
-        color: Qt.alpha(root.color, root.disabled ? 0 : root.pressed ? 0.50 : (root.showHoverBackground && root.containsMouse) ? 0.25 : 0)
+        color: Qt.alpha(root.color, root.disabled ? 0 : root.pressed ? 1 : (root.showHoverBackground && root.containsMouse) ? 0.5 : 0)
+        scale: root.containsMouse ? 1 : 0.5
+
+        Behavior on scale {
+            NAnim {
+                easing.bezierCurve: Config.appearance.animCurves.accelerateOverCorrect
+                duration: 400
+            }
+        }
+
+        Behavior on color {
+            CAnim {
+                duration: 150
+            }
+        }
     }
 }

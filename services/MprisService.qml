@@ -32,6 +32,10 @@ Singleton {
     }
 
     function updateTrackPositions(): void {
+        // Batches all calls to update track positions
+        // into a single one, so every component that
+        // attempts to read the position doesn't trigger
+        // an update themselves
         if (triggerPositionUpdateFlag)
             return;
 
@@ -46,8 +50,9 @@ Singleton {
         running: root.triggerPositionUpdateFlag
 
         onTriggered: {
+            // NOTE: for ... in javascript loop did not work. Framework issue or skill issue?
             for (let i = 0; i < root.playerList.length; i++) {
-                if (root.playerList[i]?.positionSupported === true) {
+                if (root.playerList[i]?.positionSupported === true && root.playerList[i]?.isPlaying === true) {
                     root.playerList[i].positionChanged();
                 }
             }

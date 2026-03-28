@@ -210,7 +210,6 @@ Item {
         ColumnLayout {
             id: contentDisplay
             Layout.fillWidth: true
-            // Layout.fillHeight: true
             Layout.leftMargin: Config.appearance.spacing.md
             Layout.alignment: Qt.AlignVCenter
 
@@ -278,6 +277,7 @@ Item {
                         target: MprisService.currentActive
 
                         function onPositionChanged() {
+                            // NOTE: This is likely unnecessary, keep an eye out
                             seekBarWrapper.trackPosition = MprisService.currentActive?.position;
                         }
                     }
