@@ -212,6 +212,17 @@ Item {
             Spacer {}
 
             StyledText {
+                id: authIcon
+                Layout.fillWidth: true
+
+                text: "󱅞"
+                horizontalAlignment: Text.AlignHCenter
+
+                font.family: Config.appearance.fontFamily.monoIcon
+                font.pointSize: Config.appearance.fontSize.xxl * 4
+            }
+
+            StyledText {
                 id: authBoxHeader
                 Layout.fillWidth: true
 
@@ -308,6 +319,7 @@ Item {
     }
 
     component Spacer: Item {
+        Layout.fillWidth: true
         Layout.fillHeight: true
     }
 }

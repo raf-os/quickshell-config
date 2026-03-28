@@ -9,6 +9,7 @@ Item {
 
     required property ShellScreen screen
     required property Item bar
+    property bool isActive: false
 
     anchors.fill: parent
     anchors.margins: Config.border.thickness
@@ -24,7 +25,20 @@ Item {
         }
     }
 
+    Timer {
+        id: initialDelay
+        running: true
+
+        interval: 500
+
+        onTriggered: {
+            root.isActive = true;
+        }
+    }
+
     function triggerOSD(type: string) {
+        if (!root.isActive)
+            return;
         const isActive = Hypr.focusedMonitor.name === root.screen.name;
         if (!isActive) {
             dismissTimer.stop();
@@ -33,6 +47,20 @@ Item {
         } else {
             osdContent?.show(type);
             dismissTimer.restart();
+        }
+    }
+
+    Connections {
+        target: MprisService
+
+        enabled: Config.media.enabled
+
+        function onTriggerOsd() {
+            const currentPlayer = MprisService.currentActive;
+            if (currentPlayer === null)
+                return;
+
+            root.triggerOSD("mprischange");
         }
     }
 

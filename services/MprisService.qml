@@ -12,23 +12,65 @@ Singleton {
     readonly property MprisPlayer currentActive: props.activeOverride ?? playerList.find(p => resolvePlayerAlias(p) === Config.media.defaultPlayer) ?? null
     property alias activeOverride: props.activeOverride
 
+    property bool triggerPositionUpdateFlag
+
     function resolvePlayerAlias(player: MprisPlayer): string {
         const alias = Config.media.playerAliases.find(a => a.from === player.identity);
         return alias?.to ?? player.identity;
     }
 
+    function getArtUrl(player: MprisPlayer): string {
+        if (!player) {
+            if (currentActive !== null) {
+                return getArtUrl(currentActive);
+            }
+            return "";
+        }
+        if (player.trackArtUrl)
+            return player.trackArtUrl;
+        return "";
+    }
+
+    function updateTrackPositions(): void {
+        if (triggerPositionUpdateFlag)
+            return;
+
+        triggerPositionUpdateFlag = true;
+    }
+
     signal trackChanged
     signal playbackStateChanged
+    signal triggerOsd
+
+    FrameAnimation {
+        running: root.triggerPositionUpdateFlag
+
+        onTriggered: {
+            for (let i = 0; i < root.playerList.length; i++) {
+                if (root.playerList[i]?.positionSupported === true) {
+                    root.playerList[i].positionChanged();
+                }
+            }
+            root.triggerPositionUpdateFlag = false;
+        }
+    }
 
     Connections {
         target: root.currentActive
 
         function onPostTrackChanged() {
             root.trackChanged();
+            if (root.currentActive?.playbackState === MprisPlaybackState.Playing) {
+                root.triggerOsd();
+            }
         }
 
         function onPlaybackStateChanged() {
             root.playbackStateChanged();
+
+            if (root.currentActive?.playbackState === MprisPlaybackState.Playing) {
+                root.triggerOsd();
+            }
         }
     }
 

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import qs.components
 import qs.config
 import qs.services
@@ -11,10 +13,12 @@ Item {
     property string type
     property bool isShowing: false
 
+    readonly property int padding: Config.appearance.padding.xl
+
     anchors.bottomMargin: Config.appearance.spacing.lg
 
-    implicitWidth: 320
-    implicitHeight: 64
+    implicitWidth: 420
+    implicitHeight: Math.max(64, rowLayout.height + root.padding * 2)
 
     opacity: 0
     scale: 0.9
@@ -24,19 +28,23 @@ Item {
     QtObject {
         id: osdProps
 
-        readonly property list<string> validTypes: ["mute", "volumechange", "gamemode"]
+        readonly property list<string> validTypes: ["mute", "volumechange", "mprischange", "gamemode"]
 
         property string title: ""
         property string icon: ""
         property string subtitle: ""
+        property string artUrl: ""
 
         property bool showVolumeBar: false
+        property bool showSeekBar: false
 
         function resetProps(): void {
             title = "";
             subtitle = "";
             icon = "";
+            artUrl = "";
             showVolumeBar = false;
+            showSeekBar = false;
         }
 
         function applyProps(type: string): bool {
@@ -73,6 +81,18 @@ Item {
                 icon = gameMode ? "󰊴" : "󰊵";
                 title = "Game mode";
                 subtitle = gameMode ? "Turned on" : "Turned off";
+                break;
+            case "mprischange":
+                const currentPlayer = MprisService.currentActive;
+                const trackTitle = currentPlayer?.trackTitle ?? "Unknown title";
+                const trackArtist = currentPlayer?.trackArtist ?? "Unknown artist";
+
+                title = trackTitle;
+                subtitle = trackArtist;
+                artUrl = MprisService.getArtUrl();
+
+                if (currentPlayer?.canSeek && currentPlayer?.positionSupported && currentPlayer?.lengthSupported)
+                    showSeekBar = true;
                 break;
             }
 
@@ -122,36 +142,89 @@ Item {
     RowLayout {
         id: rowLayout
 
-        anchors.fill: parent
-        anchors.margins: Config.appearance.padding.xl
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.margins: root.padding
 
         Item {
             id: iconDisplay
-            Layout.fillHeight: true
-            implicitWidth: 48
+            implicitWidth: mprisArtWrapper.implicitWidth
+            implicitHeight: mprisArtWrapper.implicitHeight
 
             Text {
                 id: iconText
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.fill: parent
                 text: osdProps.icon
 
+                horizontalAlignment: Text.AlignLeft
+                verticalAlignment: Text.AlignVCenter
+
                 color: ColorService.current.baseContent
-                font.pixelSize: 48
-                font.family: Config.appearance.fontFamily.monoIcon
+                font.pixelSize: parent.width * 0.75
+                font.family: Config.appearance.fontFamily.mono
+            }
+
+            Item {
+                id: mprisArtWrapper
+                implicitWidth: mprisArtLoader.active ? 64 : 48
+                implicitHeight: implicitWidth
+
+                anchors.centerIn: parent
+
+                StyledText {
+                    id: mprisArtFallback
+
+                    anchors.fill: parent
+                    visible: mprisArtLoader.item?.status === Image.Error
+
+                    text: ""
+
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+
+                    font.family: Config.appearance.fontFamily.mono
+                    font.pixelSize: parent.width * 0.75
+                }
+
+                Loader {
+                    id: mprisArtLoader
+                    active: osdProps.artUrl !== ""
+
+                    anchors.fill: parent
+
+                    sourceComponent: Image {
+                        id: mprisCoverArtImage
+                        anchors.fill: parent
+
+                        source: osdProps.artUrl
+                        sourceSize.width: width
+                        sourceSize.height: height
+                        asynchronous: true
+                        fillMode: Image.PreserveAspectCrop
+                    }
+                }
             }
         }
 
         ColumnLayout {
             id: contentDisplay
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            // Layout.fillHeight: true
+            Layout.leftMargin: Config.appearance.spacing.md
+            Layout.alignment: Qt.AlignVCenter
+
+            spacing: Config.appearance.spacing.xs
+
+            Component.onCompleted: {}
 
             StyledText {
                 id: contentTitle
                 Layout.alignment: Qt.AlignLeft
                 Layout.fillWidth: true
                 text: osdProps.title
+
+                elide: Text.ElideRight
 
                 font.family: Config.appearance.fontFamily.sans
                 font.pointSize: Config.appearance.fontSize.sm
@@ -163,9 +236,76 @@ Item {
                 Layout.fillWidth: true
                 text: osdProps.subtitle
 
+                elide: Text.ElideRight
+
                 visible: osdProps.subtitle !== ""
                 font.family: Config.appearance.fontFamily.sans
                 font.pointSize: Config.appearance.fontSize.xs
+            }
+
+            Loader {
+                id: seekBarLoader
+
+                Layout.fillWidth: true
+
+                active: osdProps.showSeekBar
+                visible: osdProps.showSeekBar
+
+                sourceComponent: Item {
+                    id: seekBarWrapper
+
+                    property real trackLength: MprisService.currentActive.length ?? 1
+                    property real trackPosition: 0
+                    readonly property real progressPercent: trackPosition / trackLength
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+
+                    implicitHeight: 12
+
+                    function getPlayerPosition() {
+                        MprisService.updateTrackPositions();
+                    }
+
+                    FrameAnimation {
+                        running: MprisService.currentActive?.isPlaying
+                        onTriggered: {
+                            seekBarWrapper.getPlayerPosition();
+                        }
+                    }
+
+                    Connections {
+                        target: MprisService.currentActive
+
+                        function onPositionChanged() {
+                            seekBarWrapper.trackPosition = MprisService.currentActive?.position;
+                        }
+                    }
+
+                    Rectangle {
+                        id: seekBgRect
+
+                        anchors.fill: parent
+
+                        radius: Config.appearance.rounding.md
+
+                        color: ColorService.current.base0
+                    }
+
+                    Rectangle {
+                        id: seekFgRect
+
+                        anchors.left: parent.left
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+
+                        implicitWidth: parent.width * seekBarWrapper.progressPercent
+
+                        color: ColorService.current.primary
+
+                        radius: Config.appearance.rounding.md
+                    }
+                }
             }
 
             Item {

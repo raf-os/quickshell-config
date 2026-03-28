@@ -8,5 +8,5 @@ Text {
     color: ColorService.current.baseContent
 
     font.family: Config.appearance.fontFamily.sans
-    font.pointSize: Config.appearance.fontSize.sm
+    // font.pointSize: Config.appearance.fontSize.sm
 }
