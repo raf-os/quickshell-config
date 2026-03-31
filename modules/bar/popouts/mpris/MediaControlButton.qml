@@ -8,7 +8,8 @@ MouseArea {
 
     required property bool isEnabled
     required property string iconText
-    property int size: 24
+    readonly property int size: 24
+    property bool isFaded: false
 
     implicitWidth: size
     implicitHeight: size
@@ -28,10 +29,18 @@ MouseArea {
         anchors.fill: parent
         text: root.iconText
 
-        color: root.isEnabled ? ColorService.current.baseContent : ColorService.current.baseContentMuted
+        color: root.isEnabled && !root.isFaded ? ColorService.current.baseContent : ColorService.current.baseContentMuted
         font.pixelSize: root.size
+        font.family: Config.appearance.fontFamily.mono
 
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
+
+        Behavior on color {
+            CAnim {
+                duration: 300
+                easing.bezierCurve: Config.appearance.animCurves.defaultEase
+            }
+        }
     }
 }
