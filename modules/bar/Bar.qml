@@ -84,7 +84,9 @@ RowLayout {
 
         Spacing {}
 
-        MediaInfo {}
+        MediaInfo {
+            popoutHandler: popoutHandler
+        }
     }
 
     WindowTitle {

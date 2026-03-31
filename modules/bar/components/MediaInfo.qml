@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.services
+import qs.modules.bar
 import qs.config
 import qs.components
 import qs.utils
@@ -11,6 +12,8 @@ import QtQuick.Effects
 
 Loader {
     id: root
+
+    required property PopoutHandler popoutHandler
 
     readonly property bool isMediaActive: MprisService.currentActive !== null
     readonly property DesktopEntry mediaDesktopEntry: isMediaActive ? DesktopEntries.heuristicLookup(MprisService.currentActive?.desktopEntry) : null
@@ -91,7 +94,12 @@ Loader {
 
             cursorShape: Qt.PointingHandCursor
 
+            enabled: root.shouldBeActive
             hoverEnabled: true
+
+            onClicked: {
+                root.popoutHandler.triggerPopout(rootInteractionArea, "mprisPanel");
+            }
         }
 
         StyledRect {

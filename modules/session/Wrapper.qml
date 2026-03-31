@@ -19,7 +19,8 @@ Item {
 
     Behavior on implicitHeight {
         NAnim {
-            duration: 300
+            duration: 400
+            easing.bezierCurve: Config.appearance.animCurves.defaultEase
         }
     }
 

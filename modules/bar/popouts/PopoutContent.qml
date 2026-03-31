@@ -37,6 +37,11 @@ Item {
             }
         }
 
+        Popout {
+            name: "mprisPanel"
+            sourceComponent: MprisPopout {}
+        }
+
         Repeater {
             model: ScriptModel {
                 values: [...SystemTray.items.values]

@@ -33,8 +33,8 @@ MouseArea {
 
         Behavior on scale {
             NAnim {
-                easing.bezierCurve: Config.appearance.animCurves.accelerateOverCorrect
-                duration: 400
+                easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                duration: 200
             }
         }
 

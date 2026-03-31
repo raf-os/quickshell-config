@@ -39,6 +39,7 @@ JsonObject {
 
     component Spacing: JsonObject {
         property real scale: 1
+        property int xxs: 4 * scale
         property int xs: 7 * scale
         property int sm: 10 * scale
         property int md: 12 * scale

@@ -105,6 +105,7 @@ Variants {
                 property bool session
                 property bool startmenu
                 property bool commandCapture
+                property bool mprisViewer
 
                 property string desiredStartMenuTab: ""
 
