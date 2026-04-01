@@ -12,6 +12,7 @@ Item {
     required property ShellScreen screen
     required property PersistentProperties openPanels
     required property PopoutWrapper popouts
+    required property Item panels
 
     readonly property int contentHeight: Config.bar.sizes.innerHeight + Config.border.thickness * 2
     readonly property int exclusiveZone: contentHeight
@@ -36,6 +37,7 @@ Item {
 
             openPanels: root.openPanels
             popouts: root.popouts
+            panels: root.panels
         }
     }
 }

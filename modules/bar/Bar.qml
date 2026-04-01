@@ -15,6 +15,7 @@ RowLayout {
     required property ShellScreen screen
     required property PersistentProperties openPanels
     required property PopoutWrapper popouts
+    required property Item panels
 
     property alias mediaInfo: mediaInfo
 
@@ -79,6 +80,7 @@ RowLayout {
 
         ArchIconBtw {
             openPanels: root.openPanels
+            panels: root.panels
         }
         Workspaces {
             screen: root.screen
@@ -89,6 +91,7 @@ RowLayout {
         MediaInfo {
             id: mediaInfo
             openPanels: root.openPanels
+            panels: root.panels
         }
     }
 
@@ -114,6 +117,7 @@ RowLayout {
         Power {
             id: powerWidgetButton
             openPanels: root.openPanels
+            panels: root.panels
         }
     }
 

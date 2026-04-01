@@ -74,7 +74,7 @@ ColumnLayout {
 
             icon: "cached"
             label: "Reboot"
-            command: []
+            command: ["sh", "-c", "hyprshutdown -p \"systemctl reboot\""]
         }
 
         SessionButton {

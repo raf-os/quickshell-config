@@ -12,6 +12,7 @@ Item {
     id: root
 
     required property PersistentProperties openPanels
+    required property Item panels
     readonly property bool isMenuActive: openPanels.startmenu
 
     implicitWidth: Config.appearance.fontSize.lg * 1.2
@@ -23,7 +24,8 @@ Item {
         anchors.fill: parent
 
         onClicked: ev => {
-            root.openPanels.startmenu = !root.openPanels.startmenu;
+            // root.openPanels.startmenu = !root.openPanels.startmenu;
+            root.panels.openExclusivePanel("startmenu");
             ev.accepted = false;
         }
     }

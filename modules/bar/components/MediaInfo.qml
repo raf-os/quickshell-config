@@ -14,6 +14,7 @@ Loader {
     id: root
 
     required property PersistentProperties openPanels
+    required property Item panels
 
     readonly property bool isMediaActive: MprisService.currentActive !== null
     readonly property DesktopEntry mediaDesktopEntry: isMediaActive ? DesktopEntries.heuristicLookup(MprisService.currentActive?.desktopEntry) : null
@@ -28,6 +29,8 @@ Loader {
 
         readonly property int animDuration: 400
         readonly property int initialWidth: Config.bar.sizes.mediaInfoWidth
+
+        readonly property alias popoutPositionReference: popoutPositionReference
 
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
@@ -90,7 +93,7 @@ Loader {
         Item {
             id: popoutPositionReference
 
-            anchors.fill: parent
+            anchors.centerIn: parent
         }
 
         MouseArea {
@@ -104,7 +107,8 @@ Loader {
             hoverEnabled: true
 
             onClicked: {
-                root.openPanels.mprisViewer = !root.openPanels.mprisViewer;
+                root.panels.openExclusivePanel("mprisViewer");
+                // root.openPanels.mprisViewer = !root.openPanels.mprisViewer;
             }
         }
 

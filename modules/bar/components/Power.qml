@@ -12,6 +12,7 @@ Item {
     Layout.leftMargin: Config.appearance.spacing.md
 
     required property PersistentProperties openPanels
+    required property Item panels
 
     signal powerButtonActivate
 
@@ -36,7 +37,8 @@ Item {
         onClicked: event => onClicked(event)
 
         function onClicked(): void {
-            root.openPanels.session = !root.openPanels.session;
+            // root.openPanels.session = !root.openPanels.session;
+            root.panels.openExclusivePanel("session");
             root.powerButtonActivate();
         }
     }

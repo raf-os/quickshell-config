@@ -154,6 +154,7 @@ Variants {
                 screen: scope.modelData
                 openPanels: openPanels
                 popouts: panels.popouts
+                panels: panels
 
                 Component.onCompleted: PanelService.bars.set(scope.modelData, this)
             }
