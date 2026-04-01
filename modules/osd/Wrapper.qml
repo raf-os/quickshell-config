@@ -9,6 +9,7 @@ Item {
 
     required property ShellScreen screen
     required property Item bar
+    required property PersistentProperties openPanels
     property bool isActive: false
 
     anchors.fill: parent

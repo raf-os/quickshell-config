@@ -1,5 +1,6 @@
 import qs.modules.bar
 import qs.config
+import qs.modules.mprisviewer as MprisViewer
 import qs.modules.session as Session
 import qs.modules.bar.popouts as BPP
 import qs.modules.startmenu as StartMenu
@@ -23,6 +24,13 @@ Shape {
         wrapper: root.panels.popouts // qmllint disable incompatible-type
 
         startX: wrapper.x - rounding
+        startY: 0
+    }
+
+    MprisViewer.MprisBackground {
+        wrapper: root.panels.mprisViewer // qmllint disable incompatible-type
+
+        startX: wrapper.x
         startY: 0
     }
 

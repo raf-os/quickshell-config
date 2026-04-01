@@ -1,13 +1,13 @@
 import qs.components
-import qs.services
 import qs.config
+import qs.services
 import QtQuick
 import QtQuick.Shapes
 
 ShapePath {
     id: root
 
-    required property PopoutWrapper wrapper
+    required property MprisWrapper wrapper
 
     readonly property real rounding: Config.border.rounding
     readonly property bool flatten: wrapper.height < rounding * 2
@@ -16,8 +16,8 @@ ShapePath {
     strokeWidth: -1
     fillColor: ColorService.current.base0
 
-    PathLine {
-        relativeX: root.wrapper.width + root.rounding * 2
+    PathMove {
+        relativeX: root.wrapper.width + root.rounding
         relativeY: 0
     }
 

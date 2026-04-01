@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import qs.config
 import qs.modules.session as Session
+import qs.modules.mprisviewer as MprisViewer
 import qs.modules.bar.popouts as BarPopouts
 import qs.modules.startmenu as StartMenuPopout
 import qs.modules.commandcapture
@@ -19,6 +20,7 @@ Item {
     readonly property alias session: session
     readonly property alias popouts: popouts
     readonly property alias startmenu: startmenu
+    readonly property alias mprisViewer: mprisViewer
 
     anchors.fill: parent
     anchors.margins: Config.border.thickness
@@ -34,6 +36,19 @@ Item {
         // anchors.verticalCenter: parent.verticalCenter
         // anchors.top: parent.top
         // anchors.bottom: parent.bottom
+    }
+
+    MprisViewer.MprisWrapper {
+        id: mprisViewer
+
+        anchors.top: parent.top
+
+        x: root.bar.mediaInfo ? ((root.bar.mediaInfo.x + root.bar.mediaInfo.width / 2) - (implicitWidth / 2)) : 0
+
+        Component.onCompleted: {
+            console.log(root.bar.mediaInfo);
+        }
+        openPanels: root.openPanels
     }
 
     StartMenuPopout.Wrapper {

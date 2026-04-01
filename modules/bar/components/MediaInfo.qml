@@ -13,7 +13,7 @@ import QtQuick.Effects
 Loader {
     id: root
 
-    required property PopoutHandler popoutHandler
+    required property PersistentProperties openPanels
 
     readonly property bool isMediaActive: MprisService.currentActive !== null
     readonly property DesktopEntry mediaDesktopEntry: isMediaActive ? DesktopEntries.heuristicLookup(MprisService.currentActive?.desktopEntry) : null
@@ -87,6 +87,12 @@ Loader {
             }
         ]
 
+        Item {
+            id: popoutPositionReference
+
+            anchors.fill: parent
+        }
+
         MouseArea {
             id: rootInteractionArea
 
@@ -98,7 +104,7 @@ Loader {
             hoverEnabled: true
 
             onClicked: {
-                root.popoutHandler.triggerPopout(rootInteractionArea, "mprisPanel");
+                root.openPanels.mprisViewer = !root.openPanels.mprisViewer;
             }
         }
 
@@ -122,32 +128,40 @@ Loader {
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: root.padding
 
-            Component.onCompleted: {
-                updateIconBuffer();
+            // Component.onCompleted: {
+            //     updateIconBuffer();
+            // }
+
+            Binding {
+                restoreMode: Binding.RestoreNone
+                target: iconLoader
+                property: "iconBuffer"
+                value: Quickshell.iconPath(root.mediaIcon, true)
+                when: root.shouldBeActive
             }
 
-            Connections {
-                target: root
-
-                function onMediaIconChanged() {
-                    iconLoader.updateIconBuffer();
-                }
-
-                function onIsMediaActiveChanged() {
-                    iconLoader.updateIconBuffer();
-                }
-
-                function onShouldBeActiveChanged() {
-                    iconLoader.updateIconBuffer();
-                }
-            }
-
-            function updateIconBuffer() {
-                if (root.shouldBeActive == false)
-                    return;
-
-                iconLoader.iconBuffer = Quickshell.iconPath(root.mediaIcon, true);
-            }
+            // Connections {
+            //     target: root
+            //
+            //     function onMediaIconChanged() {
+            //         iconLoader.updateIconBuffer();
+            //     }
+            //
+            //     function onIsMediaActiveChanged() {
+            //         iconLoader.updateIconBuffer();
+            //     }
+            //
+            //     function onShouldBeActiveChanged() {
+            //         iconLoader.updateIconBuffer();
+            //     }
+            // }
+            //
+            // function updateIconBuffer() {
+            //     if (root.shouldBeActive == false)
+            //         return;
+            //
+            //     iconLoader.iconBuffer = Quickshell.iconPath(root.mediaIcon, true);
+            // }
 
             sourceComponent: IconImage {
                 anchors.left: parent.left
@@ -176,20 +190,27 @@ Loader {
 
             clip: true
 
-            function fetchTrackData() {
-                trackData.trackTitle = MprisService.currentActive?.trackTitle ?? "Unknown Title";
-                trackData.trackArtist = MprisService.currentActive?.trackArtist ?? "Unknown Artist";
-            }
-
-            Component.onCompleted: {
-                scrollingWrapper.fetchTrackData();
-            }
-
             QtObject {
                 id: trackData
 
                 property string trackTitle: MprisService.currentActive?.trackTitle ?? "Unknown Title"
                 property string trackArtist: MprisService.currentActive?.trackArtist ?? "Unknown Artist"
+            }
+
+            Binding {
+                target: trackData
+                property: "trackTitle"
+                value: MprisService.currentActive?.trackTitle ?? "Unknown Title"
+                when: root.shouldBeActive
+                restoreMode: Binding.RestoreNone
+            }
+
+            Binding {
+                target: trackData
+                property: "trackArtist"
+                value: MprisService.currentActive?.trackArtist ?? "Unknown Title"
+                when: root.shouldBeActive
+                restoreMode: Binding.RestoreNone
             }
 
             Connections {
@@ -203,25 +224,12 @@ Loader {
                 }
             }
 
-            Connections {
-                target: MprisService
-
-                function onTrackChanged() {
-                    scrollingWrapper.fetchTrackData();
-                }
-
-                function onPlaybackStateChanged() {
-                    scrollingWrapper.fetchTrackData();
-                }
-            }
-
             TextMetrics {
                 id: textReference
 
                 readonly property string currentTrackTitle: trackData.trackTitle
                 readonly property string currentTrackArtist: trackData.trackArtist
                 readonly property string displayText: `${currentTrackTitle} - ${currentTrackArtist}`
-                property string bufferedText: "No media"
 
                 text: displayText
 

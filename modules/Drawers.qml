@@ -115,10 +115,11 @@ Variants {
             HyprlandFocusGrab {
                 id: focusHandler
                 windows: [win]
-                active: panels.popouts.hasCurrent || panels.startmenu.isActive
+                active: panels.popouts.hasCurrent || panels.startmenu.isActive || openPanels.mprisViewer
                 onCleared: {
                     panels.popouts.close();
                     openPanels.startmenu = false;
+                    openPanels.mprisViewer = false;
                 }
             }
 
@@ -161,6 +162,7 @@ Variants {
                 id: osdWrapper
                 screen: scope.modelData
                 bar: bar
+                openPanels: openPanels
             }
         }
     }

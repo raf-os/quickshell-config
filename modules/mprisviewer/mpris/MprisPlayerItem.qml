@@ -10,7 +10,7 @@ import QtQuick
 import QtQuick.Layouts
 
 ColumnLayout {
-    id: mpItem
+    id: root
 
     required property MprisPlayer modelData
     readonly property int padding: Config.appearance.padding.sm
@@ -20,65 +20,96 @@ ColumnLayout {
 
     property bool iconLoaded: false
 
+    spacing: 0
+
     Layout.fillWidth: true
 
     QtObject {
         id: trackData
 
-        property string trackTitle: mpItem.modelData.trackTitle ?? "Unknown track"
-        property string trackArtist: mpItem.modelData.trackArtist ?? "Unknown artist"
-        property string trackArtUrl: mpItem.modelData.trackArtUrl ?? ""
+        property string trackTitle: root.modelData.trackTitle ?? "Unknown track"
+        property string trackArtist: root.modelData.trackArtist ?? "Unknown artist"
+        property string trackArtUrl: root.modelData.trackArtUrl ?? ""
 
         function getArtUrl() {
-            trackArtUrl = MprisService.getArtUrl(mpItem.modelData);
+            trackArtUrl = MprisService.getArtUrl(root.modelData);
         }
     }
 
-    RowLayout {
-        id: playerTitle
+    Rectangle {
+        id: titleWrapper
 
         Layout.fillWidth: true
-        Layout.margins: mpItem.padding
+        Layout.margins: root.padding
 
-        spacing: Config.appearance.spacing.sm
+        implicitHeight: playerTitle.implicitHeight + root.padding * 2
 
-        Loader {
-            active: mpItem.iconLoaded === false
+        color: ColorService.current.base
+        radius: Config.appearance.rounding.md
 
-            sourceComponent: StyledText {
-                id: playerIcon
+        MouseArea {
+            anchors.fill: parent
 
-                text: "󰈣"
+            enabled: root.modelData.canRaise
 
-                font.family: Config.appearance.fontFamily.mono
-                font.pixelSize: 18
+            cursorShape: Qt.PointingHandCursor
+
+            onClicked: {
+                if (!root.modelData.canRaise)
+                    return;
+
+                root.modelData.raise();
             }
         }
 
-        IconImage {
-            source: Quickshell.iconPath(mpItem.mediaIcon)
-            implicitSize: 18
-            asynchronous: true
+        RowLayout {
+            id: playerTitle
 
-            visible: status === Image.Ready
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
 
-            onStatusChanged: {
-                if (status === Image.Error) {} else if (status === Image.Ready) {
-                    mpItem.iconLoaded = true;
+            spacing: Config.appearance.spacing.sm
+
+            Loader {
+                active: root.iconLoaded === false
+
+                sourceComponent: StyledText {
+                    id: playerIcon
+
+                    text: "󰈣"
+
+                    font.family: Config.appearance.fontFamily.mono
+                    font.pixelSize: 18
                 }
             }
-        }
 
-        StyledText {
-            id: mprisName
+            IconImage {
+                source: Quickshell.iconPath(root.mediaIcon)
+                implicitSize: 18
+                asynchronous: true
 
-            Layout.fillWidth: true
+                visible: status === Image.Ready
 
-            text: mpItem.modelData.identity
+                onStatusChanged: {
+                    if (status === Image.Error) {} else if (status === Image.Ready) {
+                        root.iconLoaded = true;
+                    }
+                }
+            }
 
-            font.family: Config.appearance.fontFamily.sans
-            font.pointSize: Config.appearance.fontSize.sm
-            font.weight: 600
+            StyledText {
+                id: mprisName
+
+                Layout.fillWidth: true
+
+                text: root.modelData.identity
+                elide: Text.ElideRight
+
+                font.family: Config.appearance.fontFamily.sans
+                font.pointSize: Config.appearance.fontSize.sm
+                font.weight: 600
+            }
         }
     }
 
@@ -86,18 +117,43 @@ ColumnLayout {
         id: currentMediaInfo
 
         Layout.fillWidth: true
-        Layout.margins: mpItem.padding
+        Layout.margins: root.padding
 
         spacing: Config.appearance.spacing.xl
 
         Item {
             id: mediaArtWrapper
 
-            implicitWidth: 64
-            implicitHeight: 64
+            implicitWidth: 96
+            implicitHeight: 96
+
+            Rectangle {
+                id: mediaArtFallbackBg
+                anchors.fill: parent
+                color: ColorService.current.base
+                radius: Config.appearance.rounding.md
+
+                visible: mprisArtLoader.isImageValid === false || mprisArtLoader.isImageLoading === true
+
+                StyledText {
+                    id: mediaArtFallback
+
+                    anchors.fill: parent
+
+                    text: ""
+                    font.family: Config.appearance.fontFamily.monoIcon
+                    font.pixelSize: mediaArtWrapper.implicitWidth * 0.8
+
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
 
             Loader {
                 id: mprisArtLoader
+
+                property bool isImageValid: false
+                property bool isImageLoading: true
 
                 anchors.fill: parent
 
@@ -109,6 +165,17 @@ ColumnLayout {
                     sourceSize.width: width
                     sourceSize.height: height
                     asynchronous: true
+
+                    onStatusChanged: {
+                        if (status === Image.Error) {
+                            mprisArtLoader.isImageValid = false;
+                        } else if (status === Image.Loading) {
+                            mprisArtLoader.isImageLoading = true;
+                        } else if (status === Image.Ready) {
+                            mprisArtLoader.isImageValid = true;
+                            mprisArtLoader.isImageLoading = false;
+                        }
+                    }
                 }
             }
         }
@@ -148,13 +215,13 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: Config.appearance.spacing.xxs
 
-                active: mpItem.modelData.positionSupported && mpItem.modelData.lengthSupported
+                active: root.modelData.positionSupported && root.modelData.lengthSupported
 
                 sourceComponent: Item {
                     id: progressBar
 
-                    readonly property real trackLength: mpItem.modelData.length ?? 1
-                    readonly property real trackPosition: mpItem.modelData.position ?? 0
+                    readonly property real trackLength: root.modelData.length ?? 1
+                    readonly property real trackPosition: root.modelData.position ?? 0
                     readonly property real progressPercent: trackPosition / trackLength
 
                     anchors.left: parent.left
@@ -182,7 +249,7 @@ ColumnLayout {
                     }
 
                     FrameAnimation {
-                        running: mpItem.modelData.isPlaying
+                        running: root.modelData.isPlaying
                         onTriggered: {
                             MprisService.updateTrackPositions();
                         }
@@ -193,7 +260,7 @@ ColumnLayout {
             RowLayout {
                 id: mediaControls
 
-                readonly property bool isPlaying: mpItem.modelData.isPlaying
+                readonly property bool isPlaying: root.modelData.isPlaying
 
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: Config.appearance.spacing.xxs
@@ -201,52 +268,52 @@ ColumnLayout {
 
                 MediaControlButton {
                     id: goPrevious
-                    isEnabled: mpItem.modelData.canGoPrevious
+                    isEnabled: root.modelData.canGoPrevious
 
                     iconText: "󰒮"
 
                     function clickAction() {
-                        mpItem.modelData.previous();
+                        root.modelData.previous();
                     }
                 }
 
                 MediaControlButton {
                     id: playPause
-                    isEnabled: mpItem.modelData.canPlay && mpItem.modelData.canPause
+                    isEnabled: root.modelData.canPlay && root.modelData.canPause
 
                     iconText: mediaControls.isPlaying ? "󰏤" : "󰐊"
 
                     function clickAction() {
                         if (mediaControls.isPlaying) {
-                            mpItem.modelData.pause();
+                            root.modelData.pause();
                         } else {
-                            mpItem.modelData.play();
+                            root.modelData.play();
                         }
                     }
                 }
 
                 MediaControlButton {
                     id: goNext
-                    isEnabled: mpItem.modelData.canGoNext
+                    isEnabled: root.modelData.canGoNext
 
                     iconText: "󰒭"
 
                     function clickAction() {
-                        mpItem.modelData.next();
+                        root.modelData.next();
                     }
                 }
 
                 MediaControlButton {
                     id: shuffleButton
-                    isEnabled: mpItem.modelData.canControl && mpItem.modelData.shuffleSupported
-                    isFaded: isEnabled && mpItem.modelData.shuffle !== true
+                    isEnabled: root.modelData.canControl && root.modelData.shuffleSupported
+                    isFaded: isEnabled && root.modelData.shuffle !== true
 
                     visible: isEnabled
 
                     iconText: "󰒟"
 
                     function clickAction() {
-                        mpItem.modelData.shuffle = !mpItem.modelData.shuffle;
+                        root.modelData.shuffle = !root.modelData.shuffle;
                     }
                 }
             }

@@ -16,6 +16,8 @@ RowLayout {
     required property PersistentProperties openPanels
     required property PopoutWrapper popouts
 
+    property alias mediaInfo: mediaInfo
+
     property int sideSize: 560
 
     signal closePopout
@@ -85,7 +87,8 @@ RowLayout {
         Spacing {}
 
         MediaInfo {
-            popoutHandler: popoutHandler
+            id: mediaInfo
+            openPanels: root.openPanels
         }
     }
 

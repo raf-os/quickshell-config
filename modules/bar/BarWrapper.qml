@@ -15,6 +15,8 @@ Item {
 
     readonly property int contentHeight: Config.bar.sizes.innerHeight + Config.border.thickness * 2
     readonly property int exclusiveZone: contentHeight
+
+    readonly property Item mediaInfo: content.item ? content.item?.mediaInfo : null
     implicitHeight: contentHeight
 
     function handleMouseWheel(x: real, angleDelta: point) {
