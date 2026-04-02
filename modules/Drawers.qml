@@ -128,13 +128,14 @@ Variants {
                 openPanels: openPanels
                 popouts: panels.popouts
                 bar: bar
+                panels: panels
 
                 // implicitWidth: bar.implicitWidth
-                implicitHeight: bar.implicitHeight
+                // implicitHeight: bar.implicitHeight
 
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
+                // anchors.top: parent.top
+                // anchors.left: parent.left
+                // anchors.right: parent.right
             }
 
             Panels {
@@ -150,6 +151,7 @@ Variants {
 
                 anchors.left: parent.left
                 anchors.right: parent.right
+                anchors.top: parent.top
 
                 screen: scope.modelData
                 openPanels: openPanels

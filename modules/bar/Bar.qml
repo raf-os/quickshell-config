@@ -25,11 +25,11 @@ RowLayout {
 
     spacing: Config.appearance.spacing.md
 
-    anchors.left: parent.left
-    anchors.right: parent.right
+    // anchors.left: parent.left
+    // anchors.right: parent.right
 
-    anchors.leftMargin: Config.appearance.padding.xl
-    anchors.rightMargin: Config.appearance.padding.xl * 2
+    // anchors.leftMargin: Config.appearance.padding.xl
+    // anchors.rightMargin: Config.appearance.padding.xl
 
     function onTriggerPopout(item: Item, name: string): void {
         const currentCenter = item.mapToItem(root, item.implicitWidth / 2, item.implicitHeight / 2).x + (item.width ?? 0) / 2;
@@ -76,6 +76,9 @@ RowLayout {
         property string name: "leftContent"
         // Layout.preferredWidth: Math.max(leftContent.implicitWidth, rightContent.implicitWidth)
         Layout.maximumWidth: root.sideSize
+        Layout.fillHeight: true
+        implicitWidth: root.sideSize
+
         spacing: root.spacing
 
         ArchIconBtw {
@@ -104,6 +107,7 @@ RowLayout {
         id: rightContent
         // Layout.preferredWidth: Math.max(leftContent.implicitWidth, rightContent.implicitWidth)
         Layout.maximumWidth: root.sideSize
+        implicitWidth: root.sideSize
         spacing: root.spacing
 
         Spacing {}
@@ -123,5 +127,6 @@ RowLayout {
 
     component Spacing: Item {
         Layout.fillWidth: true
+        Layout.fillHeight: true
     }
 }

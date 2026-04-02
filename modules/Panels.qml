@@ -22,14 +22,23 @@ Item {
     readonly property alias startmenu: startmenu
     readonly property alias mprisViewer: mprisViewer
 
+    readonly property list<string> validPanelProps: ["session", "startmenu", "mprisViewer"]
+
     anchors.fill: parent
     anchors.margins: Config.border.thickness
     anchors.topMargin: bar.implicitHeight
 
+    function forceClosePanels() {
+        for (const item of root.validPanelProps) {
+            if (openPanels.hasOwnProperty(item)) {
+                openPanels[item] = false;
+            }
+        }
+    }
+
     function openExclusivePanel(prop: string) {
-        const validProps = ["session", "startmenu", "mprisViewer"];
-        if (validProps.includes(prop)) {
-            for (const item of validProps) {
+        if (root.validPanelProps.includes(prop)) {
+            for (const item of root.validPanelProps) {
                 if (item === prop)
                     openPanels[item] = !openPanels[item];
                 else
@@ -58,9 +67,6 @@ Item {
         // TODO: Clean up spaghetti below
         x: root.bar.mediaInfo ? (root.bar.mediaInfo.x + (root.bar.mediaInfo.item?.implicitWidth ?? 0) / 2 - (implicitWidth / 2) + padding * 2) : 0
 
-        Component.onCompleted: {
-            console.log(root.bar.mediaInfo);
-        }
         openPanels: root.openPanels
     }
 

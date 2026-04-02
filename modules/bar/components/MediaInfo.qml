@@ -22,6 +22,8 @@ Loader {
     readonly property int padding: Config.appearance.padding.sm
     readonly property bool shouldBeActive: MprisService.playerList.length > 0
 
+    readonly property Item positionReference: item ? item?.popoutPositionReference : null
+
     active: Config.media.enabled
 
     sourceComponent: Item {

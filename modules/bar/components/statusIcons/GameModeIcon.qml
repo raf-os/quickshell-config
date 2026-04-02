@@ -5,7 +5,6 @@ import qs.config
 import qs.services
 import qs.utils
 import QtQuick
-import QtQuick.Effects
 
 Item {
     id: root
@@ -14,7 +13,10 @@ Item {
     readonly property int animDuration: 200
 
     implicitWidth: Config.appearance.fontSize.xl
-    implicitHeight: Config.bar.sizes.innerHeight
+    // implicitHeight: Config.bar.sizes.innerHeight
+
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
 
     function checkGamemodeState(callback: var): void {
         GlobalStateManager.checkGamemodeState(callback);
@@ -54,7 +56,7 @@ Item {
 
     StyledText {
         id: icon
-        anchors.centerIn: parent
+        anchors.fill: parent
         text: root.isActive ? "󰖺" : "󰖻"
         color: root.isActive ? ColorService.current.baseContent : ColorService.current.baseContentMuted
 
@@ -62,6 +64,7 @@ Item {
         font.family: Config.appearance.fontFamily.monoIcon
 
         horizontalAlignment: Qt.AlignHCenter
+        verticalAlignment: Qt.AlignVCenter
 
         Behavior on color {
             CAnim {

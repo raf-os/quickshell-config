@@ -20,7 +20,7 @@ Item {
 
     MouseArea {
         cursorShape: Qt.PointingHandCursor
-        propagateComposedEvents: true
+        // propagateComposedEvents: true
         anchors.fill: parent
 
         onClicked: ev => {

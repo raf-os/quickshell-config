@@ -12,7 +12,7 @@ MouseArea {
 
     cursorShape: Qt.PointingHandCursor
     implicitWidth: Config.appearance.fontSize.xl
-    implicitHeight: Config.bar.sizes.innerHeight
+    // implicitHeight: Config.bar.sizes.innerHeight
     acceptedButtons: Qt.LeftButton | Qt.RightButton
 
     onClicked: ev => {
@@ -25,9 +25,10 @@ MouseArea {
         color: root.activeNotifications > 0 ? ColorService.current.baseContent : ColorService.current.baseContentMuted
         font.pixelSize: Config.appearance.fontSize.xl
         font.family: Config.appearance.fontFamily.monoIcon
-        anchors.centerIn: parent
+        anchors.fill: parent
 
         horizontalAlignment: Qt.AlignHCenter
+        verticalAlignment: Qt.AlignVCenter
     }
 
     Process {

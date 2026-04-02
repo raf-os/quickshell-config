@@ -27,12 +27,13 @@ Item {
     Loader {
         id: content
 
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.centerIn: parent
 
         sourceComponent: Bar {
-            height: root.contentHeight
+            anchors.centerIn: parent
+
+            width: root.width - Config.appearance.padding.lg
+            height: Config.bar.sizes.innerHeight
             screen: root.screen
 
             openPanels: root.openPanels

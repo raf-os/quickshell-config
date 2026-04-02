@@ -30,9 +30,19 @@ Item {
     RowLayout {
         id: iconRow
 
-        anchors.centerIn: parent
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
 
         spacing: Config.appearance.spacing.xs
+
+        WrappedLoader {
+            id: kbdLayoutStatus
+            name: "Keyboard layout"
+            active: Config.keymap.enabled === true
+
+            sourceComponent: KeyboardLayoutIcon {}
+        }
 
         WrappedLoader {
             id: gameModeStatus
@@ -50,21 +60,13 @@ Item {
             sourceComponent: NotificationsIcon {}
         }
 
-        MouseArea {
-            implicitWidth: audioStatus.implicitWidth
-            implicitHeight: audioStatus.implicitHeight
-            cursorShape: Qt.PointingHandCursor
+        WrappedLoader {
+            id: audioStatus
+            name: "Audio settings"
+            active: true
 
-            WrappedLoader {
-                id: audioStatus
-                name: "Audio settings"
-                active: true
-
-                sourceComponent: AudioStatusIcon {}
-            }
-
-            onClicked: ev => {
-                root.popoutHandler.triggerPopout(audioStatus, "audio");
+            sourceComponent: AudioStatusIcon {
+                popoutHandler: root.popoutHandler
             }
         }
 
@@ -82,7 +84,8 @@ Item {
     component WrappedLoader: Loader {
         required property string name
 
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+        Layout.alignment: Qt.AlignVCenter
+        Layout.fillHeight: true
         visible: active
     }
 }

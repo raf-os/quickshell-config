@@ -9,10 +9,13 @@ import QtQuick.Layouts
 
 Item {
     id: root
-    Layout.leftMargin: Config.appearance.spacing.md
+    // Layout.leftMargin: Config.appearance.spacing.md
 
     required property PersistentProperties openPanels
     required property Item panels
+
+    implicitWidth: Config.appearance.fontSize.xl * 2
+    Layout.fillHeight: true
 
     signal powerButtonActivate
 
@@ -29,10 +32,7 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
 
-        anchors.fill: undefined
-        anchors.centerIn: parent
-        implicitWidth: implicitHeight
-        implicitHeight: icon.implicitHeight + Config.appearance.padding.xs * 2
+        anchors.fill: parent
 
         onClicked: event => onClicked(event)
 
@@ -46,12 +46,15 @@ Item {
     MaterialIcon {
         id: icon
 
-        anchors.centerIn: parent
+        anchors.fill: parent
 
         text: "power_settings_new"
         color: mouseArea.containsMouse ? ColorService.current.destructiveHover : ColorService.current.destructive
         font.bold: true
-        font.pointSize: Config.appearance.fontSize.md
+        font.pixelSize: Config.appearance.fontSize.xl
+
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
 
         Behavior on color {
             CAnim {}

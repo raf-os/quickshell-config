@@ -57,6 +57,8 @@ Item {
         enabled: Config.media.enabled
 
         function onTriggerOsd() {
+            if (root.openPanels.mprisViewer === true)
+                return;
             const currentPlayer = MprisService.currentActive;
             if (currentPlayer === null)
                 return;

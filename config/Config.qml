@@ -13,6 +13,7 @@ Singleton {
     property alias bar: adapter.bar
     property alias launcher: adapter.launcher
     property alias media: adapter.media
+    property alias keymap: adapter.keymap
 
     property bool recentlySaved: false
 
@@ -66,7 +67,8 @@ Singleton {
             bar: serializeBar(),
             border: serializeBorder(),
             launcher: serializeLauncher(),
-            media: serializeMedia()
+            media: serializeMedia(),
+            keymap: serializeKeymap()
         };
     }
 
@@ -114,8 +116,16 @@ Singleton {
     function serializeMedia(): var {
         return {
             enabled: media.enabled,
+            mediaPopoutEnabled: media.mediaPopoutEnabled,
             defaultPlayer: media.defaultPlayer,
             playerAliases: media.playerAliases
+        };
+    }
+
+    function serializeKeymap(): var {
+        return {
+            enabled: keymap.enabled,
+            layouts: keymap.layouts
         };
     }
 
@@ -164,6 +174,7 @@ Singleton {
             property BarConfig bar: BarConfig {}
             property LauncherConfig launcher: LauncherConfig {}
             property MediaConfig media: MediaConfig {}
+            property KeyMapConfig keymap: KeyMapConfig {}
         }
     }
 }
