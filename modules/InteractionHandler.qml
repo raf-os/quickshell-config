@@ -55,6 +55,8 @@ MouseArea {
             readonly property rect miAreaRect: Qt.rect(x - mediaIndicatorPos.x, y, root.mediaIndicator.implicitWidth, root.bar.implicitHeight)
 
             hoverEnabled: true
+            preventStealing: true
+            propagateComposedEvents: true
 
             function isInZone(mx, my) {
                 console.log(mx, my);

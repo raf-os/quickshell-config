@@ -29,6 +29,7 @@ Item {
         text: "us"
         font.family: Config.appearance.fontFamily.sans
         font.weight: 600
+        font.pointSize: Config.appearance.fontSize.xxs
 
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter

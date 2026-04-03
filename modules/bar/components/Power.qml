@@ -51,7 +51,7 @@ Item {
         text: "power_settings_new"
         color: mouseArea.containsMouse ? ColorService.current.destructiveHover : ColorService.current.destructive
         font.bold: true
-        font.pixelSize: Config.appearance.fontSize.xl
+        font.pointSize: Config.appearance.fontSize.md
 
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

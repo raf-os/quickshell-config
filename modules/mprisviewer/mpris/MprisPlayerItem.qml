@@ -27,9 +27,9 @@ ColumnLayout {
     QtObject {
         id: trackData
 
-        property string trackTitle: root.modelData.trackTitle ?? "Unknown track"
-        property string trackArtist: root.modelData.trackArtist ?? "Unknown artist"
-        property string trackArtUrl: root.modelData.trackArtUrl ?? ""
+        property string trackTitle: root.modelData?.trackTitle ?? "Unknown track"
+        property string trackArtist: root.modelData?.trackArtist ?? "Unknown artist"
+        property string trackArtUrl: root.modelData?.trackArtUrl ?? ""
 
         function getArtUrl() {
             trackArtUrl = MprisService.getArtUrl(root.modelData);
@@ -50,7 +50,7 @@ ColumnLayout {
         MouseArea {
             anchors.fill: parent
 
-            enabled: root.modelData.canRaise
+            enabled: root.modelData?.canRaise ?? false
 
             cursorShape: Qt.PointingHandCursor
 
@@ -103,7 +103,7 @@ ColumnLayout {
 
                 Layout.fillWidth: true
 
-                text: root.modelData.identity
+                text: root.modelData?.identity ?? "Unknown player"
                 elide: Text.ElideRight
 
                 font.family: Config.appearance.fontFamily.sans
@@ -215,13 +215,13 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: Config.appearance.spacing.xxs
 
-                active: root.modelData.positionSupported && root.modelData.lengthSupported
+                active: (root.modelData?.positionSupported && root.modelData?.lengthSupported) ?? false
 
                 sourceComponent: Item {
                     id: progressBar
 
-                    readonly property real trackLength: root.modelData.length ?? 1
-                    readonly property real trackPosition: root.modelData.position ?? 0
+                    readonly property real trackLength: root.modelData?.length ?? 1
+                    readonly property real trackPosition: root.modelData?.position ?? 0
                     readonly property real progressPercent: trackPosition / trackLength
 
                     anchors.left: parent.left
@@ -249,7 +249,7 @@ ColumnLayout {
                     }
 
                     FrameAnimation {
-                        running: root.modelData.isPlaying
+                        running: root.modelData?.isPlaying ?? false
                         onTriggered: {
                             MprisService.updateTrackPositions();
                         }
@@ -260,7 +260,7 @@ ColumnLayout {
             RowLayout {
                 id: mediaControls
 
-                readonly property bool isPlaying: root.modelData.isPlaying
+                readonly property bool isPlaying: root.modelData?.isPlaying ?? false
 
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: Config.appearance.spacing.xxs
@@ -268,7 +268,7 @@ ColumnLayout {
 
                 MediaControlButton {
                     id: goPrevious
-                    isEnabled: root.modelData.canGoPrevious
+                    isEnabled: root.modelData?.canGoPrevious ?? false
 
                     iconText: "󰒮"
 
@@ -279,7 +279,7 @@ ColumnLayout {
 
                 MediaControlButton {
                     id: playPause
-                    isEnabled: root.modelData.canPlay && root.modelData.canPause
+                    isEnabled: (root.modelData?.canPlay && root.modelData?.canPause) ?? false
 
                     iconText: mediaControls.isPlaying ? "󰏤" : "󰐊"
 
@@ -294,7 +294,7 @@ ColumnLayout {
 
                 MediaControlButton {
                     id: goNext
-                    isEnabled: root.modelData.canGoNext
+                    isEnabled: root.modelData?.canGoNext ?? false
 
                     iconText: "󰒭"
 
@@ -305,7 +305,7 @@ ColumnLayout {
 
                 MediaControlButton {
                     id: shuffleButton
-                    isEnabled: root.modelData.canControl && root.modelData.shuffleSupported
+                    isEnabled: (root.modelData?.canControl && root.modelData?.shuffleSupported) ?? false
                     isFaded: isEnabled && root.modelData.shuffle !== true
 
                     visible: isEnabled

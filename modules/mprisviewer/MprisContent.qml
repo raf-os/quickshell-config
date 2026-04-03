@@ -44,8 +44,12 @@ Item {
 
         clip: true
 
-        MprisPlayerItem {
-            modelData: root.currentActive
+        Loader {
+            active: root.currentActive !== null
+
+            sourceComponent: MprisPlayerItem {
+                modelData: root.currentActive
+            }
         }
     }
 
