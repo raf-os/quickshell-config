@@ -199,14 +199,29 @@ ColumnLayout {
 
             StyledText {
                 text: trackData.trackTitle
-                font.family: Config.appearance.fontFamily.sans
-                font.pointSize: Config.appearance.fontSize.md
+                font.family: twoLineTextSample.font.family
+                font.pointSize: twoLineTextSample.font.pointSize
                 font.weight: 600
 
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
+                elide: Text.ElideRight
 
-                maximumLineCount: 3
+                // HACK: fake line height so the height is fixed at 2 lines
+                // to prevent layout shifting
+                Layout.preferredHeight: (twoLineTextSample.height + 2) * 2
+
+                maximumLineCount: 2
+            }
+
+            TextMetrics {
+                id: twoLineTextSample
+
+                font.family: Config.appearance.fontFamily.sans
+                font.pointSize: Config.appearance.fontSize.md
+                font.weight: 600
+
+                text: "\n"
             }
 
             Loader {

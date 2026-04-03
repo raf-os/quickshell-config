@@ -115,7 +115,7 @@ Variants {
             HyprlandFocusGrab {
                 id: focusHandler
                 windows: [win]
-                active: panels.popouts.hasCurrent || panels.startmenu.isActive || openPanels.mprisViewer
+                active: panels.popouts.hasCurrent || panels.startmenu.isActive
                 onCleared: {
                     panels.popouts.close();
                     openPanels.startmenu = false;

@@ -36,11 +36,12 @@ MouseArea {
     Loader {
         id: customTest
 
-        active: false //root.mediaIndicator !== null && root.mediaIndicator.active === true
+        active: root.mediaIndicator !== null && root.mediaIndicator.active === true
 
-        sourceComponent: MouseArea {
-            id: mareainteract
-            readonly property rect mediaIndicatorPos: {
+        sourceComponent: Item {
+            id: rootAreaInteract
+
+            readonly property point mediaIndicatorPos: {
                 root.mediaIndicator.x;
                 root.mediaIndicator.y;
                 return root.mediaIndicator.mapToItem(root, 0, 0);
@@ -54,26 +55,44 @@ MouseArea {
 
             readonly property rect miAreaRect: Qt.rect(x - mediaIndicatorPos.x, y, root.mediaIndicator.implicitWidth, root.bar.implicitHeight)
 
-            hoverEnabled: true
-            preventStealing: true
-            propagateComposedEvents: true
-
-            function isInZone(mx, my) {
-                console.log(mx, my);
-                return (mx => miAreaRect.x && mx <= miAreaRect.width && my >= miAreaRect.y && my <= miAreaRect.height);
-            }
-
-            readonly property bool inZone: containsMouse && isInZone(mouseX, mouseY)
-
-            onInZoneChanged: {
-                console.log(inZone);
-            }
-
             x: Math.min(mediaIndicatorPos.x, mprisPopupPos.x) ?? 0
             y: 0
 
-            implicitWidth: Math.max(root.mediaIndicator.implicitWidth, root.panels.mprisViewer.implicitWidth)
-            implicitHeight: root.bar.implicitHeight + root.panels.mprisViewer.implicitHeight
+            property bool isMouseWithin: mediaBarArea.containsMouse || mediaPopoutArea.containsMouse
+
+            onIsMouseWithinChanged: {
+                if (isMouseWithin) {
+                    root.panels.openHoverExclusivePanel("mprisViewer");
+                } else {
+                    root.openPanels.mprisViewer = false;
+                }
+            }
+
+            MouseArea {
+                id: mediaBarArea
+                x: rootAreaInteract.mediaIndicatorPos.x - parent.x
+                y: 0
+
+                implicitWidth: root.mediaIndicator.width
+                implicitHeight: root.bar.implicitHeight
+
+                hoverEnabled: true
+
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: root.panels.openExclusivePanel("mprisViewer")
+            }
+
+            MouseArea {
+                id: mediaPopoutArea
+                x: rootAreaInteract.mprisPopupPos.x - parent.x
+                y: rootAreaInteract.mprisPopupPos.y - parent.y
+
+                implicitWidth: root.panels.mprisViewer.implicitWidth
+                implicitHeight: root.panels.mprisViewer.implicitHeight
+
+                hoverEnabled: true
+            }
         }
     }
 }

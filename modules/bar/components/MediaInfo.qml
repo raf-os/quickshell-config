@@ -8,7 +8,7 @@ import qs.utils
 import Quickshell
 import Quickshell.Widgets
 import QtQuick
-import QtQuick.Effects
+import QtQuick.Layouts
 
 Loader {
     id: root
@@ -23,6 +23,8 @@ Loader {
     readonly property bool shouldBeActive: MprisService.playerList.length > 0
 
     readonly property Item positionReference: item ? item?.popoutPositionReference : null
+
+    Layout.fillHeight: true
 
     active: Config.media.enabled
 
@@ -98,21 +100,21 @@ Loader {
             anchors.centerIn: parent
         }
 
-        MouseArea {
-            id: rootInteractionArea
-
-            anchors.fill: parent
-
-            cursorShape: Qt.PointingHandCursor
-
-            enabled: root.shouldBeActive
-            hoverEnabled: true
-
-            onClicked: {
-                root.panels.openExclusivePanel("mprisViewer");
-                // root.openPanels.mprisViewer = !root.openPanels.mprisViewer;
-            }
-        }
+        // MouseArea {
+        //     id: rootInteractionArea
+        //
+        //     anchors.fill: parent
+        //
+        //     cursorShape: Qt.PointingHandCursor
+        //
+        //     enabled: root.shouldBeActive
+        //     hoverEnabled: true
+        //
+        //     onClicked: {
+        //         root.panels.openExclusivePanel("mprisViewer");
+        //         // root.openPanels.mprisViewer = !root.openPanels.mprisViewer;
+        //     }
+        // }
 
         StyledRect {
             id: bgRect

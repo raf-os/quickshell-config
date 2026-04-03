@@ -28,7 +28,7 @@ Item {
     anchors.margins: Config.border.thickness
     anchors.topMargin: bar.implicitHeight
 
-    function forceClosePanels() {
+    function forceClosePanels(): void {
         for (const item of root.validPanelProps) {
             if (openPanels.hasOwnProperty(item)) {
                 openPanels[item] = false;
@@ -36,7 +36,7 @@ Item {
         }
     }
 
-    function openExclusivePanel(prop: string) {
+    function openExclusivePanel(prop: string): void {
         if (root.validPanelProps.includes(prop)) {
             for (const item of root.validPanelProps) {
                 if (item === prop)
@@ -45,6 +45,12 @@ Item {
                     openPanels[item] = false;
             }
         }
+    }
+
+    function openHoverExclusivePanel(prop: string) {
+        if (root.openPanels.session || root.openPanels.startmenu)
+            return;
+        return openExclusivePanel(prop);
     }
 
     CommandCaptureWrapper {
