@@ -14,19 +14,23 @@ Item {
     implicitWidth: Config.appearance.fontSize.xl
     // implicitHeight: Config.bar.sizes.innerHeight
 
-    Component.onCompleted: {
-        fetchCurrentLayoutProc.running = true;
+    function setCurrentLayout(code: string): void {
+        currentLayout = code.slice(0, 2);
     }
 
-    function setCurrentLayout(code: string): void {
-        currentLayout = code.slice(0, 1);
+    Connections {
+        target: KeyboardService
+
+        function onCurrentLayoutChanged() {
+            root.setCurrentLayout(KeyboardService.currentLayout);
+        }
     }
 
     StyledText {
         id: displayText
         anchors.fill: parent
 
-        text: "us"
+        text: root.currentLayout
         font.family: Config.appearance.fontFamily.sans
         font.weight: 600
         font.pointSize: Config.appearance.fontSize.xxs
@@ -41,16 +45,5 @@ Item {
         anchors.fill: parent
 
         cursorShape: Qt.PointingHandCursor
-    }
-
-    Process {
-        id: fetchCurrentLayoutProc
-
-        command: ["sh", "-c", "localectl status | grep Keymap | awk '{print $3}'"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.setCurrentLayout(this.text);
-            }
-        }
     }
 }

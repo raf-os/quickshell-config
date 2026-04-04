@@ -6,6 +6,8 @@ find_package(Qt6 REQUIRED COMPONENTS
   Sql
 )
 
+find_package(LibXml2 REQUIRED)
+
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 qt_standard_project_setup(REQUIRES 6.9)
 
@@ -59,9 +61,11 @@ qml_module(myshell
   SOURCES
     appdb.h appdb.cpp
     cmdhandler.h cmdhandler.cpp
+    kbd.h kbd.cpp
   LIBRARIES
     Qt::Gui
     Qt::Quick
     Qt::Sql
     rapidfuzz::rapidfuzz
+    LibXml2::LibXml2
 )
