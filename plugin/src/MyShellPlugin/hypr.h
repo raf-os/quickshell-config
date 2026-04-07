@@ -34,7 +34,7 @@ class HyprInputConfig : public QObject {
   Q_PROPERTY(QString kbModel READ kbModel)
   Q_PROPERTY(QString kbOptions READ kbOptions)
   Q_PROPERTY(QString kbRules READ kbRules)
-  Q_PROPERTY(QMLListProperty<HyprKeyboardLayout> layouts READ layouts)
+  Q_PROPERTY(QQmlListProperty<HyprKeyboardLayout> layouts READ layouts)
 
 public:
   explicit HyprInputConfig(QObject *parent = nullptr);
@@ -53,7 +53,6 @@ private:
 
 class HyprExtras : public QObject {
   Q_OBJECT
-  QML_SINGLETON
   QML_ELEMENT
 
   Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY
@@ -62,11 +61,13 @@ class HyprExtras : public QObject {
 public:
   explicit HyprExtras(QObject *parent = nullptr);
 
-  [[nodiscard]] QString configpath() const;
+  [[nodiscard]] QString configPath() const;
   void setConfigPath(const QString &path);
 
   void parseInputConfig();
   Q_INVOKABLE void writeConfigsToFile();
+
+  Q_INVOKABLE void debugParseInput();
 
 signals:
   void configPathChanged();

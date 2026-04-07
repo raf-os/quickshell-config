@@ -37,7 +37,7 @@ QQmlListProperty<HyprKeyboardLayout> HyprInputConfig::layouts() {
 
 HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {}
 
-QString HyprExtras::configpath() const { return m_configPath; }
+QString HyprExtras::configPath() const { return m_configPath; }
 
 void HyprExtras::setConfigPath(const QString &path) {
   if (m_configPath != path) {
@@ -46,9 +46,11 @@ void HyprExtras::setConfigPath(const QString &path) {
   }
 }
 
+void HyprExtras::debugParseInput() { parseInputConfig(); }
+
 void HyprExtras::parseInputConfig() {
   QDir cfgDir(m_configPath);
-  if (!cfgDir.exists()) {
+  if (!QDir(m_configPath).exists()) {
     qWarning()
         << "myshellplugin::HyprExtras: Hyprland config path is not set up "
            "correctly. Some Hyprland specific features will not work "
@@ -71,6 +73,7 @@ void HyprExtras::parseInputConfig() {
   }
 
   bool inputSectionFlag = false;
+  bool isSuffixFlag = false;
 
   bool isError = false;
 
@@ -83,43 +86,52 @@ void HyprExtras::parseInputConfig() {
     QString cmdBuffer;
     QString valBuffer;
 
-    bool isSuffix = false;
+    isSuffixFlag = false;
 
     for (auto it = line.cbegin(); it != line.cend(); ++it) {
       if (QString::compare(it, "#") == 0)
         break;
+
+      lineBuffer += *it;
+
       if (QString::compare(it, "{") == 0) {
-        if (lineBuffer.startsWith("input")) {
+        if (inputSectionFlag) {
+          isError = true;
+          break;
+        }
+        if (lineBuffer == "input {") {
           inputSectionFlag = true;
           lineBuffer = "";
         }
+        break;
       } else if (QString::compare(it, "}") == 0) {
         if (inputSectionFlag == true) {
           inputSectionFlag = false;
           lineBuffer = "";
-          break;
         }
-      } else if (QString::compare(it, "=") == 0 && inputSectionFlag) {
-        if (!isSuffix) {
-          cmdBuffer = lineBuffer.trimmed();
-          lineBuffer = "";
-          isSuffix = true;
-        } else {
-          isError = true;
-          break;
-        }
-      } else {
-        lineBuffer += *it;
       }
-    }
-
-    if (isSuffix) {
-      valBuffer = lineBuffer.trimmed();
     }
 
     if (isError) {
       break;
     }
+
+    if (inputSectionFlag) {
+      if (lineBuffer.contains("=")) {
+
+        auto splitStr = lineBuffer.split("=");
+
+        cmdBuffer = splitStr[0].trimmed();
+        valBuffer = splitStr[1].trimmed();
+        settingsBuffer.insert(cmdBuffer, valBuffer);
+
+        qDebug() << cmdBuffer << ":" << valBuffer << "\n";
+      }
+    }
+  }
+
+  if (isError) {
+    qDebug() << "error occurred";
   }
 
   file.close();

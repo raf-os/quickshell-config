@@ -1,6 +1,7 @@
 pragma Singleton
 
 import qs.config
+import qs.utils
 import MyShellPlugin
 import Quickshell
 import Quickshell.Io
@@ -15,6 +16,14 @@ Singleton {
 
     Component.onCompleted: {
         getLayoutProcess.running = true;
+    }
+
+    HyprExtras {
+        configPath: `${Paths.home}/.config/hypr`
+
+        Component.onCompleted: {
+            debugParseInput();
+        }
     }
 
     KeyboardLayoutHandler {
