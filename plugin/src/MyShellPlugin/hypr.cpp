@@ -6,8 +6,14 @@
 #include <qdir.h>
 #include <qfiledevice.h>
 #include <qfileinfo.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonparseerror.h>
+#include <qjsonvalue.h>
 #include <qlogging.h>
 #include <qobject.h>
+#include <qprocess.h>
 #include <qqmllist.h>
 #include <qstringview.h>
 #include <qtimer.h>
@@ -140,6 +146,8 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
   m_lookupCooldownTimer->setInterval(250);
 }
 
+int HyprExtras::kbdLayoutIndex() const { return m_kbLayoutIndex; }
+
 QString HyprExtras::configPath() const { return m_configPath; }
 
 void HyprExtras::setConfigPath(const QString &path) {
@@ -162,6 +170,8 @@ void HyprExtras::setShellConfigPath(const QString &path) {
   }
 }
 
+void HyprExtras::updateCurrentKeyboardConfig() { return queryCurrentDevices(); }
+
 KeyboardLayoutHandler *HyprExtras::keyboardLayoutHandler() const {
   return m_kbLayoutHandler;
 }
@@ -174,6 +184,85 @@ void HyprExtras::setKeyboardLayoutHandler(KeyboardLayoutHandler *kbd) {
       m_inputConfig->attachKeyboardHandler(kbd);
     }
     emit keyboardLayoutHandlerChanged();
+  }
+}
+
+void HyprExtras::queryCurrentDevices() {
+  if (m_lookupCooldownTimer != nullptr && m_lookupCooldownTimer->isActive()) {
+    return;
+  }
+
+  if (m_inputQueryProcess != nullptr) {
+    if (m_inputQueryProcess->state() != QProcess::NotRunning) {
+      return;
+    }
+  } else {
+    m_inputQueryProcess = new QProcess(this);
+  }
+
+  m_ipProcessBuffer.clear();
+
+  m_inputQueryProcess->setProgram("hyprctl");
+  m_inputQueryProcess->setArguments({"devices", "-j"});
+
+  QObject::connect(m_inputQueryProcess, &QProcess::finished, this, [this]() {
+    auto buf = m_inputQueryProcess->readAllStandardOutput();
+    m_ipProcessBuffer.append(buf);
+    m_lookupCooldownTimer->start();
+  });
+
+  m_inputQueryProcess->start();
+}
+
+void HyprExtras::parseProcessData() {
+  if (m_ipProcessBuffer.size() == 0)
+    return;
+
+  QJsonParseError parseError;
+  QJsonDocument jDoc = QJsonDocument::fromJson(m_ipProcessBuffer, &parseError);
+
+  if (parseError.error != QJsonParseError::NoError) {
+    qWarning() << "myqmlplugin::HyprExtras::parseProcessData: Error parsing "
+                  "process json data:"
+               << parseError.errorString();
+    return;
+  }
+
+  m_ipProcessBuffer.clear();
+
+  if (jDoc.isObject()) {
+    QJsonObject obj = jDoc.object();
+
+    auto it = obj.find("keyboard");
+    if (it != obj.end()) {
+      QJsonValue val = it.value();
+
+      if (val.isArray()) {
+        QJsonArray keyboards = val.toArray();
+
+        for (const QJsonValue &value : keyboards) {
+          if (value.isObject()) {
+            QJsonObject kbInfo = value.toObject();
+            auto isMain = kbInfo["main"].toBool(false);
+
+            if (isMain) {
+              auto layoutIdx = kbInfo["main"].toInt(0);
+
+              if (layoutIdx != m_kbLayoutIndex) {
+                m_kbLayoutIndex = layoutIdx;
+                emit kbdLayoutIndexChanged();
+              }
+
+              break;
+            }
+          }
+        }
+      }
+    }
+  } else {
+    qWarning() << "myqmlplugin::HyprExtras::parseProcessData: Invalid json "
+                  "data received.";
+    return;
   }
 }
 

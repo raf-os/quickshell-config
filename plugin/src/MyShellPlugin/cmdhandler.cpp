@@ -334,6 +334,9 @@ QVariantMap CmdHandler::executeCommand(const QString &command) {
   m_runningProcess->setProgram(entryBuffer->path());
   m_runningProcess->setArguments(args);
   QObject::connect(m_runningProcess, &QProcess::finished, this, [this]() {
+    auto remainingBuffer =
+        QString::fromUtf8(m_runningProcess->readAllStandardOutput());
+    m_processOutput.append(remainingBuffer);
     m_processOutput.append(QString("[EXIT] Process exited with status %1.")
                                .arg(m_runningProcess->exitStatus()));
     emit processOutputChanged();

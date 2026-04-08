@@ -4,6 +4,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>
+#include <qprocess.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
 #include <qtimer.h>
@@ -105,10 +106,16 @@ public:
   [[nodiscard]] QString shellConfigPath() const;
   void setShellConfigPath(const QString &path);
 
+  [[nodiscard]] int kbdLayoutIndex() const;
+
   [[nodiscard]] KeyboardLayoutHandler *keyboardLayoutHandler() const;
   void setKeyboardLayoutHandler(KeyboardLayoutHandler *kbh);
 
   void parseInputConfig();
+
+  void queryCurrentDevices();
+
+  Q_INVOKABLE void updateCurrentKeyboardConfig();
 
   Q_INVOKABLE void writeInputConfigToFile();
 
@@ -122,9 +129,14 @@ signals:
 
 private:
   QTimer *m_lookupCooldownTimer = nullptr;
+  QProcess *m_inputQueryProcess = nullptr;
+  QByteArray m_ipProcessBuffer;
+  int m_kbLayoutIndex = 0;
   QString m_configPath;
   QString m_shellConfigPath;
   HyprInputConfig *m_inputConfig = nullptr;
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
+
+  void parseProcessData();
 };
 } // namespace myqmlplugin

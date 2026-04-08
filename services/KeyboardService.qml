@@ -19,11 +19,12 @@ Singleton {
     }
 
     HyprExtras {
+        id: hyprExtras
         configPath: `${Paths.home}/.config/hypr`
         keyboardLayoutHandler: kbLHandler
 
         Component.onCompleted: {
-            debugParseInput();
+            updateCurrentKeyboardConfig();
         }
     }
 
@@ -33,6 +34,14 @@ Singleton {
         // onLayoutsChanged: {
         //     debugPrintLayouts();
         // }
+    }
+
+    Connections {
+        target: Hypr
+
+        function onKeyboardLayoutChanged() {
+            hyprExtras.updateCurrentKeyboardConfig();
+        }
     }
 
     FileView {

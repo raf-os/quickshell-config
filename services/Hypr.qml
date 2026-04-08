@@ -1,4 +1,5 @@
 pragma Singleton
+
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
@@ -13,6 +14,8 @@ Singleton {
     readonly property HyprlandToplevel activeTopLevel: Hyprland.activeToplevel?.wayland?.activated ? Hyprland.activeToplevel : null
     readonly property HyprlandWorkspace focusedWorkspace: Hyprland.focusedWorkspace
     readonly property HyprlandMonitor focusedMonitor: Hyprland.focusedMonitor
+
+    signal keyboardLayoutChanged
 
     function monitorFor(screen: ShellScreen): HyprlandMonitor {
         return Hyprland.monitorFor(screen);
@@ -47,6 +50,8 @@ Singleton {
                 Hyprland.refreshWorkspaces();
             } else if (n.includes("window") || n.includes("group") || ["pin", "fullscreen", "changefloatingmode", "minimize".includes(n)]) {
                 Hyprland.refreshToplevels();
+            } else if (n.includes("activelayout")) {
+                root.keyboardLayoutChanged();
             }
         }
     }
