@@ -20,6 +20,7 @@ Singleton {
 
     HyprExtras {
         configPath: `${Paths.home}/.config/hypr`
+        keyboardLayoutHandler: kbLHandler
 
         Component.onCompleted: {
             debugParseInput();

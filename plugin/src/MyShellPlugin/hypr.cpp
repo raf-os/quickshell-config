@@ -1,4 +1,5 @@
 #include "hypr.h"
+#include "kbd.h"
 
 #include <qcontainerfwd.h>
 #include <qdebug.h>
@@ -9,13 +10,25 @@
 #include <qobject.h>
 #include <qqmllist.h>
 #include <qstringview.h>
+#include <qtimer.h>
 
 namespace myqmlplugin {
-HyprKeyboardLayout::HyprKeyboardLayout(QObject *parent) : QObject(parent) {}
+HyprKeyboardLayout::HyprKeyboardLayout(const QString &layout,
+                                       const QString &variant, QObject *parent)
+    : QObject(parent), m_layout(layout), m_variant(variant) {}
 
 QString HyprKeyboardLayout::layout() const { return m_layout; }
 
 QString HyprKeyboardLayout::variant() const { return m_variant; }
+
+QString HyprKeyboardLayout::description() const { return m_description; }
+
+void HyprKeyboardLayout::setDescription(const QString &desc) {
+  if (m_description != desc) {
+    m_description = desc;
+    emit descriptionChanged();
+  }
+}
 
 bool HyprKeyboardLayout::isValid() {
   if (m_layout == "")
@@ -25,17 +38,107 @@ bool HyprKeyboardLayout::isValid() {
 
 HyprInputConfig::HyprInputConfig(QObject *parent) : QObject(parent) {}
 
+void HyprInputConfig::attachKeyboardHandler(KeyboardLayoutHandler *obj) {
+  m_kbLayoutHandler = obj;
+}
+
 QString HyprInputConfig::kbModel() const { return m_kbModel; }
+
+void HyprInputConfig::setKbModel(const QString &model) {
+  if (model != m_kbModel) {
+    m_kbModel = model;
+    emit kbModelChanged();
+  }
+}
 
 QString HyprInputConfig::kbOptions() const { return m_kbOptions; }
 
+void HyprInputConfig::setKbOptions(const QString &opts) {
+  if (opts != m_kbOptions) {
+    m_kbOptions = opts;
+    emit kbOptionsChanged();
+  }
+}
+
 QString HyprInputConfig::kbRules() const { return m_kbRules; }
+
+void HyprInputConfig::setKbRules(const QString &rules) {
+  if (rules != m_kbRules) {
+    m_kbRules = rules;
+    emit kbRulesChanged();
+  }
+}
 
 QQmlListProperty<HyprKeyboardLayout> HyprInputConfig::layouts() {
   return QQmlListProperty<HyprKeyboardLayout>(this, &m_layouts);
 }
 
-HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {}
+void HyprInputConfig::setLayouts(const QStringList &layouts,
+                                 const QStringList &variants) {
+  if (variants.size() > 1 && variants.size() != layouts.size()) {
+    // If this function is being called this was likely already checked, but
+    // just to be sure...
+    qWarning() << "myqmlplugin::HyprInputConfig::setLayouts: layout and "
+                  "variants differ size - configuration is invalid.";
+    return;
+  }
+
+  bool isDifferentFlag = false;
+
+  // TODO: There's probably a better comparison algorithm
+
+  if (layouts.size() != m_layouts.size()) {
+    isDifferentFlag = true;
+  } else {
+    for (int i = 0; i < layouts.count(); ++i) {
+      bool contains = false;
+      for (int j = 0; j < m_layouts.count(); ++j) {
+        if (m_layouts.at(j)->layout() == layouts.at(i)) {
+          if (variants.size() > 1) {
+            if (m_layouts.at(j)->variant() == variants.at(i)) {
+              contains = true;
+              break;
+            }
+          } else {
+            contains = true;
+            break;
+          }
+        }
+      }
+
+      if (contains == false) {
+        isDifferentFlag = true;
+        break;
+      }
+    }
+  }
+
+  if (isDifferentFlag) {
+    for (auto item : m_layouts) {
+      item->deleteLater();
+    }
+
+    m_layouts.clear();
+
+    for (int i = 0; i < layouts.count(); ++i) {
+      QString vBuf = "";
+      if (variants.size() > 1) {
+        vBuf = variants.at(i);
+      }
+
+      auto cfg = new HyprKeyboardLayout(layouts.at(i), vBuf, this);
+      m_layouts.append(cfg);
+    }
+
+    emit layoutsChanged();
+  }
+}
+
+HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
+  m_lookupCooldownTimer = new QTimer(this);
+  m_lookupCooldownTimer->setSingleShot(true);
+  m_lookupCooldownTimer->setInterval(250);
+}
 
 QString HyprExtras::configPath() const { return m_configPath; }
 
@@ -43,6 +146,34 @@ void HyprExtras::setConfigPath(const QString &path) {
   if (m_configPath != path) {
     m_configPath = path;
     emit configPathChanged();
+  }
+}
+
+void HyprExtras::setShellConfigPath(const QString &path) {
+  if (m_shellConfigPath != path) {
+    if (!QDir(m_shellConfigPath).exists()) {
+      qWarning() << "myshellplugin::HyprExtras::setShellConfigPath: Invalid "
+                    "shell config path provided.";
+      m_shellConfigPath = "";
+      return;
+    }
+    m_shellConfigPath = path;
+    emit shellConfigPathChanged();
+  }
+}
+
+KeyboardLayoutHandler *HyprExtras::keyboardLayoutHandler() const {
+  return m_kbLayoutHandler;
+}
+
+void HyprExtras::setKeyboardLayoutHandler(KeyboardLayoutHandler *kbd) {
+  if (kbd != m_kbLayoutHandler) {
+    m_kbLayoutHandler = kbd;
+
+    if (m_inputConfig != nullptr) {
+      m_inputConfig->attachKeyboardHandler(kbd);
+    }
+    emit keyboardLayoutHandlerChanged();
   }
 }
 
@@ -122,10 +253,12 @@ void HyprExtras::parseInputConfig() {
         auto splitStr = lineBuffer.split("=");
 
         cmdBuffer = splitStr[0].trimmed();
+        if (cmdBuffer.length() == 0)
+          break;
         valBuffer = splitStr[1].trimmed();
         settingsBuffer.insert(cmdBuffer, valBuffer);
 
-        qDebug() << cmdBuffer << ":" << valBuffer << "\n";
+        // qDebug() << cmdBuffer << ":" << valBuffer << "\n";
       }
     }
   }
@@ -135,5 +268,36 @@ void HyprExtras::parseInputConfig() {
   }
 
   file.close();
+
+  if (m_inputConfig == nullptr) {
+    m_inputConfig = new HyprInputConfig(this);
+
+    if (m_kbLayoutHandler)
+      m_inputConfig->attachKeyboardHandler(m_kbLayoutHandler);
+  }
+
+  QStringList layouts;
+  QStringList variants;
+
+  if (settingsBuffer.contains("kb_layout")) {
+    layouts = settingsBuffer.value("kb_layout", "").split(",");
+    variants = settingsBuffer.value("kb_variant", "").split(",");
+
+    auto variantsSize = variants.size();
+
+    if (variants.size() > 1 && layouts.size() != variants.size()) {
+      // invalid config
+      return;
+    }
+  }
+
+  auto kbModel = settingsBuffer.value("kb_model", "");
+  auto kbOptions = settingsBuffer.value("kb_options", "");
+  auto kbRules = settingsBuffer.value("kb_rules", "");
+
+  m_inputConfig->setLayouts(layouts, variants);
+  m_inputConfig->setKbModel(kbModel);
+  m_inputConfig->setKbOptions(kbOptions);
+  m_inputConfig->setKbRules(kbRules);
 }
 } // namespace myqmlplugin
