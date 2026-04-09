@@ -142,8 +142,6 @@ void HyprInputConfig::setLayouts(const QStringList &layouts,
 
 HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
   m_lookupCooldownTimer = new QTimer(this);
-  m_lookupCooldownTimer->setSingleShot(true);
-  m_lookupCooldownTimer->setInterval(250);
 
   m_inputConfig = new HyprInputConfig(this);
 }
@@ -212,6 +210,8 @@ void HyprExtras::queryCurrentDevices() {
   QObject::connect(m_inputQueryProcess, &QProcess::finished, this, [this]() {
     auto buf = m_inputQueryProcess->readAllStandardOutput();
     m_ipProcessBuffer.append(buf);
+    m_lookupCooldownTimer->setSingleShot(true);
+    m_lookupCooldownTimer->setInterval(250);
     m_lookupCooldownTimer->start();
 
     this->parseProcessData();

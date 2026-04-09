@@ -50,6 +50,14 @@ Singleton {
             if (n.endsWith("v2"))
                 return;
 
+            if (n.includes("activelayout")) {
+                const newLayout = event.data.split(",")[1];
+                if (newLayout) {
+                    root.evalNewKeyboardChange(newLayout);
+                }
+                return;
+            }
+
             if (["workspace", "moveworkspace", "activespecial", "focusedmon"].includes(n)) {
                 Hyprland.refreshWorkspaces();
                 Hyprland.refreshMonitors();
@@ -60,7 +68,8 @@ Singleton {
                 Hyprland.refreshWorkspaces();
             } else if (n.includes("window") || n.includes("group") || ["pin", "fullscreen", "changefloatingmode", "minimize".includes(n)]) {
                 Hyprland.refreshToplevels();
-            } else if (n.includes("activelayout")) {
+            } else if (n == "activelayout") {
+                console.log("COCK");
                 const newLayout = n.split(">>").at(1);
                 if (newLayout) {
                     root.keyboardLayoutChanged(newLayout);
