@@ -28,7 +28,7 @@ Item {
     QtObject {
         id: osdProps
 
-        readonly property list<string> validTypes: ["mute", "volumechange", "mprischange", "gamemode"]
+        readonly property list<string> validTypes: ["mute", "volumechange", "mprischange", "gamemode", "kbdlayoutchange"]
 
         property string title: ""
         property string icon: ""
@@ -94,21 +94,26 @@ Item {
                 if (currentPlayer?.canSeek && currentPlayer?.positionSupported && currentPlayer?.lengthSupported)
                     showSeekBar = true;
                 break;
+            case "kbdlayoutchange":
+                title = Hypr.lastKeyboardChangeInfo;
+                icon = "";
+                break;
             }
 
             return true;
         }
     }
 
-    function show(type: string) {
+    function show(type: string): bool {
         if (!type || type === "") {
             triggerExitAnim();
-            return;
+            return false;
         } else {
             if (osdProps.applyProps(type)) {
                 root.type = type;
                 root.isShowing = true;
                 triggerEnterAnim();
+                return true;
             }
         }
     }
@@ -161,7 +166,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
 
                 color: ColorService.current.baseContent
-                font.pixelSize: parent.width * 0.75
+                font.pixelSize: parent.implicitWidth * 0.9
                 font.family: Config.appearance.fontFamily.mono
             }
 

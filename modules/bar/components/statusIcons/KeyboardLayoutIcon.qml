@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.config
 import qs.services
 import qs.components
-import Quickshell.Io
+import Quickshell
 import QtQuick
 
 Item {
@@ -29,6 +29,14 @@ Item {
 
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
+
+        opacity: switchCooldown.running ? 0.5 : 1
+    }
+
+    Timer {
+        id: switchCooldown
+
+        interval: 500
     }
 
     MouseArea {
@@ -37,5 +45,16 @@ Item {
         anchors.fill: parent
 
         cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+        onClicked: event => {
+            if (event.button === Qt.LeftButton) {
+                if (switchCooldown.running)
+                    return;
+
+                Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
+                switchCooldown.running = true;
+            }
+        }
     }
 }

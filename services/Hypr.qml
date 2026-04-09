@@ -17,14 +17,17 @@ Singleton {
     readonly property HyprlandWorkspace focusedWorkspace: Hyprland.focusedWorkspace
     readonly property HyprlandMonitor focusedMonitor: Hyprland.focusedMonitor
 
+    property string lastKeyboardChangeInfo
+
     property int currentIndex: hyprExtras.kbdLayoutIndex ?? 0
     property string currentLayout: hyprExtras.inputConfig?.layouts[currentIndex]?.layout ?? "-"
 
-    signal keyboardLayoutChanged(newLayout: string)
+    signal keyboardLayoutChanged
 
     function evalNewKeyboardChange(layoutStr: string): void {
         hyprExtras.updateCurrentKeyboardConfig();
-        keyboardLayoutChanged(layoutStr);
+        root.lastKeyboardChangeInfo = layoutStr;
+        keyboardLayoutChanged();
     }
 
     function monitorFor(screen: ShellScreen): HyprlandMonitor {

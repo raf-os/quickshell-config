@@ -46,8 +46,17 @@ Item {
             osdContent?.hide();
             return;
         } else {
-            osdContent?.show(type);
-            dismissTimer.restart();
+            if (osdContent?.show(type)) {
+                dismissTimer.restart();
+            }
+        }
+    }
+
+    Connections {
+        target: Hypr
+
+        function onKeyboardLayoutChanged() {
+            root.triggerOSD("kbdlayoutchange");
         }
     }
 
