@@ -144,6 +144,8 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
   m_lookupCooldownTimer = new QTimer(this);
   m_lookupCooldownTimer->setSingleShot(true);
   m_lookupCooldownTimer->setInterval(250);
+
+  m_inputConfig = new HyprInputConfig(this);
 }
 
 int HyprExtras::kbdLayoutIndex() const { return m_kbLayoutIndex; }
@@ -156,6 +158,8 @@ void HyprExtras::setConfigPath(const QString &path) {
     emit configPathChanged();
   }
 }
+
+QString HyprExtras::shellConfigPath() const { return m_shellConfigPath; }
 
 void HyprExtras::setShellConfigPath(const QString &path) {
   if (m_shellConfigPath != path) {
@@ -176,13 +180,13 @@ KeyboardLayoutHandler *HyprExtras::keyboardLayoutHandler() const {
   return m_kbLayoutHandler;
 }
 
+HyprInputConfig *HyprExtras::inputConfig() const { return m_inputConfig; }
+
 void HyprExtras::setKeyboardLayoutHandler(KeyboardLayoutHandler *kbd) {
-  if (kbd != m_kbLayoutHandler) {
+  if (m_kbLayoutHandler == nullptr || kbd != m_kbLayoutHandler) {
     m_kbLayoutHandler = kbd;
 
-    if (m_inputConfig != nullptr) {
-      m_inputConfig->attachKeyboardHandler(kbd);
-    }
+    m_inputConfig->attachKeyboardHandler(kbd);
     emit keyboardLayoutHandlerChanged();
   }
 }
@@ -209,6 +213,8 @@ void HyprExtras::queryCurrentDevices() {
     auto buf = m_inputQueryProcess->readAllStandardOutput();
     m_ipProcessBuffer.append(buf);
     m_lookupCooldownTimer->start();
+
+    this->parseProcessData();
   });
 
   m_inputQueryProcess->start();
@@ -233,7 +239,7 @@ void HyprExtras::parseProcessData() {
   if (jDoc.isObject()) {
     QJsonObject obj = jDoc.object();
 
-    auto it = obj.find("keyboard");
+    auto it = obj.find("keyboards");
     if (it != obj.end()) {
       QJsonValue val = it.value();
 
@@ -246,7 +252,7 @@ void HyprExtras::parseProcessData() {
             auto isMain = kbInfo["main"].toBool(false);
 
             if (isMain) {
-              auto layoutIdx = kbInfo["main"].toInt(0);
+              auto layoutIdx = kbInfo["active_layout_index"].toInt(0);
 
               if (layoutIdx != m_kbLayoutIndex) {
                 m_kbLayoutIndex = layoutIdx;
@@ -266,7 +272,7 @@ void HyprExtras::parseProcessData() {
   }
 }
 
-void HyprExtras::debugParseInput() { parseInputConfig(); }
+void HyprExtras::initConfigParse() { parseInputConfig(); }
 
 void HyprExtras::parseInputConfig() {
   QDir cfgDir(m_configPath);
@@ -357,13 +363,6 @@ void HyprExtras::parseInputConfig() {
   }
 
   file.close();
-
-  if (m_inputConfig == nullptr) {
-    m_inputConfig = new HyprInputConfig(this);
-
-    if (m_kbLayoutHandler)
-      m_inputConfig->attachKeyboardHandler(m_kbLayoutHandler);
-  }
 
   QStringList layouts;
   QStringList variants;

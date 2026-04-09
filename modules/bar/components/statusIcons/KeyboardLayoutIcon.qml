@@ -9,21 +9,13 @@ import QtQuick
 Item {
     id: root
 
-    property string currentLayout: "-"
+    property string currentLayout: Hypr.currentLayout.slice(0, 2)
 
     implicitWidth: Config.appearance.fontSize.xl
     // implicitHeight: Config.bar.sizes.innerHeight
 
     function setCurrentLayout(code: string): void {
         currentLayout = code.slice(0, 2);
-    }
-
-    Connections {
-        target: KeyboardService
-
-        function onCurrentLayoutChanged() {
-            root.setCurrentLayout(KeyboardService.currentLayout);
-        }
     }
 
     StyledText {

@@ -10,23 +10,9 @@ import QtQuick
 Singleton {
     id: root
 
-    property string currentLayout
-    property int currentIndex: 0
+    property alias keyboardLayoutHandler: kbLHandler
+
     property list<string> userLayouts: Config.keymap.layouts
-
-    Component.onCompleted: {
-        getLayoutProcess.running = true;
-    }
-
-    HyprExtras {
-        id: hyprExtras
-        configPath: `${Paths.home}/.config/hypr`
-        keyboardLayoutHandler: kbLHandler
-
-        Component.onCompleted: {
-            updateCurrentKeyboardConfig();
-        }
-    }
 
     KeyboardLayoutHandler {
         id: kbLHandler
@@ -34,34 +20,5 @@ Singleton {
         // onLayoutsChanged: {
         //     debugPrintLayouts();
         // }
-    }
-
-    Connections {
-        target: Hypr
-
-        function onKeyboardLayoutChanged() {
-            hyprExtras.updateCurrentKeyboardConfig();
-        }
-    }
-
-    FileView {
-        id: layoutWatcher
-        path: Qt.resolvedUrl("/etc/X11/xorg.conf.d/00-keyboard.conf")
-        watchChanges: true
-
-        onFileChanged: {
-            getLayoutProcess.running = true;
-        }
-    }
-
-    Process {
-        id: getLayoutProcess
-
-        command: ["sh", "-c", "localectl status | grep 'X11 Layout' | awk '{print $3}'"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.currentLayout = this.text;
-            }
-        }
     }
 }

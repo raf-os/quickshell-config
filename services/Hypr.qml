@@ -1,5 +1,7 @@
 pragma Singleton
 
+import qs.utils
+import MyShellPlugin
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
@@ -15,7 +17,15 @@ Singleton {
     readonly property HyprlandWorkspace focusedWorkspace: Hyprland.focusedWorkspace
     readonly property HyprlandMonitor focusedMonitor: Hyprland.focusedMonitor
 
-    signal keyboardLayoutChanged
+    property int currentIndex: hyprExtras.kbdLayoutIndex ?? 0
+    property string currentLayout: hyprExtras.inputConfig?.layouts[currentIndex]?.layout ?? "-"
+
+    signal keyboardLayoutChanged(newLayout: string)
+
+    function evalNewKeyboardChange(layoutStr: string): void {
+        hyprExtras.updateCurrentKeyboardConfig();
+        keyboardLayoutChanged(layoutStr);
+    }
 
     function monitorFor(screen: ShellScreen): HyprlandMonitor {
         return Hyprland.monitorFor(screen);
@@ -51,8 +61,22 @@ Singleton {
             } else if (n.includes("window") || n.includes("group") || ["pin", "fullscreen", "changefloatingmode", "minimize".includes(n)]) {
                 Hyprland.refreshToplevels();
             } else if (n.includes("activelayout")) {
-                root.keyboardLayoutChanged();
+                const newLayout = n.split(">>").at(1);
+                if (newLayout) {
+                    root.keyboardLayoutChanged(newLayout);
+                }
             }
+        }
+    }
+
+    HyprExtras {
+        id: hyprExtras
+        configPath: `${Paths.home}/.config/hypr`
+        keyboardLayoutHandler: KeyboardService.keyboardLayoutHandler
+
+        Component.onCompleted: {
+            initConfigParse();
+            updateCurrentKeyboardConfig();
         }
     }
 }

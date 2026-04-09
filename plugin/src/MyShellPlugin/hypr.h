@@ -16,8 +16,8 @@ class HyprKeyboardLayout : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("No reason")
 
-  Q_PROPERTY(QString layout READ layout)
-  Q_PROPERTY(QString variant READ variant)
+  Q_PROPERTY(QString layout READ layout NOTIFY layoutChanged)
+  Q_PROPERTY(QString variant READ variant NOTIFY variantChanged)
   Q_PROPERTY(QString description READ description WRITE setDescription NOTIFY
                  descriptionChanged)
 
@@ -33,6 +33,8 @@ public:
   bool isValid();
 
 signals:
+  void layoutChanged();
+  void variantChanged();
   void descriptionChanged();
 
 private:
@@ -91,11 +93,13 @@ class HyprExtras : public QObject {
       int kbdLayoutIndex READ kbdLayoutIndex NOTIFY kbdLayoutIndexChanged)
   Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY
                  configPathChanged REQUIRED)
-  Q_PROPERTY(QString shellConfigPath WRITE setShellConfigPath NOTIFY
-                 shellConfigPathChanged)
+  Q_PROPERTY(QString shellConfigPath READ shellConfigPath WRITE
+                 setShellConfigPath NOTIFY shellConfigPathChanged)
   Q_PROPERTY(KeyboardLayoutHandler *keyboardLayoutHandler READ
                  keyboardLayoutHandler WRITE setKeyboardLayoutHandler NOTIFY
                      keyboardLayoutHandlerChanged REQUIRED)
+  Q_PROPERTY(
+      HyprInputConfig *inputConfig READ inputConfig NOTIFY inputConfigChanged)
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
@@ -111,21 +115,22 @@ public:
   [[nodiscard]] KeyboardLayoutHandler *keyboardLayoutHandler() const;
   void setKeyboardLayoutHandler(KeyboardLayoutHandler *kbh);
 
+  [[nodiscard]] HyprInputConfig *inputConfig() const;
+
   void parseInputConfig();
 
   void queryCurrentDevices();
 
   Q_INVOKABLE void updateCurrentKeyboardConfig();
-
   Q_INVOKABLE void writeInputConfigToFile();
-
-  Q_INVOKABLE void debugParseInput();
+  Q_INVOKABLE void initConfigParse();
 
 signals:
   void configPathChanged();
   void shellConfigPathChanged();
   void keyboardLayoutHandlerChanged();
   void kbdLayoutIndexChanged();
+  void inputConfigChanged();
 
 private:
   QTimer *m_lookupCooldownTimer = nullptr;
@@ -134,7 +139,7 @@ private:
   int m_kbLayoutIndex = 0;
   QString m_configPath;
   QString m_shellConfigPath;
-  HyprInputConfig *m_inputConfig = nullptr;
+  HyprInputConfig *m_inputConfig;
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();
