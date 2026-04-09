@@ -58,7 +58,7 @@ Item {
             switch (type) {
             case "mute":
                 title = "Muted";
-                icon = "";
+                icon = "󰝟";
                 break;
             case "volumechange":
                 const currentVolume = AudioService.volume;
@@ -66,11 +66,11 @@ Item {
                 title = "Volume";
 
                 if (currentVolume > 0.5) {
-                    icon = "";
+                    icon = "󰕾";
                 } else if (currentVolume > 0) {
-                    icon = "";
+                    icon = "󰖀";
                 } else {
-                    icon = "";
+                    icon = "󰕿";
                 }
 
                 showVolumeBar = true;
@@ -96,7 +96,7 @@ Item {
                 break;
             case "kbdlayoutchange":
                 title = Hypr.lastKeyboardChangeInfo;
-                icon = "";
+                icon = "󰌌";
                 break;
             }
 
@@ -152,6 +152,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.margins: root.padding
 
+        spacing: Config.appearance.spacing.xs
+
         Item {
             id: iconDisplay
             implicitWidth: mprisArtWrapper.implicitWidth
@@ -159,14 +161,19 @@ Item {
 
             Text {
                 id: iconText
-                anchors.fill: parent
+
+                anchors.centerIn: parent
+
                 text: osdProps.icon
 
-                horizontalAlignment: Text.AlignLeft
+                width: parent.implicitWidth
+                height: parent.implicitHeight
+
+                // horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
 
                 color: ColorService.current.baseContent
-                font.pixelSize: parent.implicitWidth * 0.9
+                font.pixelSize: parent.implicitWidth * 1.25
                 font.family: Config.appearance.fontFamily.mono
             }
 

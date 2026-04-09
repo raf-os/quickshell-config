@@ -1,6 +1,7 @@
 #include "hypr.h"
 #include "kbd.h"
 
+#include <hyprlang.hpp>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
 #include <qdir.h>
@@ -140,10 +141,41 @@ void HyprInputConfig::setLayouts(const QStringList &layouts,
   }
 }
 
+void HyprInputConfig::compileCommandFileString() {
+  if (m_bufferReadyFlag == false)
+    return;
+
+  m_confWriteBuffer.clear();
+
+  m_confWriteBuffer.append(
+      "# This file is auto-generated, avoid making changes\n\ninput {");
+  m_confWriteBuffer.append("\nkb_layout = ");
+  m_confWriteBuffer.append("\nkb_variant = ");
+  m_confWriteBuffer.append("\nkb_model = ");
+  m_confWriteBuffer.append("\nkb_options = ");
+  m_confWriteBuffer.append("\nkb_rules = ");
+  m_confWriteBuffer.append("}");
+}
+
 HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
   m_lookupCooldownTimer = new QTimer(this);
 
   m_inputConfig = new HyprInputConfig(this);
+}
+
+Hyprlang::CConfig *HyprExtras::s_hyprlangConfig = nullptr;
+
+Hyprlang::CParseResult HyprExtras::hyprlangHandleSource(const char *COMMAND,
+                                                        const char *VALUE) {
+  QString path;
+  auto valStr = QString::fromUtf8(VALUE);
+  if (valStr.startsWith("~/")) {
+    QString tempPath = QDir::homePath() + valStr.sliced(2);
+    QString path = QFileInfo(tempPath).canonicalFilePath();
+  } else {
+    path = valStr;
+  }
+  return HyprExtras::s_hyprlangConfig->parseFile(path.toUtf8().constData());
 }
 
 int HyprExtras::kbdLayoutIndex() const { return m_kbLayoutIndex; }
@@ -387,5 +419,61 @@ void HyprExtras::parseInputConfig() {
   m_inputConfig->setKbModel(kbModel);
   m_inputConfig->setKbOptions(kbOptions);
   m_inputConfig->setKbRules(kbRules);
+}
+
+void HyprExtras::hyprlangParse() {
+  if (m_configPath == "")
+    return;
+  Hyprlang::CConfig config(m_configPath.toUtf8().constData(),
+                           {.allowMissingConfig = true});
+
+  // I don't like this
+  HyprExtras::s_hyprlangConfig = &config;
+
+  config.addConfigValue("input:kb_layout", (Hyprlang::STRING) "us");
+  config.addConfigValue("input:kb_variant", (Hyprlang::STRING) "");
+  config.addConfigValue("input:kb_model", (Hyprlang::STRING) "");
+  config.addConfigValue("input:kb_options", (Hyprlang::STRING) "");
+  config.addConfigValue("input:kb_rules", (Hyprlang::STRING) "");
+
+  // Still don't like this
+  config.registerHandler(&HyprExtras::hyprlangHandleSource, "source",
+                         {.allowFlags = false});
+  HandlerGuard guard;
+
+  config.commence();
+
+  const auto PARSERRESULT = config.parse();
+  auto kbLayouts = QString::fromStdString(
+      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_layout"));
+  auto kbVariants = QString::fromStdString(
+      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_variants"));
+  auto kbModel = QString::fromStdString(
+      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_model"));
+  auto kbOptions = QString::fromStdString(
+      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_options"));
+  auto kbRules = QString::fromStdString(
+      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_rules"));
+
+  QStringList layouts;
+  QStringList variants;
+
+  if (kbLayouts.length() > 0) {
+    layouts = kbLayouts.trimmed().split(",");
+    variants = kbLayouts.trimmed().split(",");
+
+    if (variants.length() > 0 && layouts.length() != variants.length()) {
+      // INVALID
+      return;
+    }
+  }
+
+  m_inputConfig->setLayouts(layouts, variants);
+  m_inputConfig->setKbModel(kbModel);
+  m_inputConfig->setKbOptions(kbOptions);
+  m_inputConfig->setKbRules(kbRules);
+
+  config.unregisterHandler("source");
+  HyprExtras::s_hyprlangConfig = nullptr;
 }
 } // namespace myqmlplugin

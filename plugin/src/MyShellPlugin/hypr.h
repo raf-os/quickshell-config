@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kbd.h"
+#include <hyprlang.hpp>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>
@@ -69,7 +70,10 @@ public:
   [[nodiscard]] QQmlListProperty<HyprKeyboardLayout> layouts();
   void setLayouts(const QStringList &layouts, const QStringList &variants);
 
+  [[nodiscard]] QByteArray *tryFetchWriteBuffer();
+
   void attachKeyboardHandler(KeyboardLayoutHandler *obj);
+  void compileCommandFileString();
 
 signals:
   void kbModelChanged();
@@ -77,10 +81,14 @@ signals:
   void kbRulesChanged();
   void layoutsChanged();
 
+  void fileBufferReadyToWrite();
+
 private:
   QString m_kbModel;
   QString m_kbOptions;
   QString m_kbRules;
+  bool m_bufferReadyFlag = true;
+  QByteArray m_confWriteBuffer;
   mutable QList<HyprKeyboardLayout *> m_layouts;
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 };
@@ -103,6 +111,7 @@ class HyprExtras : public QObject {
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
+  ~HyprExtras();
 
   [[nodiscard]] QString configPath() const;
   void setConfigPath(const QString &path);
@@ -117,9 +126,15 @@ public:
 
   [[nodiscard]] HyprInputConfig *inputConfig() const;
 
+  void hyprlangParse();
+
   void parseInputConfig();
 
   void queryCurrentDevices();
+
+  static Hyprlang::CConfig *s_hyprlangConfig;
+  static Hyprlang::CParseResult hyprlangHandleSource(const char *COMMAND,
+                                                     const char *VALUE);
 
   Q_INVOKABLE void updateCurrentKeyboardConfig();
   Q_INVOKABLE void writeInputConfigToFile();
@@ -143,5 +158,15 @@ private:
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();
+};
+
+// Juuuuust to be sure
+struct HandlerGuard {
+  ~HandlerGuard() {
+    if (HyprExtras::s_hyprlangConfig != nullptr) {
+      HyprExtras::s_hyprlangConfig->unregisterHandler("scope");
+      HyprExtras::s_hyprlangConfig = nullptr;
+    }
+  }
 };
 } // namespace myqmlplugin
