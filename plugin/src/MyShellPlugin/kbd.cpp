@@ -2,6 +2,7 @@
 #include <functional>
 #include <qcontainerfwd.h>
 #include <qdir.h>
+#include <qhash.h>
 #include <qlogging.h>
 
 #include <libxml/parser.h>
@@ -77,6 +78,17 @@ void KKeyboardLayout::addVariant(KKeyboardVariant *variant) {
   m_variants.append(variant);
 }
 
+KKeyboardVariant *KKeyboardLayout::getVariantByName(const QString &name) {
+  KKeyboardVariant *variantBuffer = nullptr;
+  for (auto v : m_variants) {
+    if (v->name() == name) {
+      variantBuffer = v;
+      break;
+    }
+  }
+  return variantBuffer;
+}
+
 KeyboardLayoutHandler::KeyboardLayoutHandler(QObject *parent)
     : QObject(parent) {
   QFile file(QString::fromUtf8(m_evdevPath));
@@ -104,11 +116,13 @@ void KeyboardLayoutHandler::setCachePath(const QString &path) {
 
 QQmlListProperty<myqmlplugin::KKeyboardLayout>
 KeyboardLayoutHandler::layouts() {
-  return QQmlListProperty<KKeyboardLayout>(this, &m_layouts);
+  m_layoutList = m_layouts.values();
+  return QQmlListProperty<KKeyboardLayout>(this, &m_layoutList);
 }
 
 QQmlListProperty<myqmlplugin::KKeyboardModel> KeyboardLayoutHandler::models() {
-  return QQmlListProperty<KKeyboardModel>(this, &m_models);
+  m_modelList = m_models.values();
+  return QQmlListProperty<KKeyboardModel>(this, &m_modelList);
 }
 
 bool KeyboardLayoutHandler::rebuildLayouts() {
@@ -119,6 +133,7 @@ bool KeyboardLayoutHandler::rebuildLayouts() {
 
   if (doc == nullptr) {
     qWarning() << "myqmlplugin::KeyboardLayoutHandler: Error reading xml file.";
+    xmlCleanupParser();
     return false;
   }
 
@@ -128,6 +143,7 @@ bool KeyboardLayoutHandler::rebuildLayouts() {
     qWarning() << "myqmlplugin::KeyboardLayoutHandler: Unable to create XPath "
                   "context.";
     xmlFreeDoc(doc);
+    xmlCleanupParser();
     return false;
   }
 
@@ -139,6 +155,7 @@ bool KeyboardLayoutHandler::rebuildLayouts() {
                   "xpath expression.";
     xmlXPathFreeContext(ctx);
     xmlFreeDoc(doc);
+    xmlCleanupParser();
     return false;
   }
 
@@ -239,7 +256,7 @@ void KeyboardLayoutHandler::traverseXmlNodes(xmlNodeSetPtr nodes) {
       auto layout = new KKeyboardLayout(nameBuffer, shortDescriptionBuffer,
                                         descriptionBuffer, countryListBuffer,
                                         languageListBuffer, this);
-      m_layouts.append(layout);
+      m_layouts.insert(nameBuffer, layout);
 
       for (auto kbVar : variantListBuffer) {
         kbVar->setParent(layout);
@@ -247,6 +264,14 @@ void KeyboardLayoutHandler::traverseXmlNodes(xmlNodeSetPtr nodes) {
       }
     }
   }
+}
+
+KKeyboardLayout *KeyboardLayoutHandler::findLayoutByName(const QString &name) {
+  QHash<QString, KKeyboardLayout *>::const_iterator it = m_layouts.find(name);
+  if (it != m_layouts.end()) {
+    return it.value();
+  }
+  return nullptr;
 }
 
 void KeyboardLayoutHandler::debugPrintLayouts() {}

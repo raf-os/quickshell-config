@@ -3,6 +3,7 @@
 #include "kbd.h"
 #include <hyprlang.hpp>
 #include <qcontainerfwd.h>
+#include <qglobalstatic.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qprocess.h>
@@ -73,7 +74,7 @@ public:
   [[nodiscard]] QByteArray *tryFetchWriteBuffer();
 
   void attachKeyboardHandler(KeyboardLayoutHandler *obj);
-  void compileCommandFileString();
+  bool compileCommandFileString();
 
 signals:
   void kbModelChanged();
@@ -97,6 +98,7 @@ class HyprExtras : public QObject {
   Q_OBJECT
   QML_ELEMENT
 
+  Q_PROPERTY(bool isSaving READ isSaving NOTIFY isSavingChanged)
   Q_PROPERTY(
       int kbdLayoutIndex READ kbdLayoutIndex NOTIFY kbdLayoutIndexChanged)
   Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY
@@ -111,7 +113,9 @@ class HyprExtras : public QObject {
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
-  ~HyprExtras();
+  ~HyprExtras() override;
+
+  [[nodiscard]] bool isSaving() const;
 
   [[nodiscard]] QString configPath() const;
   void setConfigPath(const QString &path);
@@ -127,9 +131,7 @@ public:
   [[nodiscard]] HyprInputConfig *inputConfig() const;
 
   void hyprlangParse();
-
   void parseInputConfig();
-
   void queryCurrentDevices();
 
   static Hyprlang::CConfig *s_hyprlangConfig;
@@ -141,13 +143,17 @@ public:
   Q_INVOKABLE void initConfigParse();
 
 signals:
+  void isSavingChanged();
   void configPathChanged();
   void shellConfigPathChanged();
   void keyboardLayoutHandlerChanged();
   void kbdLayoutIndexChanged();
   void inputConfigChanged();
 
+  void inputConfigSaved();
+
 private:
+  bool m_isSavingFlag;
   QTimer *m_lookupCooldownTimer = nullptr;
   QProcess *m_inputQueryProcess = nullptr;
   QByteArray m_ipProcessBuffer;
@@ -158,6 +164,8 @@ private:
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();
+  void saveInputConfig();
+  void setIsSaving(bool val);
 };
 
 // Juuuuust to be sure

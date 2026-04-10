@@ -18,6 +18,7 @@
 #include <qqmllist.h>
 #include <qstringview.h>
 #include <qtimer.h>
+#include <string>
 
 namespace myqmlplugin {
 HyprKeyboardLayout::HyprKeyboardLayout(const QString &layout,
@@ -134,6 +135,22 @@ void HyprInputConfig::setLayouts(const QStringList &layouts,
       }
 
       auto cfg = new HyprKeyboardLayout(layouts.at(i), vBuf, this);
+      if (m_kbLayoutHandler != nullptr) {
+        auto k = m_kbLayoutHandler->findLayoutByName(layouts.at(i));
+        if (k != nullptr) {
+          QString descriptionBuffer = k->description();
+          if (vBuf != "") {
+            if (auto kv = k->getVariantByName(vBuf); kv != nullptr) {
+              auto kvDesc = kv->description();
+              if (kvDesc != "") {
+                // Only override parent's description if one exists
+                descriptionBuffer = kvDesc;
+              }
+            }
+          }
+          cfg->setDescription(descriptionBuffer);
+        }
+      }
       m_layouts.append(cfg);
     }
 
@@ -141,32 +158,82 @@ void HyprInputConfig::setLayouts(const QStringList &layouts,
   }
 }
 
-void HyprInputConfig::compileCommandFileString() {
+bool HyprInputConfig::compileCommandFileString() {
   if (m_bufferReadyFlag == false)
-    return;
+    return false;
+
+  m_bufferReadyFlag = false;
+
+  QStringList layouts;
+  QStringList variants;
+
+  for (auto l : m_layouts) {
+    layouts.append(l->layout());
+    variants.append(l->variant());
+  }
+
+  bool hasVariants;
+
+  for (auto v : variants) {
+    if (v != "") {
+      hasVariants = true;
+      break;
+    }
+  }
+
+  if (!hasVariants) {
+    variants.clear();
+  }
 
   m_confWriteBuffer.clear();
 
   m_confWriteBuffer.append(
       "# This file is auto-generated, avoid making changes\n\ninput {");
   m_confWriteBuffer.append("\nkb_layout = ");
+  m_confWriteBuffer.append(layouts.join(",").toUtf8());
   m_confWriteBuffer.append("\nkb_variant = ");
+  if (hasVariants) {
+    m_confWriteBuffer.append(variants.join(",").toUtf8());
+  }
   m_confWriteBuffer.append("\nkb_model = ");
+  m_confWriteBuffer.append(m_kbModel.toUtf8());
   m_confWriteBuffer.append("\nkb_options = ");
+  m_confWriteBuffer.append(m_kbOptions.toUtf8());
   m_confWriteBuffer.append("\nkb_rules = ");
-  m_confWriteBuffer.append("}");
+  m_confWriteBuffer.append(m_kbRules.toUtf8());
+  m_confWriteBuffer.append("\n}");
+
+  emit fileBufferReadyToWrite();
+
+  m_bufferReadyFlag = true;
+  return true;
 }
 
 HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
   m_lookupCooldownTimer = new QTimer(this);
 
   m_inputConfig = new HyprInputConfig(this);
+
+  QObject::connect(m_inputConfig, &HyprInputConfig::fileBufferReadyToWrite,
+                   this, [this]() { this->saveInputConfig(); });
 }
 
+HyprExtras::~HyprExtras() = default;
+
+/**
+ * Holds the pointer to the current config instance momentarily
+ */
 Hyprlang::CConfig *HyprExtras::s_hyprlangConfig = nullptr;
 
+/**
+ * Ideally this would've been an inline lambda function, but because hyprlang
+ * does things in a C way, it requires a C-style function pointer - meaning you
+ * can't have captures. So a static function it is.
+ */
 Hyprlang::CParseResult HyprExtras::hyprlangHandleSource(const char *COMMAND,
                                                         const char *VALUE) {
+  // TODO: Maybe watch all these files for any changes to automatically reload
+  // the configs
   QString path;
   auto valStr = QString::fromUtf8(VALUE);
   if (valStr.startsWith("~/")) {
@@ -179,6 +246,15 @@ Hyprlang::CParseResult HyprExtras::hyprlangHandleSource(const char *COMMAND,
 }
 
 int HyprExtras::kbdLayoutIndex() const { return m_kbLayoutIndex; }
+
+bool HyprExtras::isSaving() const { return m_isSavingFlag; }
+
+void HyprExtras::setIsSaving(bool val) {
+  if (m_isSavingFlag != val) {
+    m_isSavingFlag = val;
+    emit isSavingChanged();
+  }
+}
 
 QString HyprExtras::configPath() const { return m_configPath; }
 
@@ -241,7 +317,7 @@ void HyprExtras::queryCurrentDevices() {
 
   QObject::connect(m_inputQueryProcess, &QProcess::finished, this, [this]() {
     auto buf = m_inputQueryProcess->readAllStandardOutput();
-    m_ipProcessBuffer.append(buf);
+    // m_ipProcessBuffer.append(buf);
     m_lookupCooldownTimer->setSingleShot(true);
     m_lookupCooldownTimer->setInterval(250);
     m_lookupCooldownTimer->start();
@@ -304,8 +380,11 @@ void HyprExtras::parseProcessData() {
   }
 }
 
-void HyprExtras::initConfigParse() { parseInputConfig(); }
+void HyprExtras::initConfigParse() { hyprlangParse(); }
 
+/**
+ * DEPRECATED
+ */
 void HyprExtras::parseInputConfig() {
   QDir cfgDir(m_configPath);
   if (!QDir(m_configPath).exists()) {
@@ -436,18 +515,19 @@ void HyprExtras::hyprlangParse() {
   config.addConfigValue("input:kb_options", (Hyprlang::STRING) "");
   config.addConfigValue("input:kb_rules", (Hyprlang::STRING) "");
 
-  // Still don't like this
   config.registerHandler(&HyprExtras::hyprlangHandleSource, "source",
                          {.allowFlags = false});
+  // May this shield us from C memory management sins
   HandlerGuard guard;
 
   config.commence();
 
   const auto PARSERRESULT = config.parse();
+
   auto kbLayouts = QString::fromStdString(
       *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_layout"));
   auto kbVariants = QString::fromStdString(
-      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_variants"));
+      *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_variant"));
   auto kbModel = QString::fromStdString(
       *Hyprlang::CSimpleConfigValue<std::string>(&config, "input:kb_model"));
   auto kbOptions = QString::fromStdString(
@@ -475,5 +555,46 @@ void HyprExtras::hyprlangParse() {
 
   config.unregisterHandler("source");
   HyprExtras::s_hyprlangConfig = nullptr;
+}
+
+void HyprExtras::writeInputConfigToFile() {
+  if (m_isSavingFlag)
+    return;
+  setIsSaving(m_inputConfig->compileCommandFileString());
+}
+
+void HyprExtras::saveInputConfig() {
+  if (m_configPath == "")
+    return;
+
+  auto writeBuffer = m_inputConfig->tryFetchWriteBuffer();
+
+  if (writeBuffer == nullptr) {
+    return;
+  }
+
+  QFileInfo fileInfo(m_configPath + "/myshell/input.conf");
+
+  QDir dir = fileInfo.absoluteDir();
+  if (!dir.exists()) {
+    dir.mkpath(".");
+  }
+
+  QFile file(fileInfo.canonicalFilePath());
+
+  if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    QTextStream out(&file);
+    out << *writeBuffer;
+
+    file.close();
+
+    writeBuffer->clear();
+    emit inputConfigSaved();
+  } else {
+    qWarning() << "myqmlplugin::HyprExtras::saveInputConfig: Failed opening "
+                  "input file.";
+  }
+
+  setIsSaving(false);
 }
 } // namespace myqmlplugin

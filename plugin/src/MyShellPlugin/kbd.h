@@ -3,6 +3,7 @@
 #include <libxml/xmlstring.h>
 #include <libxml/xpath.h>
 #include <qcontainerfwd.h>
+#include <qhash.h>
 #include <qlist.h>
 #include <qmap.h>
 #include <qobject.h>
@@ -80,6 +81,8 @@ public:
   [[nodiscard]] QQmlListProperty<myqmlplugin::KKeyboardVariant> variants();
   void addVariant(KKeyboardVariant *variant);
 
+  [[nodiscard]] KKeyboardVariant *getVariantByName(const QString &name);
+
 private:
   QString m_name;
   QString m_shortDescription;
@@ -109,6 +112,8 @@ public:
   [[nodiscard]] QString cachePath() const;
   void setCachePath(const QString &path);
 
+  [[nodiscard]] KKeyboardLayout *findLayoutByName(const QString &name);
+
   Q_INVOKABLE void debugPrintLayouts();
 
 signals:
@@ -117,8 +122,10 @@ signals:
   void cachePathChanged();
 
 private:
-  mutable QList<KKeyboardModel *> m_models;
-  mutable QList<KKeyboardLayout *> m_layouts;
+  QHash<QString, KKeyboardModel *> m_models;
+  mutable QList<KKeyboardModel *> m_modelList;
+  mutable QList<KKeyboardLayout *> m_layoutList;
+  QHash<QString, KKeyboardLayout *> m_layouts;
   QString m_cachePath;
   const char *m_evdevPath = "/usr/share/X11/xkb/rules/evdev.xml";
 
