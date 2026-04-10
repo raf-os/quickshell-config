@@ -61,14 +61,20 @@ RowLayout {
         }
     }
 
+    Connections {
+        target: popoutHandler
+
+        function onTriggerPopout(item: Item, name: string) {
+            root.onTriggerPopout(item, name);
+        }
+
+        function onClosePopout() {
+            root.popouts.close();
+        }
+    }
+
     PopoutHandler {
         id: popoutHandler
-        Component.onCompleted: {
-            triggerPopout.connect(root.onTriggerPopout);
-        }
-        Component.onDestruction: {
-            triggerPopout.disconnect(root.onTriggerPopout);
-        }
     }
 
     RowLayout {

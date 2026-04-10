@@ -17,10 +17,14 @@ Singleton {
     readonly property HyprlandWorkspace focusedWorkspace: Hyprland.focusedWorkspace
     readonly property HyprlandMonitor focusedMonitor: Hyprland.focusedMonitor
 
+    readonly property bool isKeyboardSwitchOnCooldown: keyboardSwitchCooldown.running
+
     property string lastKeyboardChangeInfo
 
     property int currentIndex: hyprExtras.kbdLayoutIndex ?? 0
     property string currentLayout: hyprExtras.inputConfig?.layouts[currentIndex]?.layout ?? "-"
+
+    property var inputConfig: hyprExtras.inputConfig
 
     signal keyboardLayoutChanged
 
@@ -43,6 +47,23 @@ Singleton {
         }, []);
 
         return ws;
+    }
+
+    function switchKeyboardLayout(to: int) {
+        if (keyboardSwitchCooldown.running)
+            return;
+
+        if (to === undefined || to === null) {
+            Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
+        } else {
+            Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", String(to)]);
+        }
+        keyboardSwitchCooldown.restart();
+    }
+
+    Timer {
+        id: keyboardSwitchCooldown
+        interval: 500
     }
 
     Connections {

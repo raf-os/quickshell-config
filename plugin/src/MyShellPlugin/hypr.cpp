@@ -237,8 +237,8 @@ Hyprlang::CParseResult HyprExtras::hyprlangHandleSource(const char *COMMAND,
   QString path;
   auto valStr = QString::fromUtf8(VALUE);
   if (valStr.startsWith("~/")) {
-    QString tempPath = QDir::homePath() + valStr.sliced(2);
-    QString path = QFileInfo(tempPath).canonicalFilePath();
+    QString tempPath = QDir::homePath() + valStr.sliced(1);
+    path = QFileInfo(tempPath).canonicalFilePath();
   } else {
     path = valStr;
   }
@@ -317,7 +317,7 @@ void HyprExtras::queryCurrentDevices() {
 
   QObject::connect(m_inputQueryProcess, &QProcess::finished, this, [this]() {
     auto buf = m_inputQueryProcess->readAllStandardOutput();
-    // m_ipProcessBuffer.append(buf);
+    m_ipProcessBuffer.append(buf);
     m_lookupCooldownTimer->setSingleShot(true);
     m_lookupCooldownTimer->setInterval(250);
     m_lookupCooldownTimer->start();
@@ -503,19 +503,21 @@ void HyprExtras::parseInputConfig() {
 void HyprExtras::hyprlangParse() {
   if (m_configPath == "")
     return;
-  Hyprlang::CConfig config(m_configPath.toUtf8().constData(),
-                           {.allowMissingConfig = true});
+  QString cfgPath = m_configPath + "/hyprland.conf";
+  Hyprlang::CConfig config(cfgPath.toUtf8(), {.allowMissingConfig = true});
 
   // I don't like this
   HyprExtras::s_hyprlangConfig = &config;
 
+  // TODO: Define these keys as constant strings, one mistake already caused
+  // quite the headache debugging this
   config.addConfigValue("input:kb_layout", (Hyprlang::STRING) "us");
   config.addConfigValue("input:kb_variant", (Hyprlang::STRING) "");
   config.addConfigValue("input:kb_model", (Hyprlang::STRING) "");
   config.addConfigValue("input:kb_options", (Hyprlang::STRING) "");
   config.addConfigValue("input:kb_rules", (Hyprlang::STRING) "");
 
-  config.registerHandler(&HyprExtras::hyprlangHandleSource, "source",
+  config.registerHandler(&hyprlangHandleSource, "source",
                          {.allowFlags = false});
   // May this shield us from C memory management sins
   HandlerGuard guard;

@@ -31,6 +31,13 @@ Item {
         anchors.bottomMargin: Config.appearance.padding.xs
 
         Popout {
+            name: "language"
+            sourceComponent: LanguagePopout {
+                wrapper: root.wrapper
+            }
+        }
+
+        Popout {
             name: "audio"
             sourceComponent: AudioPopout {
                 wrapper: root.wrapper

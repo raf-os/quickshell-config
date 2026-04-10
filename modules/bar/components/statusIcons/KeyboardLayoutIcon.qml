@@ -3,11 +3,14 @@ pragma ComponentBehavior: Bound
 import qs.config
 import qs.services
 import qs.components
+import qs.modules.bar
 import Quickshell
 import QtQuick
 
 Item {
     id: root
+
+    required property PopoutHandler popoutHandler
 
     property string currentLayout: Hypr.currentLayout.slice(0, 2)
 
@@ -52,8 +55,11 @@ Item {
                 if (switchCooldown.running)
                     return;
 
+                root.popoutHandler.closePopout();
                 Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
                 switchCooldown.running = true;
+            } else if (event.button === Qt.RightButton) {
+                root.popoutHandler.triggerPopout(this, "language");
             }
         }
     }

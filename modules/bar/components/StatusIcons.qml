@@ -41,7 +41,9 @@ Item {
             name: "Keyboard layout"
             active: Config.keymap.enabled === true
 
-            sourceComponent: KeyboardLayoutIcon {}
+            sourceComponent: KeyboardLayoutIcon {
+                popoutHandler: root.popoutHandler
+            }
         }
 
         WrappedLoader {
