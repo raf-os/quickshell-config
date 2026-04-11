@@ -3,12 +3,11 @@ pragma ComponentBehavior: Bound
 import qs.components
 import qs.services
 import qs.config
-import qs.config
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
 
-Item {
+FocusScope {
     id: root
 
     required property ShellScreen screen

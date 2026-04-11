@@ -9,7 +9,7 @@ import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 
-RowLayout {
+Item {
     id: root
 
     required property ShellScreen screen
@@ -19,17 +19,11 @@ RowLayout {
 
     property alias mediaInfo: mediaInfo
 
-    property int sideSize: 560
+    property int middleSize: 560
 
     signal closePopout
 
-    spacing: Config.appearance.spacing.md
-
-    // anchors.left: parent.left
-    // anchors.right: parent.right
-
-    // anchors.leftMargin: Config.appearance.padding.xl
-    // anchors.rightMargin: Config.appearance.padding.xl
+    property int spacing: Config.appearance.spacing.md
 
     function onTriggerPopout(item: Item, name: string): void {
         const currentCenter = item.mapToItem(root, item.implicitWidth / 2, item.implicitHeight / 2).x + (item.width ?? 0) / 2;
@@ -37,7 +31,9 @@ RowLayout {
         popoutHandler.selectedPopoutId = newName;
     }
 
-    function handleMouseWheel(x: real, angleDelta: point) {
+    function handleMouseWheel(x: real, y: real, angleDelta: point) {
+        if (y > root.implicitHeight)
+            return;
         const ch = childAt(x, root.height / 2);
         if (ch?.name === "leftContent" || ch?.name === "midContent") {
             const angleDir = Math.sign(angleDelta.y);
@@ -75,15 +71,18 @@ RowLayout {
 
     PopoutHandler {
         id: popoutHandler
+
+        openPanels: root.openPanels
     }
 
     RowLayout {
         id: leftContent
         property string name: "leftContent"
-        // Layout.preferredWidth: Math.max(leftContent.implicitWidth, rightContent.implicitWidth)
-        Layout.maximumWidth: root.sideSize
-        Layout.fillHeight: true
-        implicitWidth: root.sideSize
+
+        anchors.left: parent.left
+        anchors.right: middleContent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
 
         spacing: root.spacing
 
@@ -105,20 +104,29 @@ RowLayout {
     }
 
     WindowTitle {
+        id: middleContent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         property string name: "midContent"
-        Layout.fillWidth: true
+
+        implicitWidth: root.middleSize
     }
 
     RowLayout {
         id: rightContent
-        // Layout.preferredWidth: Math.max(leftContent.implicitWidth, rightContent.implicitWidth)
-        Layout.maximumWidth: root.sideSize
-        implicitWidth: root.sideSize
+
+        anchors.left: middleContent.right
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+
         spacing: root.spacing
 
         Spacing {}
         StatusIcons {
             popoutHandler: popoutHandler
+            popoutWrapper: root.popouts
         }
         Tray {
             popoutHandler: popoutHandler

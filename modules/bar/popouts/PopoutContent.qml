@@ -7,7 +7,7 @@ import Quickshell.DBusMenu
 import Quickshell.Services.SystemTray
 import QtQuick
 
-Item {
+FocusScope {
     id: root
 
     required property Item wrapper
@@ -17,10 +17,20 @@ Item {
     readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive) ?? null
     readonly property Item current: currentPopout?.item ?? null
 
+    focus: true
+
     anchors.centerIn: parent
 
     implicitWidth: (currentPopout?.implicitWidth ?? 0) + Config.appearance.padding.sm * 2
     implicitHeight: (currentPopout?.implicitHeight ?? 0) + Config.appearance.padding.xs * 2
+
+    function dumpFocusChain(item, depth) {
+        if (!item)
+            return;
+        console.log(" ".repeat(depth * 2) + item + " focus=" + item.focus + " activeFocus=" + item.activeFocus);
+        for (var i = 0; i < item.children.length; i++)
+            dumpFocusChain(item.children[i], depth + 1);
+    }
 
     Item {
         id: content
@@ -95,6 +105,10 @@ Item {
 
         opacity: 0
         active: false
+
+        onLoaded: {
+            item.forceActiveFocus?.();
+        }
 
         states: State {
             name: "activated"

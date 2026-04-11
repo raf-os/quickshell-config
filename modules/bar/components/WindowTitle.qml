@@ -8,7 +8,7 @@ import QtQuick.Layouts
 
 Item {
     id: root
-    Layout.fillWidth: true
+    // Layout.fillWidth: true
     Layout.fillHeight: true
 
     clip: true

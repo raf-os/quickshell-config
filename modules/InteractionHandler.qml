@@ -30,7 +30,7 @@ MouseArea {
     }
 
     onWheel: event => {
-        bar.handleMouseWheel(event.x, event.angleDelta);
+        bar.handleMouseWheel(event.x, event.y, event.angleDelta);
     }
 
     Loader {

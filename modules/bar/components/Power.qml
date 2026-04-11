@@ -14,8 +14,12 @@ Item {
     required property PersistentProperties openPanels
     required property Item panels
 
-    implicitWidth: Config.appearance.fontSize.xl * 2
+    readonly property bool isHover: mouseArea.containsMouse
+    readonly property bool isActive: isHover || root.openPanels.session
+
+    // implicitWidth: Config.appearance.fontSize.xl
     Layout.fillHeight: true
+    implicitWidth: height
 
     signal powerButtonActivate
 
@@ -43,21 +47,42 @@ Item {
         }
     }
 
+    Rectangle {
+        anchors.centerIn: parent
+
+        implicitWidth: root.height
+        implicitHeight: implicitWidth
+
+        radius: implicitWidth
+        opacity: root.isActive ? 0.25 : 0
+        scale: root.isActive ? 1 : 0.5
+        color: ColorService.current.destructive
+
+        Behavior on opacity {
+            NAnim {
+                duration: 300
+            }
+        }
+
+        Behavior on scale {
+            NAnim {
+                duration: 500
+                easing.bezierCurve: Config.appearance.animCurves.accelerateOverCorrect
+            }
+        }
+    }
+
     MaterialIcon {
         id: icon
 
         anchors.fill: parent
 
         text: "power_settings_new"
-        color: mouseArea.containsMouse ? ColorService.current.destructiveHover : ColorService.current.destructive
+        color: root.isActive ? ColorService.current.destructiveHover : ColorService.current.destructive
         font.bold: true
         font.pointSize: Config.appearance.fontSize.md
 
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-
-        Behavior on color {
-            CAnim {}
-        }
     }
 }

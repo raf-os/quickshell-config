@@ -23,6 +23,7 @@ Singleton {
 
     property int currentIndex: hyprExtras.kbdLayoutIndex ?? 0
     property string currentLayout: hyprExtras.inputConfig?.layouts[currentIndex]?.layout ?? "-"
+    property var kbdLayout: hyprExtras.inputConfig?.layouts[currentIndex]
 
     property var inputConfig: hyprExtras.inputConfig
 
@@ -49,15 +50,11 @@ Singleton {
         return ws;
     }
 
-    function switchKeyboardLayout(to: int) {
+    function switchKeyboardLayout(to: string) {
         if (keyboardSwitchCooldown.running)
             return;
 
-        if (to === undefined || to === null) {
-            Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
-        } else {
-            Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", String(to)]);
-        }
+        Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", String(to)]);
         keyboardSwitchCooldown.restart();
     }
 

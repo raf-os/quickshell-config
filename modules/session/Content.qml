@@ -17,7 +17,7 @@ ColumnLayout {
     property real padding: Config.appearance.padding.lg
     spacing: -padding
 
-    property string hoverText: "POWER MENU"
+    property string hoverText: "Session"
 
     function updateHoverText(newText: string): void {
         if (newText === undefined || newText === "")
@@ -43,9 +43,10 @@ ColumnLayout {
             anchors.leftMargin: parent.margin * 1.5
             anchors.rightMargin: parent.margin * 1.5
             text: root.hoverText
-            font.family: Config.appearance.fontFamily.mono
-            font.pointSize: Config.appearance.fontSize.sm
-            clip: true
+            font.family: Config.appearance.fontFamily.sans
+            font.pointSize: Config.appearance.fontSize.xs
+
+            elide: Text.ElideRight
         }
     }
 
@@ -83,6 +84,8 @@ ColumnLayout {
             icon: "power_settings_new"
             label: "Shut Down"
             command: ["sh", "-c", "hyprshutdown -p \"systemctl poweroff\""]
+
+            isDestructive: true
         }
     }
 
@@ -92,6 +95,7 @@ ColumnLayout {
         required property string icon
         required property list<string> command
         property string label
+        property bool isDestructive: false
 
         implicitWidth: 64
         implicitHeight: 64
@@ -112,11 +116,16 @@ ColumnLayout {
         }
 
         MaterialIcon {
-            anchors.centerIn: parent
+            anchors.fill: parent
 
             text: button.icon
             font.pointSize: Config.appearance.fontSize.xl
             font.bold: true
+
+            color: button.isDestructive ? ColorService.current.destructive : ColorService.current.baseContent
+
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
         }
     }
 }

@@ -3,8 +3,8 @@ pragma ComponentBehavior: Bound
 import "statusIcons"
 import qs.components
 import qs.modules.bar
+import qs.modules.bar.popouts
 import qs.services.network
-import qs.utils
 import qs.services
 import qs.config
 import QtQuick
@@ -14,6 +14,9 @@ Item {
     id: root
 
     required property PopoutHandler popoutHandler
+    required property PopoutWrapper popoutWrapper
+
+    readonly property string currentPopoutName: popoutWrapper.hasCurrent ? root.popoutWrapper.currentName : ""
 
     implicitWidth: iconRow.implicitWidth + Config.appearance.padding.xl
     implicitHeight: Config.bar.sizes.innerHeight
@@ -43,6 +46,7 @@ Item {
 
             sourceComponent: KeyboardLayoutIcon {
                 popoutHandler: root.popoutHandler
+                currentPopoutName: root.currentPopoutName
             }
         }
 

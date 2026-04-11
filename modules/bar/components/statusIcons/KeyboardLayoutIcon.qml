@@ -11,6 +11,7 @@ Item {
     id: root
 
     required property PopoutHandler popoutHandler
+    required property string currentPopoutName
 
     property string currentLayout: Hypr.currentLayout.slice(0, 2)
 
@@ -19,6 +20,28 @@ Item {
 
     function setCurrentLayout(code: string): void {
         currentLayout = code.slice(0, 2);
+    }
+
+    Rectangle {
+        id: hoverBg
+
+        readonly property bool shouldBeActive: root.currentPopoutName === "language"
+
+        anchors.centerIn: parent
+
+        implicitWidth: parent.width
+        implicitHeight: implicitWidth
+
+        radius: Config.appearance.rounding.xs
+        color: ColorService.current.base3
+
+        opacity: shouldBeActive ? 1 : 0
+
+        Behavior on opacity {
+            NAnim {
+                duration: 300
+            }
+        }
     }
 
     StyledText {
@@ -33,13 +56,7 @@ Item {
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
 
-        opacity: switchCooldown.running ? 0.5 : 1
-    }
-
-    Timer {
-        id: switchCooldown
-
-        interval: 500
+        opacity: Hypr.isKeyboardSwitchOnCooldown ? 0.5 : 1
     }
 
     MouseArea {
@@ -50,14 +67,12 @@ Item {
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
+        hoverEnabled: true
+
         onClicked: event => {
             if (event.button === Qt.LeftButton) {
-                if (switchCooldown.running)
-                    return;
-
+                Hypr.switchKeyboardLayout("next");
                 root.popoutHandler.closePopout();
-                Quickshell.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
-                switchCooldown.running = true;
             } else if (event.button === Qt.RightButton) {
                 root.popoutHandler.triggerPopout(this, "language");
             }
