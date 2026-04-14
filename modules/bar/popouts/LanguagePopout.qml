@@ -67,6 +67,7 @@ Item {
 
         // anchors.margins: 2
         anchors.topMargin: 6
+        anchors.bottomMargin: 2
 
         color: ColorService.current.base
         radius: Config.appearance.rounding.md
@@ -178,9 +179,9 @@ Item {
             }
 
             onClicked: {
-                if (!Hypr.isKeyboardSwitchOnCooldown) {
-                    root.wrapper?.close?.();
-                }
+                // if (!Hypr.isKeyboardSwitchOnCooldown) {
+                //     root.wrapper?.close?.();
+                // }
                 Hypr.switchKeyboardLayout(liRoot.index);
             }
         }

@@ -12,10 +12,10 @@ Singleton {
 
     property alias keyboardLayoutHandler: kbLHandler
 
-    property list<string> userLayouts: Config.keymap.layouts
-
     KeyboardLayoutHandler {
         id: kbLHandler
+
+        cachePath: Paths.cache
 
         // onLayoutsChanged: {
         //     debugPrintLayouts();

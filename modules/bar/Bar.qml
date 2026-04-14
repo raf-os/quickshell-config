@@ -32,7 +32,7 @@ Item {
     }
 
     function handleMouseWheel(x: real, y: real, angleDelta: point) {
-        if (y > root.implicitHeight)
+        if (y > Config.bar.sizes.innerHeight + Config.border.thickness * 2)
             return;
         const ch = childAt(x, root.height / 2);
         if (ch?.name === "leftContent" || ch?.name === "midContent") {
