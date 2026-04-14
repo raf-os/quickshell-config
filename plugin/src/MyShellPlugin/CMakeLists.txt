@@ -4,6 +4,7 @@ find_package(Qt6 REQUIRED COMPONENTS
   Gui
   Quick
   Sql
+  Widgets
 )
 
 find_package(LibXml2 REQUIRED)
@@ -36,6 +37,9 @@ function(qml_module arg_TARGET)
     QMLDIR module_qmldir
     TYPEINFO module_typeinfo
   )
+
+  string(TOUPPER ${arg_TARGET} target_upper)
+  set("${target_upper}_QML_TARGET_PATH" "${module_target_path}" CACHE INTERNAL "")
 
   message(STATUS "Created QML module ${module_uri}, version ${module_version}")
 

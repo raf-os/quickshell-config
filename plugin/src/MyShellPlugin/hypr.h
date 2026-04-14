@@ -71,6 +71,8 @@ public:
   [[nodiscard]] QQmlListProperty<HyprKeyboardLayout> layouts();
   void setLayouts(const QStringList &layouts, const QStringList &variants);
 
+  [[nodiscard]] QList<HyprKeyboardLayout *> layoutList() const;
+
   [[nodiscard]] QByteArray *tryFetchWriteBuffer();
 
   void attachKeyboardHandler(KeyboardLayoutHandler *obj);
@@ -105,6 +107,8 @@ class HyprExtras : public QObject {
                  configPathChanged REQUIRED)
   Q_PROPERTY(QString shellConfigPath READ shellConfigPath WRITE
                  setShellConfigPath NOTIFY shellConfigPathChanged)
+  Q_PROPERTY(QString cachePath READ cachePath WRITE setCachePath NOTIFY
+                 cachePathChanged)
   Q_PROPERTY(KeyboardLayoutHandler *keyboardLayoutHandler READ
                  keyboardLayoutHandler WRITE setKeyboardLayoutHandler NOTIFY
                      keyboardLayoutHandlerChanged REQUIRED)
@@ -122,6 +126,9 @@ public:
 
   [[nodiscard]] QString shellConfigPath() const;
   void setShellConfigPath(const QString &path);
+
+  [[nodiscard]] QString cachePath() const;
+  void setCachePath(const QString &path);
 
   [[nodiscard]] int kbdLayoutIndex() const;
 
@@ -146,6 +153,7 @@ signals:
   void isSavingChanged();
   void configPathChanged();
   void shellConfigPathChanged();
+  void cachePathChanged();
   void keyboardLayoutHandlerChanged();
   void kbdLayoutIndexChanged();
   void inputConfigChanged();
@@ -160,12 +168,14 @@ private:
   int m_kbLayoutIndex = 0;
   QString m_configPath;
   QString m_shellConfigPath;
+  QString m_cachePath;
   HyprInputConfig *m_inputConfig;
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();
   void saveInputConfig();
   void setIsSaving(bool val);
+  void saveDataToCache();
 };
 
 // Juuuuust to be sure

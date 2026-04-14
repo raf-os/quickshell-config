@@ -1,8 +1,14 @@
 #include "kbd.h"
 #include <functional>
 #include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qdebug.h>
 #include <qdir.h>
+#include <qfileinfo.h>
 #include <qhash.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
 #include <qlogging.h>
 
 #include <libxml/parser.h>
@@ -11,6 +17,7 @@
 #include <libxml/xmlversion.h>
 #include <libxml/xpath.h>
 #include <qobject.h>
+#include <qprocess.h>
 #include <qqmllist.h>
 
 namespace myqmlplugin {
@@ -24,7 +31,7 @@ void xmlGetChildrenListContent(xmlNodePtr child, QStringList *target) {
   for (xmlNodePtr subChild = child->children; subChild;
        subChild = subChild->next) {
     if (subChild->type == XML_ELEMENT_NODE && subChild->children) {
-      target->append(QString::fromUtf8(subChild->content));
+      target->append(QString::fromUtf8(subChild->children->content));
     }
   }
 }
@@ -69,6 +76,10 @@ QString KKeyboardLayout::description() const { return m_description; }
 QStringList KKeyboardLayout::countryList() const { return m_countryList; }
 QStringList KKeyboardLayout::languageList() const { return m_languageList; }
 
+QList<KKeyboardVariant *> KKeyboardLayout::variantList() const {
+  return m_variants;
+}
+
 QQmlListProperty<myqmlplugin::KKeyboardVariant> KKeyboardLayout::variants() {
   return QQmlListProperty<KKeyboardVariant>(this, &m_variants);
 }
@@ -110,7 +121,18 @@ void KeyboardLayoutHandler::setCachePath(const QString &path) {
     return;
   }
 
+  QDir dir(path);
+
+  if (!dir.exists()) {
+    if (!dir.mkpath(".")) {
+      qWarning() << "myqmlplugin::KeyboardLayoutHandler:setCachePath: Error "
+                    "creating specified cache path.";
+      return;
+    }
+  }
+
   m_cachePath = path;
+  saveToJsonCache();
   emit cachePathChanged();
 }
 
@@ -180,6 +202,8 @@ bool KeyboardLayoutHandler::rebuildLayouts() {
   xmlXPathFreeContext(ctx);
   xmlFreeDoc(doc);
   xmlCleanupParser();
+
+  saveToJsonCache();
 
   return true;
 }
@@ -275,4 +299,60 @@ KKeyboardLayout *KeyboardLayoutHandler::findLayoutByName(const QString &name) {
 }
 
 void KeyboardLayoutHandler::debugPrintLayouts() {}
+
+void KeyboardLayoutHandler::saveToJsonCache() {
+  if (m_cachePath == "") {
+    return;
+  }
+
+  QFile file(m_cachePath + "/kbd_cache.json");
+  QFileInfo fileInfo(file);
+
+  if (fileInfo.exists()) {
+    auto currentDate = QDateTime::currentDateTime();
+    auto fileDate = fileInfo.lastModified().addSecs(60 * 60 * 4); // 4 hours
+
+    if (fileDate > currentDate) {
+      return;
+    }
+  }
+
+  QJsonObject kbdJson;
+  QJsonArray kbLayouts;
+
+  for (auto it = m_layouts.cbegin(); it != m_layouts.cend(); ++it) {
+    auto l = it.value();
+    QJsonObject kl;
+    kl["name"] = l->name();
+    kl["description"] = l->description();
+    kl["shortDescription"] = l->shortDescription();
+    kl["countryList"] = l->countryList().join(",");
+    kl["languageList"] = l->languageList().join(",");
+    if (auto variants = l->variantList(); variants.size() > 0) {
+      QJsonArray varList;
+      for (auto const &variant : variants) {
+        QJsonObject v;
+        v["name"] = variant->name();
+        v["description"] = variant->description();
+        varList.append(v);
+      }
+      kl["variants"] = varList;
+    }
+    kbLayouts.append(kl);
+  }
+
+  kbdJson["layouts"] = kbLayouts;
+
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    qWarning() << "myqmlplugin::KeyboardLayoutHandler::saveToJsonCache: Error "
+                  "opening keyboard cache to write - aborting.";
+    return;
+  }
+
+  QTextStream out(&file);
+
+  out << QJsonDocument(kbdJson).toJson(QJsonDocument::Compact);
+
+  file.close();
+}
 } // namespace myqmlplugin

@@ -81,6 +81,8 @@ public:
   [[nodiscard]] QQmlListProperty<myqmlplugin::KKeyboardVariant> variants();
   void addVariant(KKeyboardVariant *variant);
 
+  [[nodiscard]] QList<KKeyboardVariant *> variantList() const;
+
   [[nodiscard]] KKeyboardVariant *getVariantByName(const QString &name);
 
 private:
@@ -131,5 +133,6 @@ private:
 
   bool rebuildLayouts();
   void traverseXmlNodes(xmlNodeSetPtr nodes);
+  void saveToJsonCache();
 };
 } // namespace myqmlplugin

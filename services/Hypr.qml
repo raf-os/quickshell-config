@@ -89,12 +89,6 @@ Singleton {
                 Hyprland.refreshWorkspaces();
             } else if (n.includes("window") || n.includes("group") || ["pin", "fullscreen", "changefloatingmode", "minimize".includes(n)]) {
                 Hyprland.refreshToplevels();
-            } else if (n == "activelayout") {
-                console.log("COCK");
-                const newLayout = n.split(">>").at(1);
-                if (newLayout) {
-                    root.keyboardLayoutChanged(newLayout);
-                }
             }
         }
     }
@@ -102,6 +96,7 @@ Singleton {
     HyprExtras {
         id: hyprExtras
         configPath: `${Paths.home}/.config/hypr`
+        cachePath: `${Paths.cache}`
         keyboardLayoutHandler: KeyboardService.keyboardLayoutHandler
 
         Component.onCompleted: {

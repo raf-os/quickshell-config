@@ -12,6 +12,7 @@
 #include <qjsonobject.h>
 #include <qjsonparseerror.h>
 #include <qjsonvalue.h>
+#include <qlist.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qprocess.h>
@@ -158,6 +159,17 @@ void HyprInputConfig::setLayouts(const QStringList &layouts,
   }
 }
 
+QList<HyprKeyboardLayout *> HyprInputConfig::layoutList() const {
+  return m_layouts;
+}
+
+QByteArray *HyprInputConfig::tryFetchWriteBuffer() {
+  if (!m_bufferReadyFlag) {
+    return nullptr;
+  }
+  return &m_confWriteBuffer;
+}
+
 bool HyprInputConfig::compileCommandFileString() {
   if (m_bufferReadyFlag == false)
     return false;
@@ -269,7 +281,7 @@ QString HyprExtras::shellConfigPath() const { return m_shellConfigPath; }
 
 void HyprExtras::setShellConfigPath(const QString &path) {
   if (m_shellConfigPath != path) {
-    if (!QDir(m_shellConfigPath).exists()) {
+    if (!QDir(path).exists()) {
       qWarning() << "myshellplugin::HyprExtras::setShellConfigPath: Invalid "
                     "shell config path provided.";
       m_shellConfigPath = "";
@@ -277,6 +289,21 @@ void HyprExtras::setShellConfigPath(const QString &path) {
     }
     m_shellConfigPath = path;
     emit shellConfigPathChanged();
+  }
+}
+
+QString HyprExtras::cachePath() const { return m_cachePath; }
+
+void HyprExtras::setCachePath(const QString &path) {
+  if (m_cachePath != path) {
+    if (!QDir(path).exists()) {
+      qWarning() << "myshellplugin::HyprExtras::setCachePath: Invalid cache "
+                    "path provided.";
+      m_cachePath = "";
+      return;
+    }
+    m_cachePath = path;
+    emit cachePathChanged();
   }
 }
 
@@ -382,124 +409,6 @@ void HyprExtras::parseProcessData() {
 
 void HyprExtras::initConfigParse() { hyprlangParse(); }
 
-/**
- * DEPRECATED
- */
-void HyprExtras::parseInputConfig() {
-  QDir cfgDir(m_configPath);
-  if (!QDir(m_configPath).exists()) {
-    qWarning()
-        << "myshellplugin::HyprExtras: Hyprland config path is not set up "
-           "correctly. Some Hyprland specific features will not work "
-           "correctly.";
-    return;
-  }
-  const QString inputConfPath = "/myshell/input.conf";
-  QFile file(m_configPath + inputConfPath);
-
-  if (!file.exists()) {
-    qWarning() << "myshellplugin::HyprExtras: Missing input config file. "
-                  "Skipping parsing.";
-    return;
-  }
-
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    qWarning() << "myshellplugin::HyprExtras: Unknown error reading input "
-                  "config file.";
-    return;
-  }
-
-  bool inputSectionFlag = false;
-  bool isSuffixFlag = false;
-
-  bool isError = false;
-
-  QMap<QString, QString> settingsBuffer;
-
-  QTextStream in(&file);
-  while (!in.atEnd()) {
-    QString line = in.readLine().trimmed();
-    QString lineBuffer;
-    QString cmdBuffer;
-    QString valBuffer;
-
-    isSuffixFlag = false;
-
-    for (auto it = line.cbegin(); it != line.cend(); ++it) {
-      if (QString::compare(it, "#") == 0)
-        break;
-
-      lineBuffer += *it;
-
-      if (QString::compare(it, "{") == 0) {
-        if (inputSectionFlag) {
-          isError = true;
-          break;
-        }
-        if (lineBuffer == "input {") {
-          inputSectionFlag = true;
-          lineBuffer = "";
-        }
-        break;
-      } else if (QString::compare(it, "}") == 0) {
-        if (inputSectionFlag == true) {
-          inputSectionFlag = false;
-          lineBuffer = "";
-        }
-      }
-    }
-
-    if (isError) {
-      break;
-    }
-
-    if (inputSectionFlag) {
-      if (lineBuffer.contains("=")) {
-
-        auto splitStr = lineBuffer.split("=");
-
-        cmdBuffer = splitStr[0].trimmed();
-        if (cmdBuffer.length() == 0)
-          break;
-        valBuffer = splitStr[1].trimmed();
-        settingsBuffer.insert(cmdBuffer, valBuffer);
-
-        // qDebug() << cmdBuffer << ":" << valBuffer << "\n";
-      }
-    }
-  }
-
-  if (isError) {
-    qDebug() << "error occurred";
-  }
-
-  file.close();
-
-  QStringList layouts;
-  QStringList variants;
-
-  if (settingsBuffer.contains("kb_layout")) {
-    layouts = settingsBuffer.value("kb_layout", "").split(",");
-    variants = settingsBuffer.value("kb_variant", "").split(",");
-
-    auto variantsSize = variants.size();
-
-    if (variants.size() > 1 && layouts.size() != variants.size()) {
-      // invalid config
-      return;
-    }
-  }
-
-  auto kbModel = settingsBuffer.value("kb_model", "");
-  auto kbOptions = settingsBuffer.value("kb_options", "");
-  auto kbRules = settingsBuffer.value("kb_rules", "");
-
-  m_inputConfig->setLayouts(layouts, variants);
-  m_inputConfig->setKbModel(kbModel);
-  m_inputConfig->setKbOptions(kbOptions);
-  m_inputConfig->setKbRules(kbRules);
-}
-
 void HyprExtras::hyprlangParse() {
   if (m_configPath == "")
     return;
@@ -542,9 +451,13 @@ void HyprExtras::hyprlangParse() {
 
   if (kbLayouts.length() > 0) {
     layouts = kbLayouts.trimmed().split(",");
-    variants = kbLayouts.trimmed().split(",");
+    variants = kbVariants.trimmed().split(",");
 
-    if (variants.length() > 0 && layouts.length() != variants.length()) {
+    if ((variants.length() > 1 ||
+         (variants.length() == 1 && variants.at(0) != "")) &&
+        layouts.length() != variants.length()) {
+      qWarning() << "myshellplugin::HyprExtras::hyprlangParse: Invalid config "
+                    "detected";
       // INVALID
       return;
     }
@@ -557,6 +470,8 @@ void HyprExtras::hyprlangParse() {
 
   config.unregisterHandler("source");
   HyprExtras::s_hyprlangConfig = nullptr;
+
+  saveDataToCache();
 }
 
 void HyprExtras::writeInputConfigToFile() {
@@ -598,5 +513,43 @@ void HyprExtras::saveInputConfig() {
   }
 
   setIsSaving(false);
+}
+
+void HyprExtras::saveDataToCache() {
+  if (m_cachePath == "") {
+    return;
+  }
+
+  QJsonObject kbdCfg;
+  QJsonArray hyprKeyboards;
+
+  for (auto const &lay : m_inputConfig->layoutList()) {
+    QJsonObject kbObj;
+    kbObj["layout"] = lay->layout();
+    kbObj["variant"] = lay->variant();
+    kbObj["description"] = lay->description();
+    hyprKeyboards.append(kbObj);
+  }
+
+  kbdCfg["hyprKeyboards"] = hyprKeyboards;
+  kbdCfg["hyprKeyboardModel"] = m_inputConfig->kbModel();
+  kbdCfg["hyprKeyboardRules"] = m_inputConfig->kbRules();
+  kbdCfg["hyprKeyboardOptions"] = m_inputConfig->kbOptions();
+
+  QJsonDocument jDoc(kbdCfg);
+
+  QFile file(m_cachePath + "/hyprKeyboards.json");
+
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    qWarning() << "myqmlplugin::HyprExtras::saveDataToCache: Error opening "
+                  "cache file for writing.";
+    return;
+  }
+
+  QTextStream out(&file);
+
+  out << jDoc.toJson(QJsonDocument::Compact);
+
+  file.close();
 }
 } // namespace myqmlplugin

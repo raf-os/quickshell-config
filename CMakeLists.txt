@@ -26,6 +26,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 set(INSTALL_QMLDIR "/usr/lib/qt6/qml")
 
+set(MYSHELL_QML_TARGET_PATH "" CACHE INTERNAL "")
+
 include(FetchContent)
 
 add_subdirectory(plugin)
+add_subdirectory(apps)

@@ -2,6 +2,7 @@ pragma Singleton
 
 import Quickshell
 
+// TODO: Create the paths below if they don't exist so the whole thing doesn't brick
 Singleton {
     id: root
 
