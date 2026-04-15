@@ -30,5 +30,9 @@ set(MYSHELL_QML_TARGET_PATH "" CACHE INTERNAL "")
 
 include(FetchContent)
 
+find_package(Qt6 REQUIRED COMPONENTS Core)
+
+qt_standard_project_setup(REQUIRES 6.9)
+
 add_subdirectory(plugin)
 add_subdirectory(apps)

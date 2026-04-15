@@ -2,13 +2,22 @@ find_package(Qt6 REQUIRED COMPONENTS
   Core
   Qml
   Gui
-  Quick
-  Widgets)
+  Quick)
 
 qt_add_executable(MyShellControlPanel
     main.cpp)
 
-message("${MYSHELL_QML_TARGET_PATH}")
+file(GLOB_RECURSE
+  QML_FILES
+  RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+  CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.qml")
+
+qt_add_qml_module(MyShellControlPanel
+  URI MyShellControlPanel
+  QML_FILES ${QML_FILES})
+
+add_subdirectory(config)
 
 set_target_properties(MyShellControlPanel
   PROPERTIES
@@ -21,8 +30,7 @@ target_link_libraries(MyShellControlPanel
       Qt::Core
       Qt::Qml
       Qt::Gui
-      Qt::Quick
-      Qt::Widgets)
+      Qt::Quick)
 
 include(GNUInstallDirs)
 install(TARGETS MyShellControlPanel

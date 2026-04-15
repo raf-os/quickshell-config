@@ -53,8 +53,6 @@ MouseArea {
                 return root.panels.mprisViewer.mapToItem(root, 0, 0);
             }
 
-            readonly property rect miAreaRect: Qt.rect(x - mediaIndicatorPos.x, y, root.mediaIndicator.implicitWidth, root.bar.implicitHeight)
-
             x: Math.min(mediaIndicatorPos.x, mprisPopupPos.x) ?? 0
             y: 0
 

@@ -10,7 +10,66 @@ import QtQuick
 Singleton {
     id: root
 
-    readonly property ColorPalette current: ColorPalette {}
+    property ThemeData themeData: ThemeData {}
+    property ColorPalette current: themeData.colors
+
+    /**
+     * I'm sure this is totally not unsafe...
+    */
+    function loadFromJson(data: string) {
+        const jData = JSON.parse(data);
+        for (const [key, value] of Object.entries(defaults.data)) {
+            if (typeof value !== "string")
+                continue;
+
+            if (jData.hasOwnProperty(key)) {
+                themeData[key] = jData[key];
+            } else {
+                themeData[key] = value;
+            }
+        }
+
+        if (jData.hasOwnProperty("colors")) {
+            for (const [name, color] of Object.entries(defaults.data.colors)) {
+                if (typeof value === "function" || name === "objectName")
+                    continue;
+
+                if (jData.colors.hasOwnProperty(name)) {
+                    themeData.colors[name] = jData.colors[name];
+                } else {
+                    themeData.colors[name] = color;
+                }
+            }
+        }
+    }
+
+    QtObject {
+        id: defaults
+
+        readonly property ThemeData data: ThemeData {}
+    }
+
+    FileView {
+        id: fView
+
+        path: `${Paths.state}/config/theme.json`
+
+        onLoaded: {
+            try {
+                root.loadFromJson(text());
+            } catch (e) {
+                console.warn("ColorService: failed parsing JSON data: ", e);
+            }
+        }
+    }
+
+    component ThemeData: QtObject {
+        property string name: "Default"
+        property string author: "Anonymous"
+        property string version: "1.0"
+
+        property ColorPalette colors: ColorPalette {}
+    }
 
     component ColorPalette: QtObject {
         property color base0: "#1b1510"

@@ -13,7 +13,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(HYPRLANG REQUIRED hyprlang)
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
-qt_standard_project_setup(REQUIRES 6.9)
 
 FetchContent_Declare(rapidfuzz
   GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
@@ -39,7 +38,9 @@ function(qml_module arg_TARGET)
   )
 
   string(TOUPPER ${arg_TARGET} target_upper)
-  set("${target_upper}_QML_TARGET_PATH" "${module_target_path}" CACHE INTERNAL "")
+  set("${target_upper}_QML_TARGET_PATH"
+    "${module_target_path}"
+    CACHE INTERNAL "")
 
   message(STATUS "Created QML module ${module_uri}, version ${module_version}")
 
