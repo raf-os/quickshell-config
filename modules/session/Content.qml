@@ -75,7 +75,7 @@ ColumnLayout {
 
             icon: "cached"
             label: "Reboot"
-            command: ["sh", "-c", "hyprshutdown -p \"systemctl reboot\""]
+            command: ["systemctl", "reboot"]
         }
 
         SessionButton {
@@ -83,7 +83,7 @@ ColumnLayout {
 
             icon: "power_settings_new"
             label: "Shut Down"
-            command: ["sh", "-c", "hyprshutdown -p \"systemctl poweroff\""]
+            command: ["systemctl", "poweroff"]
 
             isDestructive: true
         }
