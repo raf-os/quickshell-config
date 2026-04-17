@@ -1,0 +1,32 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+                      "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<!-- GDBus 2.88.0 -->
+<node>
+  <interface name="org.freedesktop.NetworkManager">
+    <method name="Reload">
+      <arg type="u" name="flags" direction="in"/>
+    </method>
+    <method name="GetDevices">
+      <arg type="ao" name="devices" direction="out"/>
+    </method>
+    <method name="GetAllDevices">
+      <arg type="ao" name="devices" direction="out"/>
+    </method>
+    <method name="GetDeviceByIpIface">
+      <arg type="s" name="iface" direction="in"/>
+      <arg type="o" name="device" direction="out"/>
+    </method>
+    <method name="Enable">
+      <arg type="b" name="enable" direction="in"/>
+    </method>
+    <method name="CheckConnectivity">
+      <arg type="u" name="connectivity" direction="out"/>
+    </method>
+    <method name="state">
+      <arg type="u" name="state" direction="out"/>
+    </method>
+    <signal name="StateChanged">
+      <arg type="u" name="state"/>
+    </signal>
+  </interface>
+</node>

@@ -17,8 +17,6 @@ qt_add_qml_module(MyShellControlPanel
   URI MyShellControlPanel
   QML_FILES ${QML_FILES})
 
-add_subdirectory(config)
-
 set_target_properties(MyShellControlPanel
   PROPERTIES
     OUTPUT_NAME "myshell-control-panel"

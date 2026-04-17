@@ -17,6 +17,8 @@ Item {
     required property PopoutWrapper popouts
     required property Item panels
 
+    readonly property int contentSpacing: Config.appearance.spacing.md
+
     property alias mediaInfo: mediaInfo
 
     property int middleSize: 560
@@ -84,6 +86,8 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
 
+        anchors.rightMargin: root.contentSpacing
+
         spacing: root.spacing
 
         ArchIconBtw {
@@ -120,6 +124,8 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+
+        anchors.leftMargin: root.contentSpacing
 
         spacing: root.spacing
 

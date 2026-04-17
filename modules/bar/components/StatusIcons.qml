@@ -81,9 +81,7 @@ Item {
             name: "Network settings"
             active: true
 
-            sourceComponent: NetworkStatusIcon {
-                text: Networkctl.isConnected ? "󰱓" : "󰅛"
-            }
+            sourceComponent: NetworkStatusIcon {}
         }
     }
 

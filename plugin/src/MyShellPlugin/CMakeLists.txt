@@ -4,7 +4,7 @@ find_package(Qt6 REQUIRED COMPONENTS
   Gui
   Quick
   Sql
-  Widgets
+  DBus
 )
 
 find_package(LibXml2 REQUIRED)
@@ -64,6 +64,8 @@ function(qml_module arg_TARGET)
     )
 endfunction()
 
+add_subdirectory(interfaces)
+
 qml_module(myshell
   URI MyShellPlugin
   SOURCES
@@ -71,14 +73,18 @@ qml_module(myshell
     cmdhandler.h cmdhandler.cpp
     kbd.h kbd.cpp
     hypr.h hypr.cpp
+    networkservice.h networkservice.cpp
   LIBRARIES
     Qt::Gui
     Qt::Quick
     Qt::Sql
+    Qt::DBus
     rapidfuzz::rapidfuzz
     LibXml2::LibXml2
+    nm_dbus
     ${HYPRLANG_LIBRARIES}
 )
 
 target_include_directories(myshell PRIVATE ${HYPRLANG_INCLUDE_DIRS})
 target_compile_options(myshell PRIVATE ${HYPRLANG_CFLAGS_OTHER})
+
