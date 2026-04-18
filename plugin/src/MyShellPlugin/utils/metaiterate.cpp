@@ -1,3 +1,4 @@
+#include "metaiterate.h"
 #include <functional>
 #include <qjsonobject.h>
 #include <qjsonvalue.h>

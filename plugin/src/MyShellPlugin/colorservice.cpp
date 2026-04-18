@@ -1,4 +1,6 @@
 #include "colorservice.h"
+#include "metaiterate.h"
+#include <qdebug.h>
 #include <qdir.h>
 #include <qhashfunctions.h>
 #include <qjsonarray.h>
@@ -121,9 +123,13 @@ void ColorService::saveConfig() {
       return;
     }
 
-    QJsonObject docRoot;
+    QJsonObject docRoot = utils::serializeMetaObjToJson(m_configMetadata);
+    docRoot["colors"] = utils::serializeMetaObjToJson(m_colors);
 
-    auto confMeta = m_configMetadata->metaObject();
+    QTextStream out(&themeFile);
+    out << QJsonDocument(docRoot).toJson(QJsonDocument::Compact);
+
+    themeFile.close();
   }
 }
 } // namespace myqmlplugin
