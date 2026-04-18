@@ -19,6 +19,8 @@ FetchContent_Declare(rapidfuzz
   GIT_TAG v3.3.3)
 FetchContent_MakeAvailable(rapidfuzz)
 
+add_subdirectory(include)
+
 function(qml_module arg_TARGET)
   cmake_parse_arguments(PARSE_ARGV 1 arg "" "URI" "SOURCES;LIBRARIES")
 
@@ -65,6 +67,7 @@ function(qml_module arg_TARGET)
 endfunction()
 
 add_subdirectory(interfaces)
+add_subdirectory(utils)
 
 qml_module(myshell
   URI MyShellPlugin
@@ -74,6 +77,7 @@ qml_module(myshell
     kbd.h kbd.cpp
     hypr.h hypr.cpp
     networkservice.h networkservice.cpp
+    colorservice.h colorservice.cpp
   LIBRARIES
     Qt::Gui
     Qt::Quick
@@ -82,6 +86,8 @@ qml_module(myshell
     rapidfuzz::rapidfuzz
     LibXml2::LibXml2
     nm_dbus
+    myshell_include
+    myshell_utils
     ${HYPRLANG_LIBRARIES}
 )
 
