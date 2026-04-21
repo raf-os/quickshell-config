@@ -17,6 +17,14 @@ void iterateMetaObj(QObject *obj,
   }
 }
 
+void resetMetaObj(QObject *obj) {
+  iterateMetaObj(obj, [obj](QMetaProperty *meta) {
+    if (meta->isResettable()) {
+      meta->reset(obj);
+    }
+  });
+}
+
 QJsonObject serializeMetaObjToJson(QObject *obj) {
   QJsonObject js;
   iterateMetaObj(obj, [obj, &js](QMetaProperty *meta) {

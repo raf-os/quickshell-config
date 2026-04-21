@@ -1,6 +1,7 @@
 pragma Singleton
 
 import qs.utils
+import MyShellPlugin.Utils
 import Quickshell
 import Quickshell.Io
 import QtQuick

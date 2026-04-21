@@ -2,11 +2,14 @@
 
 #include <qcolor.h>
 #include <qdir.h>
+#include <qfilesystemwatcher.h>
 #include <qhashfunctions.h>
+#include <qlist.h>
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
+#include "paths.h"
 #include "propertymacros.h"
 
 // TODO: Write a code generation python script, this will get tedious to do by
@@ -57,27 +60,33 @@ public:
 } // namespace myqmlplugin
 
 namespace myqmlplugin {
-class ColorService : public QObject {
+class Colors : public QObject {
   Q_OBJECT
   QML_ELEMENT
+  QML_SINGLETON
 
-  Q_PROPERTY(configs::ColorConfigMetadata *metadata READ metadata NOTIFY
-                 metadataChanged)
+  Q_PROPERTY(myqmlplugin::configs::ColorConfigMetadata *metadata READ metadata
+                 NOTIFY metadataChanged)
 
-  Q_PROPERTY(
-      configs::ColorConfigColors *colors READ colors NOTIFY colorsChanged)
+  Q_PROPERTY(myqmlplugin::configs::ColorConfigColors *colors READ colors NOTIFY
+                 colorsChanged)
 
   Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY
                  configPathChanged)
+  Q_PROPERTY(QString themeName READ themeName WRITE setThemeName NOTIFY
+                 themeNameChanged)
 
 public:
-  explicit ColorService(QObject *parent = nullptr);
+  explicit Colors(QObject *parent = nullptr);
 
   [[nodiscard]] configs::ColorConfigMetadata *metadata() const;
   [[nodiscard]] configs::ColorConfigColors *colors() const;
 
   [[nodiscard]] QString configPath() const;
   void setConfigPath(const QString &path);
+
+  [[nodiscard]] QString themeName() const;
+  void setThemeName(const QString &name);
 
   Q_INVOKABLE void loadConfig();
   Q_INVOKABLE void saveConfig();
@@ -86,10 +95,25 @@ signals:
   void metadataChanged();
   void configPathChanged();
   void colorsChanged();
+  void themeNameChanged();
 
 private:
   configs::ColorConfigMetadata *m_configMetadata;
   configs::ColorConfigColors *m_colors;
-  QString m_configPath = QDir::homePath() + "/.config/myshell/config";
+  QFileSystemWatcher *m_fileWatcher;
+
+  QList<QString> m_themeDb;
+
+  QString m_configPath = utils::Paths::instance()->config();
+  QString m_themeName = "default";
+
+  QDir checkConfigPath();
+  void writeConfigToPath(const QString &name);
+  void buildThemeDb();
+  void attachFileWatcher();
+  void resetConfigs();
+
+  void onFileWatcherChanged(const QString &path);
 };
+
 } // namespace myqmlplugin

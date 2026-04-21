@@ -77,7 +77,7 @@ qml_module(myshell
     kbd.h kbd.cpp
     hypr.h hypr.cpp
     networkservice.h networkservice.cpp
-    colorservice.h colorservice.cpp
+    colors.h colors.cpp
   LIBRARIES
     Qt::Gui
     Qt::Quick

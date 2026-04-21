@@ -7,6 +7,7 @@
 namespace myqmlplugin {
 namespace utils {
 void iterateMetaObj(QObject *obj, std::function<void(QMetaProperty *)>);
+void resetMetaObj(QObject *obj);
 QJsonObject serializeMetaObjToJson(QObject *obj);
 
 } // namespace utils

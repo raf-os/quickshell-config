@@ -144,7 +144,7 @@ Loader {
                 restoreMode: Binding.RestoreNone
                 target: iconLoader
                 property: "iconBuffer"
-                value: Quickshell.iconPath(root.mediaIcon, true)
+                value: root.mediaIcon
                 when: root.shouldBeActive
             }
 
@@ -174,7 +174,7 @@ Loader {
             sourceComponent: IconImage {
                 anchors.left: parent.left
 
-                source: iconLoader.iconBuffer
+                source: Quickshell.iconPath(iconLoader.iconBuffer, true)
                 implicitSize: Config.bar.sizes.innerHeight * 0.75
                 asynchronous: true
             }

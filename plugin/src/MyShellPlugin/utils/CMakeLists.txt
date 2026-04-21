@@ -1,8 +1,9 @@
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick)
 
 add_library(myshell_utils
   STATIC
-    metaiterate.h metaiterate.cpp)
+    metaiterate.h metaiterate.cpp
+    paths.h paths.cpp)
 
 set_target_properties(myshell_utils PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
@@ -10,5 +11,16 @@ set_target_properties(myshell_utils PROPERTIES
 target_include_directories(myshell_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(myshell_utils
-  PUBLIC
-   Qt6::Core)
+  PRIVATE
+    Qt::Core
+    Qt::Quick
+    myshell_include)
+
+qml_module(myshellUtils
+  URI MyShellPlugin.Utils
+  SOURCES
+    paths.h paths.cpp
+  LIBRARIES
+    Qt::Core
+    Qt::Quick
+    myshell_include)

@@ -11,11 +11,15 @@ file(GLOB_RECURSE
   QML_FILES
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
   CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.qml")
+  "${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml")
 
 qt_add_qml_module(MyShellControlPanel
   URI MyShellControlPanel
-  QML_FILES ${QML_FILES})
+  QML_FILES
+    Main.qml
+    ${QML_FILES})
+
+add_subdirectory(components)
 
 set_target_properties(MyShellControlPanel
   PROPERTIES
@@ -24,7 +28,8 @@ set_target_properties(MyShellControlPanel
 
 target_link_libraries(MyShellControlPanel
     PRIVATE
-    myshell
+      myshell
+      panel_components
       Qt::Core
       Qt::Qml
       Qt::Gui

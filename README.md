@@ -18,3 +18,9 @@ This list is incomplete as of now
 * [Hyprland](https://hypr.land/)
 * app2unit
 * [Sway Notification Center](https://github.com/ErikReider/SwayNotificationCenter)
+* NetworkManager
+* libxml2
+
+### Optional
+
+* xmllint
