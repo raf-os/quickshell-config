@@ -141,7 +141,7 @@ Loader {
             // }
 
             Binding {
-                restoreMode: Binding.RestoreNone
+                restoreMode: Binding.RestoreBinding
                 target: iconLoader
                 property: "iconBuffer"
                 value: root.mediaIcon

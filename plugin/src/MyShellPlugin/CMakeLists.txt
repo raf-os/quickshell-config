@@ -67,6 +67,7 @@ function(qml_module arg_TARGET)
 endfunction()
 
 add_subdirectory(interfaces)
+add_subdirectory(configs)
 add_subdirectory(utils)
 
 qml_module(myshell
