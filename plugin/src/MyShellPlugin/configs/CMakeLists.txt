@@ -1,5 +1,20 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Quick)
 
+add_library(myshell_configs
+  STATIC
+    config.h config.cpp)
+
+set_target_properties(myshell_configs PROPERTIES
+  POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(myshell_configs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(myshell_configs
+  PRIVATE
+    Qt::Core
+    Qt::Quick
+    myshell_include)
+
 qml_module(myshell_configs_plugin
   URI MyShellPlugin.Configs
   SOURCES
@@ -8,8 +23,3 @@ qml_module(myshell_configs_plugin
     Qt::Core
     Qt::Quick
     myshell_include)
-
-# set_target_properties(myshell_configs PROPERTIES
-#   POSITION_INDEPENDENT_CODE ON)
-#
-# target_include_directories(myshell_configs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

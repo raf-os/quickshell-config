@@ -1,0 +1,31 @@
+{
+  "className": "AppearanceConfig",
+  "properties": [
+    {
+      "name": "FontFamily",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "sans",
+          "type": "QString",
+          "defaultValue": "DejaVu Sans"
+        },
+        {
+          "name": "mono",
+          "type": "QString",
+          "defaultValue": "RobotoMono Nerd Font Propo"
+        },
+        {
+          "name": "monoIcon",
+          "type": "QString",
+          "defaultValue": "0xProto Nerd Font Mono"
+        },
+        {
+          "name": "material",
+          "type": "QString",
+          "defaultValue": "Material Symbols Rounded"
+        }
+      ]
+    }
+  ]
+}

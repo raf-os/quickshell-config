@@ -21,6 +21,7 @@ FetchContent_MakeAvailable(rapidfuzz)
 
 add_subdirectory(include)
 
+# This function was taken from Caelestia, which was likely adapted from Quickshell, which then was adapted from KDE ECM
 function(qml_module arg_TARGET)
   cmake_parse_arguments(PARSE_ARGV 1 arg "" "URI" "SOURCES;LIBRARIES")
 
