@@ -2,6 +2,7 @@
 
 #include <qjsengine.h>
 #include <qobject.h>
+#include <qproperty.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>

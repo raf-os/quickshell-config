@@ -24,10 +24,22 @@
           "name": "material",
           "type": "QString",
           "defaultValue": "Material Symbols Rounded"
+        }
+      ]
+    },
+    {
+      "name": "FontSize",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "scale",
+          "type": "qreal",
+          "defaultValue": 1
         },
         {
-          "name": "test",
-          "type": "QString"
+          "name": "xxs",
+          "type": "int",
+          "binding": "8 * m_scale.value()"
         }
       ]
     }

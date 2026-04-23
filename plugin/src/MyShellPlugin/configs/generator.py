@@ -3,8 +3,10 @@
 # dependencies = ["pydantic"]
 # ///
 
+import subprocess
 from typing import Literal, override
 from pathlib import Path
+from abc import ABC, abstractmethod
 from pydantic import BaseModel, ValidationError
 
 _NAMESPACES: list[str] = ["myqmlplugin", "configs"]
@@ -14,9 +16,19 @@ class ObjectWrapper(BaseModel):
     prefix: str = ""
     suffix: str = ""
     content: str = ""
+    lock: bool = False
+    isLocked: bool = False
+    metaWrapper: ObjectWrapper | None = None
 
     def wrap(self, content: str | None = None) -> str:
-        return f"{self.prefix}{self.content if content == None else content}{self.suffix}"
+        if self.lock and self.isLocked:
+            raise SyntaxError("Attempting to wrap a locked class")
+        if self.lock:
+            self.isLocked = True
+        wstr = f"{self.prefix}{self.content if content == None else content}{self.suffix}"
+        if (self.metaWrapper != None):
+            return self.metaWrapper.wrap(wstr)
+        return wstr
 
 class BaseProperty(BaseModel):
     name: str
@@ -69,7 +81,35 @@ class HeaderClassMeta(BaseModel):
 class BodyClassMeta(BaseModel):
     content: str = ""
 
-class BindableProperty(BaseModel):
+class BaseClassMeta(BaseModel, ABC): #pyright: ignore[reportUnsafeMultipleInheritance]
+    parent: CppClassModel
+    name: str
+
+    @abstractmethod
+    def compile(self) -> ClassMeta:
+        pass
+
+class ChildClassMeta(BaseClassMeta):
+    @override
+    def compile(self) -> ClassMeta:
+        nameLower = self.name[:1].lower()+self.name[1:]
+        return ClassMeta(
+            header=HeaderClassMeta(
+                macros=(" ".join([
+                        f"\n\tQ_PROPERTY({self.name} *{nameLower}",
+                        f"READ {nameLower}",
+                        "CONSTANT"
+                        ]) + ")"
+                ),
+                public=(f"\n\t[[nodiscard]] {self.name} *{nameLower}() const;"),
+                private=(f"\n\t{self.name} *m_{nameLower} = new {self.name}(this);")
+            ),
+            body=BodyClassMeta(
+                content=f"\n{self.name} *{self.parent.className}::{nameLower}() const {{ return m_{nameLower}; }}\n"
+            )
+        )
+
+class BindableProperty(BaseClassMeta):
     parent: CppClassModel
     name: str
     type: str
@@ -82,31 +122,33 @@ class BindableProperty(BaseModel):
         else:
             return f"const {self.type} &{self.name}"
 
+    @override
     def compile(self) -> ClassMeta:
         nameCap = self.name[:1].upper() + self.name[1:]
         cStr = ""
 
         if (self.binding != None):
-            cStr += f"\nm_{self.name}.setBinding([this]() {{ return {self.binding}; }});"
+            cStr += f"\n\tm_{self.name}.setBinding([this]() {{ return {self.binding}; }});\n"
 
         return ClassMeta(
             header=HeaderClassMeta(
                 macros=(
-                    f"\nQ_PROPERTY({self.name} "
+                    f"\n\tQ_PROPERTY({self.name} "
                     f"READ {self.name} "
                     f"WRITE set{nameCap} "
                     f"NOTIFY {self.name}Changed "
-                    f"{f"BINDABLE bindable{nameCap} " if self.binding != None else ""}"
+                    f"BINDABLE bindable{nameCap}"
                     f")"
                 ),
                 public=(
                     f"\n\t[[nodiscard]] {self.type} {self.name}() const;"
                     f"\n\tvoid set{nameCap}({self._setterParam()});"
+                    f"\n\tQBindable<{self.type}> bindable{nameCap}();"
                     f"\n\tQ_SIGNAL void {self.name}Changed();"
                     "\n"
                 ),
                 private=(
-                    f"\tQProperty<{self.type}> {self.name}{f" = {self.defaultValue}" if self.defaultValue != None else ""};\n"
+                    f"\tQProperty<{self.type}> m_{self.name}{f" = {self.defaultValue}" if self.defaultValue != None else ""};\n"
                 )
             ),
             body = BodyClassMeta(
@@ -114,6 +156,7 @@ class BindableProperty(BaseModel):
                     f"\n{self.type} {self.parent.className}::{self.name} const {{ return m_{self.name}; }}\n" # GETTER
                     f"\nvoid {self.parent.className}::set{nameCap}(const {self.type} &value) {{\n" # SETTER
                     f"\tm_{self.name} = value;\n}}"
+                    f"\nQBindable<{self.type}> {self.parent.className}::bindable{nameCap}() {{ return &m_{self.name}; }}" # BINDABLE
                     "\n"
                 )
             ),
@@ -121,11 +164,12 @@ class BindableProperty(BaseModel):
         )
 
 class CppFileModel(BaseModel):
+    name: str
     imports: set[str] = {
         "qobject.h",
         "qqmlintegration.h",
         "qtmetamacros.h",
-        "qbindable.h",
+        "qproperty.h"
     }
     classes: list[CppClassModel] = []
     fileDataHeader: str = "#pragma once \n\n"
@@ -146,6 +190,7 @@ class CppFileModel(BaseModel):
         self.classes.append(cl)
 
     def processHeaders(self):
+        self.fileDataBody += f"#include <{self.name}.h>\n"
         for header in self.imports:
             istr: str = f"#include <{header}>\n"
             self.fileDataHeader += istr
@@ -157,8 +202,8 @@ class CppFileModel(BaseModel):
         contentStr = ""
         for clss in self.classes:
             clss.generate()
-            headerStr += clss.header
-            contentStr += clss.body
+            headerStr = clss.header + headerStr
+            contentStr = clss.body + contentStr
         self.fileDataHeader += self.namespaceWrapper.wrap(content=headerStr)
         self.fileDataBody += self.namespaceWrapper.wrap(content=contentStr)
 
@@ -169,9 +214,9 @@ class CppClassModel(BaseModel):
     children: list[CppClassModel] = []
     data: list[SimpleValue | ObjectProperty]
     macros: str = (
-            "Q_OBJECT\n"
-            "QML_ELEMENT\n"
-            "QML_UNCREATABLE(\"\")\n"
+            "\tQ_OBJECT\n"
+            "\tQML_ELEMENT\n"
+            "\tQML_UNCREATABLE(\"\")\n"
             )
 
     public: str = ""
@@ -179,34 +224,51 @@ class CppClassModel(BaseModel):
     body: str = ""
     header: str = ""
     wrapperHeader: ObjectWrapper = ObjectWrapper()
-    constructorFunction: ObjectWrapper = ObjectWrapper()
+    wrapperBody: ObjectWrapper = ObjectWrapper()
+    wrapperComments: ObjectWrapper = ObjectWrapper()
+    constructorFunction: ObjectWrapper = ObjectWrapper(lock=True)
+    constructorArguments: list[str] = ["QObject *parent"]
+    constructorDependencies: list[str] = ["QObject(parent)"]
 
     @override
     def model_post_init(self, __context: object) -> None:
         self.fileModel.addClass(self)
 
-        self.constructorFunction.prefix = self.className + "::" + self.className + "(QObject *parent): QObject(parent) {"
+        self.constructorFunction.prefix = self.className + "::" + self.className + "("
         self.constructorFunction.suffix = "}"
 
-        self.wrapperHeader.prefix = f"\nclass {self.className} : public QObject {{\n"
-        self.wrapperHeader.suffix = "};\n"
+        self.wrapperHeader.prefix = (
+            f"\nclass {self.className} : public QObject {{\n"
+        )
+        self.wrapperHeader.suffix = (
+            "};\n"
+        )
 
-        self.addPublicMethod(header=f"explicit {self.className}(QObject *parent = nullptr);\n")
+        self.wrapperComments.prefix = f"\n// BEGIN CLASS [[ {self.className} ]]"
+        self.wrapperComments.suffix = f"// END CLASS [[ {self.className} ]]\n"
+
+        self.wrapperHeader.metaWrapper = self.wrapperComments
+
+        self.wrapperBody.metaWrapper = self.wrapperComments
+
+        self.addPublicMethod(header=f"explicit {self.className}(QObject *parent = nullptr);")
         self.iterateModel()
         return super().model_post_init(__context)
 
     def addPublicMethod(self, header: str, impl: str | None = None):
         self.public += "\t" + header + "\n";
         if (impl != None):
-            self.body += f"\n{impl}\n"
+            self.wrapperBody.content += f"\n{impl}\n"
 
     def addPrivateMethod(self, header: str, impl: str | None = None):
         self.private += f"\t{header}\n"
         if (impl != None):
-            self.body += f"\n{impl}\n"
+            self.wrapperBody.content += f"\n{impl}\n"
 
     def finalizeConstructor(self):
-        self.body = "\n" + self.constructorFunction.wrap() + "\n" + self.body
+        self.constructorFunction.prefix += ", ".join(self.constructorArguments) + "): "
+        self.constructorFunction.prefix += ", ".join(self.constructorDependencies) + " {"
+        self.wrapperBody.content = "\n" + self.constructorFunction.wrap() + "\n" + self.wrapperBody.content
 
     def iterateModel(self):
         for child in self.data:
@@ -218,7 +280,11 @@ class CppClassModel(BaseModel):
                         data=child.properties
                         )
                 self.children.append(newChild)
-                self.addPrivateMethod(f"auto m_{child.name} = {child.name}(this);")
+                cc = ChildClassMeta(parent=self, name=child.name).compile()
+                self.macros += cc.header.macros
+                self.private += cc.header.private
+                self.public += cc.header.public
+                self.wrapperBody.content += cc.body.content
             else:
                 match child.type:
                     case "QString":
@@ -226,7 +292,7 @@ class CppClassModel(BaseModel):
                     case "QColor":
                         self.fileModel.addImport("qcolor.h")
                     case "qreal":
-                        self.fileModel.addImport("qreal")
+                        self.fileModel.addImport("qtypes.h")
                     case _:
                         pass
                 bp = BindableProperty(
@@ -239,7 +305,7 @@ class CppClassModel(BaseModel):
                 self.macros += bp.header.macros
                 self.private += bp.header.private
                 self.public += bp.header.public
-                self.body += bp.body.content
+                self.wrapperBody.content += bp.body.content
                 if bp.constructor:
                     self.constructorFunction.content += bp.constructor
 
@@ -251,6 +317,7 @@ class CppClassModel(BaseModel):
             self.wrapperHeader.content += "private:\n" + self.private + "\n"
         self.finalizeConstructor()
         self.header = self.wrapperHeader.wrap()
+        self.body = self.wrapperBody.wrap()
 
 def main():
     directory = Path("./schemas/")
@@ -278,15 +345,24 @@ def main():
     cppFileModel: list[CppFileModel] = []
 
     for model in models:
-        fileModel = CppFileModel()
+        fileName = model.className.lower()
+        fileModel = CppFileModel(name=fileName)
         baseClass = CppClassModel(fileModel=fileModel, data=model.properties, className=model.className)
 
         fileModel.generate()
         
-        with open("./generated/" + model.className.lower() + ".h", "w") as f:
+        with open("./generated/" + fileName + ".h", "w") as f:
             f.write(fileModel.fileDataHeader)
 
-        with open("./generated/" + model.className.lower() + ".cpp", "w") as f:
+
+        with open("./generated/" + fileName + ".cpp", "w") as f:
             f.write(fileModel.fileDataBody)
+
+        result = subprocess.run(
+            ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"./generated/{fileName}.cpp"],
+            capture_output=True,
+            text=True
+        )
+        print(result)
 
 main()
