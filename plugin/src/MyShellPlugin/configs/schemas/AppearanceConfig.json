@@ -40,6 +40,222 @@
           "name": "xxs",
           "type": "int",
           "binding": "8 * m_scale.value()"
+        },
+        {
+          "name": "xs",
+          "type": "int",
+          "binding": "9 * m_scale.value()"
+        },
+        {
+          "name": "sm",
+          "type": "int",
+          "binding": "10 * m_scale.value()"
+        },
+        {
+          "name": "md",
+          "type": "int",
+          "binding": "12 * m_scale.value()"
+        },
+        {
+          "name": "lg",
+          "type": "int",
+          "binding": "14 * m_scale.value()"
+        },
+        {
+          "name": "xl",
+          "type": "int",
+          "binding": "17 * m_scale.value()"
+        },
+        {
+          "name": "xxl",
+          "type": "int",
+          "binding": "20 * m_scale.value()"
+        }
+      ]
+    },
+    {
+      "name": "Rounding",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "scale",
+          "type": "qreal",
+          "defaultValue": 1
+        },
+        {
+          "name": "xs",
+          "type": "int",
+          "binding": "4 * m_scale.value()"
+        },
+        {
+          "name": "sm",
+          "type": "int",
+          "binding": "8 * m_scale.value()"
+        },
+        {
+          "name": "md",
+          "type": "int",
+          "binding": "16 * m_scale.value()"
+        },
+        {
+          "name": "lg",
+          "type": "int",
+          "binding": "24 * m_scale.value()"
+        },
+        {
+          "name": "full",
+          "type": "int",
+          "binding": "1000 * m_scale.value()"
+        }
+      ]
+    },
+    {
+      "name": "Spacing",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "scale",
+          "type": "qreal",
+          "defaultValue": 1
+        },
+        {
+          "name": "xxs",
+          "type": "int",
+          "binding": "4 * m_scale.value()"
+        },
+        {
+          "name": "xs",
+          "type": "int",
+          "binding": "9 * m_scale.value()"
+        },
+        {
+          "name": "sm",
+          "type": "int",
+          "binding": "10 * m_scale.value()"
+        },
+        {
+          "name": "md",
+          "type": "int",
+          "binding": "12 * m_scale.value()"
+        },
+        {
+          "name": "lg",
+          "type": "int",
+          "binding": "14 * m_scale.value()"
+        },
+        {
+          "name": "xl",
+          "type": "int",
+          "binding": "17 * m_scale.value()"
+        },
+        {
+          "name": "xxl",
+          "type": "int",
+          "binding": "20 * m_scale.value()"
+        }
+      ]
+    },
+    {
+      "name": "Padding",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "scale",
+          "type": "qreal",
+          "defaultValue": 1
+        },
+        {
+          "name": "xxs",
+          "type": "int",
+          "binding": "4 * m_scale.value()"
+        },
+        {
+          "name": "xs",
+          "type": "int",
+          "binding": "5 * m_scale.value()"
+        },
+        {
+          "name": "sm",
+          "type": "int",
+          "binding": "7 * m_scale.value()"
+        },
+        {
+          "name": "md",
+          "type": "int",
+          "binding": "10 * m_scale.value()"
+        },
+        {
+          "name": "lg",
+          "type": "int",
+          "binding": "12 * m_scale.value()"
+        },
+        {
+          "name": "xl",
+          "type": "int",
+          "binding": "15 * m_scale.value()"
+        },
+        {
+          "name": "xxl",
+          "type": "int",
+          "binding": "20 * m_scale.value()"
+        }
+      ]
+    },
+    {
+      "name": "AnimCurves",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "linear",
+          "type": "QList",
+          "listType": "qreal",
+          "defaultValue": [
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "defaultEase",
+          "type": "QList",
+          "listType": "qreal",
+          "defaultValue": [
+            0.45,
+            0,
+            0,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "easeInOut",
+          "type": "QList",
+          "listType": "qreal",
+          "defaultValue": [
+            0.45,
+            0,
+            0.5,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "accelerateOverCorrect",
+          "type": "QList",
+          "listType": "qreal",
+          "defaultValue": [
+            0.3,
+            1.5,
+            0.2,
+            0.85,
+            1,
+            1
+          ]
         }
       ]
     }

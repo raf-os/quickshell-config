@@ -61,7 +61,12 @@ class SimpleValueBool(BaseBindableProperty):
     type: Literal["bool"]
     defaultValue: bool | None = None
 
-SimpleValue = SimpleValueString | SimpleValueReal | SimpleValueInt | SimpleValueBool
+class BaseListProperty(BaseBindableProperty):
+    type: Literal["QList"]
+    listType: str
+    defaultValue: list[str | int | float]
+
+SimpleValue = SimpleValueString | SimpleValueReal | SimpleValueInt | SimpleValueBool | BaseListProperty
 
 class BaseDocument(BaseModel):
     className: str
@@ -112,6 +117,34 @@ class ChildClassMeta(BaseClassMeta):
             )
         )
 
+class ListProperty(BaseClassMeta):
+    parent: CppClassModel
+    name: str
+    type: str
+    defaultValue: list[int | float | str] = []
+
+    @override
+    def compile(self) -> ClassMeta:
+        cList = ", ".join([str(x) for x in self.defaultValue])
+        return ClassMeta(
+            header=HeaderClassMeta(
+                macros=(
+                    f"\n\tQ_PROPERTY(QList<{self.type}> {self.name} "
+                    f"READ {self.name} "
+                    f"CONSTANT)"
+                ),
+                public=(
+                    f"\n\t[[nodiscard]] const QList<{self.type}> &{self.name}() const;"
+                ),
+                private=(
+                    f"\tconst QList<{self.type}> m_{self.name} = {{{cList}}};\n"
+                )
+            ),
+            body=BodyClassMeta(
+                content=f"\nconst QList<{self.type}> &{self.parent.className}::{self.name}() const {{ return m_{self.name}; }}\n" # GETTER
+            )
+        )
+
 class BindableProperty(BaseClassMeta):
     parent: CppClassModel
     name: str
@@ -131,7 +164,7 @@ class BindableProperty(BaseClassMeta):
         cStr = ""
 
         if (self.binding != None):
-            cStr += f"\n\tm_{self.name}.setBinding([this]() -> {self.type} {{ return {self.binding}; }});\n"
+            cStr += f"\n\tm_{self.name}.setBinding([this]() -> {self.type} {{ return {self.binding}; }});"
 
         return ClassMeta(
             header=HeaderClassMeta(
@@ -165,6 +198,26 @@ class BindableProperty(BaseClassMeta):
             ),
             constructor = cStr if self.binding != None else None
         )
+
+def BasicPropFactory(
+    obj: SimpleValue,
+    parent: CppClassModel
+) -> ClassMeta:
+    if isinstance(obj, BaseListProperty):
+        return ListProperty(
+            parent=parent,
+            name=obj.name,
+            type=obj.listType,
+            defaultValue=obj.defaultValue
+        ).compile()
+    else:
+        return BindableProperty(
+            parent=parent,
+            name=obj.name,
+            type=obj.type,
+            defaultValue=obj.defaultValue,
+            binding=obj.binding
+        ).compile()
 
 class CppFileModel(BaseModel):
     name: str
@@ -271,6 +324,8 @@ class CppClassModel(BaseModel):
     def finalizeConstructor(self):
         self.constructorFunction.prefix += ", ".join(self.constructorArguments) + "): "
         self.constructorFunction.prefix += ", ".join(self.constructorDependencies) + " {"
+        if len(self.constructorFunction.content) > 0:
+            self.constructorFunction.content += "\n"
         self.wrapperBody.content = "\n" + self.constructorFunction.wrap() + "\n" + self.wrapperBody.content
 
     def iterateModel(self):
@@ -296,15 +351,11 @@ class CppClassModel(BaseModel):
                         self.fileModel.addImport("qcolor.h")
                     case "qreal":
                         self.fileModel.addImport("qtypes.h")
+                    case "QList":
+                        self.fileModel.addImport("qlist.h")
                     case _:
                         pass
-                bp = BindableProperty(
-                    parent=self,
-                    name=child.name,
-                    type=child.type,
-                    defaultValue=child.defaultValue,
-                    binding=child.binding
-                ).compile()
+                bp = BasicPropFactory(child, self)
                 self.macros += bp.header.macros
                 self.private += bp.header.private
                 self.public += bp.header.public
