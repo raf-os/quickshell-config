@@ -65,6 +65,7 @@ class BaseListProperty(BaseBindableProperty):
     type: Literal["QList"]
     listType: str
     defaultValue: list[str | int | float]
+    mutable: bool = False
 
 SimpleValue = SimpleValueString | SimpleValueReal | SimpleValueInt | SimpleValueBool | BaseListProperty
 
@@ -109,7 +110,7 @@ class ChildClassMeta(BaseClassMeta):
                         "CONSTANT"
                         ]) + ")"
                 ),
-                public=(f"\n\t[[nodiscard]] {self.name} *{nameLower}() const;"),
+                public=(f"\n\t[[nodiscard]] {self.name} *{nameLower}() const;\n"),
                 private=(f"\n\t{self.name} *m_{nameLower} = new {self.name}(this);")
             ),
             body=BodyClassMeta(
@@ -121,27 +122,51 @@ class ListProperty(BaseClassMeta):
     parent: CppClassModel
     name: str
     type: str
+    mutable: bool = False
     defaultValue: list[int | float | str] = []
 
     @override
     def compile(self) -> ClassMeta:
+        nameCap = self.name[:1].upper() + self.name[1:]
         cList = ", ".join([str(x) for x in self.defaultValue])
+        constMod = "" if self.mutable else "const "
+        constModSuf = "" if self.mutable else " const"
+
+        contentStr = f"\n{constMod}QList<{self.type}> &{self.parent.className}::{self.name}() {constMod}{{ return m_{self.name}; }}" # GETTER
+
+        publicStr = (
+            f"\n\t[[nodiscard]] {constMod}QList<{self.type}> &{self.name}(){constModSuf};"
+        )
+
+        if self.mutable:
+            contentStr += (
+                f"void {self.parent.className}::set{nameCap}(const QList<{self.type}> &newValue) {{"
+                f"\n\tif (m_{self.name} == newValue)"
+                f"\n\t\treturn;"
+                f"\n\tm_{self.name} = newValue;"
+                f"\n\temit {self.name}Changed();"
+                "\n}"
+            )
+            publicStr += (
+                f"\n\tvoid set{nameCap}(const QList<{self.type}> &newList);"
+                f"\n\tQ_SIGNAL void {self.name}Changed();"
+            )
+
         return ClassMeta(
             header=HeaderClassMeta(
                 macros=(
                     f"\n\tQ_PROPERTY(QList<{self.type}> {self.name} "
-                    f"READ {self.name} "
-                    f"CONSTANT)"
+                    f"READ {self.name}"
+                    f"{f" WRITE set{nameCap} NOTIFY {self.name}Changed" if self.mutable else " CONSTANT"}"
+                    f")"
                 ),
-                public=(
-                    f"\n\t[[nodiscard]] const QList<{self.type}> &{self.name}() const;"
-                ),
+                public=publicStr + "\n",
                 private=(
-                    f"\tconst QList<{self.type}> m_{self.name} = {{{cList}}};\n"
+                    f"\n\t{constMod}{"mutable " if self.mutable else ""}QList<{self.type}> m_{self.name} = {{{cList}}};"
                 )
             ),
             body=BodyClassMeta(
-                content=f"\nconst QList<{self.type}> &{self.parent.className}::{self.name}() const {{ return m_{self.name}; }}\n" # GETTER
+                content=contentStr + "\n"
             )
         )
 
@@ -184,7 +209,7 @@ class BindableProperty(BaseClassMeta):
                     "\n"
                 ),
                 private=(
-                    f"\tQProperty<{self.type}> m_{self.name};\n"
+                    f"\n\tQProperty<{self.type}> m_{self.name};"
                 )
             ),
             body = BodyClassMeta(
@@ -208,6 +233,7 @@ def BasicPropFactory(
             parent=parent,
             name=obj.name,
             type=obj.listType,
+            mutable=obj.mutable,
             defaultValue=obj.defaultValue
         ).compile()
     else:
@@ -368,7 +394,7 @@ class CppClassModel(BaseModel):
         if (len(self.public) > 0):
             self.wrapperHeader.content += "public:\n" + self.public + "\n"
         if (len(self.private) > 0):
-            self.wrapperHeader.content += "private:\n" + self.private + "\n"
+            self.wrapperHeader.content += "private:" + self.private + "\n"
         self.finalizeConstructor()
         self.header = self.wrapperHeader.wrap()
         self.body = self.wrapperBody.wrap()
@@ -402,6 +428,8 @@ def main():
         baseClass = CppClassModel(fileModel=fileModel, data=model.properties, className=model.className)
 
         fileModel.generate()
+
+        print(f"Generating {fileName}...")
         
         with open("./generated/" + fileName + ".h", "w") as f:
             f.write(fileModel.fileDataHeader)
@@ -411,6 +439,8 @@ def main():
 
         fileList.append(f"{fileName}.h {fileName}.cpp")
 
+        print(f"Successfully generated {fileName}.h and {fileName}.cpp. Running clang++...")
+
         result = subprocess.run(
             ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"./generated/{fileName}.cpp"],
             capture_output=True,
@@ -419,6 +449,8 @@ def main():
         
         if (result.returncode == 1):
             raise Exception(result.stderr)
+
+        print(f"Clang++ detected no errors for {fileName}. Onwards.\n")
 
     print(f"Generation successful!\nGenerating CMakeLists...")
 

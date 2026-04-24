@@ -1,0 +1,31 @@
+{
+  "className": "BarConfig",
+  "properties": [
+    {
+      "name": "Sizes",
+      "type": "QObject",
+      "properties": [
+        {
+          "name": "innerHeight",
+          "type": "int",
+          "defaultValue": 24
+        },
+        {
+          "name": "trayMenuWidth",
+          "type": "int",
+          "defaultValue": 200
+        },
+        {
+          "name": "launcherWidth",
+          "type": "int",
+          "defaultValue": 420
+        },
+        {
+          "name": "mediaInfoWidth",
+          "type": "int",
+          "defaultValue": 180
+        }
+      ]
+    }
+  ]
+}

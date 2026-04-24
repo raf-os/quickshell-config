@@ -1,0 +1,20 @@
+{
+  "className": "MediaConfig",
+  "properties": [
+    {
+      "name": "enabled",
+      "type": "bool",
+      "defaultValue": true
+    },
+    {
+      "name": "mediaPopoutEnabled",
+      "type": "bool",
+      "defaultValue": true
+    },
+    {
+      "name": "defaultPlayer",
+      "type": "QString",
+      "defaultValue": "Spotify"
+    }
+  ]
+}

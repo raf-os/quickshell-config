@@ -6,7 +6,12 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 add_library(myshell_config_gen
     STATIC
-        appearanceconfig.h appearanceconfig.cpp)
+        barconfig.h barconfig.cpp
+		mediaconfig.h mediaconfig.cpp
+		appearanceconfig.h appearanceconfig.cpp
+		keymapconfig.h keymapconfig.cpp
+		launcherconfig.h launcherconfig.cpp
+		borderconfig.h borderconfig.cpp)
 
 set_target_properties(myshell_config_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)
@@ -23,7 +28,12 @@ target_link_libraries(myshell_config_gen
 qml_module(myshell_config_gen_plugin
     URI MyShellPlugin.Configs.Gen
     SOURCES
-        appearanceconfig.h appearanceconfig.cpp
+        barconfig.h barconfig.cpp
+		mediaconfig.h mediaconfig.cpp
+		appearanceconfig.h appearanceconfig.cpp
+		keymapconfig.h keymapconfig.cpp
+		launcherconfig.h launcherconfig.cpp
+		borderconfig.h borderconfig.cpp
     LIBRARIES
         Qt::Core
         Qt::Quick

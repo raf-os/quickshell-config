@@ -1,0 +1,27 @@
+{
+  "className": "LauncherConfig",
+  "properties": [
+    {
+      "name": "enabled",
+      "type": "bool",
+      "defaultValue": true
+    },
+    {
+      "name": "width",
+      "type": "int",
+      "defaultValue": 420
+    },
+    {
+      "name": "commandPrefix",
+      "type": "QString",
+      "defaultValue": "/"
+    },
+    {
+      "name": "favoriteApps",
+      "type": "QList",
+      "listType": "QString",
+      "defaultValue": [],
+      "mutable": true
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 #pragma once 
 
+#include <qobject.h>
 #include <qproperty.h>
 #include <qlist.h>
-#include <qqmlintegration.h>
-#include <qobject.h>
-#include <qstring.h>
-#include <qtmetamacros.h>
 #include <qtypes.h>
+#include <qstring.h>
+#include <qqmlintegration.h>
+#include <qtmetamacros.h>
 
 namespace myqmlplugin{
 namespace configs{
@@ -25,15 +25,18 @@ public:
 	explicit AnimCurves(QObject *parent = nullptr);
 
 	[[nodiscard]] const QList<qreal> &linear() const;
+
 	[[nodiscard]] const QList<qreal> &defaultEase() const;
+
 	[[nodiscard]] const QList<qreal> &easeInOut() const;
+
 	[[nodiscard]] const QList<qreal> &accelerateOverCorrect() const;
+
 private:
 	const QList<qreal> m_linear = {0, 0, 1, 1, 1, 1};
 	const QList<qreal> m_defaultEase = {0.45, 0, 0, 1, 1, 1};
 	const QList<qreal> m_easeInOut = {0.45, 0, 0.5, 1, 1, 1};
 	const QList<qreal> m_accelerateOverCorrect = {0.3, 1.5, 0.2, 0.85, 1, 1};
-
 };
 // END CLASS [[ AnimCurves ]]
 
@@ -104,7 +107,6 @@ private:
 	QProperty<int> m_lg;
 	QProperty<int> m_xl;
 	QProperty<int> m_xxl;
-
 };
 // END CLASS [[ Padding ]]
 
@@ -175,7 +177,6 @@ private:
 	QProperty<int> m_lg;
 	QProperty<int> m_xl;
 	QProperty<int> m_xxl;
-
 };
 // END CLASS [[ Spacing ]]
 
@@ -232,7 +233,6 @@ private:
 	QProperty<int> m_md;
 	QProperty<int> m_lg;
 	QProperty<int> m_full;
-
 };
 // END CLASS [[ Rounding ]]
 
@@ -303,7 +303,6 @@ private:
 	QProperty<int> m_lg;
 	QProperty<int> m_xl;
 	QProperty<int> m_xxl;
-
 };
 // END CLASS [[ FontSize ]]
 
@@ -346,7 +345,6 @@ private:
 	QProperty<QString> m_mono;
 	QProperty<QString> m_monoIcon;
 	QProperty<QString> m_material;
-
 };
 // END CLASS [[ FontFamily ]]
 
@@ -367,13 +365,18 @@ public:
 	explicit AppearanceConfig(QObject *parent = nullptr);
 
 	[[nodiscard]] FontFamily *fontFamily() const;
-	[[nodiscard]] FontSize *fontSize() const;
-	[[nodiscard]] Rounding *rounding() const;
-	[[nodiscard]] Spacing *spacing() const;
-	[[nodiscard]] Padding *padding() const;
-	[[nodiscard]] AnimCurves *animCurves() const;
-private:
 
+	[[nodiscard]] FontSize *fontSize() const;
+
+	[[nodiscard]] Rounding *rounding() const;
+
+	[[nodiscard]] Spacing *spacing() const;
+
+	[[nodiscard]] Padding *padding() const;
+
+	[[nodiscard]] AnimCurves *animCurves() const;
+
+private:
 	FontFamily *m_fontFamily = new FontFamily(this);
 	FontSize *m_fontSize = new FontSize(this);
 	Rounding *m_rounding = new Rounding(this);

@@ -1,0 +1,10 @@
+{
+  "className": "KeyMapConfig",
+  "properties": [
+    {
+      "name": "enabled",
+      "type": "bool",
+      "defaultValue": true
+    }
+  ]
+}

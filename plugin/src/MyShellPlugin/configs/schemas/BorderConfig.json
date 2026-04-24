@@ -1,0 +1,15 @@
+{
+  "className": "BorderConfig",
+  "properties": [
+    {
+      "name": "thickness",
+      "type": "int",
+      "defaultValue": 8
+    },
+    {
+      "name": "rounding",
+      "type": "int",
+      "defaultValue": 16
+    }
+  ]
+}
