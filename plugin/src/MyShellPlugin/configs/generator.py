@@ -2,8 +2,11 @@
 # /// script
 # dependencies = ["pydantic"]
 # ///
+# pyright: reportUnusedCallResult=false
+# pyright: reportUnusedVariable=false
 
 import subprocess
+import sys
 from typing import Literal, override
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -118,9 +121,9 @@ class BindableProperty(BaseClassMeta):
 
     def _setterParam(self) -> str:
         if self.type in {"int", "qreal", "bool"}:
-            return f"{self.type} {self.name}"
+            return f"{self.type} value"
         else:
-            return f"const {self.type} &{self.name}"
+            return f"const {self.type} &value"
 
     @override
     def compile(self) -> ClassMeta:
@@ -128,12 +131,12 @@ class BindableProperty(BaseClassMeta):
         cStr = ""
 
         if (self.binding != None):
-            cStr += f"\n\tm_{self.name}.setBinding([this]() {{ return {self.binding}; }});\n"
+            cStr += f"\n\tm_{self.name}.setBinding([this]() -> {self.type} {{ return {self.binding}; }});\n"
 
         return ClassMeta(
             header=HeaderClassMeta(
                 macros=(
-                    f"\n\tQ_PROPERTY({self.name} "
+                    f"\n\tQ_PROPERTY({self.type} {self.name} "
                     f"READ {self.name} "
                     f"WRITE set{nameCap} "
                     f"NOTIFY {self.name}Changed "
@@ -148,13 +151,13 @@ class BindableProperty(BaseClassMeta):
                     "\n"
                 ),
                 private=(
-                    f"\tQProperty<{self.type}> m_{self.name}{f" = {self.defaultValue}" if self.defaultValue != None else ""};\n"
+                    f"\tQProperty<{self.type}> m_{self.name};\n"
                 )
             ),
             body = BodyClassMeta(
                 content=(
-                    f"\n{self.type} {self.parent.className}::{self.name} const {{ return m_{self.name}; }}\n" # GETTER
-                    f"\nvoid {self.parent.className}::set{nameCap}(const {self.type} &value) {{\n" # SETTER
+                    f"\n{self.type} {self.parent.className}::{self.name}() const {{ return m_{self.name}; }}\n" # GETTER
+                    f"\nvoid {self.parent.className}::set{nameCap}({self._setterParam()}) {{\n" # SETTER
                     f"\tm_{self.name} = value;\n}}"
                     f"\nQBindable<{self.type}> {self.parent.className}::bindable{nameCap}() {{ return &m_{self.name}; }}" # BINDABLE
                     "\n"
@@ -190,7 +193,7 @@ class CppFileModel(BaseModel):
         self.classes.append(cl)
 
     def processHeaders(self):
-        self.fileDataBody += f"#include <{self.name}.h>\n"
+        self.fileDataBody += f"#include \"{self.name}.h\"\n\n"
         for header in self.imports:
             istr: str = f"#include <{header}>\n"
             self.fileDataHeader += istr
@@ -336,13 +339,11 @@ def main():
                 model = BaseDocument.model_validate_json(json_data=content)
                 models.append(model)
         except OSError as err:
-            print(f"Error opening file {file}: {err.strerror}")
-            return;
+            raise Exception(f"Error opening file {file}: {err.strerror}")
         except ValidationError as err:
-            print(f"Error parsing model {file}: ${err.errors(include_url=False)}")
-            return;
+            raise Exception(f"Error parsing model {file}: ${err.errors(include_url=False)}")
 
-    cppFileModel: list[CppFileModel] = []
+    fileList: list[str] = []
 
     for model in models:
         fileName = model.className.lower()
@@ -354,15 +355,63 @@ def main():
         with open("./generated/" + fileName + ".h", "w") as f:
             f.write(fileModel.fileDataHeader)
 
-
         with open("./generated/" + fileName + ".cpp", "w") as f:
             f.write(fileModel.fileDataBody)
+
+        fileList.append(f"{fileName}.h {fileName}.cpp")
 
         result = subprocess.run(
             ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"./generated/{fileName}.cpp"],
             capture_output=True,
             text=True
         )
-        print(result)
+        
+        if (result.returncode == 1):
+            raise Exception(result.stderr)
 
-main()
+    print(f"Generation successful!\nGenerating CMakeLists...")
+
+    cmakeStr = (
+"""find_package(Qt6 REQUIRED COMPONENTS
+    Core
+    Qml
+    Quick
+)
+
+add_library(myshell_config_gen
+    STATIC
+        """ + "\n\t\t".join(fileList) +
+""")
+
+set_target_properties(myshell_config_gen PROPERTIES
+    POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(myshell_config_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(myshell_config_gen
+    PRIVATE
+        Qt::Core
+        Qt::Qml
+        Qt::Quick
+        myshell_include)
+
+qml_module(myshell_config_gen_plugin
+    URI MyShellPlugin.Configs.Gen
+    SOURCES
+        """ + "\n\t\t".join(fileList) + """
+    LIBRARIES
+        Qt::Core
+        Qt::Quick
+        myshell_include
+    )"""
+    )
+
+    with open("./generated/CMakeLists.txt", "w") as f:
+        f.write(cmakeStr)
+
+    print("CMakeLists.txt file successfully written to ./generated/CMakeLists.txt")
+
+try:
+    main()
+except Exception as e:
+    print(f"Generation failed!\n{e}", file=sys.stderr)
