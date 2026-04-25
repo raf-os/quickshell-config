@@ -21,6 +21,7 @@ This list is incomplete as of now
 * NetworkManager
 * libxml2
 
-### Optional
+### Optional build dependencies
 
 * xmllint
+* [uv](https://docs.astral.sh/uv/)

@@ -9,21 +9,21 @@
 
 namespace myqmlplugin {
 namespace configs {
-class ConfigHandler : public QObject {
+class Config : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
 
 public:
-  static ConfigHandler *instance() {
-    static ConfigHandler *s_instance = new ConfigHandler();
+  static Config *instance() {
+    static Config *s_instance = new Config();
     return s_instance;
   }
 
-  static ConfigHandler *create(QQmlEngine *, QJSEngine *) { return instance(); }
+  static Config *create(QQmlEngine *, QJSEngine *) { return instance(); }
 
 private:
-  explicit ConfigHandler(QObject *parent = nullptr);
+  explicit Config(QObject *parent = nullptr);
 };
 } // namespace configs
 } // namespace myqmlplugin

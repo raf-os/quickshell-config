@@ -90,6 +90,7 @@ qml_module(myshell
     nm_dbus
     myshell_include
     myshell_utils
+    myshell_configs
     ${HYPRLANG_LIBRARIES}
 )
 

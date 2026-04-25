@@ -1,12 +1,12 @@
 #include "appearanceconfig.h"
 
+#include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
-#include <qlist.h>
-#include <qtypes.h>
-#include <qstring.h>
 #include <qqmlintegration.h>
+#include <qstring.h>
 #include <qtmetamacros.h>
+#include <qtypes.h>
 
 namespace myqmlplugin{
 namespace configs{

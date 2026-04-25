@@ -1,10 +1,10 @@
 #pragma once 
 
+#include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
-#include <qlist.h>
-#include <qstring.h>
 #include <qqmlintegration.h>
+#include <qstring.h>
 #include <qtmetamacros.h>
 
 namespace myqmlplugin{

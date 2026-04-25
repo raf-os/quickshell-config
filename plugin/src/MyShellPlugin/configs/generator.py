@@ -5,6 +5,30 @@
 # pyright: reportUnusedCallResult=false
 # pyright: reportUnusedVariable=false
 
+"""
+    generator.py
+
+    Rafael Aguiar, 2026
+    https://github.com/raf-os
+
+    Generates boilerplate code for config classes.
+
+    Requires uv: https://docs.astral.sh/uv/
+    To execute, run bash command "chmod +x ./generator.py", then simply run as "./generator.py".
+
+    Takes all json files from ./schemas, and generates .h and .cpp files at ./generated. Also creates a CMakeLists.txt file that adds all of these as a library that can be linked against.
+
+    The root json schema is as such:
+
+    {
+        className: string -> Name of the "main" class for this config.
+        properties: array -> List of properties for this config. Can also contain objects, which are then generated as a different class.
+    }
+
+    Check SimpleValue and ObjectProperty classes below for the shape of these properties mentioned above, and the ./schemas folder for examples.
+"""
+
+import os
 import subprocess
 import sys
 from typing import Literal, override
@@ -273,7 +297,7 @@ class CppFileModel(BaseModel):
 
     def processHeaders(self):
         self.fileDataBody += f"#include \"{self.name}.h\"\n\n"
-        for header in self.imports:
+        for header in sorted(self.imports):
             istr: str = f"#include <{header}>\n"
             self.fileDataHeader += istr
             self.fileDataBody += istr
@@ -399,6 +423,17 @@ class CppClassModel(BaseModel):
         self.header = self.wrapperHeader.wrap()
         self.body = self.wrapperBody.wrap()
 
+def writeIfChanged(path: str, content: str) -> bool:
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            prevContent = f.read()
+        if prevContent == content:
+            return False
+
+    with open(path, "w") as f:
+        f.write(content)
+    return True
+
 def main():
     directory = Path("./schemas/")
     classFiles: list[str] = []
@@ -421,8 +456,11 @@ def main():
             raise Exception(f"Error parsing model {file}: ${err.errors(include_url=False)}")
 
     fileList: list[str] = []
+    headersList: list[str] = []
+    rootClassesList: list[str] = []
 
     for model in models:
+        isChange = False
         fileName = model.className.lower()
         fileModel = CppFileModel(name=fileName)
         baseClass = CppClassModel(fileModel=fileModel, data=model.properties, className=model.className)
@@ -431,28 +469,44 @@ def main():
 
         print(f"Generating {fileName}...")
         
-        with open("./generated/" + fileName + ".h", "w") as f:
-            f.write(fileModel.fileDataHeader)
-
-        with open("./generated/" + fileName + ".cpp", "w") as f:
-            f.write(fileModel.fileDataBody)
+        isChange = isChange | writeIfChanged("./generated/" + fileName + ".h", fileModel.fileDataHeader)
+        isChange = isChange | writeIfChanged("./generated/" + fileName + ".cpp", fileModel.fileDataBody)
 
         fileList.append(f"{fileName}.h {fileName}.cpp")
+        headersList.append(f"#include \"{fileName}.h\"")
+        rootClassesList.append(f"{model.className}")
 
-        print(f"Successfully generated {fileName}.h and {fileName}.cpp. Running clang++...")
+        if isChange:
+            print(f"Successfully generated {fileName}.h and {fileName}.cpp. Running clang++...")
 
-        result = subprocess.run(
-            ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"./generated/{fileName}.cpp"],
-            capture_output=True,
-            text=True
-        )
-        
-        if (result.returncode == 1):
-            raise Exception(result.stderr)
+            result = subprocess.run(
+                ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"./generated/{fileName}.cpp"],
+                capture_output=True,
+                text=True
+            )
+            
+            if (result.returncode == 1):
+                raise Exception(result.stderr)
 
-        print(f"Clang++ detected no errors for {fileName}. Onwards.\n")
+            print(f"Clang++ detected no errors for {fileName}. Onwards.\n")
+        else:
+            print(f"Files {fileName}.h and {fileName}.cpp are unchanged, skipping.\n")
 
-    print(f"Generation successful!\nGenerating CMakeLists...")
+    print("Generation successful!\n\nGenerating import files...")
+
+    isChange = False
+
+    xMacro = "\n".join([f"X({x})" for x in rootClassesList])
+    isChange = isChange | writeIfChanged("./generated/gen_types.def", xMacro)
+
+    genIncludes = "#pragma once\n\n" + "\n".join(headersList)
+    isChange = isChange | writeIfChanged("./generated/gen_includes.h", genIncludes)
+
+    if (isChange == False):
+        print("No files were changed, generation stopped.")
+        return;
+
+    print("File /generated/gen_includes.h generated successfully.\nGenerating CMakeLists.txt...")
 
     cmakeStr = (
 """find_package(Qt6 REQUIRED COMPONENTS
@@ -463,8 +517,8 @@ def main():
 
 add_library(myshell_config_gen
     STATIC
-        """ + "\n\t\t".join(fileList) +
-""")
+        """ + "\n\t\t".join(fileList) + """
+        gen_includes.h)
 
 set_target_properties(myshell_config_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)

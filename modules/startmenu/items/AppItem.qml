@@ -68,7 +68,8 @@ Item {
                 if (Config.launcher.favoriteApps.includes(root.modelData.id)) {
                     Config.launcher.favoriteApps = Config.launcher.favoriteApps.filter(a => a !== root.modelData.id);
                 } else {
-                    Config.launcher.favoriteApps.push(root.modelData.id);
+                    // Config.launcher.favoriteApps.push(root.modelData.id);
+                    Config.launcher.favoriteApps = [...Config.launcher.favoriteApps, root.modelData.id];
                 }
                 Config.save();
             }

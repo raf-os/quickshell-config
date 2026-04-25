@@ -11,7 +11,8 @@ add_library(myshell_config_gen
 		appearanceconfig.h appearanceconfig.cpp
 		keymapconfig.h keymapconfig.cpp
 		launcherconfig.h launcherconfig.cpp
-		borderconfig.h borderconfig.cpp)
+		borderconfig.h borderconfig.cpp
+        gen_includes.h)
 
 set_target_properties(myshell_config_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)

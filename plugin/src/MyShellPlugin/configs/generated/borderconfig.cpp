@@ -1,9 +1,9 @@
 #include "borderconfig.h"
 
 #include <qobject.h>
-#include <qtmetamacros.h>
-#include <qqmlintegration.h>
 #include <qproperty.h>
+#include <qqmlintegration.h>
+#include <qtmetamacros.h>
 
 namespace myqmlplugin{
 namespace configs{
