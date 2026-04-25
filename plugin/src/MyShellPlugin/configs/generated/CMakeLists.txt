@@ -4,7 +4,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Quick
 )
 
-add_library(myshell_config_gen
+add_library(myshell_configs_gen
     STATIC
         barconfig.h barconfig.cpp
 		mediaconfig.h mediaconfig.cpp
@@ -14,19 +14,19 @@ add_library(myshell_config_gen
 		borderconfig.h borderconfig.cpp
         gen_includes.h)
 
-set_target_properties(myshell_config_gen PROPERTIES
+set_target_properties(myshell_configs_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(myshell_config_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(myshell_configs_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(myshell_config_gen
+target_link_libraries(myshell_configs_gen
     PRIVATE
         Qt::Core
         Qt::Qml
         Qt::Quick
         myshell_include)
 
-qml_module(myshell_config_gen_plugin
+qml_module(myshell_configs_gen_plugin
     URI MyShellPlugin.Configs.Gen
     SOURCES
         barconfig.h barconfig.cpp

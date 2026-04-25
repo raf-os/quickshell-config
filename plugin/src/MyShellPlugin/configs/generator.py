@@ -496,7 +496,7 @@ def main():
 
     isChange = False
 
-    xMacro = "\n".join([f"X({x})" for x in rootClassesList])
+    xMacro = "\n".join([f"X({x}, {x[:1].lower()+x[1:]})" for x in rootClassesList])
     isChange = isChange | writeIfChanged("./generated/gen_types.def", xMacro)
 
     genIncludes = "#pragma once\n\n" + "\n".join(headersList)
@@ -506,7 +506,7 @@ def main():
         print("No files were changed, generation stopped.")
         return;
 
-    print("File /generated/gen_includes.h generated successfully.\nGenerating CMakeLists.txt...")
+    print("File gen_includes.h and gen_types.def generated successfully.\nGenerating CMakeLists.txt...")
 
     cmakeStr = (
 """find_package(Qt6 REQUIRED COMPONENTS
@@ -515,24 +515,24 @@ def main():
     Quick
 )
 
-add_library(myshell_config_gen
+add_library(myshell_configs_gen
     STATIC
         """ + "\n\t\t".join(fileList) + """
         gen_includes.h)
 
-set_target_properties(myshell_config_gen PROPERTIES
+set_target_properties(myshell_configs_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(myshell_config_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(myshell_configs_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(myshell_config_gen
+target_link_libraries(myshell_configs_gen
     PRIVATE
         Qt::Core
         Qt::Qml
         Qt::Quick
         myshell_include)
 
-qml_module(myshell_config_gen_plugin
+qml_module(myshell_configs_gen_plugin
     URI MyShellPlugin.Configs.Gen
     SOURCES
         """ + "\n\t\t".join(fileList) + """

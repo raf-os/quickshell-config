@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 
 add_library(myshell_configs
   STATIC
@@ -15,8 +15,9 @@ target_link_libraries(myshell_configs
   PRIVATE
     Qt::Core
     Qt::Quick
+    Qt::Qml
     myshell_include
-    myshell_config_gen)
+    myshell_configs_gen)
 
 qml_module(myshell_configs_plugin
   URI MyShellPlugin.Configs
@@ -25,5 +26,6 @@ qml_module(myshell_configs_plugin
   LIBRARIES
     Qt::Core
     Qt::Quick
+    Qt::Qml
     myshell_include
-    myshell_config_gen)
+    myshell_configs_gen)
