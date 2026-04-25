@@ -20,7 +20,7 @@ Item {
 
         implicitHeight: 32
 
-        Text {
+        StyledText {
             anchors.verticalCenter: parent.verticalCenter
             text: "Control panel"
         }

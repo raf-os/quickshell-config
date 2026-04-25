@@ -1,4 +1,4 @@
-qt_add_library(panel_components STATIC)
+qt_add_library(panel_components SHARED)
 
 file(GLOB_RECURSE
   QML_COMPONENTS
@@ -6,12 +6,12 @@ file(GLOB_RECURSE
   CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.qml")
 
-qt_add_qml_module(panel_components
+cp_add_module(panel_components
   URI MyShellControlPanel.components
   QML_FILES
     ${QML_COMPONENTS})
 
-target_link_libraries(MyShellControlPanel
-    PRIVATE
-      panel_components
-      panel_componentsplugin)
+# target_link_libraries(MyShellControlPanel
+#     PRIVATE
+#       panel_components
+#       panel_componentsplugin)

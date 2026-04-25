@@ -1,0 +1,4 @@
+[General]
+no-cmake-calls=true
+buildDir="${CMAKE_BINARY_DIR}/qml"
+importPaths="/usr/bin:/usr/lib/qt6/qml"

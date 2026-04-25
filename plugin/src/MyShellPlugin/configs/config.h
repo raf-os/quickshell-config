@@ -8,7 +8,7 @@
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
-#include "generated/gen_includes.h"
+#include "generated/gen_includes.h" // IWYU pragma: keep
 
 namespace myqmlplugin {
 namespace configs {
