@@ -525,7 +525,7 @@ def main():
 
     isChange = False
 
-    xMacro = "\n".join([f"X({x}, {x[:1].lower()+x[1:]})" for x in rootClassesList])
+    xMacro = "\n".join([f"X({x}, {x[:1].lower()+x.replace("Config","")[1:]})" for x in rootClassesList])
     isChange = isChange | writeIfChanged("./generated/gen_types.def", xMacro)
 
     genIncludes = "#pragma once\n\n" + "\n".join(headersList)

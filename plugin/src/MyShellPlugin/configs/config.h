@@ -24,7 +24,7 @@ class Config : public QObject {
   Q_PROPERTY(bool isSaving READ isSaving NOTIFY isSavingChanged)
 
 #define X(Type, Name)                                                          \
-  Q_PROPERTY(Type *Name READ Name)                                             \
+  Q_PROPERTY(Type *Name READ Name CONSTANT)                                    \
 public:                                                                        \
   [[nodiscard]] Type *Name() const;                                            \
                                                                                \
