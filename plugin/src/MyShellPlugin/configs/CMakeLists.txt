@@ -24,6 +24,7 @@ qml_module(myshell_configs_plugin
   URI MyShellPlugin.Configs
   SOURCES
     config.h config.cpp
+    ${GENERATED_SOURCES}
   LIBRARIES
     Qt::Core
     Qt::Quick

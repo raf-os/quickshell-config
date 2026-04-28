@@ -388,12 +388,12 @@ class AppearanceConfig : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(FontFamily *fontFamily READ fontFamily CONSTANT)
-	Q_PROPERTY(FontSize *fontSize READ fontSize CONSTANT)
-	Q_PROPERTY(Rounding *rounding READ rounding CONSTANT)
-	Q_PROPERTY(Spacing *spacing READ spacing CONSTANT)
-	Q_PROPERTY(Padding *padding READ padding CONSTANT)
-	Q_PROPERTY(AnimCurves *animCurves READ animCurves CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::FontFamily *fontFamily READ fontFamily CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::FontSize *fontSize READ fontSize CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::Rounding *rounding READ rounding CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::Spacing *spacing READ spacing CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::Padding *padding READ padding CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::AnimCurves *animCurves READ animCurves CONSTANT)
 
 public:
 	explicit AppearanceConfig(QObject *parent = nullptr);

@@ -129,7 +129,7 @@ class ChildClassMeta(BaseClassMeta):
         return ClassMeta(
             header=HeaderClassMeta(
                 macros=(" ".join([
-                        f"\n\tQ_PROPERTY({self.name} *{nameLower}",
+                        f"\n\tQ_PROPERTY({_CPP_NAMESPACE}{self.name} *{nameLower}",
                         f"READ {nameLower}",
                         "CONSTANT"
                         ]) + ")"
@@ -485,6 +485,7 @@ def main():
             raise Exception(f"Error parsing model {file}: ${err.errors(include_url=False)}")
 
     fileList: list[str] = []
+    fileListGen: list[str] = []
     headersList: list[str] = []
     rootClassesList: list[str] = []
 
@@ -502,6 +503,7 @@ def main():
         isChange = isChange | writeIfChanged("./generated/" + fileName + ".cpp", fileModel.fileDataBody)
 
         fileList.append(f"{fileName}.h {fileName}.cpp")
+        fileListGen.append(f"generated/{fileName}.h generated/{fileName}.cpp")
         headersList.append(f"#include \"{fileName}.h\"")
         rootClassesList.append(f"{model.className}")
 
@@ -560,15 +562,10 @@ target_link_libraries(myshell_configs_gen
         Qt::Quick
         myshell_include)
 
-qml_module(myshell_configs_gen_plugin
-    URI MyShellPlugin.Configs.Gen
-    SOURCES
-        """ + "\n\t\t".join(fileList) + """
-    LIBRARIES
-        Qt::Core
-        Qt::Quick
-        myshell_include
-    )"""
+set(GENERATED_SOURCES
+    """ + "\n\t".join(fileListGen) + """
+    PARENT_SCOPE
+)"""
     )
 
     isChanged = writeIfChanged("./generated/CMakeLists.txt", cmakeStr)

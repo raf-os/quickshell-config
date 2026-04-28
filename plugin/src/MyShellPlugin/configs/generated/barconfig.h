@@ -59,7 +59,7 @@ class BarConfig : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(Sizes *sizes READ sizes CONSTANT)
+	Q_PROPERTY(myqmlplugin::configs::Sizes *sizes READ sizes CONSTANT)
 
 public:
 	explicit BarConfig(QObject *parent = nullptr);

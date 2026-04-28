@@ -26,17 +26,12 @@ target_link_libraries(myshell_configs_gen
         Qt::Quick
         myshell_include)
 
-qml_module(myshell_configs_gen_plugin
-    URI MyShellPlugin.Configs.Gen
-    SOURCES
-        barconfig.h barconfig.cpp
-		mediaconfig.h mediaconfig.cpp
-		appearanceconfig.h appearanceconfig.cpp
-		keymapconfig.h keymapconfig.cpp
-		launcherconfig.h launcherconfig.cpp
-		borderconfig.h borderconfig.cpp
-    LIBRARIES
-        Qt::Core
-        Qt::Quick
-        myshell_include
-    )
+set(GENERATED_SOURCES
+    generated/barconfig.h generated/barconfig.cpp
+	generated/mediaconfig.h generated/mediaconfig.cpp
+	generated/appearanceconfig.h generated/appearanceconfig.cpp
+	generated/keymapconfig.h generated/keymapconfig.cpp
+	generated/launcherconfig.h generated/launcherconfig.cpp
+	generated/borderconfig.h generated/borderconfig.cpp
+    PARENT_SCOPE
+)
