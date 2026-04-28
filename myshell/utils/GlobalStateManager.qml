@@ -26,9 +26,12 @@ Singleton {
         });
     }
 
-    function syncHyprlandGamemode() {
-        const scriptPath = Quickshell.shellPath("utils/scripts");
-        Quickshell.execDetached(["sh", "-c", `${scriptPath}/HyprToggleGamemode.sh${root.isGameMode ? " true" : ""}`]);
+    function syncHyprlandGamemode(): void {
+        if (!root.isGameMode) {
+            Quickshell.execDetached(["hyprctl", "reload"]);
+        } else {
+            Quickshell.execDetached(["hyprctl", "--batch", "keyword animations:enabled 0; " + "keyword decoration:shadow:enabled 0; " + "keyword decoration:blur:enabled 0; " + "keyword decoration:fullscreen_opacity 1; " + "keyword general:gaps_in 0; " + "keyword general:border_size 1; " + "keyword decoration:rounding 0"]);
+        }
     }
 
     Timer {
