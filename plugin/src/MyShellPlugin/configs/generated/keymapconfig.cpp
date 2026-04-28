@@ -16,6 +16,7 @@ void KeyMapConfig::setEnabled(bool value) {
 	m_enabled = value;
 }
 QBindable<bool> KeyMapConfig::bindableEnabled() { return &m_enabled; }
+void KeyMapConfig::resetEnabled() { m_enabled = true; }
 // END CLASS [[ KeyMapConfig ]]
 } // namespace configs
 } // namespace myqmlplugin

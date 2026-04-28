@@ -46,67 +46,75 @@ class Padding : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged BINDABLE bindableScale)
-	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged BINDABLE bindableXxs)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged BINDABLE bindableLg)
-	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged BINDABLE bindableXl)
-	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged BINDABLE bindableXxl)
+	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
+	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged RESET resetXxs BINDABLE bindableXxs)
+	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
+	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
+	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
+	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
+	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged RESET resetXl BINDABLE bindableXl)
+	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged RESET resetXxl BINDABLE bindableXxl)
 
 public:
 	explicit Padding(QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
+	void resetScale();
 	QBindable<qreal> bindableScale();
 	Q_SIGNAL void scaleChanged();
 
 	[[nodiscard]] int xxs() const;
 	void setXxs(int value);
+	void resetXxs();
 	QBindable<int> bindableXxs();
 	Q_SIGNAL void xxsChanged();
 
 	[[nodiscard]] int xs() const;
 	void setXs(int value);
+	void resetXs();
 	QBindable<int> bindableXs();
 	Q_SIGNAL void xsChanged();
 
 	[[nodiscard]] int sm() const;
 	void setSm(int value);
+	void resetSm();
 	QBindable<int> bindableSm();
 	Q_SIGNAL void smChanged();
 
 	[[nodiscard]] int md() const;
 	void setMd(int value);
+	void resetMd();
 	QBindable<int> bindableMd();
 	Q_SIGNAL void mdChanged();
 
 	[[nodiscard]] int lg() const;
 	void setLg(int value);
+	void resetLg();
 	QBindable<int> bindableLg();
 	Q_SIGNAL void lgChanged();
 
 	[[nodiscard]] int xl() const;
 	void setXl(int value);
+	void resetXl();
 	QBindable<int> bindableXl();
 	Q_SIGNAL void xlChanged();
 
 	[[nodiscard]] int xxl() const;
 	void setXxl(int value);
+	void resetXxl();
 	QBindable<int> bindableXxl();
 	Q_SIGNAL void xxlChanged();
 
 private:
-	QProperty<qreal> m_scale;
-	QProperty<int> m_xxs;
-	QProperty<int> m_xs;
-	QProperty<int> m_sm;
-	QProperty<int> m_md;
-	QProperty<int> m_lg;
-	QProperty<int> m_xl;
-	QProperty<int> m_xxl;
+	QProperty<qreal> m_scale{1.0};
+	QProperty<int> m_xxs{};
+	QProperty<int> m_xs{};
+	QProperty<int> m_sm{};
+	QProperty<int> m_md{};
+	QProperty<int> m_lg{};
+	QProperty<int> m_xl{};
+	QProperty<int> m_xxl{};
 };
 // END CLASS [[ Padding ]]
 
@@ -116,67 +124,75 @@ class Spacing : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged BINDABLE bindableScale)
-	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged BINDABLE bindableXxs)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged BINDABLE bindableLg)
-	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged BINDABLE bindableXl)
-	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged BINDABLE bindableXxl)
+	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
+	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged RESET resetXxs BINDABLE bindableXxs)
+	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
+	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
+	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
+	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
+	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged RESET resetXl BINDABLE bindableXl)
+	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged RESET resetXxl BINDABLE bindableXxl)
 
 public:
 	explicit Spacing(QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
+	void resetScale();
 	QBindable<qreal> bindableScale();
 	Q_SIGNAL void scaleChanged();
 
 	[[nodiscard]] int xxs() const;
 	void setXxs(int value);
+	void resetXxs();
 	QBindable<int> bindableXxs();
 	Q_SIGNAL void xxsChanged();
 
 	[[nodiscard]] int xs() const;
 	void setXs(int value);
+	void resetXs();
 	QBindable<int> bindableXs();
 	Q_SIGNAL void xsChanged();
 
 	[[nodiscard]] int sm() const;
 	void setSm(int value);
+	void resetSm();
 	QBindable<int> bindableSm();
 	Q_SIGNAL void smChanged();
 
 	[[nodiscard]] int md() const;
 	void setMd(int value);
+	void resetMd();
 	QBindable<int> bindableMd();
 	Q_SIGNAL void mdChanged();
 
 	[[nodiscard]] int lg() const;
 	void setLg(int value);
+	void resetLg();
 	QBindable<int> bindableLg();
 	Q_SIGNAL void lgChanged();
 
 	[[nodiscard]] int xl() const;
 	void setXl(int value);
+	void resetXl();
 	QBindable<int> bindableXl();
 	Q_SIGNAL void xlChanged();
 
 	[[nodiscard]] int xxl() const;
 	void setXxl(int value);
+	void resetXxl();
 	QBindable<int> bindableXxl();
 	Q_SIGNAL void xxlChanged();
 
 private:
-	QProperty<qreal> m_scale;
-	QProperty<int> m_xxs;
-	QProperty<int> m_xs;
-	QProperty<int> m_sm;
-	QProperty<int> m_md;
-	QProperty<int> m_lg;
-	QProperty<int> m_xl;
-	QProperty<int> m_xxl;
+	QProperty<qreal> m_scale{1.0};
+	QProperty<int> m_xxs{};
+	QProperty<int> m_xs{};
+	QProperty<int> m_sm{};
+	QProperty<int> m_md{};
+	QProperty<int> m_lg{};
+	QProperty<int> m_xl{};
+	QProperty<int> m_xxl{};
 };
 // END CLASS [[ Spacing ]]
 
@@ -186,53 +202,59 @@ class Rounding : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged BINDABLE bindableScale)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged BINDABLE bindableLg)
-	Q_PROPERTY(int full READ full WRITE setFull NOTIFY fullChanged BINDABLE bindableFull)
+	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
+	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
+	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
+	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
+	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
+	Q_PROPERTY(int full READ full WRITE setFull NOTIFY fullChanged RESET resetFull BINDABLE bindableFull)
 
 public:
 	explicit Rounding(QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
+	void resetScale();
 	QBindable<qreal> bindableScale();
 	Q_SIGNAL void scaleChanged();
 
 	[[nodiscard]] int xs() const;
 	void setXs(int value);
+	void resetXs();
 	QBindable<int> bindableXs();
 	Q_SIGNAL void xsChanged();
 
 	[[nodiscard]] int sm() const;
 	void setSm(int value);
+	void resetSm();
 	QBindable<int> bindableSm();
 	Q_SIGNAL void smChanged();
 
 	[[nodiscard]] int md() const;
 	void setMd(int value);
+	void resetMd();
 	QBindable<int> bindableMd();
 	Q_SIGNAL void mdChanged();
 
 	[[nodiscard]] int lg() const;
 	void setLg(int value);
+	void resetLg();
 	QBindable<int> bindableLg();
 	Q_SIGNAL void lgChanged();
 
 	[[nodiscard]] int full() const;
 	void setFull(int value);
+	void resetFull();
 	QBindable<int> bindableFull();
 	Q_SIGNAL void fullChanged();
 
 private:
-	QProperty<qreal> m_scale;
-	QProperty<int> m_xs;
-	QProperty<int> m_sm;
-	QProperty<int> m_md;
-	QProperty<int> m_lg;
-	QProperty<int> m_full;
+	QProperty<qreal> m_scale{1.0};
+	QProperty<int> m_xs{};
+	QProperty<int> m_sm{};
+	QProperty<int> m_md{};
+	QProperty<int> m_lg{};
+	QProperty<int> m_full{};
 };
 // END CLASS [[ Rounding ]]
 
@@ -242,67 +264,75 @@ class FontSize : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged BINDABLE bindableScale)
-	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged BINDABLE bindableXxs)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged BINDABLE bindableLg)
-	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged BINDABLE bindableXl)
-	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged BINDABLE bindableXxl)
+	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
+	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged RESET resetXxs BINDABLE bindableXxs)
+	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
+	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
+	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
+	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
+	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged RESET resetXl BINDABLE bindableXl)
+	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged RESET resetXxl BINDABLE bindableXxl)
 
 public:
 	explicit FontSize(QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
+	void resetScale();
 	QBindable<qreal> bindableScale();
 	Q_SIGNAL void scaleChanged();
 
 	[[nodiscard]] int xxs() const;
 	void setXxs(int value);
+	void resetXxs();
 	QBindable<int> bindableXxs();
 	Q_SIGNAL void xxsChanged();
 
 	[[nodiscard]] int xs() const;
 	void setXs(int value);
+	void resetXs();
 	QBindable<int> bindableXs();
 	Q_SIGNAL void xsChanged();
 
 	[[nodiscard]] int sm() const;
 	void setSm(int value);
+	void resetSm();
 	QBindable<int> bindableSm();
 	Q_SIGNAL void smChanged();
 
 	[[nodiscard]] int md() const;
 	void setMd(int value);
+	void resetMd();
 	QBindable<int> bindableMd();
 	Q_SIGNAL void mdChanged();
 
 	[[nodiscard]] int lg() const;
 	void setLg(int value);
+	void resetLg();
 	QBindable<int> bindableLg();
 	Q_SIGNAL void lgChanged();
 
 	[[nodiscard]] int xl() const;
 	void setXl(int value);
+	void resetXl();
 	QBindable<int> bindableXl();
 	Q_SIGNAL void xlChanged();
 
 	[[nodiscard]] int xxl() const;
 	void setXxl(int value);
+	void resetXxl();
 	QBindable<int> bindableXxl();
 	Q_SIGNAL void xxlChanged();
 
 private:
-	QProperty<qreal> m_scale;
-	QProperty<int> m_xxs;
-	QProperty<int> m_xs;
-	QProperty<int> m_sm;
-	QProperty<int> m_md;
-	QProperty<int> m_lg;
-	QProperty<int> m_xl;
-	QProperty<int> m_xxl;
+	QProperty<qreal> m_scale{1.0};
+	QProperty<int> m_xxs{};
+	QProperty<int> m_xs{};
+	QProperty<int> m_sm{};
+	QProperty<int> m_md{};
+	QProperty<int> m_lg{};
+	QProperty<int> m_xl{};
+	QProperty<int> m_xxl{};
 };
 // END CLASS [[ FontSize ]]
 
@@ -312,39 +342,43 @@ class FontFamily : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(QString sans READ sans WRITE setSans NOTIFY sansChanged BINDABLE bindableSans)
-	Q_PROPERTY(QString mono READ mono WRITE setMono NOTIFY monoChanged BINDABLE bindableMono)
-	Q_PROPERTY(QString monoIcon READ monoIcon WRITE setMonoIcon NOTIFY monoIconChanged BINDABLE bindableMonoIcon)
-	Q_PROPERTY(QString material READ material WRITE setMaterial NOTIFY materialChanged BINDABLE bindableMaterial)
+	Q_PROPERTY(QString sans READ sans WRITE setSans NOTIFY sansChanged RESET resetSans BINDABLE bindableSans)
+	Q_PROPERTY(QString mono READ mono WRITE setMono NOTIFY monoChanged RESET resetMono BINDABLE bindableMono)
+	Q_PROPERTY(QString monoIcon READ monoIcon WRITE setMonoIcon NOTIFY monoIconChanged RESET resetMonoIcon BINDABLE bindableMonoIcon)
+	Q_PROPERTY(QString material READ material WRITE setMaterial NOTIFY materialChanged RESET resetMaterial BINDABLE bindableMaterial)
 
 public:
 	explicit FontFamily(QObject *parent = nullptr);
 
 	[[nodiscard]] QString sans() const;
 	void setSans(const QString &value);
+	void resetSans();
 	QBindable<QString> bindableSans();
 	Q_SIGNAL void sansChanged();
 
 	[[nodiscard]] QString mono() const;
 	void setMono(const QString &value);
+	void resetMono();
 	QBindable<QString> bindableMono();
 	Q_SIGNAL void monoChanged();
 
 	[[nodiscard]] QString monoIcon() const;
 	void setMonoIcon(const QString &value);
+	void resetMonoIcon();
 	QBindable<QString> bindableMonoIcon();
 	Q_SIGNAL void monoIconChanged();
 
 	[[nodiscard]] QString material() const;
 	void setMaterial(const QString &value);
+	void resetMaterial();
 	QBindable<QString> bindableMaterial();
 	Q_SIGNAL void materialChanged();
 
 private:
-	QProperty<QString> m_sans;
-	QProperty<QString> m_mono;
-	QProperty<QString> m_monoIcon;
-	QProperty<QString> m_material;
+	QProperty<QString> m_sans{"DejaVu Sans"};
+	QProperty<QString> m_mono{"RobotoMono Nerd Font Propo"};
+	QProperty<QString> m_monoIcon{"0xProto Nerd Font Mono"};
+	QProperty<QString> m_material{"Material Symbols Rounded"};
 };
 // END CLASS [[ FontFamily ]]
 

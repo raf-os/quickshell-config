@@ -17,6 +17,7 @@ target_link_libraries(myshell_configs
     Qt::Quick
     Qt::Qml
     myshell_include
+    myshell_utils
     myshell_configs_gen)
 
 qml_module(myshell_configs_plugin
@@ -28,4 +29,5 @@ qml_module(myshell_configs_plugin
     Qt::Quick
     Qt::Qml
     myshell_include
+    myshell_utils
     myshell_configs_gen)

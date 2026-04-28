@@ -13,18 +13,19 @@ class KeyMapConfig : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged BINDABLE bindableEnabled)
+	Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged RESET resetEnabled BINDABLE bindableEnabled)
 
 public:
 	explicit KeyMapConfig(QObject *parent = nullptr);
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);
+	void resetEnabled();
 	QBindable<bool> bindableEnabled();
 	Q_SIGNAL void enabledChanged();
 
 private:
-	QProperty<bool> m_enabled;
+	QProperty<bool> m_enabled{true};
 };
 // END CLASS [[ KeyMapConfig ]]
 } // namespace configs

@@ -13,25 +13,27 @@ class BorderConfig : public QObject {
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(int thickness READ thickness WRITE setThickness NOTIFY thicknessChanged BINDABLE bindableThickness)
-	Q_PROPERTY(int rounding READ rounding WRITE setRounding NOTIFY roundingChanged BINDABLE bindableRounding)
+	Q_PROPERTY(int thickness READ thickness WRITE setThickness NOTIFY thicknessChanged RESET resetThickness BINDABLE bindableThickness)
+	Q_PROPERTY(int rounding READ rounding WRITE setRounding NOTIFY roundingChanged RESET resetRounding BINDABLE bindableRounding)
 
 public:
 	explicit BorderConfig(QObject *parent = nullptr);
 
 	[[nodiscard]] int thickness() const;
 	void setThickness(int value);
+	void resetThickness();
 	QBindable<int> bindableThickness();
 	Q_SIGNAL void thicknessChanged();
 
 	[[nodiscard]] int rounding() const;
 	void setRounding(int value);
+	void resetRounding();
 	QBindable<int> bindableRounding();
 	Q_SIGNAL void roundingChanged();
 
 private:
-	QProperty<int> m_thickness;
-	QProperty<int> m_rounding;
+	QProperty<int> m_thickness{8};
+	QProperty<int> m_rounding{16};
 };
 // END CLASS [[ BorderConfig ]]
 } // namespace configs

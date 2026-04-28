@@ -211,9 +211,35 @@ class BindableProperty(BaseClassMeta):
     def compile(self) -> ClassMeta:
         nameCap = self.name[:1].upper() + self.name[1:]
         cStr = ""
+        defaultSetStr = ""
+        macroResetStr = ""
+        publicResetStr = ""
+        resetBodyFn = ""
+        resetFnWrapper = ObjectWrapper(
+            prefix=f"\nvoid {self.parent.className}::reset{nameCap}() {{ ",
+            suffix=f" }}"
+        )
+
+        defaultValToStr = ""
+        if (self.defaultValue != None):
+            if (isinstance(self.defaultValue, bool)):
+                defaultValToStr = "true" if self.defaultValue else "false"
+            elif self.type == "int":
+                defaultValToStr = str(int(self.defaultValue))
+            else:
+                defaultValToStr = str(self.defaultValue)
+
+        if (self.defaultValue != None or self.binding != None):
+            macroResetStr = f"RESET reset{nameCap} "
+            publicResetStr = f"\n\tvoid reset{nameCap}();"
+            if (self.binding == None):
+                resetBodyFn = resetFnWrapper.wrap(f"m_{self.name} = {defaultValToStr};")
+                defaultSetStr = f"{defaultValToStr}"
 
         if (self.binding != None):
-            cStr += f"\n\tm_{self.name}.setBinding([this]() -> {self.type} {{ return {self.binding}; }});"
+            bindOp = f"m_{self.name}.setBinding([this]() -> {self.type} {{ return {self.binding}; }});"
+            cStr += f"\n\t{bindOp}"
+            resetBodyFn = resetFnWrapper.wrap(bindOp)
 
         return ClassMeta(
             header=HeaderClassMeta(
@@ -222,18 +248,20 @@ class BindableProperty(BaseClassMeta):
                     f"READ {self.name} "
                     f"WRITE set{nameCap} "
                     f"NOTIFY {self.name}Changed "
+                    f"{macroResetStr}"
                     f"BINDABLE bindable{nameCap}"
                     f")"
                 ),
                 public=(
                     f"\n\t[[nodiscard]] {self.type} {self.name}() const;"
                     f"\n\tvoid set{nameCap}({self._setterParam()});"
+                    f"{publicResetStr}"
                     f"\n\tQBindable<{self.type}> bindable{nameCap}();"
                     f"\n\tQ_SIGNAL void {self.name}Changed();"
                     "\n"
                 ),
                 private=(
-                    f"\n\tQProperty<{self.type}> m_{self.name};"
+                    f"\n\tQProperty<{self.type}> m_{self.name}{{{defaultSetStr}}};"
                 )
             ),
             body = BodyClassMeta(
@@ -242,6 +270,7 @@ class BindableProperty(BaseClassMeta):
                     f"\nvoid {self.parent.className}::set{nameCap}({self._setterParam()}) {{\n" # SETTER
                     f"\tm_{self.name} = value;\n}}"
                     f"\nQBindable<{self.type}> {self.parent.className}::bindable{nameCap}() {{ return &m_{self.name}; }}" # BINDABLE
+                    f"{resetBodyFn}"
                     "\n"
                 )
             ),
@@ -503,10 +532,9 @@ def main():
     isChange = isChange | writeIfChanged("./generated/gen_includes.h", genIncludes)
 
     if (isChange == False):
-        print("No files were changed, generation stopped.")
-        return;
-
-    print("File gen_includes.h and gen_types.def generated successfully.\nGenerating CMakeLists.txt...")
+        print("No files were changed, attempting to re-generate CMakeLists.txt.")
+    else:
+        print("File gen_includes.h and gen_types.def generated successfully.\nGenerating CMakeLists.txt...")
 
     cmakeStr = (
 """find_package(Qt6 REQUIRED COMPONENTS
@@ -543,10 +571,12 @@ qml_module(myshell_configs_gen_plugin
     )"""
     )
 
-    with open("./generated/CMakeLists.txt", "w") as f:
-        f.write(cmakeStr)
+    isChanged = writeIfChanged("./generated/CMakeLists.txt", cmakeStr)
 
-    print("CMakeLists.txt file successfully written to ./generated/CMakeLists.txt")
+    if (isChanged):
+        print("CMakeLists.txt file successfully written to ./generated/CMakeLists.txt")
+    else:
+        print("CMakeLists.txt unchanged. Moving on.")
 
 try:
     main()
