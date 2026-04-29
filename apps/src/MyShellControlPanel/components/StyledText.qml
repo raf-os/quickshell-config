@@ -3,8 +3,8 @@ import MyShellPlugin.Configs
 import QtQuick
 
 Text {
-    id: root
+  id: root
 
-    color: Colors.colors.baseContent
-    font.family: Config.appearance.fontFamily.sans
+  color: Colors.colors.baseContent
+  font.family: Config.appearance.fontFamily.sans
 }

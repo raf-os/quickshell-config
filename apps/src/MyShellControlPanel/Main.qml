@@ -5,25 +5,11 @@ import QtQuick.Controls
 import "qml"
 
 Window {
-    id: root
-    visible: true
+  id: root
+  visible: true
 
-    color: Colors.colors.base
+  color: Colors.colors.base
+  objectName: "Main"
 
-    Sidebar {
-        id: sidebar
-
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-    }
-
-    StackView {
-        id: mainPage
-
-        anchors.left: sidebar.right
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-    }
+  App {}
 }

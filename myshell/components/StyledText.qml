@@ -3,10 +3,10 @@ import qs.services
 import qs.config
 
 Text {
-    id: root
+  id: root
 
-    color: ColorService.current.baseContent
+  color: ColorService.current.baseContent
 
-    font.family: Config.appearance.fontFamily.sans
-    // font.pointSize: Config.appearance.fontSize.sm
+  font.family: Config.appearance.fontFamily.sans
+  // font.pointSize: Config.appearance.fontSize.sm
 }

@@ -45,6 +45,11 @@ set_target_properties(MyShellControlPanel
     OUTPUT_NAME "myshell-control-panel"
     INSTALL_RPATH "${INSTALL_QMLDIR}/${MYSHELL_QML_TARGET_PATH}")
 
+target_compile_definitions(MyShellControlPanel PRIVATE
+  SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+target_compile_definitions(MyShellControlPanel PRIVATE DEBUG)
+
 target_link_libraries(MyShellControlPanel
     PRIVATE
       myshell
