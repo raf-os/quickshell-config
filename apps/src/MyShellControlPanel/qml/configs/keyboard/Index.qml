@@ -1,3 +1,9 @@
 import QtQuick
 
-Item {}
+Item {
+    id: root
+
+    Text {
+        text: "DEBUG - KB PAGE"
+    }
+}

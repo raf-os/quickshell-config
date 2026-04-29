@@ -18,6 +18,7 @@
 #define SOURCE_DIR = "./"
 #endif // !SOURCE_DIR
 
+#ifdef DEBUG
 void include_watch_directory(QFileSystemWatcher *fw, const QString &path) {
   QDirIterator it(QString::fromUtf8(SOURCE_DIR) + path,
                   QDirIterator::Subdirectories);
@@ -31,6 +32,10 @@ void include_watch_directory(QFileSystemWatcher *fw, const QString &path) {
   }
 }
 
+/**
+ * Adapted from
+ * https://github.com/gyroflow/gyroflow/blob/master/src/ui_live_reload.cpp
+ */
 void init_live_reload(QQmlApplicationEngine *engine) {
   QFileSystemWatcher *w = new QFileSystemWatcher();
   include_watch_directory(w, "/qml");
@@ -44,13 +49,13 @@ void init_live_reload(QQmlApplicationEngine *engine) {
 
   static auto previousItem = QPointer<QQuickItem>(nullptr);
 
-  QObject::connect(w, &QFileSystemWatcher::fileChanged,
-                   [w, debounce](const QString &file) {
-                     w->addPath(file);
-                     debounce->start();
-                   });
+  QObject::connect(
+      w, &QFileSystemWatcher::fileChanged, [w, debounce](const QString &file) {
+        debounce->start();
+        QTimer::singleShot(50, [w, debounce, file] { w->addPath(file); });
+      });
 
-  QObject::connect(debounce, &QTimer::timeout, [engine, mainPath] {
+  QObject::connect(debounce, &QTimer::timeout, [engine, w, mainPath] {
     qDebug() << "Attempting hot reload...";
     QQuickWindow *wnd = nullptr;
     for (const auto obj : engine->rootObjects()) {
@@ -73,13 +78,6 @@ void init_live_reload(QQmlApplicationEngine *engine) {
       return;
     }
 
-    auto tempItem = qobject_cast<QQuickItem *>(component.create());
-
-    if (!tempItem) {
-      qWarning() << "RELOAD FAILED!\n" << component.errorString();
-      return;
-    }
-
     auto children = wnd->contentItem()->childItems();
     if (!children.isEmpty()) {
       for (const auto item : children) {
@@ -88,7 +86,6 @@ void init_live_reload(QQmlApplicationEngine *engine) {
           if (item == previousItem)
             previousItem = nullptr;
           item->deleteLater();
-          break;
         }
       }
     }
@@ -100,6 +97,13 @@ void init_live_reload(QQmlApplicationEngine *engine) {
 
     engine->clearComponentCache();
 
+    auto tempItem = qobject_cast<QQuickItem *>(component.create());
+
+    if (!tempItem) {
+      qWarning() << "RELOAD FAILED!\n" << component.errorString();
+      return;
+    }
+
     if (tempItem) {
       previousItem = tempItem;
       previousItem->setObjectName("App");
@@ -109,6 +113,7 @@ void init_live_reload(QQmlApplicationEngine *engine) {
     qDebug() << "Hot reload successful!";
   });
 }
+#endif // DEBUG
 
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);

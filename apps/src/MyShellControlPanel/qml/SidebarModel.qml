@@ -1,10 +1,15 @@
 import QtQuick
 
 ListModel {
-  id: root
+    id: root
 
-  ListElement {
-    label: "Keyboard"
-    path: "/keyboard"
-  }
+    ListElement {
+        label: "Keyboard"
+        path: "/keyboard"
+    }
+
+    ListElement {
+        label: "Colors"
+        path: "/colors"
+    }
 }
