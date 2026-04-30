@@ -30,7 +30,7 @@ Singleton {
         if (!root.isGameMode) {
             Quickshell.execDetached(["hyprctl", "reload"]);
         } else {
-            Quickshell.execDetached(["hyprctl", "--batch", "keyword animations:enabled 0; " + "keyword decoration:shadow:enabled 0; " + "keyword decoration:blur:enabled 0; " + "keyword decoration:fullscreen_opacity 1; " + "keyword general:gaps_in 0; " + "keyword general:border_size 1; " + "keyword decoration:rounding 0"]);
+            Quickshell.execDetached(["hyprctl", "--batch", "keyword animations:enabled 0; " + "keyword decoration:shadow:enabled 0; " + "keyword decoration:blur:enabled 0; " + "keyword decoration:fullscreen_opacity 1; " + "keyword general:gaps_in 0; " + "keyword general:border_size 2; " + "keyword decoration:rounding 0"]);
         }
     }
 

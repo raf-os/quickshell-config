@@ -6,10 +6,12 @@ ListModel {
     ListElement {
         label: "Keyboard"
         path: "/keyboard"
+        icon: "󰌌"
     }
 
     ListElement {
         label: "Colors"
         path: "/colors"
+        icon: ""
     }
 }

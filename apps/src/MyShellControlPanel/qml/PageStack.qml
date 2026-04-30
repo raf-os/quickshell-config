@@ -1,12 +1,15 @@
+import MyShellControlPanel.components
 import QtQuick
 import QtQuick.Controls
 
-import "configs/keyboard" as KeyboardPage
+import "configs" as RootPage
 
 StackView {
     id: root
 
     clip: true
 
-    initialItem: KeyboardPage.Index {}
+    initialItem: RootPage.Index {}
+
+    readonly property PageStackItem currentPage: currentItem as PageStackItem
 }

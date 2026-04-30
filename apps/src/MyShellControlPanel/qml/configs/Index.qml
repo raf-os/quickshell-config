@@ -3,9 +3,9 @@ import QtQuick
 
 PageStackItem {
     id: root
-    title: "Keyboard"
+    title: "Index"
 
-    Text {
-        text: "DEBUG - KB PAGE"
+    StyledText {
+        text: "This is the root page"
     }
 }

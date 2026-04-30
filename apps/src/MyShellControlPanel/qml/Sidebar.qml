@@ -14,7 +14,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Colors.colors.base2
+        color: Colors.colors.base
     }
 
     Item {
@@ -51,8 +51,20 @@ Item {
             }
         }
 
+        Rectangle {
+            id: focusNotify
+            anchors.fill: menuItems
+
+            color: "transparent"
+            border.width: 2
+
+            opacity: menuItems.activeFocus ? 1 : 0
+        }
+
         ListView {
             id: menuItems
+
+            spacing: Config.appearance.spacing.xxs
 
             anchors.top: titleLabel.bottom
             anchors.left: parent.left
@@ -62,6 +74,7 @@ Item {
             anchors.margins: Config.appearance.padding.sm
 
             clip: true
+            focus: true
 
             model: SidebarModel {}
 
@@ -74,6 +87,8 @@ Item {
                 radius: Config.appearance.rounding.sm
             }
             highlightFollowsCurrentItem: false
+            keyNavigationEnabled: true
+            keyNavigationWraps: true
 
             delegate: Item {
                 id: listItem
@@ -82,19 +97,44 @@ Item {
                 required property string path
                 required property int index
 
+                required property string icon
+
+                readonly property int padding: Config.appearance.padding.sm
+                readonly property bool isSelected: menuItems.currentIndex === index
+                readonly property bool isActive: root.app.stackInterface.currentPath === path
+
+                clip: true
+
                 anchors.left: parent.left
                 anchors.right: parent.right
-                implicitHeight: 24
+                implicitHeight: Config.appearance.fontSize.lg + padding * 2
 
-                Text {
-                    text: listItem.label
-                    color: Colors.colors.baseContent
+                StyledText {
+                    id: itemIcon
+                    text: listItem.icon
 
-                    width: parent.implicitWidth
-                    font.pointSize: Config.appearance.fontSize.sm
-
+                    anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    padding: Config.appearance.padding.xs
+
+                    anchors.leftMargin: listItem.padding
+
+                    font.family: Config.appearance.fontFamily.mono
+                    font.pixelSize: Config.appearance.fontSize.lg
+
+                    width: listItem.icon === "" ? 0 : Config.appearance.fontSize.lg + Config.appearance.padding.sm
+                }
+
+                StyledText {
+                    text: listItem.label
+
+                    font.pointSize: Config.appearance.fontSize.sm
+                    font.weight: listItem.isActive ? 700 : 500
+
+                    anchors.left: itemIcon.right
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: interactionArea.containsMouse && !listItem.isSelected ? Colors.colors.primary : Colors.colors.baseContent
                 }
 
                 MouseArea {

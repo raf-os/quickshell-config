@@ -1,3 +1,6 @@
+import MyShellControlPanel.components
 import QtQuick
 
-Item {}
+PageStackItem {
+    title: "Colors"
+}

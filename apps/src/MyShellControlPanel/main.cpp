@@ -123,6 +123,9 @@ int main(int argc, char *argv[]) {
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
       []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
 
+  QObject::connect(&engine, &QQmlApplicationEngine::quit, &app,
+                   &QGuiApplication::quit);
+
 #ifdef DEBUG
   engine.load(QUrl::fromLocalFile(SOURCE_DIR + QString("/Main.qml")));
   engine.addImportPath(SOURCE_DIR + QString("/../"));
