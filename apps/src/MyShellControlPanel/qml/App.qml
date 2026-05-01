@@ -2,7 +2,7 @@ import MyShellPlugin
 import MyShellPlugin.Configs
 import MyShellControlPanel.components
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Layouts
 
 FocusScope {
     id: root
@@ -17,30 +17,92 @@ FocusScope {
     Keys.priority: Keys.AfterItem
 
     Keys.onEscapePressed: event => {
-        focusSink.forceActiveFocus();
+        resetAppFocus();
         event.accepted = true;
+    }
+
+    function resetAppFocus() {
+        focusSink.forceActiveFocus();
     }
 
     QtObject {
         id: stackInterface
 
         readonly property int depth: pageStack.depth
-        property string currentPath: "/keyboard"
+        readonly property SidebarModel sidebarModel: SidebarModel {}
+        property string currentPath: "/"
+        property list<string> titleList: []
+        property list<string> pathList: []
+        readonly property string titleSegments: titleList.join("|")
+
+        function cleanPathString(path: string): string {
+            if (path.length < 2)
+                return "";
+
+            const cleanPath = path[0] === "/" ? path.slice(1) : path;
+            return cleanPath;
+        }
 
         function clearAndPush(path: string): void {
-            pageStack.clear();
+            if (path === currentPath)
+                return;
+            // pageStack.clear();
             navigateTo(path);
         }
 
         function navigateTo(path: string): void {
-            const cleanPath = path[0] === "/" ? path.slice(1) : path;
-            pageStack.push(Qt.resolvedUrl(`configs/${cleanPath}/Index.qml`));
+            if (path === currentPath) {
+                return;
+            }
+
+            const existingItem = pageStack.find(item => {
+                return item.path === path;
+            });
+
+            if (existingItem) {
+                pageStack.popToItem(existingItem);
+                currentPath = existingItem.path;
+                modelPathIterate(existingItem.path);
+                return;
+            }
+
+            const cleanPath = cleanPathString(path);
+            pageStack.pushItem(Qt.resolvedUrl(`configs/${cleanPath}/Index.qml`), {
+                "path": path
+            });
             currentPath = "/" + cleanPath;
+            modelPathIterate(path);
         }
 
         function navigateBack(): void {
-            if (!pageStack.depth > 1)
+            if (pageStack.depth > 1) {
                 pageStack.popCurrentItem();
+                titleList.pop();
+            }
+        }
+
+        function modelPathIterate(path: string): void {
+            const cleanPath = cleanPathString(path);
+            const pathSegments = cleanPath.split("/");
+            const listBuf = [];
+            const pListBuf = [];
+            pathSegments.reduce((acc, cur, idx) => {
+                acc += `/${cur}`;
+
+                for (let i = 0; i < sidebarModel.count; i += 1) {
+                    const m = sidebarModel.get(i);
+                    if (m.path === acc) {
+                        if (m.label && m.label != "") {
+                            listBuf.push(m.label);
+                            pListBuf.push(m.path);
+                        }
+
+                        break;
+                    }
+                }
+            }, "");
+            titleList = listBuf;
+            pathList = pListBuf;
         }
     }
 
@@ -89,8 +151,10 @@ FocusScope {
                 color: Colors.colors.base
             }
 
-            StyledText {
+            RowLayout {
                 id: titleBreadcrumbs
+
+                readonly property string fontSize: Config.appearance.fontSize.xs
 
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
@@ -99,9 +163,91 @@ FocusScope {
 
                 anchors.leftMargin: Config.appearance.padding.md
 
-                text: "Index"
+                MouseArea {
+                    id: indexBreadcrumb
 
-                verticalAlignment: Text.AlignVCenter
+                    readonly property bool isActive: stackInterface.titleList.length > 0
+
+                    Layout.fillHeight: true
+                    implicitWidth: indexBreadcrumbText.width
+
+                    enabled: isActive
+                    cursorShape: isActive ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                    onClicked: {
+                        stackInterface.navigateTo("/");
+                    }
+
+                    StyledText {
+                        id: indexBreadcrumbText
+
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+
+                        text: "Index"
+                        font.pointSize: titleBreadcrumbs.fontSize
+                        font.weight: 700
+
+                        verticalAlignment: Text.AlignVCenter
+
+                        color: indexBreadcrumb.isActive ? Colors.colors.primary : Colors.colors.baseContent
+                    }
+                }
+
+                Repeater {
+                    id: breadcrumbs
+
+                    model: stackInterface.titleSegments.length > 0 ? stackInterface.titleSegments.split("|") : 0
+
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    delegate: RowLayout {
+                        id: bcrumb
+                        required property string modelData
+                        required property int index
+
+                        StyledText {
+                            font.family: Config.appearance.fontFamily.mono
+                            text: "󰅂"
+
+                            font.pointSize: titleBreadcrumbs.fontSize
+                        }
+
+                        MouseArea {
+                            readonly property bool isActive: bcrumb.index + 1 < breadcrumbs.model.length
+
+                            Layout.fillHeight: true
+                            implicitWidth: bcrumbTitle.width
+
+                            hoverEnabled: true
+                            cursorShape: isActive ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                            enabled: isActive
+
+                            onClicked: {
+                                stackInterface.navigateTo(bcrumb.modelData);
+                            }
+
+                            StyledText {
+                                id: bcrumbTitle
+
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+
+                                text: bcrumb.modelData
+                                font.pointSize: titleBreadcrumbs.fontSize
+                                font.weight: 600
+
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
             }
 
             Item {

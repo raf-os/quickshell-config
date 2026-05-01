@@ -53,8 +53,8 @@ class HyprInputConfig : public QObject {
   Q_PROPERTY(QString kbModel READ kbModel NOTIFY kbModelChanged)
   Q_PROPERTY(QString kbOptions READ kbOptions NOTIFY kbOptionsChanged)
   Q_PROPERTY(QString kbRules READ kbRules NOTIFY kbRulesChanged)
-  Q_PROPERTY(QQmlListProperty<HyprKeyboardLayout> layouts READ layouts NOTIFY
-                 layoutsChanged)
+  Q_PROPERTY(QQmlListProperty<myqmlplugin::HyprKeyboardLayout> layouts READ
+                 layouts NOTIFY layoutsChanged)
 
 public:
   explicit HyprInputConfig(QObject *parent = nullptr);
@@ -109,11 +109,11 @@ class HyprExtras : public QObject {
                  setShellConfigPath NOTIFY shellConfigPathChanged)
   Q_PROPERTY(QString cachePath READ cachePath WRITE setCachePath NOTIFY
                  cachePathChanged)
-  Q_PROPERTY(KeyboardLayoutHandler *keyboardLayoutHandler READ
+  Q_PROPERTY(myqmlplugin::KeyboardLayoutHandler *keyboardLayoutHandler READ
                  keyboardLayoutHandler WRITE setKeyboardLayoutHandler NOTIFY
                      keyboardLayoutHandlerChanged REQUIRED)
-  Q_PROPERTY(
-      HyprInputConfig *inputConfig READ inputConfig NOTIFY inputConfigChanged)
+  Q_PROPERTY(myqmlplugin::HyprInputConfig *inputConfig READ inputConfig NOTIFY
+                 inputConfigChanged)
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
@@ -132,10 +132,11 @@ public:
 
   [[nodiscard]] int kbdLayoutIndex() const;
 
-  [[nodiscard]] KeyboardLayoutHandler *keyboardLayoutHandler() const;
-  void setKeyboardLayoutHandler(KeyboardLayoutHandler *kbh);
+  [[nodiscard]] myqmlplugin::KeyboardLayoutHandler *
+  keyboardLayoutHandler() const;
+  void setKeyboardLayoutHandler(myqmlplugin::KeyboardLayoutHandler *kbh);
 
-  [[nodiscard]] HyprInputConfig *inputConfig() const;
+  [[nodiscard]] myqmlplugin::HyprInputConfig *inputConfig() const;
 
   void hyprlangParse();
   void parseInputConfig();

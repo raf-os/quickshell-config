@@ -6,6 +6,6 @@ PageStackItem {
     title: "Index"
 
     StyledText {
-        text: "This is the root page"
+        text: "This is the root page."
     }
 }

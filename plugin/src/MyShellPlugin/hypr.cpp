@@ -309,13 +309,16 @@ void HyprExtras::setCachePath(const QString &path) {
 
 void HyprExtras::updateCurrentKeyboardConfig() { return queryCurrentDevices(); }
 
-KeyboardLayoutHandler *HyprExtras::keyboardLayoutHandler() const {
+myqmlplugin::KeyboardLayoutHandler *HyprExtras::keyboardLayoutHandler() const {
   return m_kbLayoutHandler;
 }
 
-HyprInputConfig *HyprExtras::inputConfig() const { return m_inputConfig; }
+myqmlplugin::HyprInputConfig *HyprExtras::inputConfig() const {
+  return m_inputConfig;
+}
 
-void HyprExtras::setKeyboardLayoutHandler(KeyboardLayoutHandler *kbd) {
+void HyprExtras::setKeyboardLayoutHandler(
+    myqmlplugin::KeyboardLayoutHandler *kbd) {
   if (m_kbLayoutHandler == nullptr || kbd != m_kbLayoutHandler) {
     m_kbLayoutHandler = kbd;
 

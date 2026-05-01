@@ -39,6 +39,7 @@ cp_add_module(MyShellControlPanel
     ${QML_FILES})
 
 add_subdirectory(components)
+add_subdirectory(singletons)
 
 set_target_properties(MyShellControlPanel
   PROPERTIES
@@ -54,6 +55,7 @@ target_link_libraries(MyShellControlPanel
     PRIVATE
       myshell
       panel_components
+      panel_singletons
       Qt::Core
       Qt::Qml
       Qt::Gui
