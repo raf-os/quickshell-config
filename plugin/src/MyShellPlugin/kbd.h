@@ -1,5 +1,6 @@
 #pragma once
 
+#include <libxml/parser.h>
 #include <libxml/xmlstring.h>
 #include <libxml/xpath.h>
 #include <qcontainerfwd.h>
@@ -12,14 +13,25 @@
 #include <qtmetamacros.h>
 
 namespace myqmlplugin {
+struct KKeyboardConfigItemData {
+  QString name{};
+  QString shortDescription{};
+  QString description{};
+  QStringList languageList{};
+  QStringList countryList{};
+};
+
+bool xmlConditionalAssign(xmlNodePtr node, char *name, QString *target);
+bool xmlConditionalAssign(xmlNodePtr node, char *name, QStringList *target);
+
 class KKeyboardModel : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_UNCREATABLE("")
 
-  Q_PROPERTY(QString name READ name)
-  Q_PROPERTY(QString description READ description)
-  Q_PROPERTY(QString vendor READ name)
+  Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QString description READ description CONSTANT)
+  Q_PROPERTY(QString vendor READ name CONSTANT)
 
 public:
   explicit KKeyboardModel(QString name, QString description, QString vendor,
@@ -40,19 +52,26 @@ class KKeyboardVariant : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
-  Q_PROPERTY(QString name READ name)
-  Q_PROPERTY(QString description READ description)
+  Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QString description READ description CONSTANT)
+  Q_PROPERTY(QString shortDescription READ shortDescription CONSTANT)
+  Q_PROPERTY(QStringList languageList READ languageList CONSTANT)
 
 public:
   explicit KKeyboardVariant(QString name, QString description,
+                            QString shortDescription, QStringList languageList,
                             QObject *parent = nullptr);
 
   [[nodiscard]] QString name() const;
   [[nodiscard]] QString description() const;
+  [[nodiscard]] QString shortDescription() const;
+  [[nodiscard]] QStringList languageList() const;
 
 private:
   QString m_name;
   QString m_description;
+  QString m_shortDescription;
+  QStringList m_languageList;
 };
 
 class KKeyboardLayout : public QObject {
@@ -60,13 +79,13 @@ class KKeyboardLayout : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
-  Q_PROPERTY(QString name READ name)
-  Q_PROPERTY(QString shortDescription READ shortDescription)
-  Q_PROPERTY(QString description READ description)
-  Q_PROPERTY(QStringList countryList READ countryList)
-  Q_PROPERTY(QStringList languageList READ languageList)
-  Q_PROPERTY(
-      QQmlListProperty<myqmlplugin::KKeyboardVariant> variants READ variants)
+  Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QString shortDescription READ shortDescription CONSTANT)
+  Q_PROPERTY(QString description READ description CONSTANT)
+  Q_PROPERTY(QStringList countryList READ countryList CONSTANT)
+  Q_PROPERTY(QStringList languageList READ languageList CONSTANT)
+  Q_PROPERTY(QQmlListProperty<myqmlplugin::KKeyboardVariant> variants READ
+                 variants NOTIFY variantsChanged)
 
 public:
   explicit KKeyboardLayout(QString name, QString shortDescription,
@@ -84,6 +103,9 @@ public:
   [[nodiscard]] QList<KKeyboardVariant *> variantList() const;
 
   [[nodiscard]] KKeyboardVariant *getVariantByName(const QString &name);
+
+signals:
+  void variantsChanged();
 
 private:
   QString m_name;

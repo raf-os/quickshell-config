@@ -58,7 +58,7 @@ PageStackItem {
                     delegate: Item {
                         id: kbLayout
                         required property HyprKeyboardLayout modelData
-                        readonly property bool isActive: Hypr.currentLayout?.layout === modelData.layout ?? false
+                        readonly property bool isActive: Hypr.currentLayout?.layout === modelData?.layout ?? false
 
                         implicitWidth: ListView.view ? ListView.view.width : 0
                         implicitHeight: layoutName.height
@@ -106,16 +106,7 @@ PageStackItem {
                 font.pointSize: Config.appearance.fontSize.sm
             }
 
-            Item {
-                readonly property int padding: Config.appearance.padding.sm
-
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                FgWrapperBg {
-                    anchors.margins: parent.padding
-                }
-            }
+            KeyboardList {}
         }
     }
 

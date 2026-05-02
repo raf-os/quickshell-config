@@ -11,6 +11,8 @@ Item {
     readonly property int currentLayoutIndex: hyprExtras.kbdLayoutIndex
     readonly property HyprKeyboardLayout currentLayout: inputLayouts[currentLayoutIndex]
 
+    readonly property list<KKeyboardLayout> allLayouts: keyboardLayoutHandler.layouts
+
     HyprExtras {
         id: hyprExtras
         keyboardLayoutHandler: keyboardLayoutHandler

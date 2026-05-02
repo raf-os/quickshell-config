@@ -1,4 +1,5 @@
 #include "kbd.h"
+#include <algorithm>
 #include <functional>
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
@@ -47,6 +48,56 @@ void xmlGetNodesByName(xmlNodePtr child, xmlChar *nodeName,
   }
 };
 
+bool xmlConditionalAssign(xmlNodePtr node, const char *name, QString *target) {
+  if (xmlStrcmp(node->name, (xmlChar *)name) == 0) {
+    xmlGetChildContent(node, target);
+    return true;
+  } else
+    return false;
+}
+
+bool xmlConditionalAssign(xmlNodePtr node, const char *name,
+                          QStringList *target) {
+  if (xmlStrcmp(node->name, (xmlChar *)name) == 0) {
+    xmlGetChildrenListContent(node, target);
+    return true;
+  } else
+    return false;
+}
+
+void xmlProcessConfigItem(KKeyboardConfigItemData &confStruct,
+                          xmlNodePtr confNode) {
+  QString nameBuffer;
+  QString descriptionBuffer;
+  QString shortDescriptionBuffer;
+  QStringList countryListBuffer;
+  QStringList languageListBuffer;
+
+  // TODO: Maybe try to improve this unholy creation
+
+  for (xmlNodePtr child = confNode->children; child; child = child->next) {
+    if (child->type == XML_ELEMENT_NODE) {
+      if (xmlConditionalAssign(child, "name", &nameBuffer))
+        continue;
+      if (xmlConditionalAssign(child, "description", &descriptionBuffer))
+        continue;
+      if (xmlConditionalAssign(child, "shortDescription",
+                               &shortDescriptionBuffer))
+        continue;
+      if (xmlConditionalAssign(child, "countryList", &countryListBuffer))
+        continue;
+      if (xmlConditionalAssign(child, "languageList", &languageListBuffer))
+        continue;
+    }
+  }
+
+  confStruct.name = nameBuffer;
+  confStruct.description = descriptionBuffer;
+  confStruct.shortDescription = shortDescriptionBuffer;
+  confStruct.countryList = countryListBuffer;
+  confStruct.languageList = languageListBuffer;
+}
+
 KKeyboardModel::KKeyboardModel(QString name, QString description,
                                QString vendor, QObject *parent)
     : QObject(parent), m_name(name), m_description(description),
@@ -57,11 +108,17 @@ QString KKeyboardModel::description() const { return m_description; }
 QString KKeyboardModel::vendor() const { return m_vendor; }
 
 KKeyboardVariant::KKeyboardVariant(QString name, QString description,
-                                   QObject *parent)
-    : QObject(parent), m_name(name), m_description(description) {}
+                                   QString shortDescription,
+                                   QStringList languageList, QObject *parent)
+    : QObject(parent), m_name(name), m_description(description),
+      m_shortDescription(shortDescription), m_languageList(languageList) {}
 
 QString KKeyboardVariant::name() const { return m_name; }
 QString KKeyboardVariant::description() const { return m_description; }
+QString KKeyboardVariant::shortDescription() const {
+  return m_shortDescription;
+}
+QStringList KKeyboardVariant::languageList() const { return m_languageList; }
 
 KKeyboardLayout::KKeyboardLayout(QString name, QString shortDescription,
                                  QString description, QStringList countryList,
@@ -138,7 +195,6 @@ void KeyboardLayoutHandler::setCachePath(const QString &path) {
 
 QQmlListProperty<myqmlplugin::KKeyboardLayout>
 KeyboardLayoutHandler::layouts() {
-  m_layoutList = m_layouts.values();
   return QQmlListProperty<KKeyboardLayout>(this, &m_layoutList);
 }
 
@@ -170,7 +226,7 @@ bool KeyboardLayoutHandler::rebuildLayouts() {
   }
 
   xmlXPathObjectPtr result =
-      xmlXPathEvalExpression((xmlChar *)"//layout/configItem", ctx);
+      xmlXPathEvalExpression((xmlChar *)"//layoutList/layout", ctx);
 
   if (result == nullptr) {
     qWarning() << "myqmlplugin::KeyboardLayoutHandler: Unable to evaluate "
@@ -193,6 +249,12 @@ bool KeyboardLayoutHandler::rebuildLayouts() {
   m_models.clear();
 
   traverseXmlNodes(result->nodesetval);
+
+  m_layoutList = m_layouts.values();
+  std::sort(m_layoutList.begin(), m_layoutList.end(),
+            [this](KKeyboardLayout *a, KKeyboardLayout *b) {
+              return a->name().localeAwareCompare(b->name()) < 0;
+            });
 
   if (!m_layouts.isEmpty()) {
     emit layoutsChanged();
@@ -217,75 +279,60 @@ void KeyboardLayoutHandler::traverseXmlNodes(xmlNodeSetPtr nodes) {
       break;
     }
 
-    QString nameBuffer;
-    QString descriptionBuffer;
-    QString shortDescriptionBuffer;
-    QStringList countryListBuffer;
-    QStringList languageListBuffer;
+    KKeyboardConfigItemData configItem;
     QList<KKeyboardVariant *> variantListBuffer;
 
     if (nodes->nodeTab[i]->type == XML_ELEMENT_NODE) {
       cur = nodes->nodeTab[i];
 
-      for (xmlNodePtr child = cur->children; child; child = child->next) {
-        if (child->type == XML_ELEMENT_NODE) {
-          if (xmlStrcmp(child->name, (xmlChar *)"name") == 0) {
-            xmlGetChildContent(child, &nameBuffer);
-          } else if (xmlStrcmp(child->name, (xmlChar *)"description") == 0) {
-            xmlGetChildContent(child, &descriptionBuffer);
-          } else if (xmlStrcmp(child->name, (xmlChar *)"shortDescription") ==
-                     0) {
-            xmlGetChildContent(child, &shortDescriptionBuffer);
-          } else if (xmlStrcmp(child->name, (xmlChar *)"countryList") == 0) {
-            xmlGetChildrenListContent(child, &countryListBuffer);
-          } else if (xmlStrcmp(child->name, (xmlChar *)"languageList") == 0) {
-            xmlGetChildrenListContent(child, &languageListBuffer);
-          } else if (xmlStrcmp(child->name, (xmlChar *)"variantList") == 0) {
-            // What have I created
-            xmlGetNodesByName(
-                child, (xmlChar *)"variants",
-                [this, &variantListBuffer](xmlNodePtr c1) {
-                  xmlGetNodesByName(
-                      c1, (xmlChar *)"configItem",
-                      [this, &variantListBuffer](xmlNodePtr c2) {
-                        QString nameBuf;
-                        QString descBuf;
+      for (xmlNodePtr section = cur->children; section;
+           section = section->next) {
+        if (section->type == XML_ELEMENT_NODE) {
+          if (xmlStrcmp(section->name, (xmlChar *)"configItem") ==
+              0) { // CONFIGITEM
+            xmlProcessConfigItem(configItem, section);
+          } // CONFIGITEM
+          else if (xmlStrcmp(section->name, (xmlChar *)"variantList") ==
+                   0) { // VARIANTLIST
+            for (xmlNodePtr child = cur->children; child; child = child->next) {
+              xmlGetNodesByName(
+                  child, (xmlChar *)"variant",
+                  [this, &variantListBuffer](xmlNodePtr c1) {
+                    xmlGetNodesByName(
+                        c1, (xmlChar *)"configItem",
+                        [this, &variantListBuffer](xmlNodePtr c2) {
+                          KKeyboardConfigItemData variantConfigItem;
 
-                        for (xmlNodePtr confNode = c2->children; confNode;
-                             confNode = confNode->next) {
-                          if (confNode->type != XML_ELEMENT_NODE)
-                            continue;
-                          if (xmlStrcmp(confNode->name, (xmlChar *)"name") ==
-                              0) {
-                            nameBuf = QString::fromUtf8(confNode->content);
-                          } else if (xmlStrcmp(confNode->name,
-                                               (xmlChar *)"description") == 0) {
-                            descBuf = QString::fromUtf8(confNode->content);
+                          xmlProcessConfigItem(variantConfigItem, c2);
+
+                          if (variantConfigItem.name != "") {
+                            auto kbVar = new KKeyboardVariant(
+                                variantConfigItem.name,
+                                variantConfigItem.description,
+                                variantConfigItem.shortDescription,
+                                variantConfigItem.languageList, this);
+                            variantListBuffer.append(kbVar);
                           }
-                        }
-
-                        if (nameBuf != "") {
-                          auto kbVar =
-                              new KKeyboardVariant(nameBuf, descBuf, this);
-                          variantListBuffer.append(kbVar);
-                        }
-                      });
-                });
-          }
+                        });
+                  });
+            }
+          } // VARIANTLIST
         }
       }
     }
 
-    if (nameBuffer != "") {
-      auto layout = new KKeyboardLayout(nameBuffer, shortDescriptionBuffer,
-                                        descriptionBuffer, countryListBuffer,
-                                        languageListBuffer, this);
-      m_layouts.insert(nameBuffer, layout);
+    if (configItem.name != "") {
+      auto layout = new KKeyboardLayout(
+          configItem.name, configItem.shortDescription, configItem.description,
+          configItem.countryList, configItem.languageList, this);
+      m_layouts.insert(configItem.name, layout);
 
       for (auto kbVar : variantListBuffer) {
         kbVar->setParent(layout);
         layout->addVariant(kbVar);
       }
+
+      emit layout->variantsChanged();
     }
   }
 }
