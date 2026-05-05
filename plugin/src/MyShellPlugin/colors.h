@@ -45,7 +45,11 @@ class ColorConfigColors : public QObject {
   AUTO_PROP_DEFAULT(QColor, baseContent, "#d9d3cd")
   AUTO_PROP_DEFAULT(QColor, baseContentMuted, "#847e78")
 
+  AUTO_PROP_DEFAULT(QColor, primary0, "#b9370c")
   AUTO_PROP_DEFAULT(QColor, primary, "#e25016")
+  AUTO_PROP_DEFAULT(QColor, primary2, "#e67634")
+  AUTO_PROP_DEFAULT(QColor, primary3, "#f48743")
+  AUTO_PROP_DEFAULT(QColor, primary4, "#e39e59")
   AUTO_PROP_DEFAULT(QColor, primary5, "#f4b17a")
 
   AUTO_PROP_DEFAULT(QColor, destructive, "#e32e35")

@@ -11,6 +11,8 @@ FocusScope {
 
     focus: true
 
+    required property string desiredInitialPath
+
     property alias stackInterface: stackInterface
     property list<string> titleList: []
 
@@ -23,6 +25,12 @@ FocusScope {
 
     function resetAppFocus() {
         focusSink.forceActiveFocus();
+    }
+
+    Component.onCompleted: {
+        if (root.desiredInitialPath !== "") {
+            stackInterface.navigateTo("/" + root.desiredInitialPath);
+        }
     }
 
     QtObject {

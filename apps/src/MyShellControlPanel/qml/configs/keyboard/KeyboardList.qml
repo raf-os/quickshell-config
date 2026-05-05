@@ -107,7 +107,7 @@ Item {
                 opacity: kbd.isInstalled ? 1 : 0
                 anchors.fill: parent
 
-                color: Colors.colors.primary5
+                color: Colors.colors.primary2
                 radius: Config.appearance.rounding.sm
             }
 
@@ -122,22 +122,16 @@ Item {
 
                 spacing: 0
 
-                Item {
+                MouseArea {
                     id: kbdInfoTitle
 
                     Layout.fillWidth: true
                     implicitHeight: kbdInfoTitleText.implicitHeight
+                    enabled: kbd.hasVariants
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-                    MouseArea {
-                        enabled: kbd.hasVariants
-
-                        anchors.fill: parent
-
-                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-                        onClicked: {
-                            root.toggleExpandById(kbd.index);
-                        }
+                    onClicked: {
+                        root.toggleExpandById(kbd.index);
                     }
 
                     StyledText {
@@ -186,6 +180,29 @@ Item {
 
                         padding: root.padding
                     }
+
+                    MouseArea {
+                        id: addRemoveArea
+
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+
+                        implicitWidth: height
+
+                        StyledText {
+                            id: addRemoveText
+
+                            anchors.centerIn: parent
+
+                            text: kbd.isInstalled ? "󰍴" : "󰐕"
+                            color: kbdInfo.textCol
+                            font.pointSize: Config.appearance.fontSize.md
+
+                            verticalAlignment: Text.AlignVCenter
+                            horizontalAlignment: Text.AlignLeft
+                        }
+                    }
                 }
 
                 Loader {
@@ -222,6 +239,8 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.margins: root.padding
+
+                            spacing: Config.appearance.spacing.sm
 
                             Repeater {
                                 model: kbd.modelData.variants

@@ -1,3 +1,6 @@
+#include <qcommandlineoption.h>
+#include <qcommandlineparser.h>
+#include <qcontainerfwd.h>
 #include <qcoreapplication.h>
 #include <qdiriterator.h>
 #include <qfilesystemwatcher.h>
@@ -36,7 +39,8 @@ void include_watch_directory(QFileSystemWatcher *fw, const QString &path) {
  * Adapted from
  * https://github.com/gyroflow/gyroflow/blob/master/src/ui_live_reload.cpp
  */
-void init_live_reload(QQmlApplicationEngine *engine) {
+void init_live_reload(QQmlApplicationEngine *engine,
+                      const QString &initialPage) {
   QFileSystemWatcher *w = new QFileSystemWatcher();
   include_watch_directory(w, "/qml");
   include_watch_directory(w, "/components");
@@ -56,68 +60,83 @@ void init_live_reload(QQmlApplicationEngine *engine) {
         QTimer::singleShot(50, [w, debounce, file] { w->addPath(file); });
       });
 
-  QObject::connect(debounce, &QTimer::timeout, [engine, w, mainPath] {
-    qDebug() << "Attempting hot reload...";
-    QQuickWindow *wnd = nullptr;
-    for (const auto obj : engine->rootObjects()) {
-      if (obj->objectName() == "Main") {
-        wnd = qobject_cast<QQuickWindow *>(obj);
-        break;
-      }
-    }
-    // auto wnd = qobject_cast<QQuickWindow *>(engine->rootObjects().first());
-    if (!wnd) {
-      qWarning() << "Error casting root engine object to a QQuickWindow, live "
-                    "reload failed.";
-      return;
-    }
-
-    QQmlComponent component(engine, mainPath, wnd);
-
-    if (component.status() == QQmlComponent::Error) {
-      qWarning() << "RELOAD FAILED!\n" << component.errorString();
-      return;
-    }
-
-    auto children = wnd->contentItem()->childItems();
-    if (!children.isEmpty()) {
-      for (const auto item : children) {
-        if (item->objectName() == "App") {
-          item->setParentItem(nullptr);
-          if (item == previousItem)
-            previousItem = nullptr;
-          item->deleteLater();
+  QObject::connect(
+      debounce, &QTimer::timeout, [engine, w, mainPath, initialPage] {
+        qDebug() << "Attempting hot reload...";
+        QQuickWindow *wnd = nullptr;
+        for (const auto obj : engine->rootObjects()) {
+          if (obj->objectName() == "Main") {
+            wnd = qobject_cast<QQuickWindow *>(obj);
+            break;
+          }
         }
-      }
-    }
+        // auto wnd = qobject_cast<QQuickWindow
+        // *>(engine->rootObjects().first());
+        if (!wnd) {
+          qWarning()
+              << "Error casting root engine object to a QQuickWindow, live "
+                 "reload failed.";
+          return;
+        }
 
-    if (previousItem) {
-      previousItem->setParentItem(nullptr);
-      previousItem->deleteLater();
-    }
+        QQmlComponent component(engine, mainPath, wnd);
 
-    engine->clearComponentCache();
+        if (component.status() == QQmlComponent::Error) {
+          qWarning() << "RELOAD FAILED!\n" << component.errorString();
+          return;
+        }
 
-    auto tempItem = qobject_cast<QQuickItem *>(component.create());
+        auto children = wnd->contentItem()->childItems();
+        if (!children.isEmpty()) {
+          for (const auto item : children) {
+            if (item->objectName() == "App") {
+              item->setParentItem(nullptr);
+              if (item == previousItem)
+                previousItem = nullptr;
+              item->deleteLater();
+            }
+          }
+        }
 
-    if (!tempItem) {
-      qWarning() << "RELOAD FAILED!\n" << component.errorString();
-      return;
-    }
+        if (previousItem) {
+          previousItem->setParentItem(nullptr);
+          previousItem->deleteLater();
+        }
 
-    if (tempItem) {
-      previousItem = tempItem;
-      previousItem->setObjectName("App");
-      previousItem->setParentItem(wnd->contentItem());
-    }
+        engine->clearComponentCache();
 
-    qDebug() << "Hot reload successful!";
-  });
+        auto tempItem =
+            qobject_cast<QQuickItem *>(component.createWithInitialProperties(
+                {{"desiredInitialPath", initialPage}}));
+
+        if (!tempItem) {
+          qWarning() << "RELOAD FAILED!\n" << component.errorString();
+          return;
+        }
+
+        if (tempItem) {
+          previousItem = tempItem;
+          previousItem->setObjectName("App");
+          previousItem->setParentItem(wnd->contentItem());
+        }
+
+        qDebug() << "Hot reload successful!";
+      });
 }
 #endif // DEBUG
 
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
+
+  QCommandLineParser parser;
+  parser.addHelpOption();
+
+  QCommandLineOption initialPageOption("p", "Default app page.", "path");
+  parser.addOption(initialPageOption);
+
+  parser.process(app);
+
+  QString initialPage = parser.value(initialPageOption);
 
   QQmlApplicationEngine engine;
   QObject::connect(
@@ -127,10 +146,12 @@ int main(int argc, char *argv[]) {
   QObject::connect(&engine, &QQmlApplicationEngine::quit, &app,
                    &QGuiApplication::quit);
 
+  engine.setInitialProperties({{"desiredInitialPath", initialPage}});
+
 #ifdef DEBUG
   engine.load(QUrl::fromLocalFile(SOURCE_DIR + QString("/Main.qml")));
   engine.addImportPath(SOURCE_DIR + QString("/../"));
-  init_live_reload(&engine);
+  init_live_reload(&engine, initialPage);
 #else
   engine.loadFromModule("MyShellControlPanel", "Main");
 #endif // DEBUG

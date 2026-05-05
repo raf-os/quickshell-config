@@ -18,5 +18,9 @@ Window {
 
     title: "MyShell Control Panel"
 
-    App {}
+    required property string desiredInitialPath
+
+    App {
+        desiredInitialPath: root.desiredInitialPath
+    }
 }

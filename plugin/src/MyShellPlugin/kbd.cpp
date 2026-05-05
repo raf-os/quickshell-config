@@ -157,6 +157,13 @@ KKeyboardVariant *KKeyboardLayout::getVariantByName(const QString &name) {
   return variantBuffer;
 }
 
+void KKeyboardLayout::sortVariants() {
+  std::sort(m_variants.begin(), m_variants.end(),
+            [this](KKeyboardVariant *a, KKeyboardVariant *b) {
+              return a->name().localeAwareCompare(b->name()) < 0;
+            });
+}
+
 KeyboardLayoutHandler::KeyboardLayoutHandler(QObject *parent)
     : QObject(parent) {
   QFile file(QString::fromUtf8(m_evdevPath));
@@ -332,6 +339,7 @@ void KeyboardLayoutHandler::traverseXmlNodes(xmlNodeSetPtr nodes) {
         layout->addVariant(kbVar);
       }
 
+      layout->sortVariants();
       emit layout->variantsChanged();
     }
   }

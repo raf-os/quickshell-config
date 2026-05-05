@@ -12,6 +12,7 @@ PageStackItem {
     title: "Keyboard"
 
     readonly property color fgCol: Colors.colors.base
+    property bool hasChanges: false
 
     ColumnLayout {
         id: layout
@@ -107,6 +108,27 @@ PageStackItem {
             }
 
             KeyboardList {}
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+
+            spacing: Config.appearance.spacing.md
+
+            SButton {
+                text: "Apply settings"
+                autoWidth: true
+                Layout.fillWidth: true
+                disabled: !root.hasChanges
+            }
+
+            SButton {
+                text: "Cancel changes"
+                autoWidth: true
+                Layout.fillWidth: true
+                type: SButton.ButtonType.Destructive
+                disabled: !root.hasChanges
+            }
         }
     }
 

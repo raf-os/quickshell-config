@@ -102,6 +102,8 @@ public:
 
   [[nodiscard]] QList<KKeyboardVariant *> variantList() const;
 
+  void sortVariants();
+
   [[nodiscard]] KKeyboardVariant *getVariantByName(const QString &name);
 
 signals:
