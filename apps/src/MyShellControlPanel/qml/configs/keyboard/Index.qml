@@ -87,6 +87,7 @@ PageStackItem {
                             id: layoutName
                             text: kbLayout.modelData?.description ?? ""
                             font.pointSize: Config.appearance.fontSize.sm
+                            font.weight: kbLayout.isActive ? 600 : 500
 
                             padding: Config.appearance.padding.xxs
 
