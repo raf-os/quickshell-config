@@ -75,7 +75,7 @@ FocusScope {
             }
 
             const cleanPath = cleanPathString(path);
-            pageStack.pushItem(Qt.resolvedUrl(`configs/${cleanPath}/Index.qml`), {
+            pageStack.pushItem(Qt.resolvedUrl(`pages/${cleanPath}/Index.qml`), {
                 "path": path
             });
             currentPath = "/" + cleanPath;

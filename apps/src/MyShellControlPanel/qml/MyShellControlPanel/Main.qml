@@ -1,8 +1,6 @@
 import MyShellPlugin
 import QtQuick
 
-import "qml"
-
 Window {
     id: root
     visible: true

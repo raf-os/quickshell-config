@@ -1,7 +1,10 @@
+#include <qbuffer.h>
 #include <qcommandlineoption.h>
 #include <qcommandlineparser.h>
 #include <qcontainerfwd.h>
 #include <qcoreapplication.h>
+#include <qdebug.h>
+#include <qdir.h>
 #include <qdiriterator.h>
 #include <qfilesystemwatcher.h>
 #include <qguiapplication.h>
@@ -50,7 +53,7 @@ void init_live_reload(QQmlApplicationEngine *engine,
 
   QTimer *debounce = new QTimer();
   debounce->setSingleShot(true);
-  debounce->setInterval(100);
+  debounce->setInterval(200);
 
   static auto previousItem = QPointer<QQuickItem>(nullptr);
 
@@ -123,6 +126,42 @@ void init_live_reload(QQmlApplicationEngine *engine,
         qDebug() << "Hot reload successful!";
       });
 }
+
+void iterateDirQml(const QDir &dir, QStringList *prefixList) {
+  auto dirName = dir.dirName();
+  prefixList->append(dirName);
+  QStringList moduleLines;
+  QDirIterator it(dir.absolutePath(),
+                  QDir::Dirs | QDir::Files | QDir::NoDot | QDir::NoDotAndDotDot,
+                  QDirIterator::NoIteratorFlags);
+  while (it.hasNext()) {
+    it.next();
+    if (it.fileInfo().isFile()) {
+      if (it.fileInfo().suffix() != "qml")
+        continue;
+      QString name = it.fileInfo().baseName();
+      moduleLines << name + " 1.0 " + it.fileName();
+    } else if (it.fileInfo().isDir()) {
+      QStringList newPrefixList(*prefixList);
+      iterateDirQml(QDir(it.fileInfo().absoluteFilePath()), &newPrefixList);
+    }
+  }
+
+  if (moduleLines.length() > 0) {
+    QFile file(dir.absolutePath() + "/qmldir");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+      qWarning() << "Unable to open qmldir file for writing. Dev mode is not "
+                    "going to work as expected.";
+      return;
+    }
+
+    QTextStream out(&file);
+    out << "module " << prefixList->join(".") << "\n";
+    out << moduleLines.join("\n");
+
+    file.close();
+  }
+}
 #endif // DEBUG
 
 int main(int argc, char *argv[]) {
@@ -149,8 +188,10 @@ int main(int argc, char *argv[]) {
   engine.setInitialProperties({{"desiredInitialPath", initialPage}});
 
 #ifdef DEBUG
+  QStringList prefixList;
+  iterateDirQml(QDir(SOURCE_DIR), &prefixList);
+  engine.addImportPath(SOURCE_DIR);
   engine.load(QUrl::fromLocalFile(SOURCE_DIR + QString("/Main.qml")));
-  engine.addImportPath(SOURCE_DIR + QString("/../"));
   init_live_reload(&engine, initialPage);
 #else
   engine.loadFromModule("MyShellControlPanel", "Main");

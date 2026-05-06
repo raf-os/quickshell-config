@@ -5,7 +5,7 @@ import MyShellControlPanel.components
 import QtQuick
 import QtQuick.Controls
 
-import "configs" as RootPage
+import MyShellControlPanel.pages as RootPage
 
 StackView {
     id: root
