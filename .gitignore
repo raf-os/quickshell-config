@@ -3,6 +3,7 @@
 
 # cmake
 build/
+install/
 .cache/
 CMakeFiles/
 CMakeCache.txt

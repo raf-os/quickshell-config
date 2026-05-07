@@ -9,7 +9,7 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/.qmlls.ini"
 )
 
-qt_add_executable(MyShellControlPanel
+qt_add_executable(myshell_control_panel
     main.cpp)
 
 function(cp_add_module arg_TARGET)
@@ -25,3 +25,35 @@ function(cp_add_module arg_TARGET)
 endfunction()
 
 add_subdirectory(qml/MyShellControlPanel)
+
+set_target_properties(myshell_control_panel
+  PROPERTIES
+    OUTPUT_NAME "myshell-control-panel"
+    INSTALL_RPATH "${INSTALL_QMLDIR}/${MYSHELL_QML_TARGET_PATH}")
+
+target_compile_definitions(myshell_control_panel PRIVATE
+  SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml/MyShellControlPanel")
+
+if(DEVMODE)
+  target_compile_definitions(myshell_control_panel PRIVATE DEBUG)
+endif()
+
+target_link_libraries(myshell_control_panel
+    PRIVATE
+      myshell
+      panel_root
+      panel_components
+      panel_singletons
+      panel_pages
+      Qt::Core
+      Qt::Qml
+      Qt::Gui
+      Qt::Quick)
+
+include(GNUInstallDirs)
+
+install(TARGETS myshell_control_panel
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

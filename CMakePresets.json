@@ -10,12 +10,23 @@
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
+    },
+    {
+      "name": "dev",
+      "inherits": "default",
+      "cacheVariables": {
+        "DEVMODE": "ON"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "default",
       "configurePreset": "default"
+    },
+    {
+      "name": "dev",
+      "configurePreset": "dev"
     }
   ]
 }
