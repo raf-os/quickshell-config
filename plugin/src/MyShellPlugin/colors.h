@@ -12,9 +12,6 @@
 #include "paths.h"
 #include "propertymacros.h"
 
-// TODO: Write a code generation python script, this will get tedious to do by
-// hand
-
 namespace myqmlplugin {
 namespace configs {
 class ColorConfigMetadata : public QObject {
@@ -79,6 +76,7 @@ class Colors : public QObject {
                  configPathChanged)
   Q_PROPERTY(QString themeName READ themeName WRITE setThemeName NOTIFY
                  themeNameChanged)
+  Q_PROPERTY(QList<QString> themeList READ themeList NOTIFY themeListChanged)
 
 public:
   explicit Colors(QObject *parent = nullptr);
@@ -92,6 +90,8 @@ public:
   [[nodiscard]] QString themeName() const;
   void setThemeName(const QString &name);
 
+  [[nodiscard]] QList<QString> themeList() const;
+
   Q_INVOKABLE void loadConfig();
   Q_INVOKABLE void saveConfig();
 
@@ -100,6 +100,7 @@ signals:
   void configPathChanged();
   void colorsChanged();
   void themeNameChanged();
+  void themeListChanged();
 
 private:
   configs::ColorConfigMetadata *m_configMetadata;

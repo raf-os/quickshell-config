@@ -13,6 +13,8 @@ PageStackItem {
     title: "Colors"
 
     readonly property ColorConfigMetadata themeData: Colors.metadata
+    readonly property list<string> themeList: Colors.themeList
+    property bool isChanged: false
 
     ColumnLayout {
         id: mainLayout
@@ -46,11 +48,36 @@ PageStackItem {
             text: "Selected theme"
             Layout.fillWidth: true
 
-            SCombobox {}
+            SCombobox {
+                model: root.themeList
+            }
         }
 
         Item {
             Layout.fillHeight: true
+        }
+
+        RowLayout {
+            id: buttonsLayout
+
+            Layout.fillWidth: true
+
+            SButton {
+                id: saveButton
+                text: "Save"
+                autoWidth: true
+                Layout.fillWidth: true
+                disabled: !root.isChanged
+            }
+
+            SButton {
+                id: cancelButton
+                text: "Cancel"
+                autoWidth: true
+                Layout.fillWidth: true
+                type: SButton.ButtonType.Destructive
+                disabled: !root.isChanged
+            }
         }
     }
 }

@@ -45,11 +45,9 @@ void include_watch_directory(QFileSystemWatcher *fw, const QString &path) {
 void init_live_reload(QQmlApplicationEngine *engine,
                       const QString &initialPage) {
   QFileSystemWatcher *w = new QFileSystemWatcher();
-  include_watch_directory(w, "/qml");
-  include_watch_directory(w, "/components");
-  include_watch_directory(w, "/singletons");
+  include_watch_directory(w, "");
 
-  QUrl mainPath = QUrl::fromLocalFile(SOURCE_DIR + QString("/qml/App.qml"));
+  QUrl mainPath = QUrl::fromLocalFile(SOURCE_DIR + QString("/App.qml"));
 
   QTimer *debounce = new QTimer();
   debounce->setSingleShot(true);

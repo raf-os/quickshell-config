@@ -4,6 +4,7 @@
 #include <qdebug.h>
 #include <qdir.h>
 #include <qdiriterator.h>
+#include <qfileinfo.h>
 #include <qfilesystemwatcher.h>
 #include <qhashfunctions.h>
 #include <qjsonarray.h>
@@ -64,6 +65,8 @@ void Colors::setThemeName(const QString &name) {
   loadConfig();
 }
 
+QList<QString> Colors::themeList() const { return m_themeDb; }
+
 QDir Colors::checkConfigPath() {
   auto dir = QDir(m_configPath + "/themes");
   if (!dir.exists()) {
@@ -74,14 +77,21 @@ QDir Colors::checkConfigPath() {
 
 void Colors::buildThemeDb() {
   auto dir = checkConfigPath();
+  QList<QString> newDb;
 
-  m_themeDb.clear();
-  m_themeDb.append("default");
+  // m_themeDb.clear();
+  newDb.append("default");
 
   QDirIterator it(dir.canonicalPath(), {"*.json"}, QDir::Files);
   while (it.hasNext()) {
-    QFile f(it.next());
-    m_themeDb.append(f.fileName());
+    QFileInfo f(it.next());
+    if (!newDb.contains(f.baseName()))
+      newDb.append(f.baseName());
+  }
+
+  if (newDb != m_themeDb) {
+    m_themeDb = newDb;
+    emit themeListChanged();
   }
 }
 
