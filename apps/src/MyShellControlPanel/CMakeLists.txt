@@ -25,6 +25,7 @@ function(cp_add_module arg_TARGET)
 endfunction()
 
 add_subdirectory(qml/MyShellControlPanel)
+add_subdirectory(plugin)
 
 set_target_properties(myshell_control_panel
   PROPERTIES
@@ -45,6 +46,7 @@ target_link_libraries(myshell_control_panel
       panel_components
       panel_singletons
       panel_pages
+      panel_plugin
       Qt::Core
       Qt::Qml
       Qt::Gui
