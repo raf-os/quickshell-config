@@ -39,7 +39,7 @@ Item {
         const ch = childAt(x, root.height / 2);
         if (ch?.name === "leftContent" || ch?.name === "midContent") {
             const angleDir = Math.sign(angleDelta.y);
-            Hyprland.dispatch(`workspace m${angleDir > 0 ? "-1" : "+1"}`);
+            Hyprland.dispatch(`hl.dsp.focus({ workspace = "m${angleDir > 0 ? "-1" : "+1"}" })`);
         }
     }
 

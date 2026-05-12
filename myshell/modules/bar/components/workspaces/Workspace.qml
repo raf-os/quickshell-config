@@ -39,7 +39,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
 
         onClicked: event => {
-            Hyprland.dispatch(`workspace ${root.modelData}`);
+            Hyprland.dispatch(`hl.dsp.focus({ workspace = ${root.modelData} })`);
         }
     }
 
