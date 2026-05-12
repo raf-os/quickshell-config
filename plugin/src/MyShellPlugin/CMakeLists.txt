@@ -4,6 +4,7 @@ find_package(Qt6 REQUIRED COMPONENTS
   Gui
   Quick
   Sql
+  Network
   DBus
 )
 
@@ -85,6 +86,7 @@ qml_module(myshell
     Qt::Quick
     Qt::Sql
     Qt::DBus
+    Qt::Network
     rapidfuzz::rapidfuzz
     LibXml2::LibXml2
     nm_dbus

@@ -1,6 +1,7 @@
 #include "hypr.h"
 #include "kbd.h"
 
+#include <algorithm>
 #include <hyprlang.hpp>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
@@ -13,11 +14,13 @@
 #include <qjsonparseerror.h>
 #include <qjsonvalue.h>
 #include <qlist.h>
+#include <qlocalsocket.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qprocess.h>
 #include <qqmllist.h>
 #include <qstringview.h>
+#include <qtenvironmentvariables.h>
 #include <qtimer.h>
 #include <string>
 
@@ -226,11 +229,43 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
 
   m_inputConfig = new HyprInputConfig(this);
 
+  m_socket = new QLocalSocket(this);
+
+  QObject::connect(m_socket, &QLocalSocket::readyRead, this,
+                   &HyprExtras::onSocketReadyRead);
+
   QObject::connect(m_inputConfig, &HyprInputConfig::fileBufferReadyToWrite,
                    this, [this]() { this->saveInputConfig(); });
+
+  connectSocket();
 }
 
 HyprExtras::~HyprExtras() = default;
+
+void HyprExtras::connectSocket() {
+  m_socket->connectToServer(getHyprSocketPath(), QLocalSocket::ReadOnly);
+  qInfo() << "myqmlplugin::HyprExtras: Connected to hyprland socket2.";
+}
+
+void HyprExtras::onSocketReadyRead() {
+  m_socketBuf += QString::fromUtf8(m_socket->readAll());
+
+  while (m_socketBuf.contains('\n')) {
+    const int newLine = m_socketBuf.indexOf('\n');
+    const QString line = m_socketBuf.left(newLine).trimmed();
+    m_socketBuf = m_socketBuf.mid(newLine + 1);
+
+    if (line.isEmpty())
+      continue;
+
+    const int sep = line.indexOf(">>");
+    if (sep == -1)
+      continue;
+
+    const QString event = line.left(sep);
+    const QString data = line.mid(sep + 2);
+  }
+}
 
 /**
  * Holds the pointer to the current config instance momentarily
@@ -265,6 +300,15 @@ void HyprExtras::setIsSaving(bool val) {
   if (m_isSavingFlag != val) {
     m_isSavingFlag = val;
     emit isSavingChanged();
+  }
+}
+
+bool HyprExtras::useLuaConfig() const { return m_useLuaConfig; }
+
+void HyprExtras::setUseLuaConfig(bool useLua) {
+  if (m_useLuaConfig != useLua) {
+    m_useLuaConfig = useLua;
+    emit useLuaConfigChanged();
   }
 }
 
@@ -410,7 +454,91 @@ void HyprExtras::parseProcessData() {
   }
 }
 
-void HyprExtras::initConfigParse() { hyprlangParse(); }
+void HyprExtras::queryHyprInputConfigs() {
+  if (m_hyprInputQueryProcess != nullptr) {
+    if (m_hyprInputQueryProcess->state() != QProcess::NotRunning) {
+      return;
+    }
+  } else {
+    m_hyprInputQueryProcess = new QProcess(this);
+  }
+
+  if (!m_hyprInputQueryDebouncer) {
+    m_hyprInputQueryDebouncer = new QTimer();
+    m_hyprInputQueryDebouncer->setSingleShot(true);
+    m_hyprInputQueryDebouncer->setInterval(100);
+  }
+
+  m_hyprInputQueryProcess->setProgram("hyprctl");
+  m_hyprInputQueryProcess->setArguments(
+      {"-j", "--batch",
+       "getoption input.kb_layout;getoption input.kb_variant;getoption "
+       "input.kb_model;getoption input.kb_options;getoption input.kb_rules"});
+
+  QObject::connect(
+      m_hyprInputQueryProcess, &QProcess::finished, this, [this]() {
+        auto buf = m_hyprInputQueryProcess->readAllStandardOutput();
+        parseHyprInputConfigs(buf);
+      });
+
+  QObject::connect(m_hyprInputQueryDebouncer, &QTimer::timeout, [this]() {
+    if (m_hyprInputQueryProcess) {
+      if (m_hyprInputQueryProcess->state() == QProcess::NotRunning) {
+        m_hyprInputQueryProcess->start();
+      }
+    }
+  });
+
+  m_hyprInputQueryDebouncer->start();
+}
+
+void HyprExtras::parseHyprInputConfigs(QByteArray &buf) {
+  if (buf.size() == 0)
+    return;
+
+  QStringList layoutBuf;
+  QStringList variantsBuf;
+  QString modelBuf;
+  QString optBuf;
+  QString rulesBuf;
+
+  auto cmdstr = QString::fromUtf8(buf).trimmed().split("\n\n\n");
+  for (const auto line : cmdstr) {
+    auto jDoc = QJsonDocument::fromJson(line.toLocal8Bit());
+    if (jDoc.isObject()) {
+      QJsonObject obj = jDoc.object();
+      auto optName = obj["option"].toString("");
+      if (optName == "input.kb_layout") {
+        layoutBuf = obj["str"].toString("us").trimmed().split(",");
+      } else if (optName == "input.kb_variants") {
+        variantsBuf = obj["str"].toString().trimmed().split(",");
+      } else if (optName == "input.kb_model") {
+        modelBuf = obj["str"].toString().trimmed();
+      } else if (optName == "input.kb_options") {
+        optBuf = obj["str"].toString().trimmed();
+      } else if (optName == "input.kb_rules") {
+        rulesBuf = obj["str"].toString().trimmed();
+      }
+    }
+  }
+
+  if (layoutBuf.size() > 1) {
+    if ((variantsBuf.length() > 1 ||
+         (variantsBuf.length() == 1 && variantsBuf.at(0) != "")) &&
+        layoutBuf.length() != variantsBuf.length()) {
+      qWarning() << "myqmlplugin::HyprExtras::parseHyprInputConfigs: Invalid "
+                    "input config detected.";
+      return;
+    }
+  }
+
+  m_inputConfig->setLayouts(layoutBuf, variantsBuf);
+  m_inputConfig->setKbModel(modelBuf);
+  m_inputConfig->setKbOptions(optBuf);
+  m_inputConfig->setKbRules(rulesBuf);
+}
+
+void HyprExtras::initConfigParse() { queryHyprInputConfigs(); }
 
 void HyprExtras::hyprlangParse() {
   if (m_configPath == "")
@@ -475,6 +603,10 @@ void HyprExtras::hyprlangParse() {
   HyprExtras::s_hyprlangConfig = nullptr;
 
   saveDataToCache();
+}
+
+void HyprExtras::hyprlangLuaParse() {
+  QString cfgPath = m_configPath + "/hyprland.lua";
 }
 
 void HyprExtras::writeInputConfigToFile() {
@@ -554,5 +686,11 @@ void HyprExtras::saveDataToCache() {
   out << jDoc.toJson(QJsonDocument::Compact);
 
   file.close();
+}
+
+QString HyprExtras::getHyprSocketPath() {
+  const QString runtimeDir = qEnvironmentVariable("XDG_RUNTIME_DIR");
+  const QString his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
+  return QString("%1/hypr/%2/.socket2.sock").arg(runtimeDir, his);
 }
 } // namespace myqmlplugin

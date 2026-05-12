@@ -5,10 +5,12 @@
 #include <qcontainerfwd.h>
 #include <qglobalstatic.h>
 #include <qlist.h>
+#include <qlocalsocket.h>
 #include <qobject.h>
 #include <qprocess.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
+#include <qstringview.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>
 
@@ -101,6 +103,8 @@ class HyprExtras : public QObject {
   QML_ELEMENT
 
   Q_PROPERTY(bool isSaving READ isSaving NOTIFY isSavingChanged)
+  Q_PROPERTY(bool useLuaConfig READ useLuaConfig WRITE setUseLuaConfig NOTIFY
+                 useLuaConfigChanged)
   Q_PROPERTY(
       int kbdLayoutIndex READ kbdLayoutIndex NOTIFY kbdLayoutIndexChanged)
   Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY
@@ -124,6 +128,9 @@ public:
   [[nodiscard]] QString configPath() const;
   void setConfigPath(const QString &path);
 
+  [[nodiscard]] bool useLuaConfig() const;
+  void setUseLuaConfig(bool useLua);
+
   [[nodiscard]] QString shellConfigPath() const;
   void setShellConfigPath(const QString &path);
 
@@ -139,6 +146,7 @@ public:
   [[nodiscard]] myqmlplugin::HyprInputConfig *inputConfig() const;
 
   void hyprlangParse();
+  void hyprlangLuaParse();
   void parseInputConfig();
   void queryCurrentDevices();
 
@@ -158,13 +166,22 @@ signals:
   void keyboardLayoutHandlerChanged();
   void kbdLayoutIndexChanged();
   void inputConfigChanged();
+  void useLuaConfigChanged();
 
   void inputConfigSaved();
 
+private slots:
+  void onSocketReadyRead();
+
 private:
+  QLocalSocket *m_socket;
+  QString m_socketBuf;
   bool m_isSavingFlag;
+  bool m_useLuaConfig = true;
   QTimer *m_lookupCooldownTimer = nullptr;
+  QTimer *m_hyprInputQueryDebouncer = nullptr;
   QProcess *m_inputQueryProcess = nullptr;
+  QProcess *m_hyprInputQueryProcess = nullptr;
   QByteArray m_ipProcessBuffer;
   int m_kbLayoutIndex = 0;
   QString m_configPath;
@@ -177,6 +194,10 @@ private:
   void saveInputConfig();
   void setIsSaving(bool val);
   void saveDataToCache();
+  void queryHyprInputConfigs();
+  void parseHyprInputConfigs(QByteArray &buf);
+  QString getHyprSocketPath();
+  void connectSocket();
 };
 
 // Juuuuust to be sure
