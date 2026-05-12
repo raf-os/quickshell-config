@@ -79,6 +79,7 @@ qml_module(myshell
     cmdhandler.h cmdhandler.cpp
     kbd.h kbd.cpp
     hypr.h hypr.cpp
+    hyprevents.h hyprevents.cpp
     networkservice.h networkservice.cpp
     colors.h colors.cpp
   LIBRARIES

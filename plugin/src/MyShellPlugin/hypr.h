@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hyprevents.h"
 #include "kbd.h"
 #include <hyprlang.hpp>
 #include <qcontainerfwd.h>
@@ -170,12 +171,8 @@ signals:
 
   void inputConfigSaved();
 
-private slots:
-  void onSocketReadyRead();
-
 private:
-  QLocalSocket *m_socket;
-  QString m_socketBuf;
+  HyprEvents *m_hyprEvents = nullptr;
   bool m_isSavingFlag;
   bool m_useLuaConfig = true;
   QTimer *m_lookupCooldownTimer = nullptr;
@@ -196,8 +193,6 @@ private:
   void saveDataToCache();
   void queryHyprInputConfigs();
   void parseHyprInputConfigs(QByteArray &buf);
-  QString getHyprSocketPath();
-  void connectSocket();
 };
 
 // Juuuuust to be sure

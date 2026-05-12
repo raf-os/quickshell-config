@@ -229,43 +229,11 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
 
   m_inputConfig = new HyprInputConfig(this);
 
-  m_socket = new QLocalSocket(this);
-
-  QObject::connect(m_socket, &QLocalSocket::readyRead, this,
-                   &HyprExtras::onSocketReadyRead);
-
   QObject::connect(m_inputConfig, &HyprInputConfig::fileBufferReadyToWrite,
                    this, [this]() { this->saveInputConfig(); });
-
-  connectSocket();
 }
 
 HyprExtras::~HyprExtras() = default;
-
-void HyprExtras::connectSocket() {
-  m_socket->connectToServer(getHyprSocketPath(), QLocalSocket::ReadOnly);
-  qInfo() << "myqmlplugin::HyprExtras: Connected to hyprland socket2.";
-}
-
-void HyprExtras::onSocketReadyRead() {
-  m_socketBuf += QString::fromUtf8(m_socket->readAll());
-
-  while (m_socketBuf.contains('\n')) {
-    const int newLine = m_socketBuf.indexOf('\n');
-    const QString line = m_socketBuf.left(newLine).trimmed();
-    m_socketBuf = m_socketBuf.mid(newLine + 1);
-
-    if (line.isEmpty())
-      continue;
-
-    const int sep = line.indexOf(">>");
-    if (sep == -1)
-      continue;
-
-    const QString event = line.left(sep);
-    const QString data = line.mid(sep + 2);
-  }
-}
 
 /**
  * Holds the pointer to the current config instance momentarily
@@ -686,11 +654,5 @@ void HyprExtras::saveDataToCache() {
   out << jDoc.toJson(QJsonDocument::Compact);
 
   file.close();
-}
-
-QString HyprExtras::getHyprSocketPath() {
-  const QString runtimeDir = qEnvironmentVariable("XDG_RUNTIME_DIR");
-  const QString his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
-  return QString("%1/hypr/%2/.socket2.sock").arg(runtimeDir, his);
 }
 } // namespace myqmlplugin
