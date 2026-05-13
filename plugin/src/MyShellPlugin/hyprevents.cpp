@@ -27,6 +27,12 @@ void HyprEvents::connectSocket() {
   m_socket->connectToServer(socketPath(), QLocalSocket::ReadOnly);
 }
 
+void HyprEvents::disconnectSocket() {
+  if (m_socket->state() != QLocalSocket::UnconnectedState) {
+    m_socket->disconnectFromServer();
+  }
+}
+
 void HyprEvents::onReadyRead() {
   m_buffer += QString::fromUtf8(m_socket->readAll());
 

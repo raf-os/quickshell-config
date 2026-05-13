@@ -8,6 +8,7 @@ namespace myqmlplugin {
 class HyprEvents : public QObject {
   Q_OBJECT
   QML_ELEMENT
+  QML_UNCREATABLE("")
 
 public:
   explicit HyprEvents(QObject *parent = nullptr);
@@ -15,6 +16,7 @@ public:
 
   [[nodiscard]] QString socketPath();
   void connectSocket();
+  void disconnectSocket();
 
 private slots:
   void onReadyRead();

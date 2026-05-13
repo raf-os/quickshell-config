@@ -2,7 +2,6 @@
 
 #include "hyprevents.h"
 #include "kbd.h"
-#include <hyprlang.hpp>
 #include <qcontainerfwd.h>
 #include <qglobalstatic.h>
 #include <qlist.h>
@@ -104,8 +103,6 @@ class HyprExtras : public QObject {
   QML_ELEMENT
 
   Q_PROPERTY(bool isSaving READ isSaving NOTIFY isSavingChanged)
-  Q_PROPERTY(bool useLuaConfig READ useLuaConfig WRITE setUseLuaConfig NOTIFY
-                 useLuaConfigChanged)
   Q_PROPERTY(
       int kbdLayoutIndex READ kbdLayoutIndex NOTIFY kbdLayoutIndexChanged)
   Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY
@@ -129,9 +126,6 @@ public:
   [[nodiscard]] QString configPath() const;
   void setConfigPath(const QString &path);
 
-  [[nodiscard]] bool useLuaConfig() const;
-  void setUseLuaConfig(bool useLua);
-
   [[nodiscard]] QString shellConfigPath() const;
   void setShellConfigPath(const QString &path);
 
@@ -147,13 +141,8 @@ public:
   [[nodiscard]] myqmlplugin::HyprInputConfig *inputConfig() const;
 
   void hyprlangParse();
-  void hyprlangLuaParse();
   void parseInputConfig();
   void queryCurrentDevices();
-
-  static Hyprlang::CConfig *s_hyprlangConfig;
-  static Hyprlang::CParseResult hyprlangHandleSource(const char *COMMAND,
-                                                     const char *VALUE);
 
   Q_INVOKABLE void updateCurrentKeyboardConfig();
   Q_INVOKABLE void writeInputConfigToFile();
@@ -167,7 +156,6 @@ signals:
   void keyboardLayoutHandlerChanged();
   void kbdLayoutIndexChanged();
   void inputConfigChanged();
-  void useLuaConfigChanged();
 
   void inputConfigSaved();
 
@@ -193,15 +181,5 @@ private:
   void saveDataToCache();
   void queryHyprInputConfigs();
   void parseHyprInputConfigs(QByteArray &buf);
-};
-
-// Juuuuust to be sure
-struct HandlerGuard {
-  ~HandlerGuard() {
-    if (HyprExtras::s_hyprlangConfig != nullptr) {
-      HyprExtras::s_hyprlangConfig->unregisterHandler("scope");
-      HyprExtras::s_hyprlangConfig = nullptr;
-    }
-  }
 };
 } // namespace myqmlplugin
