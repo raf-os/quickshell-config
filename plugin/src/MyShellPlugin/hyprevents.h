@@ -10,9 +10,13 @@ class HyprEvents : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
+  Q_PROPERTY(bool isConnected READ isConnected NOTIFY isConnectedChanged)
+
 public:
   explicit HyprEvents(QObject *parent = nullptr);
   ~HyprEvents();
+
+  [[nodiscard]] bool isConnected() const;
 
   [[nodiscard]] QString socketPath();
   void connectSocket();
@@ -22,8 +26,15 @@ private slots:
   void onReadyRead();
   void onError(QLocalSocket::LocalSocketError error);
 
+signals:
+  void configReloaded();
+  void isConnectedChanged();
+
 private:
+  bool m_isConnected;
   QLocalSocket *m_socket = nullptr;
   QString m_buffer;
+
+  void dispatchEvent(const QString &event, const QString &data);
 };
 } // namespace myqmlplugin

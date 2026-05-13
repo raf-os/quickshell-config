@@ -1,4 +1,5 @@
 #include "hypr.h"
+#include "hyprevents.h"
 #include "kbd.h"
 
 #include <qcontainerfwd.h>
@@ -231,9 +232,15 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
 
   QObject::connect(m_inputConfig, &HyprInputConfig::fileBufferReadyToWrite,
                    this, [this]() { this->saveInputConfig(); });
+
+  m_hyprEvents = new HyprEvents(this);
+  m_hyprEvents->connectSocket();
+
+  QObject::connect(m_hyprEvents, &HyprEvents::configReloaded, this,
+                   &HyprExtras::queryHyprInputConfigs);
 }
 
-HyprExtras::~HyprExtras() = default;
+HyprExtras::~HyprExtras() { m_hyprEvents->disconnectSocket(); };
 
 int HyprExtras::kbdLayoutIndex() const { return m_kbLayoutIndex; }
 
@@ -388,6 +395,12 @@ void HyprExtras::parseProcessData() {
   }
 }
 
+/**
+ * Queries the current input configs from hyprland.
+ *
+ * The actual query is debounced as to not overload the compositor with several
+ * calls and hang up the entire system.
+ */
 void HyprExtras::queryHyprInputConfigs() {
   if (m_hyprInputQueryProcess != nullptr) {
     if (m_hyprInputQueryProcess->state() != QProcess::NotRunning) {
