@@ -1,7 +1,6 @@
 pragma Singleton
 
-import qs.utils
-import MyShellPlugin.Utils
+import MyShellPlugin.Utils as UT
 import Quickshell
 import Quickshell.Io
 import QtQuick
@@ -22,15 +21,15 @@ Singleton {
     function toggleGamemodeState() {
         checkGamemodeState(() => {
             root.isGameMode = !root.isGameMode;
-            Quickshell.execDetached(["sh", "-c", `echo ${root.isGameMode ? "true" : "false"} > ${Paths.state}/gamemode`]);
+            Quickshell.execDetached(["sh", "-c", `echo ${root.isGameMode ? "true" : "false"} > ${UT.Paths.state}/gamemode`]);
         });
     }
 
     function syncHyprlandGamemode(): void {
         if (!root.isGameMode) {
-            Quickshell.execDetached(["hyprctl", "reload"]);
+            Quickshell.execDetached(["sh", "-c", "hyprctl reload"]);
         } else {
-            Quickshell.execDetached(["hyprctl", "--batch", "keyword animations:enabled 0; " + "keyword decoration:shadow:enabled 0; " + "keyword decoration:blur:enabled 0; " + "keyword decoration:fullscreen_opacity 1; " + "keyword general:gaps_in 0; " + "keyword general:border_size 2; " + "keyword decoration:rounding 0"]);
+            Quickshell.execDetached(["sh", "-c", "hyprctl eval \"hl.config({general={border_size=2};decoration={rounding=0;blur={enabled=false};shadow={enabled=false}};animations={enabled=false}})\""]);
         }
     }
 
@@ -45,7 +44,7 @@ Singleton {
         property var callback: null
 
         running: true
-        command: ["cat", `${Paths.state}/gamemode`]
+        command: ["cat", `${UT.Paths.state}/gamemode`]
         stdout: StdioCollector {
             onStreamFinished: {
                 if (this.text.trim() === "true") {

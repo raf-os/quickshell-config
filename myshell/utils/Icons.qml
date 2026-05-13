@@ -1,6 +1,5 @@
 pragma Singleton
 
-import qs.config
 import Quickshell
 import QtQuick
 
@@ -14,15 +13,15 @@ Singleton {
         return Quickshell.iconPath(icon);
     }
 
-    function getAppCategoryIcon(name: string, fallback: string): string {
-        const categories = DesktopEntries.heuristicLookup(name)?.categories;
-
-        if (categories)
-            for (const [key, value] of Object.entries(categoryIcons))
-                if (categories.includes(key))
-                    return value;
-        return fallback;
-    }
+    // function getAppCategoryIcon(name: string, fallback: string): string {
+    //     const categories = DesktopEntries.heuristicLookup(name)?.categories;
+    //
+    //     if (categories)
+    //         for (const [key, value] of Object.entries(categoryIcons))
+    //             if (categories.includes(key))
+    //                 return value;
+    //     return fallback;
+    // }
 
     function getTrayIcon(id: string, icon: string): string {
         let parsedIcon = icon;
