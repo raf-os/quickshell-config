@@ -1,19 +1,19 @@
 pragma Singleton
 
-import MyShellPlugin
+import MyShellPlugin as MP
 import MyShellPlugin.Utils
 import QtQuick
 
 Item {
     id: root
 
-    readonly property list<HyprKeyboardLayout> inputLayouts: hyprExtras.inputConfig.layouts
+    readonly property list<MP.HyprKeyboardLayout> inputLayouts: hyprExtras.inputConfig.layouts
     readonly property int currentLayoutIndex: hyprExtras.kbdLayoutIndex
-    readonly property HyprKeyboardLayout currentLayout: inputLayouts[currentLayoutIndex]
+    readonly property MP.HyprKeyboardLayout currentLayout: inputLayouts[currentLayoutIndex]
 
-    readonly property list<KKeyboardLayout> allLayouts: keyboardLayoutHandler.layouts
+    readonly property list<MP.KKeyboardLayout> allLayouts: keyboardLayoutHandler.layouts
 
-    HyprExtras {
+    MP.HyprExtras {
         id: hyprExtras
         keyboardLayoutHandler: keyboardLayoutHandler
         configPath: `${Paths.home}/.config/hypr`
@@ -24,7 +24,9 @@ Item {
         }
     }
 
-    KeyboardLayoutHandler {
+    MP.KeyboardLayoutHandler {
         id: keyboardLayoutHandler
+
+        cachePath: Paths.cache
     }
 }

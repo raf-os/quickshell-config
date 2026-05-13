@@ -14,7 +14,7 @@ Item {
     property int expandedId: -1
 
     function toggleExpandById(id: int) {
-        if (id < 0 || id > Hypr.allLayouts.length) {
+        if (id < 0 || id > Hyprland.allLayouts.length) {
             expandedId = -1;
             return;
         }
@@ -39,7 +39,7 @@ Item {
 
         anchors.fill: parent
         anchors.margins: root.padding * 2
-        model: Hypr.allLayouts
+        model: Hyprland.allLayouts
 
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 5000
@@ -84,7 +84,7 @@ Item {
                     isInstalled = false;
                     return;
                 }
-                isInstalled = Hypr.inputLayouts.some(layout => modelData.name === layout.layout);
+                isInstalled = Hyprland.inputLayouts.some(layout => modelData.name === layout.layout);
             }
 
             onModelDataChanged: evalIsInstalled()
@@ -96,7 +96,7 @@ Item {
             }
 
             Connections {
-                target: Hypr
+                target: Hyprland
 
                 function onInputLayoutsChanged() {
                     kbd.evalIsInstalled();

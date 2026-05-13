@@ -9,7 +9,7 @@ Singleton {
     id: root
 
     readonly property list<MprisPlayer> playerList: Mpris.players.values
-    readonly property MprisPlayer currentActive: props.activeOverride ?? playerList.find(p => resolvePlayerAlias(p) === Config.media.defaultPlayer) ?? null
+    readonly property MprisPlayer currentActive: props.activeOverride ?? playerList.find(p => resolvePlayerAlias(p) === Config.media.defaultPlayer) ?? playerList[0] ?? null
     property alias activeOverride: props.activeOverride
 
     property bool triggerPositionUpdateFlag

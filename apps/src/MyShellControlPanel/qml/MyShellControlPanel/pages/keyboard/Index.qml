@@ -45,7 +45,7 @@ PageStackItem {
 
                 ListView {
                     id: layoutSelectList
-                    model: Hypr.inputLayouts
+                    model: Hyprland.inputLayouts
 
                     anchors.fill: parent
                     anchors.margins: lvWrapper.padding
@@ -59,7 +59,7 @@ PageStackItem {
                     delegate: Item {
                         id: kbLayout
                         required property HyprKeyboardLayout modelData
-                        readonly property bool isActive: Hypr.currentLayout?.layout === modelData?.layout ?? false
+                        readonly property bool isActive: Hyprland.currentLayout?.layout === modelData?.layout ?? false
 
                         implicitWidth: ListView.view ? ListView.view.width : 0
                         implicitHeight: layoutName.height

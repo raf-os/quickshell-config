@@ -114,8 +114,8 @@ class HyprExtras : public QObject {
   Q_PROPERTY(myqmlplugin::KeyboardLayoutHandler *keyboardLayoutHandler READ
                  keyboardLayoutHandler WRITE setKeyboardLayoutHandler NOTIFY
                      keyboardLayoutHandlerChanged REQUIRED)
-  Q_PROPERTY(myqmlplugin::HyprInputConfig *inputConfig READ inputConfig NOTIFY
-                 inputConfigChanged)
+  Q_PROPERTY(
+      myqmlplugin::HyprInputConfig *inputConfig READ inputConfig CONSTANT)
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
@@ -136,7 +136,7 @@ public:
 
   [[nodiscard]] myqmlplugin::KeyboardLayoutHandler *
   keyboardLayoutHandler() const;
-  void setKeyboardLayoutHandler(myqmlplugin::KeyboardLayoutHandler *kbh);
+  void setKeyboardLayoutHandler(KeyboardLayoutHandler *kbh);
 
   [[nodiscard]] myqmlplugin::HyprInputConfig *inputConfig() const;
 
@@ -155,7 +155,6 @@ signals:
   void cachePathChanged();
   void keyboardLayoutHandlerChanged();
   void kbdLayoutIndexChanged();
-  void inputConfigChanged();
 
   void inputConfigSaved();
 
@@ -172,7 +171,7 @@ private:
   QString m_configPath;
   QString m_shellConfigPath;
   QString m_cachePath;
-  HyprInputConfig *m_inputConfig;
+  HyprInputConfig *m_inputConfig = nullptr;
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();

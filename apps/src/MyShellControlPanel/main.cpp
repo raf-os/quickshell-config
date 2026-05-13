@@ -138,6 +138,8 @@ void iterateDirQml(const QDir &dir, QStringList *prefixList) {
       if (it.fileInfo().suffix() != "qml")
         continue;
       QString name = it.fileInfo().baseName();
+      if (dirName == "singletons")
+        name.prepend("singleton ");
       moduleLines << name + " 1.0 " + it.fileName();
     } else if (it.fileInfo().isDir()) {
       QStringList newPrefixList(*prefixList);

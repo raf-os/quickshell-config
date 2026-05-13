@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick)
 
 cp_add_module(panel_plugin
   URI MyShellControlPanel.plugin
@@ -9,4 +9,5 @@ cp_add_module(panel_plugin
 target_link_libraries(panel_plugin
   PRIVATE
     Qt::Core
+    Qt::Qml
     Qt::Quick)

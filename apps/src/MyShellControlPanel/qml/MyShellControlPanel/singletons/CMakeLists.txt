@@ -7,7 +7,7 @@ file(GLOB_RECURSE
   "${CMAKE_CURRENT_SOURCE_DIR}/*.qml")
 
 set(qml_singletons
-  Hypr.qml
+  Hyprland.qml
 )
 
 set_source_files_properties(${qml_singletons}
