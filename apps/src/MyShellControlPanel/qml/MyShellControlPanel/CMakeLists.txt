@@ -4,12 +4,12 @@ file(GLOB
   CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.qml")
 
+add_subdirectory(components)
+add_subdirectory(singletons)
+add_subdirectory(pages)
 
 cp_add_module(panel_root
   URI MyShellControlPanel
   QML_FILES
-    ${QML_FILES})
-
-add_subdirectory(components)
-add_subdirectory(singletons)
-add_subdirectory(pages)
+    ${QML_FILES}
+)

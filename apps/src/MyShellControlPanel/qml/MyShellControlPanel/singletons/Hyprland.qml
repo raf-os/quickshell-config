@@ -13,6 +13,12 @@ Item {
 
     readonly property list<MP.KKeyboardLayout> allLayouts: keyboardLayoutHandler.layouts
 
+    MP.KeyboardLayoutHandler {
+        id: keyboardLayoutHandler
+
+        cachePath: Paths.cache
+    }
+
     MP.HyprExtras {
         id: hyprExtras
         keyboardLayoutHandler: keyboardLayoutHandler
@@ -22,11 +28,5 @@ Item {
             initConfigParse();
             updateCurrentKeyboardConfig();
         }
-    }
-
-    MP.KeyboardLayoutHandler {
-        id: keyboardLayoutHandler
-
-        cachePath: Paths.cache
     }
 }

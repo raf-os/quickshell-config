@@ -1,5 +1,3 @@
-qt_add_library(panel_singletons SHARED)
-
 file(GLOB_RECURSE
   QML_COMPONENTS
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
