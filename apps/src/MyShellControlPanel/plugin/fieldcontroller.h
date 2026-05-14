@@ -11,12 +11,10 @@ namespace mscp {
 class FieldController : public QObject {
   Q_OBJECT
   QML_ELEMENT
+  QML_UNCREATABLE("")
 
-  Q_PROPERTY(QObject *controller READ controller WRITE setController NOTIFY
-                 controllerChanged)
-  Q_PROPERTY(
-      QVariant value READ value WRITE setValue NOTIFY valueChanged REQUIRED)
-  Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged REQUIRED)
+  Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
+  Q_PROPERTY(QString name READ name CONSTANT)
   Q_PROPERTY(QJSValue onValidation READ onValidation WRITE setOnValidation
                  NOTIFY validationChanged)
   Q_PROPERTY(QString validationError READ validationError NOTIFY
@@ -24,14 +22,12 @@ class FieldController : public QObject {
   Q_PROPERTY(bool isDirty READ isDirty WRITE setIsDirty NOTIFY isDirtyChanged)
 
 public:
-  explicit FieldController(QObject *parent = nullptr);
-  ~FieldController();
+  explicit FieldController(QObject *reference, const QString &name,
+                           const QVariant &initialValue,
+                           QObject *parent = nullptr);
 
   [[nodiscard]] QString validationError() const;
   void setValidationError(const QString &value);
-
-  [[nodiscard]] QObject *controller() const;
-  void setController(QObject *controller);
 
   [[nodiscard]] bool isDirty() const;
   void setIsDirty(const bool &value);
@@ -40,7 +36,6 @@ public:
   void setValue(const QVariant &value);
 
   [[nodiscard]] QString name() const;
-  void setName(const QString &value);
 
   [[nodiscard]] QJSValue onValidation() const;
   void setOnValidation(const QJSValue &value);
@@ -48,7 +43,6 @@ public:
   std::optional<QVariant> triggerValidation(bool *validationError = nullptr);
 
 signals:
-  void controllerChanged();
   void valueChanged();
   void nameChanged();
   void validationChanged();
@@ -56,7 +50,7 @@ signals:
   void isDirtyChanged();
 
 private:
-  QObject *m_controller = nullptr;
+  QObject *m_reference;
   QVariant m_value;
   QString m_name;
   QJSValue m_validator;

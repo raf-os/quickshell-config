@@ -1,36 +1,41 @@
 #include "fieldcontroller.h"
-#include "formcontroller.h"
+
 #include <optional>
 #include <qjsengine.h>
 #include <qjsvalue.h>
 #include <qlogging.h>
+#include <qmetaobject.h>
 #include <qobject.h>
+#include <qobjectdefs.h>
 #include <qsharedpointer.h>
 #include <qvariant.h>
 
 namespace mscp {
-FieldController::FieldController(QObject *parent) : QObject(parent) {}
+FieldController::FieldController(QObject *reference, const QString &name,
+                                 const QVariant &initialValue, QObject *parent)
+    : QObject(parent), m_reference(reference), m_name(name),
+      m_value(initialValue) {
+  auto mo = m_reference->metaObject();
+  auto mpidx = mo->indexOfProperty(m_name.toUtf8());
 
-FieldController::~FieldController() {
-  if (!m_controller)
+  if (mpidx == -1) {
+    qWarning() << "mscp::FormMetaModel: Can't find property " << m_name
+               << " on reference object!";
+    deleteLater();
     return;
-  auto cast = qobject_cast<FormController *>(m_controller);
-  if (cast) {
-    cast->unregisterField(this);
   }
-}
 
-QObject *FieldController::controller() const { return m_controller; }
+  auto mprop = mo->property(mpidx);
+  auto to = metaObject();
+  auto tprop = to->property(to->indexOfProperty("value"));
 
-void FieldController::setController(QObject *controller) {
-  auto cast = qobject_cast<FormController *>(controller);
-  if (cast && cast != m_controller) {
-    cast->registerField(this);
-    m_controller = cast;
-    QObject::connect(m_controller, &QObject::destroyed, this,
-                     [this] { deleteLater(); });
-    emit controllerChanged();
-  }
+  QObject::connect(m_reference, mprop.notifySignal(), this,
+                   tprop.notifySignal());
+
+  QObject::connect(m_reference, &QObject::destroyed, this, [this]() {
+    m_reference = nullptr;
+    deleteLater();
+  });
 }
 
 QVariant FieldController::value() const { return m_value; }
@@ -43,13 +48,6 @@ void FieldController::setValue(const QVariant &value) {
 }
 
 QString FieldController::name() const { return m_name; }
-
-void FieldController::setName(const QString &value) {
-  if (m_name != value) {
-    m_name = value;
-    emit nameChanged();
-  }
-}
 
 bool FieldController::isDirty() const { return m_isDirty; }
 

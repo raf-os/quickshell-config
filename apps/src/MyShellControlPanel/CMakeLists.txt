@@ -56,11 +56,11 @@ target_link_libraries(myshell_control_panel
       panel_root
       panel_components
       panel_pages
+      panel_plugin
       Qt::Core
       Qt::Qml
       Qt::Gui
       Qt::Quick)
-
 
 install(TARGETS myshell_control_panel
     BUNDLE DESTINATION .

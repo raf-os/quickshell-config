@@ -1,7 +1,8 @@
 pragma Singleton
 
+import MyShellControlPanel.singletons
 import MyShellPlugin as MP
-import MyShellPlugin.Utils
+import MyShellPlugin.Utils as MPUT
 import QtQuick
 
 Item {
@@ -9,20 +10,14 @@ Item {
 
     readonly property list<MP.HyprKeyboardLayout> inputLayouts: hyprExtras.inputConfig.layouts
     readonly property int currentLayoutIndex: hyprExtras.kbdLayoutIndex
-    readonly property MP.HyprKeyboardLayout currentLayout: inputLayouts[currentLayoutIndex]
+    readonly property MP.HyprKeyboardLayout currentLayout: inputLayouts[currentLayoutIndex] ?? null
 
-    readonly property list<MP.KKeyboardLayout> allLayouts: keyboardLayoutHandler.layouts
-
-    MP.KeyboardLayoutHandler {
-        id: keyboardLayoutHandler
-
-        cachePath: Paths.cache
-    }
+    readonly property list<MP.KKeyboardLayout> allLayouts: KbdLayoutHandler.handler.layouts
 
     MP.HyprExtras {
         id: hyprExtras
-        keyboardLayoutHandler: keyboardLayoutHandler
-        configPath: `${Paths.home}/.config/hypr`
+        keyboardLayoutHandler: KbdLayoutHandler.handler
+        configPath: `${MPUT.Paths.home}/.config/hypr`
 
         Component.onCompleted: {
             initConfigParse();
