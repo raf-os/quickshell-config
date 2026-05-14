@@ -13,6 +13,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpointer.h>
+#include <qqmlabstracturlinterceptor.h>
 #include <qqmlapplicationengine.h>
 #include <qqmlcomponent.h>
 #include <qquickitem.h>
@@ -162,6 +163,24 @@ void iterateDirQml(const QDir &dir, QStringList *prefixList) {
     file.close();
   }
 }
+
+class DevUrlInterceptor : public QQmlAbstractUrlInterceptor {
+public:
+  QUrl intercept(const QUrl &url, DataType type) override {
+    if (url.scheme() == "qrc") {
+      QString sourcePath = url.path();
+      if (sourcePath.startsWith("/qt/qml/MyShellControlPanel/singletons/")) {
+        const auto sidx = sourcePath.indexOf("/singletons/");
+        sourcePath.slice(sidx);
+        QUrl fileUrl = QUrl::fromLocalFile(SOURCE_DIR + sourcePath);
+        if (QFile::exists(fileUrl.toLocalFile())) {
+          return fileUrl;
+        }
+      }
+    }
+    return url;
+  }
+};
 #endif // DEBUG
 
 int main(int argc, char *argv[]) {
@@ -178,6 +197,11 @@ int main(int argc, char *argv[]) {
   QString initialPage = parser.value(initialPageOption);
 
   QQmlApplicationEngine engine;
+
+#ifdef DEBUG
+  engine.addUrlInterceptor(new DevUrlInterceptor);
+#endif // DEBUG
+
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
       []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
