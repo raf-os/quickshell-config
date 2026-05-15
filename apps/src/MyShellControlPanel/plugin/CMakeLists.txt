@@ -5,4 +5,10 @@ cp_add_module(panel_plugin
   SOURCES
     formcontroller.h formcontroller.cpp
     fieldcontroller.h fieldcontroller.cpp
+  LIBRARIES
+    Qt::Core
+    Qt::Qml
+    Qt::Quick
+    myshell_configs
+    myshell_interfaces
 )

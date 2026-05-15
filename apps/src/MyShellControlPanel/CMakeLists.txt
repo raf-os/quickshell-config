@@ -13,7 +13,7 @@ qt_add_executable(myshell_control_panel
     main.cpp)
 
 function(cp_add_module arg_TARGET)
-  cmake_parse_arguments(PARSE_ARGV 1 arg "" "URI" "QML_FILES;SOURCES")
+  cmake_parse_arguments(PARSE_ARGV 1 arg "" "URI" "QML_FILES;SOURCES;LIBRARIES")
 
   string(REPLACE "." "/" URI_PATH ${arg_URI})
 
@@ -24,6 +24,10 @@ function(cp_add_module arg_TARGET)
     OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml/${URI_PATH}"
     QML_FILES ${arg_QML_FILES}
     SOURCES ${arg_SOURCES})
+
+  target_link_libraries(${arg_TARGET}
+    PRIVATE
+      ${arg_LIBRARIES})
 
   target_link_libraries(myshell_control_panel
     PRIVATE
@@ -44,7 +48,7 @@ set_target_properties(myshell_control_panel
 )
 
 target_compile_definitions(myshell_control_panel PRIVATE
-  SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml/MyShellControlPanel")
+  SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml")
 
 if(DEVMODE)
   target_compile_definitions(myshell_control_panel PRIVATE DEBUG)

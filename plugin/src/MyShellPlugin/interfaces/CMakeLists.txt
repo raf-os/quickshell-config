@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus)
 find_program(XMLLINT xmllint)
 
 if(XMLLINT)
@@ -18,10 +18,15 @@ qt_add_dbus_interface(NM_GENERATED_SOURCES
   org.freedesktop.NetworkManager.xml
   nm_interface)
 
-add_library(nm_dbus STATIC ${NM_GENERATED_SOURCES})
+add_library(myshell_interfaces
+  STATIC
+    ${NM_GENERATED_SOURCES}
+    iconfigserializer.h
+)
 
-set_target_properties(nm_dbus PROPERTIES
+set_target_properties(myshell_interfaces PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
-target_include_directories(nm_dbus PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(myshell_interfaces
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(nm_dbus PRIVATE Qt6::DBus)
+target_link_libraries(myshell_interfaces PRIVATE Qt6::Core Qt6::DBus)

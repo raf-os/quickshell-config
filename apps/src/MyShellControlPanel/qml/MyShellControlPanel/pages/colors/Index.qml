@@ -3,6 +3,8 @@ pragma ComponentBehavior: Bound
 import MyShellPlugin
 import MyShellPlugin.Configs
 import MyShellControlPanel.components
+import MyShellControlPanel.components.forms
+import MyShellControlPanel.plugin
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
@@ -16,10 +18,21 @@ PageStackItem {
     readonly property list<string> themeList: Colors.themeList
     property bool isChanged: false
 
+    sizeReference: mainLayout
+
+    Item {
+        FormController {
+            id: formController
+            model: Colors.colors // qmllint disable missing-type
+        }
+    }
+
     ColumnLayout {
         id: mainLayout
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
 
         spacing: Config.appearance.spacing.md
 
@@ -50,6 +63,25 @@ PageStackItem {
 
             SCombobox {
                 model: root.themeList
+            }
+        }
+
+        GridLayout {
+            columns: 2
+
+            uniformCellWidths: true
+
+            Layout.fillWidth: true
+
+            Repeater {
+                model: formController.fields
+
+                delegate: ColorSelector {
+                    required property FieldController modelData
+
+                    name: modelData.name
+                    selectedColor: modelData.value
+                }
             }
         }
 

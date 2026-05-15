@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cserializable.h"
 #include "fieldcontroller.h"
 #include <qlist.h>
 #include <qobject.h>
@@ -13,18 +14,18 @@ class FormController : public QObject {
   Q_OBJECT
   QML_ELEMENT
 
-  Q_PROPERTY(
-      QObject *model READ model WRITE setModel NOTIFY modelChanged REQUIRED)
-  Q_PROPERTY(
-      QQmlListProperty<FieldController> fields READ fields NOTIFY fieldsChanged)
+  Q_PROPERTY(myqmlplugin::configs::CSerializable *model READ model WRITE
+                 setModel NOTIFY modelChanged REQUIRED)
+  Q_PROPERTY(QQmlListProperty<mscp::FieldController> fields READ fields NOTIFY
+                 fieldsChanged)
   Q_PROPERTY(
       bool validationError READ validationError NOTIFY validationErrorChanged)
 
 public:
   explicit FormController(QObject *parent = nullptr);
 
-  [[nodiscard]] QObject *model() const;
-  void setModel(QObject *model);
+  [[nodiscard]] myqmlplugin::configs::CSerializable *model() const;
+  void setModel(myqmlplugin::configs::CSerializable *model);
 
   [[nodiscard]] bool validationError() const;
 
@@ -41,7 +42,7 @@ signals:
 private:
   QList<FieldController *> m_fields;
   bool m_validationError;
-  QObject *m_model = nullptr;
+  myqmlplugin::configs::CSerializable *m_model = nullptr;
 
   void modelParseProperties();
 };

@@ -185,6 +185,8 @@ void Colors::loadConfig() {
   }
 }
 
+void Colors::commitSave() { saveConfig(); }
+
 void Colors::saveConfig() { writeConfigToPath(m_themeName); }
 
 void Colors::resetConfigs() {

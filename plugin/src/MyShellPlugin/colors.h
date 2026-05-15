@@ -9,12 +9,14 @@
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
+#include "cserializable.h"
+#include "iconfigserializer.h"
 #include "paths.h"
 #include "propertymacros.h"
 
 namespace myqmlplugin {
 namespace configs {
-class ColorConfigMetadata : public QObject {
+class ColorConfigMetadata : public myqmlplugin::configs::CSerializable {
   Q_OBJECT
   QML_ELEMENT
   QML_UNCREATABLE("")
@@ -24,10 +26,11 @@ class ColorConfigMetadata : public QObject {
   AUTO_PROP_DEFAULT(QString, version, "1.0")
 
 public:
-  explicit ColorConfigMetadata(QObject *parent = nullptr) : QObject(parent) {}
+  explicit ColorConfigMetadata(QObject *parent = nullptr)
+      : CSerializable(parent) {}
 };
 
-class ColorConfigColors : public QObject {
+class ColorConfigColors : public myqmlplugin::configs::CSerializable {
   Q_OBJECT
   QML_ELEMENT
   QML_UNCREATABLE("")
@@ -55,16 +58,18 @@ class ColorConfigColors : public QObject {
   AUTO_PROP_DEFAULT(QColor, emphasisFavorite, "#efe302")
 
 public:
-  explicit ColorConfigColors(QObject *parent = nullptr) : QObject(parent) {}
+  explicit ColorConfigColors(QObject *parent = nullptr)
+      : CSerializable(parent) {}
 };
 } // namespace configs
 } // namespace myqmlplugin
 
 namespace myqmlplugin {
-class Colors : public QObject {
+class Colors : public QObject, public configs::IConfigSerializer {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
+  Q_INTERFACES(myqmlplugin::configs::IConfigSerializer)
 
   Q_PROPERTY(myqmlplugin::configs::ColorConfigMetadata *metadata READ metadata
                  NOTIFY metadataChanged)
@@ -94,6 +99,8 @@ public:
 
   Q_INVOKABLE void loadConfig();
   Q_INVOKABLE void saveConfig();
+
+  void commitSave() override;
 
 signals:
   void metadataChanged();

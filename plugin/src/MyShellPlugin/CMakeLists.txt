@@ -87,7 +87,7 @@ qml_module(myshell
     Qt::Network
     rapidfuzz::rapidfuzz
     LibXml2::LibXml2
-    nm_dbus
+    myshell_interfaces
     myshell_include
     myshell_utils
     myshell_configs

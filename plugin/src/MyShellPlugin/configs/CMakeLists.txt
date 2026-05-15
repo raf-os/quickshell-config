@@ -2,7 +2,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 
 add_library(myshell_configs
   STATIC
-    config.h config.cpp)
+    config.h config.cpp
+    cserializable.h)
 
 set_target_properties(myshell_configs PROPERTIES
   POSITION_INDEPENDENT_CODE ON)

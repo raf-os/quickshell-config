@@ -48,7 +48,8 @@ void init_live_reload(QQmlApplicationEngine *engine,
   QFileSystemWatcher *w = new QFileSystemWatcher();
   include_watch_directory(w, "");
 
-  QUrl mainPath = QUrl::fromLocalFile(SOURCE_DIR + QString("/App.qml"));
+  QUrl mainPath =
+      QUrl::fromLocalFile(SOURCE_DIR + QString("/MyShellControlPanel/App.qml"));
 
   QTimer *debounce = new QTimer();
   debounce->setSingleShot(true);
@@ -215,7 +216,8 @@ int main(int argc, char *argv[]) {
   QStringList prefixList;
   iterateDirQml(QDir(SOURCE_DIR), &prefixList);
   engine.addImportPath(SOURCE_DIR);
-  engine.load(QUrl::fromLocalFile(SOURCE_DIR + QString("/Main.qml")));
+  engine.load(QUrl::fromLocalFile(SOURCE_DIR +
+                                  QString("/MyShellControlPanel/Main.qml")));
   init_live_reload(&engine, initialPage);
 #else
   engine.loadFromModule("MyShellControlPanel", "Main");

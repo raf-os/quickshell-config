@@ -1,10 +1,14 @@
 #include "formcontroller.h"
+#include "cserializable.h"
 #include "fieldcontroller.h"
+#include "iconfigserializer.h"
+
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmetaobject.h>
 #include <qobject.h>
 #include <qqmllist.h>
+#include <qsharedpointer.h>
 #include <qvariant.h>
 #include <utility>
 
@@ -28,6 +32,12 @@ void FormController::modelParseProperties() {
     auto prop = metaObject->property(i);
 
     if (!prop.isReadable())
+      continue;
+
+    QMetaType metaType = prop.metaType();
+
+    // Skip nested objects
+    if (metaType.flags().testFlag(QMetaType::PointerToQObject))
       continue;
 
     auto propName = prop.name();
@@ -54,9 +64,11 @@ void FormController::modelParseProperties() {
 
 bool FormController::validationError() const { return m_validationError; }
 
-QObject *FormController::model() const { return m_model; }
+myqmlplugin::configs::CSerializable *FormController::model() const {
+  return m_model;
+}
 
-void FormController::setModel(QObject *model) {
+void FormController::setModel(myqmlplugin::configs::CSerializable *model) {
   if (m_model != model) {
     m_model = model;
     emit modelChanged();
@@ -97,7 +109,6 @@ void FormController::validate() {
       if (prop.isWritable()) {
         assignments.append(
             std::make_pair(std::move(prop), std::move(result.value())));
-        // prop.write(m_model, std::move(result.value()));
       }
     }
   }
@@ -114,6 +125,12 @@ void FormController::validate() {
     for (const auto assignment : assignments) {
       assignment.first.write(m_model, std::move(assignment.second));
     }
+  }
+
+  auto root = m_model->getRoot();
+
+  if (auto s = qobject_cast<myqmlplugin::configs::IConfigSerializer *>(root)) {
+    s->commitSave();
   }
 
   emit validationComplete();

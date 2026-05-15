@@ -24,7 +24,7 @@ foreach(X ${MODULE_PAGES})
     QML_FILES
       ${QML_COMPONENTS}
   )
-  target_link_libraries(panel_pages
-    PRIVATE
-      "panel_pages_${X}")
+  # target_link_libraries(panel_pages
+  #   PRIVATE
+  #     "panel_pages_${X}")
 endforeach()
