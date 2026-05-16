@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "cserializable.h"
+
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
@@ -8,15 +10,15 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ KeyMapConfig ]]
-class KeyMapConfig : public QObject {
+class KeyMapConfig : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged RESET resetEnabled BINDABLE bindableEnabled)
+	Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged BINDABLE bindableEnabled RESET resetEnabled WRITE setEnabled)
 
 public:
-	explicit KeyMapConfig(QObject *parent = nullptr);
+	explicit KeyMapConfig(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);

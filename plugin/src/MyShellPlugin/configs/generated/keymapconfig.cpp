@@ -8,7 +8,7 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ KeyMapConfig ]]
-KeyMapConfig::KeyMapConfig(QObject *parent): QObject(parent) {}
+KeyMapConfig::KeyMapConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
 bool KeyMapConfig::enabled() const { return m_enabled; }
 

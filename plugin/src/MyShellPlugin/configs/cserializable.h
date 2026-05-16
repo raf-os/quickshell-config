@@ -1,10 +1,12 @@
 #pragma once
 
 #include <qobject.h>
+#include <qtmetamacros.h>
 
 namespace myqmlplugin {
 namespace configs {
 class CSerializable : public QObject {
+  Q_OBJECT
 protected:
   QObject *m_rootObject = nullptr;
   explicit CSerializable(QObject *root, QObject *parent)

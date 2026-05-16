@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "cserializable.h"
+
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
@@ -8,18 +10,18 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ Sizes ]]
-class Sizes : public QObject {
+class Sizes : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(int innerHeight READ innerHeight WRITE setInnerHeight NOTIFY innerHeightChanged RESET resetInnerHeight BINDABLE bindableInnerHeight)
-	Q_PROPERTY(int trayMenuWidth READ trayMenuWidth WRITE setTrayMenuWidth NOTIFY trayMenuWidthChanged RESET resetTrayMenuWidth BINDABLE bindableTrayMenuWidth)
-	Q_PROPERTY(int launcherWidth READ launcherWidth WRITE setLauncherWidth NOTIFY launcherWidthChanged RESET resetLauncherWidth BINDABLE bindableLauncherWidth)
-	Q_PROPERTY(int mediaInfoWidth READ mediaInfoWidth WRITE setMediaInfoWidth NOTIFY mediaInfoWidthChanged RESET resetMediaInfoWidth BINDABLE bindableMediaInfoWidth)
+	Q_PROPERTY(int innerHeight READ innerHeight NOTIFY innerHeightChanged BINDABLE bindableInnerHeight RESET resetInnerHeight WRITE setInnerHeight)
+	Q_PROPERTY(int trayMenuWidth READ trayMenuWidth NOTIFY trayMenuWidthChanged BINDABLE bindableTrayMenuWidth RESET resetTrayMenuWidth WRITE setTrayMenuWidth)
+	Q_PROPERTY(int launcherWidth READ launcherWidth NOTIFY launcherWidthChanged BINDABLE bindableLauncherWidth RESET resetLauncherWidth WRITE setLauncherWidth)
+	Q_PROPERTY(int mediaInfoWidth READ mediaInfoWidth NOTIFY mediaInfoWidthChanged BINDABLE bindableMediaInfoWidth RESET resetMediaInfoWidth WRITE setMediaInfoWidth)
 
 public:
-	explicit Sizes(QObject *parent = nullptr);
+	explicit Sizes(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] int innerHeight() const;
 	void setInnerHeight(int value);
@@ -54,7 +56,7 @@ private:
 // END CLASS [[ Sizes ]]
 
 // BEGIN CLASS [[ BarConfig ]]
-class BarConfig : public QObject {
+class BarConfig : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
@@ -62,12 +64,12 @@ class BarConfig : public QObject {
 	Q_PROPERTY(myqmlplugin::configs::Sizes *sizes READ sizes CONSTANT)
 
 public:
-	explicit BarConfig(QObject *parent = nullptr);
+	explicit BarConfig(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] Sizes *sizes() const;
 
 private:
-	Sizes *m_sizes = new Sizes(this);
+	Sizes *m_sizes = new Sizes(this, m_rootObject);
 };
 // END CLASS [[ BarConfig ]]
 } // namespace configs

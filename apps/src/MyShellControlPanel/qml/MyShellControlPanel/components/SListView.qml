@@ -6,10 +6,23 @@ import QtQuick.Controls
 Item {
     id: root
 
+    property alias listView: listView
     property Component delegate: null
+    property Component hightlight: null
+    property bool highlightFollowsCurrentItem: true
     required property var model
 
-    clip: true
+    property alias currentIndex: listView.currentIndex
+    property alias currentItem: listView.currentItem
+    property alias highlightItem: listView.highlightItem
+    property alias highlightMoveDuration: listView.highlightMoveDuration
+    property alias highlightResizeDuration: listView.highlightResizeDuration
+    property alias highlightResizeVelocity: listView.highlightResizeVelocity
+    property alias highlightRangeMode: listView.highlightRangeMode
+    property alias preferredHighlightBegin: listView.preferredHighlightBegin
+    property alias preferredHighlightEnd: listView.preferredHighlightEnd
+    property alias keyNavigationEnabled: listView.keyNavigationEnabled
+    property alias keyNavigationWraps: listView.keyNavigationWraps
 
     ListView {
         id: listView
@@ -20,6 +33,7 @@ Item {
         readonly property int scrollBarWidth: 8
         readonly property int scrollBarClearance: scrollBarWidth + Config.appearance.spacing.sm
 
+        clip: true
         boundsBehavior: Flickable.StopAtBounds
         anchors.fill: parent
         anchors.rightMargin: scrollBarClearance
@@ -28,6 +42,8 @@ Item {
 
         model: root.model
         delegate: root.delegate
+        highlight: root.hightlight
+        highlightFollowsCurrentItem: root.highlightFollowsCurrentItem
     }
 
     ScrollBar {

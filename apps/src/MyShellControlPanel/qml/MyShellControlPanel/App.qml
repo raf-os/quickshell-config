@@ -114,10 +114,8 @@ FocusScope {
         }
     }
 
-    FocusScope {
+    Item {
         id: sbScope
-
-        activeFocusOnTab: true
 
         anchors.left: parent.left
         anchors.top: parent.top

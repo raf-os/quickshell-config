@@ -2,7 +2,7 @@ import MyShellControlPanel.components
 import QtQuick
 import QtQuick.Controls
 
-FocusScope {
+Item {
     id: root
 
     default property alias content: scrollable.content
@@ -12,8 +12,6 @@ FocusScope {
 
     required property string title
     property string path: ""
-
-    activeFocusOnTab: true
 
     SSCrollable {
         id: scrollable

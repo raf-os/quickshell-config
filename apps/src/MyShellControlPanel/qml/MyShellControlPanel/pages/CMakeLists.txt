@@ -1,6 +1,8 @@
 set(MODULE_PAGES
   colors
-  keyboard)
+  keyboard
+  appearance
+)
 
 file(GLOB
   QML_COMPONENTS

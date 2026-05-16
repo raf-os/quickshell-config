@@ -10,6 +10,12 @@ ListModel {
     }
 
     ListElement {
+        label: "Appearance"
+        path: "/appearance"
+        icon: "󰋩"
+    }
+
+    ListElement {
         label: "Colors"
         path: "/colors"
         icon: "󰏘"

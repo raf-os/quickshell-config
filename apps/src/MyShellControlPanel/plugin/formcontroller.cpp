@@ -31,7 +31,8 @@ void FormController::modelParseProperties() {
        i < metaObject->propertyCount(); i++) {
     auto prop = metaObject->property(i);
 
-    if (!prop.isReadable())
+    // Skip unreadable and strictly bound properties
+    if (!prop.isReadable() || !prop.isStored())
       continue;
 
     QMetaType metaType = prop.metaType();

@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "cserializable.h"
+
 #include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -10,18 +12,18 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ LauncherConfig ]]
-class LauncherConfig : public QObject {
+class LauncherConfig : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged RESET resetEnabled BINDABLE bindableEnabled)
-	Q_PROPERTY(int width READ width WRITE setWidth NOTIFY widthChanged RESET resetWidth BINDABLE bindableWidth)
-	Q_PROPERTY(QString commandPrefix READ commandPrefix WRITE setCommandPrefix NOTIFY commandPrefixChanged RESET resetCommandPrefix BINDABLE bindableCommandPrefix)
+	Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged BINDABLE bindableEnabled RESET resetEnabled WRITE setEnabled)
+	Q_PROPERTY(int width READ width NOTIFY widthChanged BINDABLE bindableWidth RESET resetWidth WRITE setWidth)
+	Q_PROPERTY(QString commandPrefix READ commandPrefix NOTIFY commandPrefixChanged BINDABLE bindableCommandPrefix RESET resetCommandPrefix WRITE setCommandPrefix)
 	Q_PROPERTY(QList<QString> favoriteApps READ favoriteApps WRITE setFavoriteApps NOTIFY favoriteAppsChanged)
 
 public:
-	explicit LauncherConfig(QObject *parent = nullptr);
+	explicit LauncherConfig(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);

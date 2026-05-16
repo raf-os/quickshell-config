@@ -9,7 +9,7 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ MediaConfig ]]
-MediaConfig::MediaConfig(QObject *parent): QObject(parent) {}
+MediaConfig::MediaConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
 bool MediaConfig::enabled() const { return m_enabled; }
 

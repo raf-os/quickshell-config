@@ -11,7 +11,7 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ AnimCurves ]]
-AnimCurves::AnimCurves(QObject *parent): QObject(parent) {}
+AnimCurves::AnimCurves(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
 const QList<qreal> &AnimCurves::linear() const { return m_linear; }
 
@@ -23,7 +23,7 @@ const QList<qreal> &AnimCurves::accelerateOverCorrect() const { return m_acceler
 // END CLASS [[ AnimCurves ]]
 
 // BEGIN CLASS [[ Padding ]]
-Padding::Padding(QObject *parent): QObject(parent) {
+Padding::Padding(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {
 	m_xxs.setBinding([this]() -> int { return 4 * m_scale.value(); });
 	m_xs.setBinding([this]() -> int { return 5 * m_scale.value(); });
 	m_sm.setBinding([this]() -> int { return 7 * m_scale.value(); });
@@ -99,7 +99,7 @@ void Padding::resetXxl() { m_xxl.setBinding([this]() -> int { return 20 * m_scal
 // END CLASS [[ Padding ]]
 
 // BEGIN CLASS [[ Spacing ]]
-Spacing::Spacing(QObject *parent): QObject(parent) {
+Spacing::Spacing(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {
 	m_xxs.setBinding([this]() -> int { return 4 * m_scale.value(); });
 	m_xs.setBinding([this]() -> int { return 9 * m_scale.value(); });
 	m_sm.setBinding([this]() -> int { return 10 * m_scale.value(); });
@@ -175,7 +175,7 @@ void Spacing::resetXxl() { m_xxl.setBinding([this]() -> int { return 20 * m_scal
 // END CLASS [[ Spacing ]]
 
 // BEGIN CLASS [[ Rounding ]]
-Rounding::Rounding(QObject *parent): QObject(parent) {
+Rounding::Rounding(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {
 	m_xs.setBinding([this]() -> int { return 4 * m_scale.value(); });
 	m_sm.setBinding([this]() -> int { return 8 * m_scale.value(); });
 	m_md.setBinding([this]() -> int { return 16 * m_scale.value(); });
@@ -233,7 +233,7 @@ void Rounding::resetFull() { m_full.setBinding([this]() -> int { return 1000 * m
 // END CLASS [[ Rounding ]]
 
 // BEGIN CLASS [[ FontSize ]]
-FontSize::FontSize(QObject *parent): QObject(parent) {
+FontSize::FontSize(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {
 	m_xxs.setBinding([this]() -> int { return 8 * m_scale.value(); });
 	m_xs.setBinding([this]() -> int { return 9 * m_scale.value(); });
 	m_sm.setBinding([this]() -> int { return 10 * m_scale.value(); });
@@ -309,7 +309,7 @@ void FontSize::resetXxl() { m_xxl.setBinding([this]() -> int { return 20 * m_sca
 // END CLASS [[ FontSize ]]
 
 // BEGIN CLASS [[ FontFamily ]]
-FontFamily::FontFamily(QObject *parent): QObject(parent) {}
+FontFamily::FontFamily(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
 QString FontFamily::sans() const { return m_sans; }
 
@@ -345,7 +345,7 @@ void FontFamily::resetMaterial() { m_material = "Material Symbols Rounded"; }
 // END CLASS [[ FontFamily ]]
 
 // BEGIN CLASS [[ AppearanceConfig ]]
-AppearanceConfig::AppearanceConfig(QObject *parent): QObject(parent) {}
+AppearanceConfig::AppearanceConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
 FontFamily *AppearanceConfig::fontFamily() const { return m_fontFamily; }
 

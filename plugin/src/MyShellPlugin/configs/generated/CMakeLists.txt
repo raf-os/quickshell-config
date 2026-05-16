@@ -24,7 +24,8 @@ target_link_libraries(myshell_configs_gen
         Qt::Core
         Qt::Qml
         Qt::Quick
-        myshell_include)
+        myshell_include
+        myshell_configs)
 
 set(GENERATED_SOURCES
     generated/barconfig.h generated/barconfig.cpp

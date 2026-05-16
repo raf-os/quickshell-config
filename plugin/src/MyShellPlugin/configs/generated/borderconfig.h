@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "cserializable.h"
+
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
@@ -8,16 +10,16 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ BorderConfig ]]
-class BorderConfig : public QObject {
+class BorderConfig : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(int thickness READ thickness WRITE setThickness NOTIFY thicknessChanged RESET resetThickness BINDABLE bindableThickness)
-	Q_PROPERTY(int rounding READ rounding WRITE setRounding NOTIFY roundingChanged RESET resetRounding BINDABLE bindableRounding)
+	Q_PROPERTY(int thickness READ thickness NOTIFY thicknessChanged BINDABLE bindableThickness RESET resetThickness WRITE setThickness)
+	Q_PROPERTY(int rounding READ rounding NOTIFY roundingChanged BINDABLE bindableRounding RESET resetRounding WRITE setRounding)
 
 public:
-	explicit BorderConfig(QObject *parent = nullptr);
+	explicit BorderConfig(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] int thickness() const;
 	void setThickness(int value);

@@ -8,7 +8,7 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ BorderConfig ]]
-BorderConfig::BorderConfig(QObject *parent): QObject(parent) {}
+BorderConfig::BorderConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
 int BorderConfig::thickness() const { return m_thickness; }
 

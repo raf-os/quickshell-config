@@ -64,7 +64,8 @@ Item {
             anchors.margins: Config.appearance.padding.sm
 
             clip: true
-            focus: true
+
+            activeFocusOnTab: true
 
             Keys.onReturnPressed: ev => {
                 currentItem?.activate(); // qmllint disable missing-property

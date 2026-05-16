@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "cserializable.h"
+
 #include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -11,7 +13,7 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ AnimCurves ]]
-class AnimCurves : public QObject {
+class AnimCurves : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
@@ -22,7 +24,7 @@ class AnimCurves : public QObject {
 	Q_PROPERTY(QList<qreal> accelerateOverCorrect READ accelerateOverCorrect CONSTANT)
 
 public:
-	explicit AnimCurves(QObject *parent = nullptr);
+	explicit AnimCurves(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] const QList<qreal> &linear() const;
 
@@ -41,22 +43,22 @@ private:
 // END CLASS [[ AnimCurves ]]
 
 // BEGIN CLASS [[ Padding ]]
-class Padding : public QObject {
+class Padding : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
-	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged RESET resetXxs BINDABLE bindableXxs)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
-	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged RESET resetXl BINDABLE bindableXl)
-	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged RESET resetXxl BINDABLE bindableXxl)
+	Q_PROPERTY(qreal scale READ scale NOTIFY scaleChanged BINDABLE bindableScale RESET resetScale WRITE setScale)
+	Q_PROPERTY(int xxs READ xxs NOTIFY xxsChanged BINDABLE bindableXxs RESET resetXxs STORED false)
+	Q_PROPERTY(int xs READ xs NOTIFY xsChanged BINDABLE bindableXs RESET resetXs STORED false)
+	Q_PROPERTY(int sm READ sm NOTIFY smChanged BINDABLE bindableSm RESET resetSm STORED false)
+	Q_PROPERTY(int md READ md NOTIFY mdChanged BINDABLE bindableMd RESET resetMd STORED false)
+	Q_PROPERTY(int lg READ lg NOTIFY lgChanged BINDABLE bindableLg RESET resetLg STORED false)
+	Q_PROPERTY(int xl READ xl NOTIFY xlChanged BINDABLE bindableXl RESET resetXl STORED false)
+	Q_PROPERTY(int xxl READ xxl NOTIFY xxlChanged BINDABLE bindableXxl RESET resetXxl STORED false)
 
 public:
-	explicit Padding(QObject *parent = nullptr);
+	explicit Padding(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -119,22 +121,22 @@ private:
 // END CLASS [[ Padding ]]
 
 // BEGIN CLASS [[ Spacing ]]
-class Spacing : public QObject {
+class Spacing : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
-	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged RESET resetXxs BINDABLE bindableXxs)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
-	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged RESET resetXl BINDABLE bindableXl)
-	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged RESET resetXxl BINDABLE bindableXxl)
+	Q_PROPERTY(qreal scale READ scale NOTIFY scaleChanged BINDABLE bindableScale RESET resetScale WRITE setScale)
+	Q_PROPERTY(int xxs READ xxs NOTIFY xxsChanged BINDABLE bindableXxs RESET resetXxs STORED false)
+	Q_PROPERTY(int xs READ xs NOTIFY xsChanged BINDABLE bindableXs RESET resetXs STORED false)
+	Q_PROPERTY(int sm READ sm NOTIFY smChanged BINDABLE bindableSm RESET resetSm STORED false)
+	Q_PROPERTY(int md READ md NOTIFY mdChanged BINDABLE bindableMd RESET resetMd STORED false)
+	Q_PROPERTY(int lg READ lg NOTIFY lgChanged BINDABLE bindableLg RESET resetLg STORED false)
+	Q_PROPERTY(int xl READ xl NOTIFY xlChanged BINDABLE bindableXl RESET resetXl STORED false)
+	Q_PROPERTY(int xxl READ xxl NOTIFY xxlChanged BINDABLE bindableXxl RESET resetXxl STORED false)
 
 public:
-	explicit Spacing(QObject *parent = nullptr);
+	explicit Spacing(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -197,20 +199,20 @@ private:
 // END CLASS [[ Spacing ]]
 
 // BEGIN CLASS [[ Rounding ]]
-class Rounding : public QObject {
+class Rounding : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
-	Q_PROPERTY(int full READ full WRITE setFull NOTIFY fullChanged RESET resetFull BINDABLE bindableFull)
+	Q_PROPERTY(qreal scale READ scale NOTIFY scaleChanged BINDABLE bindableScale RESET resetScale WRITE setScale)
+	Q_PROPERTY(int xs READ xs NOTIFY xsChanged BINDABLE bindableXs RESET resetXs STORED false)
+	Q_PROPERTY(int sm READ sm NOTIFY smChanged BINDABLE bindableSm RESET resetSm STORED false)
+	Q_PROPERTY(int md READ md NOTIFY mdChanged BINDABLE bindableMd RESET resetMd STORED false)
+	Q_PROPERTY(int lg READ lg NOTIFY lgChanged BINDABLE bindableLg RESET resetLg STORED false)
+	Q_PROPERTY(int full READ full NOTIFY fullChanged BINDABLE bindableFull RESET resetFull STORED false)
 
 public:
-	explicit Rounding(QObject *parent = nullptr);
+	explicit Rounding(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -259,22 +261,22 @@ private:
 // END CLASS [[ Rounding ]]
 
 // BEGIN CLASS [[ FontSize ]]
-class FontSize : public QObject {
+class FontSize : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged RESET resetScale BINDABLE bindableScale)
-	Q_PROPERTY(int xxs READ xxs WRITE setXxs NOTIFY xxsChanged RESET resetXxs BINDABLE bindableXxs)
-	Q_PROPERTY(int xs READ xs WRITE setXs NOTIFY xsChanged RESET resetXs BINDABLE bindableXs)
-	Q_PROPERTY(int sm READ sm WRITE setSm NOTIFY smChanged RESET resetSm BINDABLE bindableSm)
-	Q_PROPERTY(int md READ md WRITE setMd NOTIFY mdChanged RESET resetMd BINDABLE bindableMd)
-	Q_PROPERTY(int lg READ lg WRITE setLg NOTIFY lgChanged RESET resetLg BINDABLE bindableLg)
-	Q_PROPERTY(int xl READ xl WRITE setXl NOTIFY xlChanged RESET resetXl BINDABLE bindableXl)
-	Q_PROPERTY(int xxl READ xxl WRITE setXxl NOTIFY xxlChanged RESET resetXxl BINDABLE bindableXxl)
+	Q_PROPERTY(qreal scale READ scale NOTIFY scaleChanged BINDABLE bindableScale RESET resetScale WRITE setScale)
+	Q_PROPERTY(int xxs READ xxs NOTIFY xxsChanged BINDABLE bindableXxs RESET resetXxs STORED false)
+	Q_PROPERTY(int xs READ xs NOTIFY xsChanged BINDABLE bindableXs RESET resetXs STORED false)
+	Q_PROPERTY(int sm READ sm NOTIFY smChanged BINDABLE bindableSm RESET resetSm STORED false)
+	Q_PROPERTY(int md READ md NOTIFY mdChanged BINDABLE bindableMd RESET resetMd STORED false)
+	Q_PROPERTY(int lg READ lg NOTIFY lgChanged BINDABLE bindableLg RESET resetLg STORED false)
+	Q_PROPERTY(int xl READ xl NOTIFY xlChanged BINDABLE bindableXl RESET resetXl STORED false)
+	Q_PROPERTY(int xxl READ xxl NOTIFY xxlChanged BINDABLE bindableXxl RESET resetXxl STORED false)
 
 public:
-	explicit FontSize(QObject *parent = nullptr);
+	explicit FontSize(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -337,18 +339,18 @@ private:
 // END CLASS [[ FontSize ]]
 
 // BEGIN CLASS [[ FontFamily ]]
-class FontFamily : public QObject {
+class FontFamily : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(QString sans READ sans WRITE setSans NOTIFY sansChanged RESET resetSans BINDABLE bindableSans)
-	Q_PROPERTY(QString mono READ mono WRITE setMono NOTIFY monoChanged RESET resetMono BINDABLE bindableMono)
-	Q_PROPERTY(QString monoIcon READ monoIcon WRITE setMonoIcon NOTIFY monoIconChanged RESET resetMonoIcon BINDABLE bindableMonoIcon)
-	Q_PROPERTY(QString material READ material WRITE setMaterial NOTIFY materialChanged RESET resetMaterial BINDABLE bindableMaterial)
+	Q_PROPERTY(QString sans READ sans NOTIFY sansChanged BINDABLE bindableSans RESET resetSans WRITE setSans)
+	Q_PROPERTY(QString mono READ mono NOTIFY monoChanged BINDABLE bindableMono RESET resetMono WRITE setMono)
+	Q_PROPERTY(QString monoIcon READ monoIcon NOTIFY monoIconChanged BINDABLE bindableMonoIcon RESET resetMonoIcon WRITE setMonoIcon)
+	Q_PROPERTY(QString material READ material NOTIFY materialChanged BINDABLE bindableMaterial RESET resetMaterial WRITE setMaterial)
 
 public:
-	explicit FontFamily(QObject *parent = nullptr);
+	explicit FontFamily(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] QString sans() const;
 	void setSans(const QString &value);
@@ -383,7 +385,7 @@ private:
 // END CLASS [[ FontFamily ]]
 
 // BEGIN CLASS [[ AppearanceConfig ]]
-class AppearanceConfig : public QObject {
+class AppearanceConfig : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
@@ -396,7 +398,7 @@ class AppearanceConfig : public QObject {
 	Q_PROPERTY(myqmlplugin::configs::AnimCurves *animCurves READ animCurves CONSTANT)
 
 public:
-	explicit AppearanceConfig(QObject *parent = nullptr);
+	explicit AppearanceConfig(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] FontFamily *fontFamily() const;
 
@@ -411,12 +413,12 @@ public:
 	[[nodiscard]] AnimCurves *animCurves() const;
 
 private:
-	FontFamily *m_fontFamily = new FontFamily(this);
-	FontSize *m_fontSize = new FontSize(this);
-	Rounding *m_rounding = new Rounding(this);
-	Spacing *m_spacing = new Spacing(this);
-	Padding *m_padding = new Padding(this);
-	AnimCurves *m_animCurves = new AnimCurves(this);
+	FontFamily *m_fontFamily = new FontFamily(this, m_rootObject);
+	FontSize *m_fontSize = new FontSize(this, m_rootObject);
+	Rounding *m_rounding = new Rounding(this, m_rootObject);
+	Spacing *m_spacing = new Spacing(this, m_rootObject);
+	Padding *m_padding = new Padding(this, m_rootObject);
+	AnimCurves *m_animCurves = new AnimCurves(this, m_rootObject);
 };
 // END CLASS [[ AppearanceConfig ]]
 } // namespace configs

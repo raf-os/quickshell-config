@@ -135,7 +135,7 @@ class ChildClassMeta(BaseClassMeta):
                         ]) + ")"
                 ),
                 public=(f"\n\t[[nodiscard]] {self.name} *{nameLower}() const;\n"),
-                private=(f"\n\t{self.name} *m_{nameLower} = new {self.name}(this);")
+                private=(f"\n\t{self.name} *m_{nameLower} = new {self.name}(this, m_rootObject);")
             ),
             body=BodyClassMeta(
                 content=f"\n{self.name} *{self.parent.className}::{nameLower}() const {{ return m_{nameLower}; }}\n"
@@ -210,6 +210,7 @@ class BindableProperty(BaseClassMeta):
     @override
     def compile(self) -> ClassMeta:
         nameCap = self.name[:1].upper() + self.name[1:]
+        isBound = self.binding != None
         cStr = ""
         defaultSetStr = ""
         macroResetStr = ""
@@ -219,6 +220,11 @@ class BindableProperty(BaseClassMeta):
             prefix=f"\nvoid {self.parent.className}::reset{nameCap}() {{ ",
             suffix=f" }}"
         )
+        macroList: list[str] = [
+            f"READ {self.name}",
+            f"NOTIFY {self.name}Changed",
+            f"BINDABLE bindable{nameCap}"
+        ]
 
         defaultValToStr = ""
         if (self.defaultValue != None):
@@ -230,7 +236,7 @@ class BindableProperty(BaseClassMeta):
                 defaultValToStr = str(self.defaultValue)
 
         if (self.defaultValue != None or self.binding != None):
-            macroResetStr = f"RESET reset{nameCap} "
+            macroList.append(f"RESET reset{nameCap}")
             publicResetStr = f"\n\tvoid reset{nameCap}();"
             if (self.binding == None):
                 resetBodyFn = resetFnWrapper.wrap(f"m_{self.name} = {defaultValToStr};")
@@ -240,16 +246,15 @@ class BindableProperty(BaseClassMeta):
             bindOp = f"m_{self.name}.setBinding([this]() -> {self.type} {{ return {self.binding}; }});"
             cStr += f"\n\t{bindOp}"
             resetBodyFn = resetFnWrapper.wrap(bindOp)
+            macroList.append("STORED false")
+        else:
+            macroList.append(f"WRITE set{nameCap}")
 
         return ClassMeta(
             header=HeaderClassMeta(
                 macros=(
                     f"\n\tQ_PROPERTY({self.type} {self.name} "
-                    f"READ {self.name} "
-                    f"WRITE set{nameCap} "
-                    f"NOTIFY {self.name}Changed "
-                    f"{macroResetStr}"
-                    f"BINDABLE bindable{nameCap}"
+                    + " ".join(macroList) +
                     f")"
                 ),
                 public=(
@@ -307,7 +312,7 @@ class CppFileModel(BaseModel):
         "qproperty.h"
     }
     classes: list[CppClassModel] = []
-    fileDataHeader: str = "#pragma once \n\n"
+    fileDataHeader: str = "#pragma once \n\n#include \"cserializable.h\"\n\n"
     fileDataBody: str = ""
     namespaceWrapper: ObjectWrapper = ObjectWrapper()
 
@@ -362,8 +367,8 @@ class CppClassModel(BaseModel):
     wrapperBody: ObjectWrapper = ObjectWrapper()
     wrapperComments: ObjectWrapper = ObjectWrapper()
     constructorFunction: ObjectWrapper = ObjectWrapper(lock=True)
-    constructorArguments: list[str] = ["QObject *parent"]
-    constructorDependencies: list[str] = ["QObject(parent)"]
+    constructorArguments: list[str] = ["QObject *root", "QObject *parent"]
+    constructorDependencies: list[str] = ["myqmlplugin::configs::CSerializable(root, parent)"]
 
     @override
     def model_post_init(self, __context: object) -> None:
@@ -373,7 +378,7 @@ class CppClassModel(BaseModel):
         self.constructorFunction.suffix = "}"
 
         self.wrapperHeader.prefix = (
-            f"\nclass {self.className} : public QObject {{\n"
+            f"\nclass {self.className} : public myqmlplugin::configs::CSerializable {{\n"
         )
         self.wrapperHeader.suffix = (
             "};\n"
@@ -386,7 +391,7 @@ class CppClassModel(BaseModel):
 
         self.wrapperBody.metaWrapper = self.wrapperComments
 
-        self.addPublicMethod(header=f"explicit {self.className}(QObject *parent = nullptr);")
+        self.addPublicMethod(header=f"explicit {self.className}(QObject *root = nullptr, QObject *parent = nullptr);")
         self.iterateModel()
         return super().model_post_init(__context)
 
@@ -510,8 +515,10 @@ def main():
         if isChange:
             print(f"Successfully generated {fileName}.h and {fileName}.cpp. Running clang++...")
 
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+
             result = subprocess.run(
-                ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"./generated/{fileName}.cpp"],
+                ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"-I{script_dir}/", f"./generated/{fileName}.cpp"],
                 capture_output=True,
                 text=True
             )
@@ -560,7 +567,8 @@ target_link_libraries(myshell_configs_gen
         Qt::Core
         Qt::Qml
         Qt::Quick
-        myshell_include)
+        myshell_include
+        myshell_configs)
 
 set(GENERATED_SOURCES
     """ + "\n\t".join(fileListGen) + """

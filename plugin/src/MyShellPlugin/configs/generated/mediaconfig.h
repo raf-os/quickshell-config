@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "cserializable.h"
+
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
@@ -9,17 +11,17 @@
 namespace myqmlplugin{
 namespace configs{
 // BEGIN CLASS [[ MediaConfig ]]
-class MediaConfig : public QObject {
+class MediaConfig : public myqmlplugin::configs::CSerializable {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
 
-	Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged RESET resetEnabled BINDABLE bindableEnabled)
-	Q_PROPERTY(bool mediaPopoutEnabled READ mediaPopoutEnabled WRITE setMediaPopoutEnabled NOTIFY mediaPopoutEnabledChanged RESET resetMediaPopoutEnabled BINDABLE bindableMediaPopoutEnabled)
-	Q_PROPERTY(QString defaultPlayer READ defaultPlayer WRITE setDefaultPlayer NOTIFY defaultPlayerChanged RESET resetDefaultPlayer BINDABLE bindableDefaultPlayer)
+	Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged BINDABLE bindableEnabled RESET resetEnabled WRITE setEnabled)
+	Q_PROPERTY(bool mediaPopoutEnabled READ mediaPopoutEnabled NOTIFY mediaPopoutEnabledChanged BINDABLE bindableMediaPopoutEnabled RESET resetMediaPopoutEnabled WRITE setMediaPopoutEnabled)
+	Q_PROPERTY(QString defaultPlayer READ defaultPlayer NOTIFY defaultPlayerChanged BINDABLE bindableDefaultPlayer RESET resetDefaultPlayer WRITE setDefaultPlayer)
 
 public:
-	explicit MediaConfig(QObject *parent = nullptr);
+	explicit MediaConfig(QObject *root = nullptr, QObject *parent = nullptr);
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);
