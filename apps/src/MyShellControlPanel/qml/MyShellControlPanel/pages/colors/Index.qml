@@ -18,13 +18,9 @@ PageStackItem {
     readonly property list<string> themeList: Colors.themeList
     property bool isChanged: false
 
-    sizeReference: mainLayout
-
-    Item {
-        FormController {
-            id: formController
-            model: Colors.colors // qmllint disable missing-type
-        }
+    FormController {
+        id: formController
+        model: Colors.colors // qmllint disable missing-type
     }
 
     ColumnLayout {

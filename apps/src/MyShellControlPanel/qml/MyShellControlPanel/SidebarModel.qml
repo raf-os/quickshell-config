@@ -12,6 +12,6 @@ ListModel {
     ListElement {
         label: "Colors"
         path: "/colors"
-        icon: ""
+        icon: "󰏘"
     }
 }

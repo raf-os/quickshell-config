@@ -31,41 +31,12 @@ Item {
         anchors.margins: root.padding
     }
 
-    ListView {
+    SListView {
         id: listView
-
-        readonly property bool isScrollBarActive: contentHeight > height
-        readonly property int scrollBarWidth: 12
 
         anchors.fill: parent
         anchors.margins: root.padding * 2
         model: Hypr.allLayouts
-
-        boundsBehavior: Flickable.StopAtBounds
-        flickDeceleration: 5000
-
-        ScrollBar.vertical: ScrollBar {
-            policy: listView.isScrollBarActive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
-
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            padding: 0
-
-            implicitWidth: listView.scrollBarWidth
-
-            contentItem: Rectangle {
-                color: Colors.colors.primary
-                radius: width / 2
-            }
-
-            background: Rectangle {
-                color: Colors.colors.base2
-                radius: width / 2
-            }
-        }
-
-        clip: true
 
         delegate: Item {
             id: kbd
@@ -76,7 +47,7 @@ Item {
             readonly property bool hasVariants: modelData && modelData.variants.length > 0
             readonly property bool isExpanded: root.expandedId === index
 
-            implicitWidth: ListView.view ? ListView.view.width - listView.scrollBarWidth - root.padding : 0
+            implicitWidth: ListView.view ? ListView.view.width : 0
             implicitHeight: kbdInfo.implicitHeight
 
             function evalIsInstalled(): bool {
