@@ -5,6 +5,7 @@
 #include <qjsvalue.h>
 #include <qlogging.h>
 #include <qmetaobject.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
@@ -17,6 +18,16 @@ FieldController::FieldController(QObject *reference, const QString &name,
       m_value(initialValue) {
   auto mo = m_reference->metaObject();
   auto mpidx = mo->indexOfProperty(m_name.toUtf8());
+  auto cm = mo->indexOfMethod("getClassName()");
+
+  if (cm != -1) {
+    auto m = mo->method(cm);
+    QString retVal;
+    m.invoke(m_reference, Qt::DirectConnection, qReturnArg(retVal));
+    if (retVal != "") {
+      m_className = retVal;
+    }
+  }
 
   if (mpidx == -1) {
     qWarning() << "mscp::FormMetaModel: Can't find property " << m_name
@@ -38,6 +49,8 @@ FieldController::FieldController(QObject *reference, const QString &name,
   });
 }
 
+QObject *FieldController::getReference() { return m_reference; }
+
 QVariant FieldController::value() const { return m_value; }
 
 void FieldController::setValue(const QVariant &value) {
@@ -48,6 +61,7 @@ void FieldController::setValue(const QVariant &value) {
 }
 
 QString FieldController::name() const { return m_name; }
+QString FieldController::className() const { return m_className; }
 
 bool FieldController::isDirty() const { return m_isDirty; }
 

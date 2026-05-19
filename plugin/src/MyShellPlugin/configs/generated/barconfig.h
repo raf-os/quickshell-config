@@ -22,6 +22,7 @@ class Sizes : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit Sizes(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] int innerHeight() const;
 	void setInnerHeight(int value);
@@ -47,7 +48,9 @@ public:
 	QBindable<int> bindableMediaInfoWidth();
 	Q_SIGNAL void mediaInfoWidthChanged();
 
-private:
+private:	
+	const QString m_className = "Sizes";
+
 	QProperty<int> m_innerHeight{24};
 	QProperty<int> m_trayMenuWidth{200};
 	QProperty<int> m_launcherWidth{420};
@@ -65,10 +68,13 @@ class BarConfig : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit BarConfig(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] Sizes *sizes() const;
 
-private:
+private:	
+	const QString m_className = "BarConfig";
+
 	Sizes *m_sizes = new Sizes(this, m_rootObject);
 };
 // END CLASS [[ BarConfig ]]

@@ -20,6 +20,7 @@ class BorderConfig : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit BorderConfig(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] int thickness() const;
 	void setThickness(int value);
@@ -33,7 +34,9 @@ public:
 	QBindable<int> bindableRounding();
 	Q_SIGNAL void roundingChanged();
 
-private:
+private:	
+	const QString m_className = "BorderConfig";
+
 	QProperty<int> m_thickness{8};
 	QProperty<int> m_rounding{16};
 };

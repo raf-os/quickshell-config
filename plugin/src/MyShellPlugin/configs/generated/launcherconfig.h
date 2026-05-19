@@ -24,6 +24,7 @@ class LauncherConfig : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit LauncherConfig(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);
@@ -47,7 +48,9 @@ public:
 	void setFavoriteApps(const QList<QString> &newList);
 	Q_SIGNAL void favoriteAppsChanged();
 
-private:
+private:	
+	const QString m_className = "LauncherConfig";
+
 	QProperty<bool> m_enabled{true};
 	QProperty<int> m_width{420};
 	QProperty<QString> m_commandPrefix{"/"};

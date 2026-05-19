@@ -22,6 +22,7 @@ class MediaConfig : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit MediaConfig(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);
@@ -41,7 +42,9 @@ public:
 	QBindable<QString> bindableDefaultPlayer();
 	Q_SIGNAL void defaultPlayerChanged();
 
-private:
+private:	
+	const QString m_className = "MediaConfig";
+
 	QProperty<bool> m_enabled{true};
 	QProperty<bool> m_mediaPopoutEnabled{true};
 	QProperty<QString> m_defaultPlayer{"Spotify"};

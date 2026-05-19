@@ -13,8 +13,13 @@ PageStackItem {
     title: "Appearance"
 
     FormController {
-        id: formController
-        model: Config.appearance.fontFamily // qmllint disable missing-type
+        id: fontsForm
+        models: [Config.appearance.fontFamily] // qmllint disable missing-type
+    }
+
+    FormController {
+        id: miscAppearanceForm
+        models: [Config.appearance.fontSize, Config.appearance.rounding, Config.appearance.spacing, Config.appearance.padding] // qmllint disable missing-type
     }
 
     ColumnLayout {
@@ -26,14 +31,46 @@ PageStackItem {
 
         spacing: Config.appearance.spacing.md
 
-        Repeater {
-            model: formController.fields
+        FormPreset {
+            model: fontsForm.fields
 
             delegate: STextInput {
                 required property FieldController modelData
 
                 name: modelData.name
                 value: modelData.value
+            }
+        }
+
+        HorizontalSeparator {}
+
+        FormPreset {
+            id: formRangeFields
+            model: miscAppearanceForm.fields
+            delegate: SFloatInput {
+                required property FieldController modelData
+
+                Layout.fillWidth: true
+                boxLayoutFillWidth: true
+                textInset: 0
+
+                stepSize: 0.1
+                from: 0.1
+                to: 2.0
+
+                name: `${modelData.className}.${modelData.name}`
+                value: modelData.value
+            }
+            customContent: GridLayout {
+                Layout.fillWidth: true
+                columns: 3
+                rowSpacing: Config.appearance.spacing.lg
+                columnSpacing: Config.appearance.spacing.md
+
+                Repeater {
+                    model: formRangeFields.model
+                    delegate: formRangeFields.delegate
+                }
             }
         }
     }

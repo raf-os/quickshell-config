@@ -7,6 +7,7 @@
 #include <qlogging.h>
 #include <qmetaobject.h>
 #include <qobject.h>
+#include <qobjectdefs.h>
 #include <qqmllist.h>
 #include <qsharedpointer.h>
 #include <qvariant.h>
@@ -16,7 +17,7 @@ namespace mscp {
 FormController::FormController(QObject *parent) : QObject(parent) {}
 
 void FormController::modelParseProperties() {
-  if (m_model == nullptr)
+  if (m_models.isEmpty())
     return;
 
   for (const auto field : m_fields) {
@@ -25,39 +26,45 @@ void FormController::modelParseProperties() {
 
   m_fields.clear();
 
-  auto metaObject = m_model->metaObject();
-
-  for (auto i = metaObject->superClass()->propertyCount();
-       i < metaObject->propertyCount(); i++) {
-    auto prop = metaObject->property(i);
-
-    // Skip unreadable and strictly bound properties
-    if (!prop.isReadable() || !prop.isStored())
+  for (auto const m_model : m_models) {
+    if (m_model == nullptr) {
       continue;
+    }
 
-    QMetaType metaType = prop.metaType();
+    auto metaObject = m_model->metaObject();
 
-    // Skip nested objects
-    if (metaType.flags().testFlag(QMetaType::PointerToQObject))
-      continue;
+    for (auto i = metaObject->superClass()->propertyCount();
+         i < metaObject->propertyCount(); i++) {
+      auto prop = metaObject->property(i);
 
-    auto propName = prop.name();
-    QString propValue = prop.read(m_model).toString();
+      // Skip unreadable and strictly bound properties
+      if (!prop.isReadable() || !prop.isStored())
+        continue;
 
-    auto field = new FieldController(m_model, QString::fromUtf8(propName),
-                                     propValue, this);
+      QMetaType metaType = prop.metaType();
 
-    QObject::connect(field, &QObject::destroyed, this, [this, field]() {
-      auto idx = m_fields.indexOf(field);
-      if (idx != -1) {
-        m_fields.removeAt(idx);
-        emit fieldsChanged();
-      }
-    });
+      // Skip nested objects
+      if (metaType.flags().testFlag(QMetaType::PointerToQObject))
+        continue;
 
-    field->setValue(propValue);
+      auto propName = prop.name();
+      QString propValue = prop.read(m_model).toString();
 
-    m_fields.append(field);
+      auto field = new FieldController(m_model, QString::fromUtf8(propName),
+                                       propValue, this);
+
+      QObject::connect(field, &QObject::destroyed, this, [this, field]() {
+        auto idx = m_fields.indexOf(field);
+        if (idx != -1) {
+          m_fields.removeAt(idx);
+          emit fieldsChanged();
+        }
+      });
+
+      field->setValue(propValue);
+
+      m_fields.append(field);
+    }
   }
 
   emit fieldsChanged();
@@ -65,16 +72,17 @@ void FormController::modelParseProperties() {
 
 bool FormController::validationError() const { return m_validationError; }
 
-myqmlplugin::configs::CSerializable *FormController::model() const {
-  return m_model;
+QList<myqmlplugin::configs::CSerializable *> FormController::models() const {
+  return m_models;
 }
 
-void FormController::setModel(myqmlplugin::configs::CSerializable *model) {
-  if (m_model != model) {
-    m_model = model;
-    emit modelChanged();
-    if (m_model != nullptr)
-      modelParseProperties();
+void FormController::setModels(
+    QList<myqmlplugin::configs::CSerializable *> models) {
+  if (m_models != models) {
+    m_models.clear();
+    m_models = models;
+    emit modelsChanged();
+    modelParseProperties();
   }
 }
 
@@ -83,24 +91,26 @@ QQmlListProperty<FieldController> FormController::fields() {
 }
 
 void FormController::validate() {
-  if (m_model == nullptr) {
+  if (m_models.isEmpty()) {
     qWarning() << "mscp::FormController::validate: No model to assign "
                   "validated values to.";
     return;
   }
 
-  QList<std::pair<QMetaProperty, QVariant>> assignments;
+  QList<FormAssignment> assignments(m_fields.length());
 
   bool validationError = false;
-  auto modelMetaObj = m_model->metaObject();
-  for (const auto field : m_fields) {
-    auto result = field->triggerValidation(&validationError);
+  for (int i = 0; i < m_fields.length(); ++i) {
+    auto modelMetaObj = m_fields.at(i)->getReference()->metaObject();
+    auto result = m_fields.at(i)->triggerValidation(&validationError);
     if (validationError)
       break;
-    if (!result.has_value())
+    if (!result.has_value()) {
       continue;
+    }
 
-    auto propId = modelMetaObj->indexOfProperty(field->name().toLocal8Bit());
+    auto propId =
+        modelMetaObj->indexOfProperty(m_fields.at(i)->name().toLocal8Bit());
     if (propId == -1 || propId < modelMetaObj->superClass()->propertyCount()) {
       qWarning() << "mscp::FormController::validate: Invalid form name "
                     "property, skipping...";
@@ -108,8 +118,10 @@ void FormController::validate() {
     } else {
       QMetaProperty prop = modelMetaObj->property(propId);
       if (prop.isWritable()) {
-        assignments.append(
-            std::make_pair(std::move(prop), std::move(result.value())));
+        assignments[i].isValid = true;
+        assignments[i].model = m_fields.at(i)->getReference();
+        assignments[i].prop = std::move(prop);
+        assignments[i].val = m_fields.at(i)->value();
       }
     }
   }
@@ -124,14 +136,18 @@ void FormController::validate() {
     }
 
     for (const auto assignment : assignments) {
-      assignment.first.write(m_model, std::move(assignment.second));
+      if (assignment.isValid) {
+        assignment.prop.write(assignment.model, assignment.val);
+      }
     }
   }
 
-  auto root = m_model->getRoot();
-
-  if (auto s = qobject_cast<myqmlplugin::configs::IConfigSerializer *>(root)) {
-    s->commitSave();
+  for (const auto model : m_models) {
+    auto root = model->getRoot();
+    if (auto s =
+            qobject_cast<myqmlplugin::configs::IConfigSerializer *>(root)) {
+      s->commitSave();
+    }
   }
 
   emit validationComplete();

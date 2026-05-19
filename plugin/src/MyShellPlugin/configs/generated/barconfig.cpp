@@ -10,6 +10,8 @@ namespace configs{
 // BEGIN CLASS [[ Sizes ]]
 Sizes::Sizes(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
+QString Sizes::getClassName() const { return m_className; }
+
 int Sizes::innerHeight() const { return m_innerHeight; }
 
 void Sizes::setInnerHeight(int value) {
@@ -45,6 +47,8 @@ void Sizes::resetMediaInfoWidth() { m_mediaInfoWidth = 180; }
 
 // BEGIN CLASS [[ BarConfig ]]
 BarConfig::BarConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
+
+QString BarConfig::getClassName() const { return m_className; }
 
 Sizes *BarConfig::sizes() const { return m_sizes; }
 // END CLASS [[ BarConfig ]]

@@ -25,6 +25,7 @@ class AnimCurves : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit AnimCurves(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] const QList<qreal> &linear() const;
 
@@ -34,7 +35,9 @@ public:
 
 	[[nodiscard]] const QList<qreal> &accelerateOverCorrect() const;
 
-private:
+private:	
+	const QString m_className = "AnimCurves";
+
 	const QList<qreal> m_linear = {0, 0, 1, 1, 1, 1};
 	const QList<qreal> m_defaultEase = {0.45, 0, 0, 1, 1, 1};
 	const QList<qreal> m_easeInOut = {0.45, 0, 0.5, 1, 1, 1};
@@ -59,6 +62,7 @@ class Padding : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit Padding(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -108,7 +112,9 @@ public:
 	QBindable<int> bindableXxl();
 	Q_SIGNAL void xxlChanged();
 
-private:
+private:	
+	const QString m_className = "Padding";
+
 	QProperty<qreal> m_scale{1.0};
 	QProperty<int> m_xxs{};
 	QProperty<int> m_xs{};
@@ -137,6 +143,7 @@ class Spacing : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit Spacing(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -186,7 +193,9 @@ public:
 	QBindable<int> bindableXxl();
 	Q_SIGNAL void xxlChanged();
 
-private:
+private:	
+	const QString m_className = "Spacing";
+
 	QProperty<qreal> m_scale{1.0};
 	QProperty<int> m_xxs{};
 	QProperty<int> m_xs{};
@@ -213,6 +222,7 @@ class Rounding : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit Rounding(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -250,7 +260,9 @@ public:
 	QBindable<int> bindableFull();
 	Q_SIGNAL void fullChanged();
 
-private:
+private:	
+	const QString m_className = "Rounding";
+
 	QProperty<qreal> m_scale{1.0};
 	QProperty<int> m_xs{};
 	QProperty<int> m_sm{};
@@ -277,6 +289,7 @@ class FontSize : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit FontSize(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] qreal scale() const;
 	void setScale(qreal value);
@@ -326,7 +339,9 @@ public:
 	QBindable<int> bindableXxl();
 	Q_SIGNAL void xxlChanged();
 
-private:
+private:	
+	const QString m_className = "FontSize";
+
 	QProperty<qreal> m_scale{1.0};
 	QProperty<int> m_xxs{};
 	QProperty<int> m_xs{};
@@ -351,6 +366,7 @@ class FontFamily : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit FontFamily(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] QString sans() const;
 	void setSans(const QString &value);
@@ -376,7 +392,9 @@ public:
 	QBindable<QString> bindableMaterial();
 	Q_SIGNAL void materialChanged();
 
-private:
+private:	
+	const QString m_className = "FontFamily";
+
 	QProperty<QString> m_sans{"DejaVu Sans"};
 	QProperty<QString> m_mono{"RobotoMono Nerd Font Propo"};
 	QProperty<QString> m_monoIcon{"0xProto Nerd Font Mono"};
@@ -399,6 +417,7 @@ class AppearanceConfig : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit AppearanceConfig(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] FontFamily *fontFamily() const;
 
@@ -412,7 +431,9 @@ public:
 
 	[[nodiscard]] AnimCurves *animCurves() const;
 
-private:
+private:	
+	const QString m_className = "AppearanceConfig";
+
 	FontFamily *m_fontFamily = new FontFamily(this, m_rootObject);
 	FontSize *m_fontSize = new FontSize(this, m_rootObject);
 	Rounding *m_rounding = new Rounding(this, m_rootObject);

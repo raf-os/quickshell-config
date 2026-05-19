@@ -13,6 +13,8 @@ namespace configs{
 // BEGIN CLASS [[ AnimCurves ]]
 AnimCurves::AnimCurves(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
+QString AnimCurves::getClassName() const { return m_className; }
+
 const QList<qreal> &AnimCurves::linear() const { return m_linear; }
 
 const QList<qreal> &AnimCurves::defaultEase() const { return m_defaultEase; }
@@ -32,6 +34,8 @@ Padding::Padding(QObject *root, QObject *parent): myqmlplugin::configs::CSeriali
 	m_xl.setBinding([this]() -> int { return 15 * m_scale.value(); });
 	m_xxl.setBinding([this]() -> int { return 20 * m_scale.value(); });
 }
+
+QString Padding::getClassName() const { return m_className; }
 
 qreal Padding::scale() const { return m_scale; }
 
@@ -109,6 +113,8 @@ Spacing::Spacing(QObject *root, QObject *parent): myqmlplugin::configs::CSeriali
 	m_xxl.setBinding([this]() -> int { return 20 * m_scale.value(); });
 }
 
+QString Spacing::getClassName() const { return m_className; }
+
 qreal Spacing::scale() const { return m_scale; }
 
 void Spacing::setScale(qreal value) {
@@ -183,6 +189,8 @@ Rounding::Rounding(QObject *root, QObject *parent): myqmlplugin::configs::CSeria
 	m_full.setBinding([this]() -> int { return 1000 * m_scale.value(); });
 }
 
+QString Rounding::getClassName() const { return m_className; }
+
 qreal Rounding::scale() const { return m_scale; }
 
 void Rounding::setScale(qreal value) {
@@ -242,6 +250,8 @@ FontSize::FontSize(QObject *root, QObject *parent): myqmlplugin::configs::CSeria
 	m_xl.setBinding([this]() -> int { return 17 * m_scale.value(); });
 	m_xxl.setBinding([this]() -> int { return 20 * m_scale.value(); });
 }
+
+QString FontSize::getClassName() const { return m_className; }
 
 qreal FontSize::scale() const { return m_scale; }
 
@@ -311,6 +321,8 @@ void FontSize::resetXxl() { m_xxl.setBinding([this]() -> int { return 20 * m_sca
 // BEGIN CLASS [[ FontFamily ]]
 FontFamily::FontFamily(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
+QString FontFamily::getClassName() const { return m_className; }
+
 QString FontFamily::sans() const { return m_sans; }
 
 void FontFamily::setSans(const QString &value) {
@@ -346,6 +358,8 @@ void FontFamily::resetMaterial() { m_material = "Material Symbols Rounded"; }
 
 // BEGIN CLASS [[ AppearanceConfig ]]
 AppearanceConfig::AppearanceConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
+
+QString AppearanceConfig::getClassName() const { return m_className; }
 
 FontFamily *AppearanceConfig::fontFamily() const { return m_fontFamily; }
 

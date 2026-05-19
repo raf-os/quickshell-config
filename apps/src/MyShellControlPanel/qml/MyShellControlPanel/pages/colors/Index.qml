@@ -20,7 +20,7 @@ PageStackItem {
 
     FormController {
         id: formController
-        model: Colors.colors // qmllint disable missing-type
+        models: [Colors.colors] // qmllint disable missing-type
     }
 
     ColumnLayout {

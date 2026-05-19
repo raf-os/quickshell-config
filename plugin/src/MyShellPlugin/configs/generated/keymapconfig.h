@@ -19,6 +19,7 @@ class KeyMapConfig : public myqmlplugin::configs::CSerializable {
 
 public:
 	explicit KeyMapConfig(QObject *root = nullptr, QObject *parent = nullptr);
+	Q_INVOKABLE [[nodiscard]] QString getClassName() const;
 
 	[[nodiscard]] bool enabled() const;
 	void setEnabled(bool value);
@@ -26,7 +27,9 @@ public:
 	QBindable<bool> bindableEnabled();
 	Q_SIGNAL void enabledChanged();
 
-private:
+private:	
+	const QString m_className = "KeyMapConfig";
+
 	QProperty<bool> m_enabled{true};
 };
 // END CLASS [[ KeyMapConfig ]]

@@ -15,6 +15,7 @@ class FieldController : public QObject {
 
   Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
   Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QString className READ className CONSTANT)
   Q_PROPERTY(QJSValue onValidation READ onValidation WRITE setOnValidation
                  NOTIFY validationChanged)
   Q_PROPERTY(QString validationError READ validationError NOTIFY
@@ -36,9 +37,12 @@ public:
   void setValue(const QVariant &value);
 
   [[nodiscard]] QString name() const;
+  [[nodiscard]] QString className() const;
 
   [[nodiscard]] QJSValue onValidation() const;
   void setOnValidation(const QJSValue &value);
+
+  QObject *getReference();
 
   std::optional<QVariant> triggerValidation(bool *validationError = nullptr);
 
@@ -53,6 +57,7 @@ private:
   QObject *m_reference;
   QVariant m_value;
   QString m_name;
+  QString m_className = "UNKNOWN_CLASS";
   QJSValue m_validator;
   QString m_validationError;
   bool m_isDirty = true;

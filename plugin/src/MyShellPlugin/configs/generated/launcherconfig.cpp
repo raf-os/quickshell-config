@@ -12,6 +12,8 @@ namespace configs{
 // BEGIN CLASS [[ LauncherConfig ]]
 LauncherConfig::LauncherConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
+QString LauncherConfig::getClassName() const { return m_className; }
+
 bool LauncherConfig::enabled() const { return m_enabled; }
 
 void LauncherConfig::setEnabled(bool value) {

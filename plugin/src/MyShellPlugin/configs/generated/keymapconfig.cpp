@@ -10,6 +10,8 @@ namespace configs{
 // BEGIN CLASS [[ KeyMapConfig ]]
 KeyMapConfig::KeyMapConfig(QObject *root, QObject *parent): myqmlplugin::configs::CSerializable(root, parent) {}
 
+QString KeyMapConfig::getClassName() const { return m_className; }
+
 bool KeyMapConfig::enabled() const { return m_enabled; }
 
 void KeyMapConfig::setEnabled(bool value) {

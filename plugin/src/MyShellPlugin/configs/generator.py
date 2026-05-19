@@ -309,7 +309,7 @@ class CppFileModel(BaseModel):
         "qobject.h",
         "qqmlintegration.h",
         "qtmetamacros.h",
-        "qproperty.h"
+        "qproperty.h",
     }
     classes: list[CppClassModel] = []
     fileDataHeader: str = "#pragma once \n\n#include \"cserializable.h\"\n\n"
@@ -353,11 +353,7 @@ class CppClassModel(BaseModel):
     parent: CppClassModel | None = None
     children: list[CppClassModel] = []
     data: list[SimpleValue | ObjectProperty]
-    macros: str = (
-            "\tQ_OBJECT\n"
-            "\tQML_ELEMENT\n"
-            "\tQML_UNCREATABLE(\"\")\n"
-            )
+    macros: str = ""
 
     public: str = ""
     private: str = ""
@@ -373,6 +369,12 @@ class CppClassModel(BaseModel):
     @override
     def model_post_init(self, __context: object) -> None:
         self.fileModel.addClass(self)
+
+        self.macros = (
+            "\tQ_OBJECT\n"
+            "\tQML_ELEMENT\n"
+            "\tQML_UNCREATABLE(\"\")\n"
+        )
 
         self.constructorFunction.prefix = self.className + "::" + self.className + "("
         self.constructorFunction.suffix = "}"
@@ -392,6 +394,9 @@ class CppClassModel(BaseModel):
         self.wrapperBody.metaWrapper = self.wrapperComments
 
         self.addPublicMethod(header=f"explicit {self.className}(QObject *root = nullptr, QObject *parent = nullptr);")
+        self.addPrivateMethod(f"\n\tconst QString m_className = \"{self.className}\";")
+        self.addPublicMethod(f"Q_INVOKABLE [[nodiscard]] QString getClassName() const;",
+                             f"QString {self.className}::getClassName() const {{ return m_className; }}")
         self.iterateModel()
         return super().model_post_init(__context)
 
