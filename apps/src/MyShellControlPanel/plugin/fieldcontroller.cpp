@@ -1,4 +1,6 @@
 #include "fieldcontroller.h"
+#include "validator.h"
+#include "validatorresponse.h"
 
 #include <optional>
 #include <qjsengine.h>
@@ -65,10 +67,10 @@ QString FieldController::className() const { return m_className; }
 
 bool FieldController::isDirty() const { return m_isDirty; }
 
-void FieldController::setIsDirty(const bool &value) {
+void FieldController::setIsDirty(bool value) {
   if (m_isDirty != value) {
     m_isDirty = value;
-    emit isDirtyChanged();
+    emit isDirtyChanged(value);
   }
 }
 
@@ -78,6 +80,17 @@ void FieldController::setOnValidation(const QJSValue &value) {
   if (!m_validator.strictlyEquals(value)) {
     m_validator = value;
     emit validationChanged();
+  }
+}
+
+validators::Validator *FieldController::cValidator() const {
+  return m_cValidator;
+}
+
+void FieldController::setCValidator(validators::Validator *validator) {
+  if (m_cValidator != validator) {
+    m_cValidator = validator;
+    emit cValidatorChanged();
   }
 }
 
@@ -92,24 +105,40 @@ void FieldController::setValidationError(const QString &value) {
 
 std::optional<QVariant>
 FieldController::triggerValidation(bool *validationError) {
+  QVariant finalValue = m_value;
+
   if (!m_isDirty) {
     return std::nullopt;
   }
 
+  if (m_cValidator != nullptr) {
+    validators::ValidatorResponse res;
+    m_cValidator->validate(finalValue, &res);
+
+    if (res.success == false) {
+      if (validationError)
+        *validationError = false;
+      setValidationError(res.message);
+      return std::nullopt;
+    }
+
+    finalValue = res.value;
+  }
+
   if (m_validator.isNull() || m_validator.isUndefined()) {
     // No validation function was defined on the QML side
-    return m_value;
+    return finalValue;
   }
 
   QJSEngine *engine = qjsEngine(this);
   if (!engine)
-    return m_value;
+    return finalValue;
 
   if (!m_validator.isCallable()) {
     return m_validator.toVariant();
   }
 
-  QJSValue result = m_validator.call();
+  QJSValue result = m_validator.call({finalValue.toString()});
 
   if (result.isError()) {
     qWarning() << "mscp::FieldController::triggerValidation: Javascript error "

@@ -5,6 +5,7 @@
 #include <qcontainerfwd.h>
 #include <qdebug.h>
 #include <qdir.h>
+#include <qfontdatabase.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>

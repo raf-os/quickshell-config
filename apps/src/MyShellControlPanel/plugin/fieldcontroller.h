@@ -1,5 +1,7 @@
 #pragma once
 
+#include "validator.h"
+
 #include <optional>
 #include <qjsvalue.h>
 #include <qobject.h>
@@ -21,7 +23,8 @@ class FieldController : public QObject {
   Q_PROPERTY(QString validationError READ validationError NOTIFY
                  validationErrorChanged)
   Q_PROPERTY(bool isDirty READ isDirty WRITE setIsDirty NOTIFY isDirtyChanged)
-
+  Q_PROPERTY(mscp::validators::Validator *cValidator READ cValidator WRITE
+                 setCValidator NOTIFY cValidatorChanged)
 public:
   explicit FieldController(QObject *reference, const QString &name,
                            const QVariant &initialValue,
@@ -31,10 +34,13 @@ public:
   void setValidationError(const QString &value);
 
   [[nodiscard]] bool isDirty() const;
-  void setIsDirty(const bool &value);
+  void setIsDirty(bool value);
 
   [[nodiscard]] QVariant value() const;
   void setValue(const QVariant &value);
+
+  [[nodiscard]] validators::Validator *cValidator() const;
+  void setCValidator(validators::Validator *validator);
 
   [[nodiscard]] QString name() const;
   [[nodiscard]] QString className() const;
@@ -51,15 +57,17 @@ signals:
   void nameChanged();
   void validationChanged();
   void validationErrorChanged();
-  void isDirtyChanged();
+  void isDirtyChanged(bool isDirty);
+  void cValidatorChanged();
 
 private:
+  validators::Validator *m_cValidator = nullptr;
   QObject *m_reference;
   QVariant m_value;
   QString m_name;
   QString m_className = "UNKNOWN_CLASS";
   QJSValue m_validator;
   QString m_validationError;
-  bool m_isDirty = true;
+  bool m_isDirty = false;
 };
 } // namespace mscp

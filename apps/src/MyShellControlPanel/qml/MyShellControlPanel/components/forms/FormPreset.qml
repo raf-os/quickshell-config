@@ -25,6 +25,12 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: Config.appearance.spacing.md
 
+    function onSave() {
+    }
+
+    function onCancel() {
+    }
+
     Loader {
         Layout.fillWidth: true
 

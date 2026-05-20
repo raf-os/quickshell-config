@@ -22,6 +22,7 @@ class FormController : public QObject {
                  fieldsChanged)
   Q_PROPERTY(
       bool validationError READ validationError NOTIFY validationErrorChanged)
+  Q_PROPERTY(bool isDirty READ isDirty NOTIFY isDirtyChanged)
 
 public:
   explicit FormController(QObject *parent = nullptr);
@@ -37,6 +38,8 @@ public:
   void setModels(QList<myqmlplugin::configs::CSerializable *> models);
 
   [[nodiscard]] bool validationError() const;
+  [[nodiscard]] bool isDirty() const;
+  void setIsDirty(bool value);
 
   [[nodiscard]] QQmlListProperty<FieldController> fields();
 
@@ -47,10 +50,12 @@ signals:
   void modelsChanged();
   void validationErrorChanged();
   void validationComplete();
+  void isDirtyChanged();
 
 private:
   QList<FieldController *> m_fields;
   bool m_validationError;
+  bool m_isDirty;
   QList<myqmlplugin::configs::CSerializable *> m_models;
 
   void modelParseProperties();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qjsengine.h>
 #include <qjsonobject.h>

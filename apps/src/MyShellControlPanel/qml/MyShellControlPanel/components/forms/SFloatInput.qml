@@ -15,6 +15,9 @@ Item {
     property int textInset: Config.appearance.spacing.md
     property bool boxLayoutFillWidth: false
 
+    property bool isDirty: false
+    property bool isValid: true
+
     property alias stepSize: control.stepSize
     property alias from: control.from
     property alias to: control.to
@@ -46,16 +49,73 @@ Item {
             id: control
 
             readonly property int rounding: Config.appearance.rounding.sm
-            readonly property int buttonSize: 24
+            readonly property int buttonSize: 32
 
             font.family: Config.appearance.fontFamily.mono
             font.pointSize: Config.appearance.fontSize.sm
 
             Layout.fillWidth: root.boxLayoutFillWidth
+            Layout.margins: 2
             decimals: 2
             editable: true
+            activeFocusOnTab: true
 
             value: root.value
+
+            onValueModified: {
+                root.isDirty = true;
+            }
+
+            validator: DoubleValidator {
+                bottom: root.from
+                top: root.to
+                decimals: 2
+                notation: DoubleValidator.StandardNotation
+            }
+
+            Rectangle {
+                id: highlight
+                readonly property bool isActive: control.activeFocus
+                readonly property real sizeOffset: 4
+                z: -1
+                anchors.centerIn: parent
+
+                implicitWidth: parent.width + sizeOffset
+                implicitHeight: parent.height + sizeOffset
+                radius: control.rounding
+
+                color: "transparent"
+
+                states: [
+                    State {
+                        name: "invalid"
+                        when: root.isValid == false
+                        PropertyChanges {
+                            highlight.color: Colors.colors.destructive
+                        }
+                    },
+                    State {
+                        name: "active"
+                        when: root.isValid && highlight.isActive
+                        PropertyChanges {
+                            highlight.color: Colors.colors.primary
+                        }
+                    },
+                    State {
+                        name: "dirty"
+                        when: root.isValid && root.isDirty
+                        PropertyChanges {
+                            highlight.color: Colors.colors.base5
+                        }
+                    }
+                ]
+
+                Behavior on color {
+                    CAnim {
+                        duration: 100
+                    }
+                }
+            }
 
             contentItem: TextInput {
                 z: 2
@@ -80,6 +140,7 @@ Item {
 
             down.indicator: SpinboxIndicator {
                 x: 0
+                text: "remove"
 
                 topLeftRadius: control.rounding
                 bottomLeftRadius: control.rounding
@@ -89,6 +150,7 @@ Item {
 
             up.indicator: SpinboxIndicator {
                 x: parent.width - implicitWidth
+                text: "add"
 
                 topRightRadius: control.rounding
                 bottomRightRadius: control.rounding
@@ -97,21 +159,24 @@ Item {
             }
 
             background: Item {
-                anchors.fill: parent
                 Rectangle {
                     color: Colors.colors.base2
-                    radius: control.rounding
 
                     border.width: 0
 
-                    anchors.fill: parent
+                    anchors.centerIn: parent
+
+                    implicitWidth: control.contentItem.width
+                    implicitHeight: control.contentItem.height
                 }
             }
         }
     }
 
     component SpinboxIndicator: Rectangle {
+        id: indicatorComponent
         property bool isHovered: false
+        property string text
 
         anchors.top: parent.top
         anchors.bottom: parent.bottom
@@ -119,6 +184,15 @@ Item {
         implicitWidth: control.buttonSize
         height: parent.height
 
-        color: isHovered ? Colors.colors.primary : Colors.colors.base
+        color: isHovered ? Colors.colors.base4 : Colors.colors.base
+
+        MaterialIcon {
+            text: indicatorComponent.text
+            grade: 200
+            anchors.fill: parent
+            fontSizeMode: Text.Fit
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
     }
 }

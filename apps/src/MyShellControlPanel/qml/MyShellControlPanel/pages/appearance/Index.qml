@@ -33,9 +33,14 @@ PageStackItem {
 
         FormPreset {
             model: fontsForm.fields
+            isDirty: fontsForm.isDirty
 
             delegate: STextInput {
                 required property FieldController modelData
+
+                onIsDirtyChanged: {
+                    modelData.isDirty = isDirty;
+                }
 
                 name: modelData.name
                 value: modelData.value
@@ -47,8 +52,23 @@ PageStackItem {
         FormPreset {
             id: formRangeFields
             model: miscAppearanceForm.fields
+            isDirty: miscAppearanceForm.isDirty
             delegate: SFloatInput {
                 required property FieldController modelData
+
+                onIsDirtyChanged: {
+                    modelData.isDirty = isDirty;
+                }
+
+                function onValidate() {
+                    const val = Number(value);
+                    if (isNaN(val)) {
+                        return {
+                            success: false,
+                            message: "Only numbers are allowed"
+                        };
+                    }
+                }
 
                 Layout.fillWidth: true
                 boxLayoutFillWidth: true

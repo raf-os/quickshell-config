@@ -6,6 +6,7 @@
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmetaobject.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qqmllist.h>
@@ -50,8 +51,8 @@ void FormController::modelParseProperties() {
       auto propName = prop.name();
       QString propValue = prop.read(m_model).toString();
 
-      auto field = new FieldController(m_model, QString::fromUtf8(propName),
-                                       propValue, this);
+      FieldController *field = new FieldController(
+          m_model, QString::fromUtf8(propName), propValue, this);
 
       QObject::connect(field, &QObject::destroyed, this, [this, field]() {
         auto idx = m_fields.indexOf(field);
@@ -60,6 +61,9 @@ void FormController::modelParseProperties() {
           emit fieldsChanged();
         }
       });
+
+      QObject::connect(field, &FieldController::isDirtyChanged, this,
+                       &FormController::setIsDirty);
 
       field->setValue(propValue);
 
@@ -71,6 +75,15 @@ void FormController::modelParseProperties() {
 }
 
 bool FormController::validationError() const { return m_validationError; }
+
+bool FormController::isDirty() const { return m_isDirty; }
+
+void FormController::setIsDirty(bool value) {
+  if (m_isDirty != value) {
+    m_isDirty = value;
+    emit isDirtyChanged();
+  }
+}
 
 QList<myqmlplugin::configs::CSerializable *> FormController::models() const {
   return m_models;
@@ -140,14 +153,20 @@ void FormController::validate() {
         assignment.prop.write(assignment.model, assignment.val);
       }
     }
-  }
 
-  for (const auto model : m_models) {
-    auto root = model->getRoot();
-    if (auto s =
-            qobject_cast<myqmlplugin::configs::IConfigSerializer *>(root)) {
-      s->commitSave();
+    for (const auto model : m_models) {
+      auto root = model->getRoot();
+      if (auto s =
+              qobject_cast<myqmlplugin::configs::IConfigSerializer *>(root)) {
+        s->commitSave();
+      }
     }
+
+    for (const auto field : m_fields) {
+      field->setIsDirty(false);
+    }
+
+    setIsDirty(false);
   }
 
   emit validationComplete();

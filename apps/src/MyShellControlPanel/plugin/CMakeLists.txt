@@ -1,5 +1,7 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick)
 
+add_subdirectory(validators)
+
 cp_add_module(panel_plugin
   URI MyShellControlPanel.plugin
   SOURCES
@@ -11,4 +13,5 @@ cp_add_module(panel_plugin
     Qt::Quick
     myshell_configs
     myshell_interfaces
+    panel_plugin_validators
 )
