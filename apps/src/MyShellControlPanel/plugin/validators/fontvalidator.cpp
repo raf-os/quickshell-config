@@ -1,10 +1,10 @@
 #include "fontvalidator.h"
-
 #include "validatorresponse.h"
 
 #include <qcontainerfwd.h>
 #include <qfontdatabase.h>
 #include <qobject.h>
+#include <qvariant.h>
 
 namespace mscp {
 namespace validators {
@@ -12,9 +12,10 @@ FontValidator::FontValidator(QObject *parent) : Validator(parent) {
   m_fontFamilies = QFontDatabase::families();
 };
 
-bool FontValidator::validate(const QString &value,
+bool FontValidator::validate(const QVariant &value,
                              ValidatorResponse *response) {
-  if (m_fontFamilies.contains(value)) {
+  auto val = value.toString();
+  if (m_fontFamilies.contains(val)) {
     if (response != nullptr) {
       *response = {
           .success = true,

@@ -17,7 +17,7 @@ namespace mscp {
 FieldController::FieldController(QObject *reference, const QString &name,
                                  const QVariant &initialValue, QObject *parent)
     : QObject(parent), m_reference(reference), m_name(name),
-      m_value(initialValue) {
+      m_initialValue(initialValue) {
   auto mo = m_reference->metaObject();
   auto mpidx = mo->indexOfProperty(m_name.toUtf8());
   auto cm = mo->indexOfMethod("getClassName()");
@@ -42,8 +42,15 @@ FieldController::FieldController(QObject *reference, const QString &name,
   auto to = metaObject();
   auto tprop = to->property(to->indexOfProperty("value"));
 
-  QObject::connect(m_reference, mprop.notifySignal(), this,
-                   tprop.notifySignal());
+  auto mtype = mprop.metaType().name();
+  if (mtype) {
+    m_type = QString::fromUtf8(mtype);
+  } else {
+    m_type = "null";
+  }
+
+  // QObject::connect(m_reference, mprop.notifySignal(), this,
+  //                  tprop.notifySignal());
 
   QObject::connect(m_reference, &QObject::destroyed, this, [this]() {
     m_reference = nullptr;
@@ -53,8 +60,8 @@ FieldController::FieldController(QObject *reference, const QString &name,
 
 QObject *FieldController::getReference() { return m_reference; }
 
+QVariant FieldController::initialValue() const { return m_initialValue; }
 QVariant FieldController::value() const { return m_value; }
-
 void FieldController::setValue(const QVariant &value) {
   if (m_value != value) {
     m_value = value;
@@ -62,8 +69,22 @@ void FieldController::setValue(const QVariant &value) {
   }
 }
 
+void FieldController::resetState(bool refetch) {
+  setIsDirty(false);
+  if (refetch) {
+    auto mo = m_reference->metaObject();
+    auto mprop = mo->property(mo->indexOfProperty(m_name.toUtf8()));
+    if (mprop.isReadable()) {
+      auto val = mprop.read(m_reference);
+      m_initialValue = val;
+      emit initialValueChanged();
+    }
+  }
+}
+
 QString FieldController::name() const { return m_name; }
 QString FieldController::className() const { return m_className; }
+QString FieldController::type() const { return m_type; }
 
 bool FieldController::isDirty() const { return m_isDirty; }
 

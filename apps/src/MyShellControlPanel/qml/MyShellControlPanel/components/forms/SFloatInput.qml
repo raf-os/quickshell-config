@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import MyShellPlugin
 import MyShellPlugin.Configs
+import MyShellControlPanel.plugin
 import MyShellControlPanel.components
 import QtQuick
 import QtQuick.Layouts
@@ -11,11 +12,13 @@ Item {
     id: root
 
     required property string name
-    required property real value
+    property real initialValue
+    property FieldController model: null
+    property real value: initialValue
     property int textInset: Config.appearance.spacing.md
     property bool boxLayoutFillWidth: false
 
-    property bool isDirty: false
+    property bool isDirty: value !== initialValue
     property bool isValid: true
 
     property alias stepSize: control.stepSize
@@ -24,6 +27,27 @@ Item {
 
     Layout.fillWidth: true
     implicitHeight: layout.implicitHeight
+
+    Component.onCompleted: {
+        bindValue();
+    }
+
+    function bindValue() {
+        value = Qt.binding(() => control.value);
+        if (model) {
+            model.value = Qt.binding(() => root.value);
+        }
+    }
+
+    Connections {
+        target: root.model
+        enabled: root.model !== null
+
+        function onInitialValueChanged() {
+            root.initialValue = root.model.initialValue;
+            control.value = root.initialValue;
+        }
+    }
 
     ColumnLayout {
         id: layout
@@ -60,11 +84,11 @@ Item {
             editable: true
             activeFocusOnTab: true
 
-            value: root.value
+            value: root.initialValue
 
-            onValueModified: {
-                root.isDirty = true;
-            }
+            // onValueModified: {
+            //     root.isDirty = true;
+            // }
 
             validator: DoubleValidator {
                 bottom: root.from

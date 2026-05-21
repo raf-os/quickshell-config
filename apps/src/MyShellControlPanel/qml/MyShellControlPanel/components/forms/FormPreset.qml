@@ -17,7 +17,8 @@ ColumnLayout {
     }
 
     required property Component delegate
-    required property list<FieldController> model
+    required property FormController controller
+    property list<FieldController> model: controller.fields
     property Component customContent: DefaultContent {}
 
     property bool isDirty: false
@@ -29,9 +30,11 @@ ColumnLayout {
     }
 
     function onCancel() {
+        root.controller.resetForm();
     }
 
     Loader {
+        id: ldr
         Layout.fillWidth: true
 
         sourceComponent: root.customContent
@@ -58,6 +61,12 @@ ColumnLayout {
             Layout.fillWidth: true
             type: SButton.ButtonType.Destructive
             disabled: !root.isDirty
+
+            onClicked: {
+                if (disabled)
+                    return;
+                root.onCancel();
+            }
         }
     }
 

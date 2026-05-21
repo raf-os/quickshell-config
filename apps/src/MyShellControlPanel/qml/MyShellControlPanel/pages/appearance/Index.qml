@@ -5,6 +5,7 @@ import MyShellPlugin.Configs
 import MyShellControlPanel.components
 import MyShellControlPanel.components.forms
 import MyShellControlPanel.plugin
+import MyShellControlPanel.plugin.validators
 import QtQuick
 import QtQuick.Layouts
 
@@ -31,12 +32,21 @@ PageStackItem {
 
         spacing: Config.appearance.spacing.md
 
+        SectionTitle {
+            text: "Fonts"
+        }
+
         FormPreset {
-            model: fontsForm.fields
+            // model: fontsForm.fields
+            controller: fontsForm
             isDirty: fontsForm.isDirty
 
-            delegate: STextInput {
+            delegate: SSelector {
                 required property FieldController modelData
+
+                Component.onCompleted: {
+                    modelData.cValidator = fontValidator;
+                }
 
                 onIsDirtyChanged: {
                     modelData.isDirty = isDirty;
@@ -44,17 +54,28 @@ PageStackItem {
 
                 name: modelData.name
                 value: modelData.value
+                model: fontValidator.fontFamilies
+
+                FontValidator {
+                    id: fontValidator
+                }
             }
         }
 
         HorizontalSeparator {}
 
+        SectionTitle {
+            text: "UI Scaling"
+        }
+
         FormPreset {
             id: formRangeFields
-            model: miscAppearanceForm.fields
+            // model: miscAppearanceForm.fields
+            controller: miscAppearanceForm
             isDirty: miscAppearanceForm.isDirty
             delegate: SFloatInput {
                 required property FieldController modelData
+                model: modelData
 
                 onIsDirtyChanged: {
                     modelData.isDirty = isDirty;
@@ -79,8 +100,9 @@ PageStackItem {
                 to: 2.0
 
                 name: `${modelData.className}.${modelData.name}`
-                value: modelData.value
+                initialValue: modelData.initialValue
             }
+
             customContent: GridLayout {
                 Layout.fillWidth: true
                 columns: 3
@@ -92,6 +114,27 @@ PageStackItem {
                     delegate: formRangeFields.delegate
                 }
             }
+        }
+    }
+
+    component SectionTitle: Item {
+        id: secTitComp
+        required property string text
+
+        Layout.fillWidth: true
+        implicitHeight: secTitText.height
+
+        StyledText {
+            id: secTitText
+
+            text: secTitComp.text
+            font.family: Config.appearance.fontFamily.sans
+            font.pointSize: Config.appearance.fontSize.lg
+            font.weight: 600
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 }

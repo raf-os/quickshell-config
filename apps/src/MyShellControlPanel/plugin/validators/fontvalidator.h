@@ -7,6 +7,7 @@
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
+#include <qvariant.h>
 
 namespace mscp {
 namespace validators {
@@ -18,7 +19,8 @@ class FontValidator : public Validator {
 public:
   explicit FontValidator(QObject *parent = nullptr);
 
-  bool validate(const QString &value, ValidatorResponse *response = nullptr);
+  bool validate(const QVariant &value,
+                ValidatorResponse *response = nullptr) override;
   Q_INVOKABLE bool tryValidate(const QString &value);
   [[nodiscard]] QStringList fontFamilies() const;
 

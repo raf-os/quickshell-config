@@ -49,7 +49,7 @@ void FormController::modelParseProperties() {
         continue;
 
       auto propName = prop.name();
-      QString propValue = prop.read(m_model).toString();
+      QVariant propValue = prop.read(m_model);
 
       FieldController *field = new FieldController(
           m_model, QString::fromUtf8(propName), propValue, this);
@@ -170,5 +170,12 @@ void FormController::validate() {
   }
 
   emit validationComplete();
+}
+
+void FormController::resetForm() {
+  for (const auto field : m_fields) {
+    field->resetState(true);
+  }
+  emit fieldsChanged();
 }
 } // namespace mscp

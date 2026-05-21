@@ -44,6 +44,7 @@ public:
   [[nodiscard]] QQmlListProperty<FieldController> fields();
 
   Q_INVOKABLE void validate();
+  Q_INVOKABLE void resetForm();
 
 signals:
   void fieldsChanged();

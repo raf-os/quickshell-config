@@ -5,6 +5,7 @@
 #include <optional>
 #include <qjsvalue.h>
 #include <qobject.h>
+#include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 #include <qvariant.h>
@@ -15,8 +16,10 @@ class FieldController : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
+  Q_PROPERTY(QVariant initialValue READ initialValue NOTIFY initialValueChanged)
   Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
   Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QString type READ type CONSTANT)
   Q_PROPERTY(QString className READ className CONSTANT)
   Q_PROPERTY(QJSValue onValidation READ onValidation WRITE setOnValidation
                  NOTIFY validationChanged)
@@ -36,6 +39,7 @@ public:
   [[nodiscard]] bool isDirty() const;
   void setIsDirty(bool value);
 
+  [[nodiscard]] QVariant initialValue() const;
   [[nodiscard]] QVariant value() const;
   void setValue(const QVariant &value);
 
@@ -44,9 +48,12 @@ public:
 
   [[nodiscard]] QString name() const;
   [[nodiscard]] QString className() const;
+  [[nodiscard]] QString type() const;
 
   [[nodiscard]] QJSValue onValidation() const;
   void setOnValidation(const QJSValue &value);
+
+  void resetState(bool refetch = false);
 
   QObject *getReference();
 
@@ -54,6 +61,7 @@ public:
 
 signals:
   void valueChanged();
+  void initialValueChanged();
   void nameChanged();
   void validationChanged();
   void validationErrorChanged();
@@ -63,8 +71,10 @@ signals:
 private:
   validators::Validator *m_cValidator = nullptr;
   QObject *m_reference;
-  QVariant m_value;
   QString m_name;
+  QVariant m_initialValue;
+  QVariant m_value;
+  QString m_type;
   QString m_className = "UNKNOWN_CLASS";
   QJSValue m_validator;
   QString m_validationError;
