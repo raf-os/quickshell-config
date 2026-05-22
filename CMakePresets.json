@@ -15,7 +15,8 @@
       "name": "dev",
       "inherits": "default",
       "cacheVariables": {
-        "DEVMODE": "ON"
+        "DEVMODE": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   ],

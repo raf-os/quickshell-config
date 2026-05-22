@@ -63,9 +63,13 @@ QObject *FieldController::getReference() { return m_reference; }
 QVariant FieldController::initialValue() const { return m_initialValue; }
 QVariant FieldController::value() const { return m_value; }
 void FieldController::setValue(const QVariant &value) {
-  if (m_value != value) {
+  if (value != m_value) {
     m_value = value;
     emit valueChanged();
+
+    if (m_value != m_initialValue) {
+      setIsDirty(true);
+    }
   }
 }
 
@@ -100,7 +104,7 @@ QJSValue FieldController::onValidation() const { return m_validator; }
 void FieldController::setOnValidation(const QJSValue &value) {
   if (!m_validator.strictlyEquals(value)) {
     m_validator = value;
-    emit validationChanged();
+    emit onValidationChanged();
   }
 }
 
@@ -120,7 +124,7 @@ QString FieldController::validationError() const { return m_validationError; }
 void FieldController::setValidationError(const QString &value) {
   if (m_validationError != value) {
     m_validationError = value;
-    emit validationChanged();
+    emit onValidationChanged();
   }
 }
 

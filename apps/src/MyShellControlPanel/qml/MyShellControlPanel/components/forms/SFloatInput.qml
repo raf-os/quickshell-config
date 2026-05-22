@@ -8,18 +8,17 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-Item {
+FormInput {
     id: root
 
-    required property string name
-    property real initialValue
-    property FieldController model: null
-    property real value: initialValue
+    // required property string name
+    // property real initialValue
+    // property real value: initialValue
     property int textInset: Config.appearance.spacing.md
     property bool boxLayoutFillWidth: false
 
-    property bool isDirty: value !== initialValue
-    property bool isValid: true
+    // property bool isDirty: value !== initialValue
+    // property bool isValid: true
 
     property alias stepSize: control.stepSize
     property alias from: control.from
@@ -28,26 +27,7 @@ Item {
     Layout.fillWidth: true
     implicitHeight: layout.implicitHeight
 
-    Component.onCompleted: {
-        bindValue();
-    }
-
-    function bindValue() {
-        value = Qt.binding(() => control.value);
-        if (model) {
-            model.value = Qt.binding(() => root.value);
-        }
-    }
-
-    Connections {
-        target: root.model
-        enabled: root.model !== null
-
-        function onInitialValueChanged() {
-            root.initialValue = root.model.initialValue;
-            control.value = root.initialValue;
-        }
-    }
+    inputItem: control
 
     ColumnLayout {
         id: layout
@@ -84,11 +64,7 @@ Item {
             editable: true
             activeFocusOnTab: true
 
-            value: root.initialValue
-
-            // onValueModified: {
-            //     root.isDirty = true;
-            // }
+            // value: root.initialValue
 
             validator: DoubleValidator {
                 bottom: root.from

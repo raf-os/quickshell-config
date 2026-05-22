@@ -19,7 +19,12 @@ ColumnLayout {
     required property Component delegate
     required property FormController controller
     property list<FieldController> model: controller.fields
-    property Component customContent: DefaultContent {}
+    property int layoutType: FormPreset.Type.Column
+    property int innerSpacing: 0
+    property vector2d gridSpacing: Qt.vector2d(0, 0)
+    property int rows: 0
+    property int columns: 0
+    property alias layout: layout
 
     property bool isDirty: false
 
@@ -33,11 +38,39 @@ ColumnLayout {
         root.controller.resetForm();
     }
 
-    Loader {
-        id: ldr
-        Layout.fillWidth: true
+    GridLayout {
+        id: layout
 
-        sourceComponent: root.customContent
+        states: [
+            State {
+                when: root.layoutType === FormPreset.Type.Grid
+                PropertyChanges {
+                    layout.rows: root.rows
+                    layout.columns: root.columns
+                    layout.columnSpacing: root.gridSpacing.x
+                    layout.rowSpacing: root.gridSpacing.y
+                }
+            },
+            State {
+                when: root.layoutType === FormPreset.Type.Column
+                PropertyChanges {
+                    layout.columns: 1
+                    layout.columnSpacing: root.innerSpacing
+                }
+            },
+            State {
+                when: root.layoutType === FormPreset.Type.Row
+                PropertyChanges {
+                    layout.rows: 1
+                    layout.rowSpacing: root.innerSpacing
+                }
+            }
+        ]
+
+        Repeater {
+            model: root.model
+            delegate: root.delegate
+        }
     }
 
     RowLayout {
@@ -67,15 +100,6 @@ ColumnLayout {
                     return;
                 root.onCancel();
             }
-        }
-    }
-
-    component DefaultContent: ColumnLayout {
-        spacing: root.spacing
-
-        Repeater {
-            model: root.model
-            delegate: root.delegate
         }
     }
 }

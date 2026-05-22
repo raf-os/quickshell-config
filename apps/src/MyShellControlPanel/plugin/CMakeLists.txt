@@ -7,6 +7,7 @@ cp_add_module(panel_plugin
   SOURCES
     formcontroller.h formcontroller.cpp
     fieldcontroller.h fieldcontroller.cpp
+    forminput.h forminput.cpp
   LIBRARIES
     Qt::Core
     Qt::Qml

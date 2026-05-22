@@ -71,25 +71,16 @@ PageStackItem {
         FormPreset {
             id: formRangeFields
             // model: miscAppearanceForm.fields
+
+            layoutType: FormPreset.Type.Grid
+            columns: 3
+
+            gridSpacing: Qt.vector2d(Config.appearance.spacing.md, Config.appearance.spacing.sm)
             controller: miscAppearanceForm
             isDirty: miscAppearanceForm.isDirty
             delegate: SFloatInput {
                 required property FieldController modelData
-                model: modelData
-
-                onIsDirtyChanged: {
-                    modelData.isDirty = isDirty;
-                }
-
-                function onValidate() {
-                    const val = Number(value);
-                    if (isNaN(val)) {
-                        return {
-                            success: false,
-                            message: "Only numbers are allowed"
-                        };
-                    }
-                }
+                controller: modelData
 
                 Layout.fillWidth: true
                 boxLayoutFillWidth: true
@@ -100,19 +91,6 @@ PageStackItem {
                 to: 2.0
 
                 name: `${modelData.className}.${modelData.name}`
-                initialValue: modelData.initialValue
-            }
-
-            customContent: GridLayout {
-                Layout.fillWidth: true
-                columns: 3
-                rowSpacing: Config.appearance.spacing.lg
-                columnSpacing: Config.appearance.spacing.md
-
-                Repeater {
-                    model: formRangeFields.model
-                    delegate: formRangeFields.delegate
-                }
             }
         }
     }

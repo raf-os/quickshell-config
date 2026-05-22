@@ -22,7 +22,7 @@ class FieldController : public QObject {
   Q_PROPERTY(QString type READ type CONSTANT)
   Q_PROPERTY(QString className READ className CONSTANT)
   Q_PROPERTY(QJSValue onValidation READ onValidation WRITE setOnValidation
-                 NOTIFY validationChanged)
+                 NOTIFY onValidationChanged)
   Q_PROPERTY(QString validationError READ validationError NOTIFY
                  validationErrorChanged)
   Q_PROPERTY(bool isDirty READ isDirty WRITE setIsDirty NOTIFY isDirtyChanged)
@@ -40,6 +40,7 @@ public:
   void setIsDirty(bool value);
 
   [[nodiscard]] QVariant initialValue() const;
+
   [[nodiscard]] QVariant value() const;
   void setValue(const QVariant &value);
 
@@ -63,7 +64,7 @@ signals:
   void valueChanged();
   void initialValueChanged();
   void nameChanged();
-  void validationChanged();
+  void onValidationChanged();
   void validationErrorChanged();
   void isDirtyChanged(bool isDirty);
   void cValidatorChanged();
@@ -72,8 +73,8 @@ private:
   validators::Validator *m_cValidator = nullptr;
   QObject *m_reference;
   QString m_name;
-  QVariant m_initialValue;
   QVariant m_value;
+  QVariant m_initialValue;
   QString m_type;
   QString m_className = "UNKNOWN_CLASS";
   QJSValue m_validator;
