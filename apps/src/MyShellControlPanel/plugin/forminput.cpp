@@ -51,7 +51,7 @@ void FormInput::setInputItem(QQuickItem *item) {
 
     if (m_inputItem) {
       QObject::connect(m_inputItem, &QObject::destroyed, this,
-                       [this]() { this->setInputItem(nullptr); });
+                       [this]() { this->m_inputItem = nullptr; });
 
       attemptConnectFields();
     }
