@@ -186,7 +186,7 @@ FormInput {
 
         color: isHovered ? Colors.colors.base4 : Colors.colors.base
 
-        MaterialIcon {
+        SMaterialIcon {
             text: indicatorComponent.text
             grade: 200
             anchors.fill: parent

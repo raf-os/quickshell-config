@@ -95,7 +95,7 @@ FormInput {
 
             delegate: root.delegate
 
-            indicator: MaterialIcon {
+            indicator: SMaterialIcon {
                 id: controlIndicator
                 readonly property int animDuration: 200
                 readonly property int size: control.height

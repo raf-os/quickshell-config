@@ -124,17 +124,23 @@ Item {
                     root.app.stackInterface.clearAndPush(listItem.path);
                 }
 
-                MaterialIcon {
+                SMaterialIcon {
                     id: itemIcon
                     text: listItem.icon
 
                     anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
 
                     anchors.leftMargin: listItem.padding
 
                     // font.family: Config.appearance.fontFamily.mono
-                    font.pointSize: Config.appearance.fontSize.lg
+                    font.pixelSize: Config.appearance.fontSize.xl
+                    font.weight: 600
+                    fill: 1
+                    grade: 0
+
+                    verticalAlignment: Text.AlignVCenter
 
                     width: listItem.icon === "" ? 0 : Config.appearance.fontSize.xl + Config.appearance.padding.sm
                 }
