@@ -6,18 +6,24 @@ ListModel {
     ListElement {
         label: "Keyboard"
         path: "/keyboard"
-        icon: "󰌌"
+        icon: "keyboard"
     }
 
     ListElement {
         label: "Appearance"
         path: "/appearance"
-        icon: "󰋩"
+        icon: "image"
+    }
+
+    ListElement {
+        label: "Bar Config"
+        path: "/taskbar"
+        icon: "toolbar"
     }
 
     ListElement {
         label: "Colors"
         path: "/colors"
-        icon: "󰏘"
+        icon: "palette"
     }
 }

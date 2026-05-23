@@ -124,7 +124,7 @@ Item {
                     root.app.stackInterface.clearAndPush(listItem.path);
                 }
 
-                StyledText {
+                MaterialIcon {
                     id: itemIcon
                     text: listItem.icon
 
@@ -133,10 +133,10 @@ Item {
 
                     anchors.leftMargin: listItem.padding
 
-                    font.family: Config.appearance.fontFamily.mono
-                    font.pixelSize: Config.appearance.fontSize.lg
+                    // font.family: Config.appearance.fontFamily.mono
+                    font.pointSize: Config.appearance.fontSize.lg
 
-                    width: listItem.icon === "" ? 0 : Config.appearance.fontSize.lg + Config.appearance.padding.sm
+                    width: listItem.icon === "" ? 0 : Config.appearance.fontSize.xl + Config.appearance.padding.sm
                 }
 
                 StyledText {

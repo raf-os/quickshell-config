@@ -23,6 +23,10 @@ PageStackItem {
         models: [Config.appearance.fontSize, Config.appearance.rounding, Config.appearance.spacing, Config.appearance.padding] // qmllint disable missing-type
     }
 
+    FontValidator {
+        id: fontValidator
+    }
+
     ColumnLayout {
         id: mainLayout
 
@@ -37,28 +41,16 @@ PageStackItem {
         }
 
         FormPreset {
-            // model: fontsForm.fields
             controller: fontsForm
             isDirty: fontsForm.isDirty
+            innerSpacing: Config.appearance.spacing.sm
 
             delegate: SSelector {
                 required property FieldController modelData
-
-                Component.onCompleted: {
-                    modelData.cValidator = fontValidator;
-                }
-
-                onIsDirtyChanged: {
-                    modelData.isDirty = isDirty;
-                }
+                controller: modelData
 
                 name: modelData.name
-                value: modelData.value
                 model: fontValidator.fontFamilies
-
-                FontValidator {
-                    id: fontValidator
-                }
             }
         }
 
@@ -70,7 +62,6 @@ PageStackItem {
 
         FormPreset {
             id: formRangeFields
-            // model: miscAppearanceForm.fields
 
             layoutType: FormPreset.Type.Grid
             columns: 3
@@ -78,20 +69,27 @@ PageStackItem {
             gridSpacing: Qt.vector2d(Config.appearance.spacing.md, Config.appearance.spacing.sm)
             controller: miscAppearanceForm
             isDirty: miscAppearanceForm.isDirty
-            delegate: SFloatInput {
-                required property FieldController modelData
-                controller: modelData
-
-                Layout.fillWidth: true
-                boxLayoutFillWidth: true
-                textInset: 0
-
-                stepSize: 0.1
-                from: 0.1
-                to: 2.0
-
-                name: `${modelData.className}.${modelData.name}`
+            delegate: AutoFieldDelegate {
+                includeClassName: true
+                layoutFillWidth: true
+                floatMinimumValue: 0.0
+                floatMaximumValue: 2.0
             }
+
+            // delegate: SFloatInput {
+            //     required property FieldController modelData
+            //     controller: modelData
+            //
+            //     Layout.fillWidth: true
+            //     boxLayoutFillWidth: true
+            //     textInset: 0
+            //
+            //     stepSize: 0.1
+            //     from: 0.1
+            //     to: 2.0
+            //
+            //     name: `${modelData.className}.${modelData.name}`
+            // }
         }
     }
 

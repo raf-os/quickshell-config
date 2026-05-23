@@ -41,8 +41,8 @@ void FormInput::setInitialValue() {
   emit initialValueChanged();
 }
 
-QQuickItem *FormInput::inputItem() const { return m_inputItem; }
-void FormInput::setInputItem(QQuickItem *item) {
+QObject *FormInput::inputItem() const { return m_inputItem; }
+void FormInput::setInputItem(QObject *item) {
   if (item != m_inputItem) {
     if (m_inputItem) {
       QObject::disconnect(m_inputItem, nullptr, this, nullptr);

@@ -103,6 +103,21 @@ QQmlListProperty<FieldController> FormController::fields() {
   return QQmlListProperty<FieldController>(this, &m_fields);
 }
 
+FieldController *FormController::fieldFor(const QString &className,
+                                          const QString &propName) {
+  FieldController *ptr = nullptr;
+  for (const auto field : m_fields) {
+    if (field->className() != className)
+      continue;
+    if (field->name() != propName)
+      continue;
+
+    ptr = field;
+    break;
+  }
+  return ptr;
+}
+
 void FormController::validate() {
   if (m_models.isEmpty()) {
     qWarning() << "mscp::FormController::validate: No model to assign "

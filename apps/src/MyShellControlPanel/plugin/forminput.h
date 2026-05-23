@@ -56,7 +56,7 @@ class FormInput : public QQuickItem {
   AUTO_PROP_REROUTE(QString, validationError, ValidationError)
   Q_PROPERTY(mscp::FieldController *controller READ controller WRITE
                  setController NOTIFY controllerChanged)
-  Q_PROPERTY(QQuickItem *inputItem READ inputItem WRITE setInputItem NOTIFY
+  Q_PROPERTY(QObject *inputItem READ inputItem WRITE setInputItem NOTIFY
                  inputItemChanged)
   Q_PROPERTY(mscp::validators::Validator *cValidator READ cValidator WRITE
                  setCValidator NOTIFY cValidatorChanged)
@@ -72,8 +72,8 @@ public:
 
   [[nodiscard]] bool isValid() const;
 
-  [[nodiscard]] QQuickItem *inputItem() const;
-  void setInputItem(QQuickItem *item);
+  [[nodiscard]] QObject *inputItem() const;
+  void setInputItem(QObject *item);
 
   [[nodiscard]] FieldController *controller() const;
   void setController(FieldController *controller);
@@ -93,7 +93,7 @@ private:
   QVariant m_initialValueBuffer;
   QString m_name;
   FieldController *m_controller = nullptr;
-  QQuickItem *m_inputItem = nullptr;
+  QObject *m_inputItem = nullptr;
   bool m_isValid = true;
 
   void writeToInputItem(const QVariant &value);

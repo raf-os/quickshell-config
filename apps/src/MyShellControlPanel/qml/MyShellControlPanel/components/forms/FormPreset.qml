@@ -26,7 +26,7 @@ ColumnLayout {
     property int columns: 0
     property alias layout: layout
 
-    property bool isDirty: false
+    property bool isDirty: controller ? controller.isDirty : false
 
     Layout.fillWidth: true
     spacing: Config.appearance.spacing.md
@@ -55,14 +55,14 @@ ColumnLayout {
                 when: root.layoutType === FormPreset.Type.Column
                 PropertyChanges {
                     layout.columns: 1
-                    layout.columnSpacing: root.innerSpacing
+                    layout.rowSpacing: root.innerSpacing
                 }
             },
             State {
                 when: root.layoutType === FormPreset.Type.Row
                 PropertyChanges {
                     layout.rows: 1
-                    layout.rowSpacing: root.innerSpacing
+                    layout.columnSpacing: root.innerSpacing
                 }
             }
         ]

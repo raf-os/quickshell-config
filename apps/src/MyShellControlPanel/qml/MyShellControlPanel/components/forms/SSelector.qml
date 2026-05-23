@@ -3,275 +3,298 @@ pragma ComponentBehavior: Bound
 import MyShellPlugin
 import MyShellPlugin.Configs
 import MyShellControlPanel.components
+import MyShellControlPanel.plugin
 import MyShellControlPanel.plugin.validators
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-RowLayout {
+FormInput {
     id: root
 
-    required property list<string> model
-    required property string name
-    required property string value
-    property Component delegate: ComboItemDelegate {}
     property int textInset: Config.appearance.spacing.xs
-
+    property Component delegate: ComboItemDelegate {}
     readonly property real windowHeight: Window.height
 
-    property int initialIndex: -1
-
-    property bool isDirty: false
-    property bool isValid: true
+    property list<string> model
 
     Layout.fillWidth: true
-    spacing: Config.appearance.spacing.sm
+    implicitHeight: layout.implicitHeight
 
-    StyledText {
-        id: label
+    inputItem: selectorAdapter
 
-        text: root.name
+    QtObject {
+        id: selectorAdapter
 
-        font.family: Config.appearance.fontFamily.sans
-        font.pointSize: Config.appearance.fontSize.sm
-        font.weight: 600
+        property string value
+        readonly property int selectedIndex: control.currentIndex
 
-        leftPadding: root.textInset
+        function findIndexByName(val: string): int {
+            return root.model.findIndex(val);
+        }
+
+        function findNameByIndex(idx: int): string {
+            const st = root.model[idx];
+            if (st === undefined || st === null) {
+                return "";
+            } else {
+                return st;
+            }
+        }
+
+        onValueChanged: {
+            const selId = root.model.findIndex(val => val === value);
+            if (selId != -1) { // found something
+                control.currentIndex = selId;
+            }
+        }
+
+        onSelectedIndexChanged: {
+            selectorAdapter.value = findNameByIndex(selectedIndex);
+        }
     }
 
-    ComboBox {
-        id: control
+    RowLayout {
+        id: layout
 
-        readonly property int rounding: Config.appearance.rounding.sm
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
 
-        Layout.fillWidth: true
-
-        font.pointSize: Config.appearance.fontSize.sm
-        font.family: Config.appearance.fontFamily.mono
         spacing: Config.appearance.spacing.sm
 
-        selectTextByMouse: true
-        editable: true
-        activeFocusOnTab: true
+        StyledText {
+            id: label
 
-        Component.onCompleted: {
-            const selId = root.model.findIndex(val => val === root.value);
-            root.initialIndex = selId;
-            if (selId !== -1) {
-                currentIndex = selId;
-            }
+            text: root.name
+
+            font.family: Config.appearance.fontFamily.sans
+            font.pointSize: Config.appearance.fontSize.sm
+            font.weight: 600
+
+            leftPadding: root.textInset
         }
 
-        onActivated: idx => {
-            if (idx !== root.initialIndex) {
-                root.isDirty = true;
-            }
-        }
+        ComboBox {
+            id: control
 
-        model: root.model
+            readonly property int rounding: Config.appearance.rounding.sm
 
-        delegate: root.delegate
+            Layout.fillWidth: true
 
-        indicator: MaterialIcon {
-            id: controlIndicator
-            readonly property int animDuration: 200
-            readonly property int size: control.height
-            text: "arrow_drop_down"
+            font.pointSize: Config.appearance.fontSize.sm
+            font.family: Config.appearance.fontFamily.mono
+            spacing: Config.appearance.spacing.sm
 
-            x: control.width - width
+            selectTextByMouse: true
+            editable: true
+            activeFocusOnTab: true
 
-            width: size
-            height: size
+            model: root.model
 
-            opacity: control.popup.visible ? 1 : 0.5
-            scale: control.popup.visible ? 1.25 : 1
-            font.pointSize: Config.appearance.fontSize.xxl
+            delegate: root.delegate
 
-            verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: Text.AlignHCenter
+            indicator: MaterialIcon {
+                id: controlIndicator
+                readonly property int animDuration: 200
+                readonly property int size: control.height
+                text: "arrow_drop_down"
 
-            Behavior on opacity {
-                NAnim {
-                    duration: controlIndicator.animDuration
+                x: control.width - width
+
+                width: size
+                height: size
+
+                opacity: control.popup.visible ? 1 : 0.5
+                scale: control.popup.visible ? 1.25 : 1
+                font.pointSize: Config.appearance.fontSize.xxl
+
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+
+                Behavior on opacity {
+                    NAnim {
+                        duration: controlIndicator.animDuration
+                    }
+                }
+
+                Behavior on scale {
+                    NAnim {
+                        duration: controlIndicator.animDuration
+                    }
                 }
             }
 
-            Behavior on scale {
-                NAnim {
-                    duration: controlIndicator.animDuration
-                }
-            }
-        }
+            popup: Popup {
+                id: controlPopup
+                readonly property int parentOffset: Config.appearance.spacing.xs
+                readonly property int desiredHeight: Math.min(root.windowHeight - topMargin - bottomMargin, contentItem.implicitHeight, 256)
+                readonly property bool reversePosition: Qt.binding(() => desiredHeight + control.mapToGlobal(0, 0).y > root.windowHeight)
+                readonly property int animDuration: 150
 
-        popup: Popup {
-            id: controlPopup
-            readonly property int parentOffset: Config.appearance.spacing.xs
-            readonly property int desiredHeight: Math.min(root.windowHeight - topMargin - bottomMargin, contentItem.implicitHeight, 256)
-            readonly property bool reversePosition: Qt.binding(() => desiredHeight + control.mapToGlobal(0, 0).y > root.windowHeight)
-            readonly property int animDuration: 150
+                y: reversePosition ? -parentOffset - desiredHeight : control.height + parentOffset
 
-            y: reversePosition ? -parentOffset - desiredHeight : control.height + parentOffset
+                implicitWidth: control.width
+                implicitHeight: desiredHeight
+                padding: 8
 
-            implicitWidth: control.width
-            implicitHeight: desiredHeight
-            padding: 8
+                topMargin: 8
+                bottomMargin: 8
 
-            topMargin: 8
-            bottomMargin: 8
+                modal: true
 
-            modal: true
+                contentItem: ListView {
+                    id: popupLv
+                    readonly property bool isScrollBarActive: contentHeight > height
+                    clip: true
+                    implicitHeight: contentHeight
+                    model: control.popup.visible ? control.delegateModel : null
+                    currentIndex: control.highlightedIndex
+                    spacing: 0
 
-            contentItem: ListView {
-                id: popupLv
-                readonly property bool isScrollBarActive: contentHeight > height
-                clip: true
-                implicitHeight: contentHeight
-                model: control.popup.visible ? control.delegateModel : null
-                currentIndex: control.highlightedIndex
-                spacing: 0
+                    highlightFollowsCurrentItem: false
+                    highlight: Rectangle {
+                        id: highlightRect
+                        y: ListView.view?.currentItem ? ListView.view.currentItem.y : 0
+                        implicitWidth: ListView.view ? ListView.view.width : 0
+                        implicitHeight: ListView.view?.currentItem ? ListView.view.currentItem.implicitHeight : 0
 
-                highlightFollowsCurrentItem: false
-                highlight: Rectangle {
-                    id: highlightRect
-                    y: ListView.view?.currentItem ? ListView.view.currentItem.y : 0
-                    implicitWidth: ListView.view ? ListView.view.width : 0
-                    implicitHeight: ListView.view?.currentItem ? ListView.view.currentItem.implicitHeight : 0
+                        property bool enableAnim: false
 
-                    property bool enableAnim: false
+                        color: Colors.colors.base4
+                        radius: Config.appearance.rounding.sm
 
-                    color: Colors.colors.base4
-                    radius: Config.appearance.rounding.sm
+                        Component.onCompleted: {
+                            Qt.callLater(() => highlightRect.enableAnim = true);
+                        }
 
-                    Component.onCompleted: {
-                        Qt.callLater(() => highlightRect.enableAnim = true);
+                        Behavior on y {
+                            enabled: highlightRect.enableAnim
+                            NAnim {
+                                duration: 200
+                                easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                            }
+                        }
                     }
 
-                    Behavior on y {
-                        enabled: highlightRect.enableAnim
-                        NAnim {
-                            duration: 200
-                            easing.bezierCurve: Config.appearance.animCurves.defaultEase
+                    ScrollBar.vertical: ScrollBar {
+                        id: sbar
+                        policy: popupLv.isScrollBarActive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                        contentItem: Rectangle {
+                            implicitWidth: 6
+                            radius: width / 2
+                            color: Colors.colors.base5
                         }
                     }
                 }
 
-                ScrollBar.vertical: ScrollBar {
-                    id: sbar
-                    policy: popupLv.isScrollBarActive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
-                    contentItem: Rectangle {
-                        implicitWidth: 6
-                        radius: width / 2
-                        color: Colors.colors.base5
+                background: Item {
+                    id: popupBg
+                    readonly property int boxRadius: Config.appearance.rounding.sm
+
+                    RectangularShadow {
+                        anchors.fill: parent
+                        offset: Qt.vector2d(0, 4)
+                        radius: popupBg.boxRadius
+                        blur: 8
+                        color: Qt.rgba(0.0, 0.0, 0.0, 0.25)
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: popupBg.boxRadius
+
+                        color: Colors.colors.base2
+                    }
+                }
+
+                enter: Transition {
+                    ParallelAnimation {
+                        NAnim {
+                            property: "scale"
+                            from: 0.9
+                            to: 1
+                            duration: controlPopup.animDuration
+                        }
+                        NAnim {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: controlPopup.animDuration
+                            easing.bezierCurve: Config.appearance.animCurves.linear
+                        }
+                    }
+                }
+
+                exit: Transition {
+                    ParallelAnimation {
+                        NAnim {
+                            property: "scale"
+                            from: 1
+                            to: 0.9
+                            duration: controlPopup.animDuration
+                        }
+                        NAnim {
+                            property: "opacity"
+                            from: 1
+                            to: 0
+                            duration: controlPopup.animDuration
+                            easing.bezierCurve: Config.appearance.animCurves.linear
+                        }
                     }
                 }
             }
 
-            background: Item {
-                id: popupBg
-                readonly property int boxRadius: Config.appearance.rounding.sm
+            background: Rectangle {
+                id: controlBg
+                anchors.fill: parent
+                color: Colors.colors.base2
 
-                RectangularShadow {
-                    anchors.fill: parent
-                    offset: Qt.vector2d(0, 4)
-                    radius: popupBg.boxRadius
-                    blur: 8
-                    color: Qt.rgba(0.0, 0.0, 0.0, 0.25)
-                }
-                Rectangle {
-                    anchors.fill: parent
-                    radius: popupBg.boxRadius
+                radius: control.rounding
+                border.width: 2
+                border.color: control.activeFocus ? Colors.colors.primary : "transparent"
 
-                    color: Colors.colors.base2
-                }
+                states: [
+                    State {
+                        name: "invalid"
+                        when: root.isValid === false || control.currentIndex === -1
+                        PropertyChanges {
+                            controlBg.border.color: Colors.colors.destructive
+                        }
+                    },
+                    State {
+                        name: "active"
+                        when: control.activeFocus
+                        PropertyChanges {
+                            controlBg.border.color: Colors.colors.primary
+                        }
+                    },
+                    State {
+                        name: "dirty"
+                        when: root.isDirty
+                        PropertyChanges {
+                            controlBg.border.color: Colors.colors.base5
+                        }
+                    }
+                ]
             }
 
-            enter: Transition {
-                ParallelAnimation {
-                    NAnim {
-                        property: "scale"
-                        from: 0.9
-                        to: 1
-                        duration: controlPopup.animDuration
-                    }
-                    NAnim {
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: controlPopup.animDuration
-                        easing.bezierCurve: Config.appearance.animCurves.linear
-                    }
-                }
+            contentItem: TextField {
+                readonly property int tPad: Config.appearance.padding.sm
+                text: control.editText
+                font: control.font
+                color: Colors.colors.baseContent
+
+                verticalAlignment: TextInput.AlignVCenter
+                selectByMouse: true
+
+                background: null
+
+                topPadding: tPad
+                bottomPadding: tPad
+                rightPadding: control.indicator ? control.indicator.width + control.spacing : Config.appearance.padding.sm
+                leftPadding: tPad
             }
-
-            exit: Transition {
-                ParallelAnimation {
-                    NAnim {
-                        property: "scale"
-                        from: 1
-                        to: 0.9
-                        duration: controlPopup.animDuration
-                    }
-                    NAnim {
-                        property: "opacity"
-                        from: 1
-                        to: 0
-                        duration: controlPopup.animDuration
-                        easing.bezierCurve: Config.appearance.animCurves.linear
-                    }
-                }
-            }
-        }
-
-        background: Rectangle {
-            id: controlBg
-            anchors.fill: parent
-            color: Colors.colors.base2
-
-            radius: control.rounding
-            border.width: 2
-            border.color: control.activeFocus ? Colors.colors.primary : "transparent"
-
-            states: [
-                State {
-                    name: "invalid"
-                    when: root.isValid === false || control.currentIndex === -1
-                    PropertyChanges {
-                        controlBg.border.color: Colors.colors.destructive
-                    }
-                },
-                State {
-                    name: "active"
-                    when: control.activeFocus
-                    PropertyChanges {
-                        controlBg.border.color: Colors.colors.primary
-                    }
-                },
-                State {
-                    name: "dirty"
-                    when: root.isDirty
-                    PropertyChanges {
-                        controlBg.border.color: Colors.colors.base5
-                    }
-                }
-            ]
-        }
-
-        contentItem: TextField {
-            readonly property int tPad: Config.appearance.padding.sm
-            text: control.editText
-            font: control.font
-            color: Colors.colors.baseContent
-
-            verticalAlignment: TextInput.AlignVCenter
-            selectByMouse: true
-
-            background: null
-
-            topPadding: tPad
-            bottomPadding: tPad
-            rightPadding: control.indicator ? control.indicator.width + control.spacing : Config.appearance.padding.sm
-            leftPadding: tPad
         }
     }
 

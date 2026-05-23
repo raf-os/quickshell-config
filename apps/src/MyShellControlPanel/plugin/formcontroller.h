@@ -45,6 +45,8 @@ public:
 
   Q_INVOKABLE void validate();
   Q_INVOKABLE void resetForm();
+  Q_INVOKABLE FieldController *fieldFor(const QString &className,
+                                        const QString &propName);
 
 signals:
   void fieldsChanged();

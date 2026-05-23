@@ -69,6 +69,8 @@ void FieldController::setValue(const QVariant &value) {
 
     if (m_value != m_initialValue) {
       setIsDirty(true);
+    } else {
+      setIsDirty(false);
     }
   }
 }
