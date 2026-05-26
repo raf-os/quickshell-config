@@ -30,13 +30,15 @@ Item {
 
             implicitHeight: 32
 
-            StyledText {
+            Image {
                 id: titleIcon
-                anchors.verticalCenter: parent.verticalCenter
-                text: ""
+                source: "image://qicons/applications-system-symbolic"
 
-                font.family: Config.appearance.fontFamily.mono
-                font.pointSize: Config.appearance.fontSize.lg
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+
+                width: 24
+                height: 24
             }
 
             StyledText {

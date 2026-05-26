@@ -1,3 +1,4 @@
+import org.nightshell.IconProvider
 import MyShellPlugin
 import QtQuick
 
