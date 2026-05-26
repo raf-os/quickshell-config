@@ -15,8 +15,17 @@ class IconImageProvider : public QQuickImageProvider {
 public:
   explicit IconImageProvider();
 
+  enum class IconType { Shell, Qt };
+
   QPixmap requestPixmap(const QString &id, QSize *size,
                         const QSize &requestedSize) override;
+
+private:
+  QPixmap handleQtIcon(const QString &name, QSize *size,
+                       const QSize &resolvedSize);
+  QPixmap handleShellIcon(const QString &name, QSize *size,
+                          const QSize &resolvedSize);
+  QPixmap placeholderIcon(const QSize &resolvedSize);
 };
 
 class IconImageProviderExtensionPlugin : public QQmlEngineExtensionPlugin {

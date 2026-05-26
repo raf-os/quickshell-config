@@ -18,6 +18,7 @@ QString Paths::home() const { return m_home; }
 QString Paths::config() const { return m_config; }
 QString Paths::state() const { return m_state; }
 QString Paths::cache() const { return m_cache; }
+QString Paths::data() const { return m_data; }
 QString Paths::hyprConfig() const { return m_hyprConfig; }
 } // namespace utils
 } // namespace myqmlplugin

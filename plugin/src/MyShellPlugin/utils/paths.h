@@ -19,6 +19,7 @@ class Paths : public QObject {
   Q_PROPERTY(QString config READ config NOTIFY configChanged)
   Q_PROPERTY(QString state READ state NOTIFY stateChanged)
   Q_PROPERTY(QString cache READ cache NOTIFY cacheChanged)
+  Q_PROPERTY(QString data READ data NOTIFY dataChanged)
   Q_PROPERTY(QString hyprConfig READ hyprConfig NOTIFY hyprConfigChanged)
 
 public:
@@ -33,12 +34,14 @@ public:
   [[nodiscard]] QString config() const;
   [[nodiscard]] QString state() const;
   [[nodiscard]] QString cache() const;
+  [[nodiscard]] QString data() const;
   [[nodiscard]] QString hyprConfig() const;
 
 signals:
   void configChanged();
   void stateChanged();
   void cacheChanged();
+  void dataChanged();
   void hyprConfigChanged();
 
 private:
@@ -51,6 +54,7 @@ private:
       qEnvironmentVariable("XDG_STATE_HOME", m_home + "/.state") + "/myshell";
   QString m_cache =
       qEnvironmentVariable("XDG_CACHE_HOME", m_home + "/.cache") + "/myshell";
+  QString m_data = DATADIR_DEFAULT_PATH;
   QString m_hyprConfig = m_home + "/.config/hypr";
 };
 } // namespace utils

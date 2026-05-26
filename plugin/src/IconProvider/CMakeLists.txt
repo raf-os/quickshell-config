@@ -3,6 +3,7 @@ find_package(Qt6 REQUIRED COMPONENTS
   Qml
   Gui
   Quick
+  Svg
 )
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
@@ -55,4 +56,10 @@ qml_plugin(icon_provider_plugin
   URI "${ORG_URI_PREFIX}.IconProvider"
   SOURCES
     iconprovider.h iconprovider.cpp
+  LIBRARIES
+    Qt::Svg
+)
+
+target_compile_definitions(icon_provider_plugin PRIVATE
+  ICON_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
 )

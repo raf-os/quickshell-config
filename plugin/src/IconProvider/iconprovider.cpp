@@ -18,29 +18,54 @@ IconImageProvider::IconImageProvider()
 
 QPixmap IconImageProvider::requestPixmap(const QString &id, QSize *size,
                                          const QSize &requestedSize) {
-  QIcon::setThemeName("breeze-dark");
-  auto requestedIcon = QIcon::fromTheme(id);
+  QSize resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
+  auto idx = id.indexOf("/");
+
+  if (idx < 0 || idx > id.size())
+    return handleQtIcon(id, size, resolvedSize);
+  else {
+    if (id.first(idx) == "qt") {
+      return handleQtIcon(id.last(idx), size, resolvedSize);
+    } else if (id.first(idx) == "shell") {
+      return handleShellIcon(id.last(idx), size, resolvedSize);
+    } else {
+      return placeholderIcon(resolvedSize);
+    }
+  }
+}
+
+QPixmap IconImageProvider::handleQtIcon(const QString &name, QSize *size,
+                                        const QSize &resolvedSize) {
+  auto requestedIcon = QIcon::fromTheme(name);
 
   if (requestedIcon.isNull()) {
-    QPixmap placeholder(requestedSize.isValid() ? requestedSize
-                                                : QSize(24, 24));
-    placeholder.fill(Qt::transparent);
-    return placeholder;
+    return placeholderIcon(resolvedSize);
   }
-
-  QSize resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
 
   if (size) {
     *size = resolvedSize;
   }
 
-  auto pixmap = requestedIcon.pixmap(resolvedSize, QIcon::Normal, QIcon::On);
+  auto pixmap = requestedIcon.pixmap(resolvedSize, QIcon::Normal);
   return pixmap;
+}
+
+QPixmap IconImageProvider::handleShellIcon(const QString &name, QSize *size,
+                                           const QSize &resolvedSize) {
+  // TODO: This
+  return placeholderIcon(resolvedSize);
+}
+
+QPixmap IconImageProvider::placeholderIcon(const QSize &resolvedSize) {
+  QPixmap placeholder(resolvedSize);
+  placeholder.fill(Qt::transparent);
+  return placeholder;
 }
 
 void IconImageProviderExtensionPlugin::initializeEngine(QQmlEngine *engine,
                                                         const char *uri) {
   Q_UNUSED(uri);
+  QIcon::setThemeName("breeze-dark");
   engine->addImageProvider("qicons", new IconImageProvider);
 }
 } // namespace iconprovider

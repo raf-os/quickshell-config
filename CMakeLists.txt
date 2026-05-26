@@ -34,6 +34,16 @@ set(MYSHELL_CONTROL_PANEL_LIBPATH "" CACHE INTERNAL "")
 
 include(FetchContent)
 
+include(GNUInstallDirs)
+
+if(DEVMODE)
+  set(MYSHELL_INSTALL_DATADIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+else()
+  set(MYSHELL_INSTALL_DATADIR
+    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/nightshell")
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup(REQUIRES 6.9)

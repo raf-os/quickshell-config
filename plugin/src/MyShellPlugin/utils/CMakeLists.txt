@@ -8,6 +8,10 @@ add_library(myshell_utils
 set_target_properties(myshell_utils PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
 
+target_compile_definitions(myshell_utils PUBLIC
+  DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
+)
+
 target_include_directories(myshell_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(myshell_utils
@@ -27,4 +31,8 @@ qml_module(myshell_utils_plugin
     Qt::Qml
     myshell_include
     myshell_utils
+)
+
+target_compile_definitions(myshell_utils_plugin PRIVATE
+  DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
 )

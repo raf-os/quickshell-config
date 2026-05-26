@@ -30,15 +30,14 @@ Item {
 
             implicitHeight: 32
 
-            Image {
+            ThemeIcon {
                 id: titleIcon
-                source: "image://qicons/applications-system-symbolic"
+                iconName: "applications-system-symbolic"
 
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
-                width: 24
-                height: 24
+                size: 24
             }
 
             StyledText {
@@ -56,7 +55,7 @@ Item {
         ListView {
             id: menuItems
 
-            spacing: Config.appearance.spacing.xxs
+            spacing: Config.appearance.spacing.sm
 
             anchors.top: titleLabel.bottom
             anchors.left: parent.left
@@ -120,40 +119,35 @@ Item {
                 clip: true
 
                 implicitWidth: ListView.view.width
-                implicitHeight: Config.appearance.fontSize.lg + padding * 2
+                implicitHeight: Math.max(itemIcon.height, itemTxt.height)
 
                 function activate() {
                     root.app.stackInterface.clearAndPush(listItem.path);
                 }
 
-                SMaterialIcon {
+                ThemeIcon {
                     id: itemIcon
-                    text: listItem.icon
+                    iconName: listItem.icon
 
                     anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
+                    anchors.verticalCenter: parent.verticalCenter
 
                     anchors.leftMargin: listItem.padding
 
-                    // font.family: Config.appearance.fontFamily.mono
-                    font.pixelSize: Config.appearance.fontSize.xl
-                    font.weight: 600
-                    fill: 1
-                    grade: 0
+                    size: 18
 
-                    verticalAlignment: Text.AlignVCenter
-
-                    width: listItem.icon === "" ? 0 : Config.appearance.fontSize.xl + Config.appearance.padding.sm
+                    // width: listItem.icon === "" ? 0 : Config.appearance.fontSize.xl + Config.appearance.padding.sm
                 }
 
                 StyledText {
+                    id: itemTxt
                     text: listItem.label
 
                     font.pointSize: Config.appearance.fontSize.sm
                     font.weight: listItem.isActive ? 700 : 500
 
                     anchors.left: itemIcon.right
+                    anchors.leftMargin: Config.appearance.spacing.sm
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
 
