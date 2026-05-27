@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import org.nightshell.Components
 import MyShellControlPanel.components
 import MyShellPlugin
 import MyShellPlugin.Configs
@@ -30,9 +31,10 @@ Item {
 
             implicitHeight: 32
 
-            ThemeIcon {
+            SVGIcon {
                 id: titleIcon
-                iconName: "applications-system-symbolic"
+                iconName: "settings"
+                color: Colors.colors.baseContent
 
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
@@ -125,7 +127,7 @@ Item {
                     root.app.stackInterface.clearAndPush(listItem.path);
                 }
 
-                ThemeIcon {
+                SVGIcon {
                     id: itemIcon
                     iconName: listItem.icon
 
@@ -134,9 +136,8 @@ Item {
 
                     anchors.leftMargin: listItem.padding
 
-                    size: 18
-
-                    // width: listItem.icon === "" ? 0 : Config.appearance.fontSize.xl + Config.appearance.padding.sm
+                    size: 20
+                    color: Colors.colors.baseContent
                 }
 
                 StyledText {

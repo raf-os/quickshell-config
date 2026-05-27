@@ -6,24 +6,24 @@ ListModel {
     ListElement {
         label: "Keyboard"
         path: "/keyboard"
-        icon: "input-keyboard-symbolic"
+        icon: "keyboard"
     }
 
     ListElement {
         label: "Appearance"
         path: "/appearance"
-        icon: "draw-watercolor-symbolic"
+        icon: "appearance"
     }
 
     ListElement {
         label: "Bar Config"
         path: "/taskbar"
-        icon: "configure-toolbars-symbolic"
+        icon: "toolbar"
     }
 
     ListElement {
         label: "Colors"
         path: "/colors"
-        icon: "color-picker-white"
+        icon: "palette"
     }
 }

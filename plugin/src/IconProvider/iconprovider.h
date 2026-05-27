@@ -26,6 +26,9 @@ private:
   QPixmap handleShellIcon(const QString &name, QSize *size,
                           const QSize &resolvedSize);
   QPixmap placeholderIcon(const QSize &resolvedSize);
+
+  const QString m_shellIconPath =
+      QString::fromUtf8(ICON_DEFAULT_PATH) + "/icons";
 };
 
 class IconImageProviderExtensionPlugin : public QQmlEngineExtensionPlugin {

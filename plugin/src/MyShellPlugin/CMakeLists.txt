@@ -68,6 +68,7 @@ endfunction()
 add_subdirectory(interfaces)
 add_subdirectory(configs)
 add_subdirectory(utils)
+add_subdirectory(components)
 
 qml_module(myshell
   URI MyShellPlugin

@@ -1,13 +1,18 @@
 #include "iconprovider.h"
 
+#include <qbuffer.h>
+#include <qdir.h>
 #include <qicon.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qpainter.h>
 #include <qpixmap.h>
 #include <qqmlengine.h>
 #include <qquickimageprovider.h>
 #include <qsize.h>
+#include <qstringview.h>
+#include <qsvgrenderer.h>
 
 namespace ns {
 namespace iconprovider {
@@ -21,13 +26,13 @@ QPixmap IconImageProvider::requestPixmap(const QString &id, QSize *size,
   QSize resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
   auto idx = id.indexOf("/");
 
-  if (idx < 0 || idx > id.size())
+  if (idx < 0 || idx + 1 > id.size())
     return handleQtIcon(id, size, resolvedSize);
   else {
     if (id.first(idx) == "qt") {
-      return handleQtIcon(id.last(idx), size, resolvedSize);
+      return handleQtIcon(id.sliced(idx + 1), size, resolvedSize);
     } else if (id.first(idx) == "shell") {
-      return handleShellIcon(id.last(idx), size, resolvedSize);
+      return handleShellIcon(id.sliced(idx + 1), size, resolvedSize);
     } else {
       return placeholderIcon(resolvedSize);
     }
@@ -52,8 +57,42 @@ QPixmap IconImageProvider::handleQtIcon(const QString &name, QSize *size,
 
 QPixmap IconImageProvider::handleShellIcon(const QString &name, QSize *size,
                                            const QSize &resolvedSize) {
-  // TODO: This
-  return placeholderIcon(resolvedSize);
+  QFile iconFile(m_shellIconPath + "/" + name + ".svg");
+
+  if (!iconFile.exists()) {
+    qWarning() << "ns::iconprovider::IconImageProvider: Icon '" << name
+               << "' does not exist.";
+    return placeholderIcon(resolvedSize);
+  }
+
+  if (!iconFile.open(QIODevice::ReadOnly)) {
+    qWarning() << "ns::iconprovider::IconImageProvider: Unable to open "
+                  "requested icon file 'icons/"
+               << name << ".svg'.";
+    return placeholderIcon(resolvedSize);
+  }
+
+  QByteArray buffer(iconFile.size(), Qt::Uninitialized);
+  iconFile.read(buffer.data(), buffer.size());
+
+  iconFile.close();
+
+  // TODO: manipulate SVG file data to edit stroke, fill, etc., maybe?
+
+  QSvgRenderer renderer(buffer);
+  QPixmap pixmap(resolvedSize);
+  pixmap.fill(Qt::transparent);
+
+  if (!renderer.isValid()) {
+    qWarning() << "ns::iconprovider::IconImageProvider: Invalid svg data from "
+                  "file 'icons/"
+               << name << ".svg'.";
+    return placeholderIcon(resolvedSize);
+  }
+
+  QPainter painter(&pixmap);
+  renderer.render(&painter);
+  return pixmap;
 }
 
 QPixmap IconImageProvider::placeholderIcon(const QSize &resolvedSize) {
