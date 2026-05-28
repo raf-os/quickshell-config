@@ -18,7 +18,10 @@ namespace components {
  *
  * Provides a shell SVG icon. The icon is rasterized on the CPU, so animating
  * dimensions is likely to cause performance issues. If needed, animate scale
- * instead.
+ * instead. Very large icons could potentially have much worse performance.
+ *
+ * TODO: If icons are reused a lot, consider instead caching the rasterized
+ * images in a separate singleton.
  */
 class SVGIcon : public QQuickPaintedItem {
   Q_OBJECT

@@ -45,6 +45,9 @@ class ColorConfigColors : public myqmlplugin::configs::CSerializable {
   AUTO_PROP_DEFAULT(QColor, baseContent, "#d9d3cd")
   AUTO_PROP_DEFAULT(QColor, baseContentMuted, "#847e78")
 
+  AUTO_PROP_DEFAULT(QColor, neutral, "#0a0a0a")
+  AUTO_PROP_DEFAULT(QColor, neutralContent, "#d9d3cd")
+
   AUTO_PROP_DEFAULT(QColor, primary0, "#b9370c")
   AUTO_PROP_DEFAULT(QColor, primary, "#e25016")
   AUTO_PROP_DEFAULT(QColor, primary2, "#e67634")

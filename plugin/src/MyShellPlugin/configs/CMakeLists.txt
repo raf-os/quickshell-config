@@ -3,7 +3,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 add_library(myshell_configs
   STATIC
     config.h config.cpp
-    cserializable.cpp cserializable.h)
+    cserializable.h cserializable.cpp)
 
 set_target_properties(myshell_configs PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
@@ -25,6 +25,7 @@ qml_module(myshell_configs_plugin
   URI MyShellPlugin.Configs
   SOURCES
     config.h config.cpp
+    cserializable.h cserializable.cpp
     ${GENERATED_SOURCES}
   LIBRARIES
     Qt::Core

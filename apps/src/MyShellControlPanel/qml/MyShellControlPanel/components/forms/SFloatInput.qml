@@ -14,7 +14,7 @@ FormInput {
     // required property string name
     // property real initialValue
     // property real value: initialValue
-    property int textInset: Config.appearance.spacing.md
+    property int textInset: Config.appearance.spacing.sm
     property bool boxLayoutFillWidth: false
 
     // property bool isDirty: value !== initialValue
@@ -193,6 +193,12 @@ FormInput {
             fontSizeMode: Text.Fit
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton
+            cursorShape: Qt.PointingHandCursor
         }
     }
 }

@@ -16,6 +16,8 @@ DelegateChooser {
     property real floatMinimumValue: 0.0
     property real floatMaximumValue: 1000.0
 
+    property bool useSliderForNumbers: true
+
     DelegateChoice {
         roleValue: "double"
 
@@ -23,9 +25,29 @@ DelegateChooser {
     }
 
     DelegateChoice {
+        roleValue: "int"
+
+        delegate: DelegateIntegerType {}
+    }
+
+    DelegateChoice {
         id: defaultChoice
 
         delegate: InvalidChoice {}
+    }
+
+    component DelegateIntegerType: SIntegerInput {
+        required property FieldController modelData
+        controller: modelData
+
+        name: root.includeClassName ? `${modelData.className}.${modelData.name}` : modelData.name
+
+        Layout.fillWidth: root.layoutFillWidth
+        boxLayoutFillWidth: root.layoutFillWidth
+        useSliderForNumbers: root.useSliderForNumbers
+
+        from: 0
+        to: 1000
     }
 
     component DelegateFloatType: SFloatInput {
