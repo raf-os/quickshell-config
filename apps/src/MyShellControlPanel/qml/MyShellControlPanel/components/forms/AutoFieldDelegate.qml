@@ -31,9 +31,24 @@ DelegateChooser {
     }
 
     DelegateChoice {
+        roleValue: "bool"
+
+        delegate: DelegateBoolType {}
+    }
+
+    DelegateChoice {
         id: defaultChoice
 
         delegate: InvalidChoice {}
+    }
+
+    component DelegateBoolType: SCheckBox {
+        required property FieldController modelData
+        controller: modelData
+
+        name: root.includeClassName ? `${modelData.className}.${modelData.name}` : modelData.name
+
+        Layout.fillWidth: root.layoutFillWidth
     }
 
     component DelegateIntegerType: SIntegerInput {

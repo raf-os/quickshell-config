@@ -26,4 +26,10 @@ ListModel {
         path: "/colors"
         icon: "palette"
     }
+
+    ListElement {
+        label: "Media"
+        path: "/media"
+        icon: "media"
+    }
 }
