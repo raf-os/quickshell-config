@@ -62,5 +62,6 @@ private:
   QList<myqmlplugin::configs::CSerializable *> m_models;
 
   void modelParseProperties();
+  void delegateSetIsDirty(bool value);
 };
 } // namespace mscp

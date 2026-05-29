@@ -20,10 +20,10 @@ SpinBox {
     property bool isValid: true
     property bool isDirty: false
 
-    property bool useIndicatorButtons: false
+    property bool useIndicatorButtons: true
     property int indicatorButtonSize: Config.appearance.fontSize.lg
 
-    font.family: Config.appearance.fontFamily.sans
+    font.family: Config.appearance.fontFamily.mono
     font.pointSize: Config.appearance.fontSize.sm
 
     padding: Config.appearance.padding.sm
@@ -32,7 +32,7 @@ SpinBox {
         id: textInput
         z: 2
 
-        readonly property int horizontalSpacing: root.useIndicatorButtons ? root.indicatorButtonSize + Config.appearance.padding.sm * 3 : 0
+        readonly property int horizontalSpacing: root.useIndicatorButtons ? root.indicatorButtonSize + root.padding * 3 : root.padding
 
         text: root.textFromValue(root.value, root.locale)
 

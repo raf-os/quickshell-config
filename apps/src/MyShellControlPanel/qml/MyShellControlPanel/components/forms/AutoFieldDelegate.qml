@@ -16,7 +16,7 @@ DelegateChooser {
     property real floatMinimumValue: 0.0
     property real floatMaximumValue: 1000.0
 
-    property bool useSliderForNumbers: true
+    property bool useSliderForNumbers: false
 
     DelegateChoice {
         roleValue: "double"
@@ -28,6 +28,12 @@ DelegateChooser {
         roleValue: "int"
 
         delegate: DelegateIntegerType {}
+    }
+
+    DelegateChoice {
+        roleValue: "QString"
+
+        delegate: DelegateStringType {}
     }
 
     DelegateChoice {
@@ -49,6 +55,14 @@ DelegateChooser {
         name: root.includeClassName ? `${modelData.className}.${modelData.name}` : modelData.name
 
         Layout.fillWidth: root.layoutFillWidth
+    }
+
+    component DelegateStringType: SStringInput {
+        required property FieldController modelData
+        controller: modelData
+
+        name: root.includeClassName ? `${modelData.className}.${modelData.name}` : modelData.name
+        boxLayoutFillWidth: root.layoutFillWidth
     }
 
     component DelegateIntegerType: SIntegerInput {

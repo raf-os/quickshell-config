@@ -32,9 +32,6 @@ FormInput {
 
             activeFocusOnTab: true
 
-            // TODO: Something about the value below is not working properly when the C++ plugin compares this value to determine dirty status.
-            // My guess is some sort of type shenanigans due to the usage of QVariant in the backend.
-            // Try to find a solution.
             property bool value
             readonly property bool checked: value === true
             readonly property bool hover: interactionArea.containsMouse

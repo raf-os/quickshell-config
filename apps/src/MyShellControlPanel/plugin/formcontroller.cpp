@@ -63,7 +63,7 @@ void FormController::modelParseProperties() {
       });
 
       QObject::connect(field, &FieldController::isDirtyChanged, this,
-                       &FormController::setIsDirty);
+                       &FormController::delegateSetIsDirty);
 
       field->setValue(propValue);
 
@@ -83,6 +83,23 @@ void FormController::setIsDirty(bool value) {
     m_isDirty = value;
     emit isDirtyChanged();
   }
+}
+
+void FormController::delegateSetIsDirty(bool value) {
+  if (value) {
+    return setIsDirty(true);
+  }
+
+  bool dirtyFlag = false;
+
+  for (auto const field : m_fields) {
+    if (field->isDirty()) {
+      dirtyFlag = true;
+      break;
+    }
+  }
+
+  setIsDirty(dirtyFlag);
 }
 
 QList<myqmlplugin::configs::CSerializable *> FormController::models() const {
