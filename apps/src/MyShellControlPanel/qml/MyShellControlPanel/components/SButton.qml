@@ -20,9 +20,12 @@ MouseArea {
 
     property bool autoWidth: false
     property bool autoHeight: false
+    property bool focusable: true
 
     property color hoverColor: Colors.colors.primary2
     property color baseColor: Colors.colors.primary
+
+    signal activated(event: MouseEvent)
 
     implicitWidth: autoWidth ? 0 : btnText.width
     implicitHeight: autoHeight ? 0 : btnText.height
@@ -31,8 +34,18 @@ MouseArea {
     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
     enabled: !disabled
 
+    onEnabledChanged: {
+        if (!enabled) {
+            focus = false;
+            activeFocusOnTab = false;
+        } else {
+            activeFocusOnTab = focusable;
+        }
+    }
+
     Component.onCompleted: {
         evalColors();
+        root.activeFocusOnTab = enabled && focusable;
     }
 
     onTypeChanged: {
@@ -52,6 +65,17 @@ MouseArea {
         }
     }
 
+    onClicked: event => {
+        root.activated(event);
+    }
+
+    Keys.onReturnPressed: {
+        if (!enabled)
+            return;
+
+        root.activated(null);
+    }
+
     Rectangle {
         id: bgRect
 
@@ -59,6 +83,20 @@ MouseArea {
         radius: root.radius
 
         color: (root.enabled) ? (root.containsMouse) ? root.hoverColor : root.baseColor : Colors.colors.base2
+    }
+
+    Rectangle {
+        id: focusRect
+
+        anchors.fill: parent
+        radius: root.radius
+
+        color: "transparent"
+        visible: root.enabled
+        opacity: root.activeFocus ? 1 : 0
+
+        border.width: 2
+        border.color: Colors.colors.neutralContent
     }
 
     StyledText {

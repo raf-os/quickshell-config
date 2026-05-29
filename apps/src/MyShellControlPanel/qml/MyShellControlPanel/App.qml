@@ -29,7 +29,7 @@ FocusScope {
 
     Component.onCompleted: {
         if (root.desiredInitialPath !== "") {
-            stackInterface.navigateTo("/" + root.desiredInitialPath);
+            stackInterface.navigateTo("/" + root.desiredInitialPath, true);
         }
     }
 
@@ -51,6 +51,12 @@ FocusScope {
             return cleanPath;
         }
 
+        function pathToUri(path: string): string {
+            if (path.length < 2)
+                return "";
+            return path.replace("/", ".");
+        }
+
         function clearAndPush(path: string): void {
             if (path === currentPath)
                 return;
@@ -58,7 +64,7 @@ FocusScope {
             navigateTo(path);
         }
 
-        function navigateTo(path: string): void {
+        function navigateTo(path: string, immediate = false): void {
             if (path === currentPath) {
                 return;
             }
@@ -75,11 +81,32 @@ FocusScope {
             }
 
             const cleanPath = cleanPathString(path);
-            pageStack.pushItem(Qt.resolvedUrl(`pages/${cleanPath}/Index.qml`), {
-                "path": path
-            });
-            currentPath = "/" + cleanPath;
-            modelPathIterate(path);
+            const comp = Qt.createComponent("MyShellControlPanel.pages" + pathToUri(path), "Index", Component.Asynchronous, root);
+            if (comp.status !== Component.Loading)
+                delayedPageInstantiation(comp, path, immediate);
+            else
+                comp.statusChanged.connect(() => delayedPageInstantiation(comp, path, immediate));
+        }
+
+        function delayedPageInstantiation(component: Component, path: string, immediate = false) {
+            if (component.status === Component.Ready) {
+                // All is good, push the page to the stack
+                pageStack.pushItem(component, {
+                    "path": path
+                });
+                const cleanPath = cleanPathString(path);
+                currentPath = "/" + cleanPath;
+                modelPathIterate(path);
+            } else if (component.status === Component.Error) {
+                // 404
+                const notFoundComp = Qt.createComponent("MyShellControlPanel.pages", "NotFound");
+                pageStack.pushItem(notFoundComp, {
+                    "path": "/notfound"
+                });
+                currentPath = "/404";
+                modelPathIterate("/404");
+                delete component;
+            }
         }
 
         function navigateBack(): void {

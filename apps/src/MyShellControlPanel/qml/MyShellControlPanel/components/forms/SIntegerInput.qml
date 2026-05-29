@@ -18,7 +18,7 @@ FormInput {
     }
 
     property int layoutType: SIntegerInput.Type.Vertical
-    property int spacing: Config.appearance.spacing.sm
+    property int spacing: Config.appearance.spacing.xxs
     property int textInset: Config.appearance.spacing.sm
     property bool boxLayoutFillWidth: true
 

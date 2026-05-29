@@ -160,7 +160,7 @@ FormInput {
 
             background: Item {
                 Rectangle {
-                    color: Colors.colors.base2
+                    color: control.activeFocus ? Colors.colors.base : Colors.colors.base2
 
                     border.width: 0
 

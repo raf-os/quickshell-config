@@ -26,7 +26,7 @@ ColumnLayout {
     property int columns: 0
     property alias layout: layout
 
-    property bool isDirty: controller ? controller.isDirty : false
+    property bool isDirty: controller.isDirty ?? false
 
     Layout.fillWidth: true
     spacing: Config.appearance.spacing.md

@@ -71,7 +71,7 @@ SpinBox {
         anchors.fill: parent
         radius: root.boxRounding
 
-        color: root.activeFocus ? Colors.colors.base3 : Colors.colors.base2
+        color: root.activeFocus ? Colors.colors.base : Colors.colors.base2
 
         Behavior on color {
             CAnim {

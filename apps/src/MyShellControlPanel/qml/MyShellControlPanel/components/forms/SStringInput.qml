@@ -8,7 +8,7 @@ import QtQuick.Layouts
 FormInput {
     id: root
 
-    property int spacing: Config.appearance.spacing.sm
+    property int spacing: Config.appearance.spacing.xxs
     property int textInset: Config.appearance.spacing.sm
     property bool boxLayoutFillWidth: true
 
@@ -23,6 +23,8 @@ FormInput {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
+
+        spacing: root.spacing
 
         StyledText {
             id: label

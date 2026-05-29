@@ -35,7 +35,7 @@ void FormController::modelParseProperties() {
     auto metaObject = m_model->metaObject();
 
     for (auto i = metaObject->superClass()->propertyCount();
-         i < metaObject->propertyCount(); i++) {
+         i < metaObject->propertyCount(); ++i) {
       auto prop = metaObject->property(i);
 
       // Skip unreadable and strictly bound properties

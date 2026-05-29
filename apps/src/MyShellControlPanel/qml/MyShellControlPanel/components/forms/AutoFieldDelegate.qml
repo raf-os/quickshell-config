@@ -43,6 +43,11 @@ DelegateChooser {
     }
 
     DelegateChoice {
+        roleValue: "QStringList"
+        delegate: null
+    }
+
+    DelegateChoice {
         id: defaultChoice
 
         delegate: InvalidChoice {}
@@ -93,7 +98,7 @@ DelegateChooser {
         stepSize: root.floatStepSize
     }
 
-    component InvalidChoice: QtObject {
+    component InvalidChoice: Item {
         required property FieldController modelData
         Component.onCompleted: {
             console.warn(`AutoFieldDelegate: invalid delegate choice for field "${modelData.name}" - type ${modelData.type} is not mapped.`);

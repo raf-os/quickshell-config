@@ -18,6 +18,11 @@ PageStackItem {
         models: [Config.bar.sizes] // qmllint disable missing-type
     }
 
+    FormController {
+        id: borderConfigController
+        models: [Config.border] // qmllint disable missing-type
+    }
+
     ColumnLayout {
         id: mainLayout
 
@@ -31,7 +36,24 @@ PageStackItem {
             id: sizesForm
 
             controller: sizesConfigController
-            innerSpacing: Config.appearance.spacing.sm
+            innerSpacing: Config.appearance.spacing.xxs
+            delegate: AutoFieldDelegate {
+                layoutFillWidth: true
+            }
+        }
+
+        HorizontalSeparator {}
+
+        HeaderText {
+            text: "Border Settings"
+            level: 2
+        }
+
+        FormPreset {
+            id: borderForm
+
+            controller: borderConfigController
+            innerSpacing: Config.appearance.spacing.xxs
             delegate: AutoFieldDelegate {
                 layoutFillWidth: true
             }

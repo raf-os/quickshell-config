@@ -16,6 +16,12 @@ ListModel {
     }
 
     ListElement {
+        label: "Launcher"
+        path: "/launcher"
+        icon: "launcher"
+    }
+
+    ListElement {
         label: "Bar Config"
         path: "/taskbar"
         icon: "toolbar"
@@ -31,5 +37,12 @@ ListModel {
         label: "Media"
         path: "/media"
         icon: "media"
+    }
+
+    ListElement {
+        label: "Not Found"
+        path: "/404"
+        icon: ""
+        dummyEntry: true
     }
 }

@@ -104,67 +104,83 @@ Item {
             keyNavigationEnabled: true
             keyNavigationWraps: true
 
-            delegate: Item {
-                id: listItem
+            delegate: Loader {
+                id: ld
 
+                required property int index
                 required property string label
                 required property string path
                 required property string icon
 
-                required property int index
+                required property var modelData
+                readonly property bool dummyEntry: modelData.dummyEntry ? true : false
 
-                readonly property int padding: Config.appearance.padding.sm
-                readonly property bool isSelected: menuItems.currentIndex === index
-                readonly property bool isActive: root.app.stackInterface.currentPath === path
-                readonly property bool isHovered: menuItems.activeFocus ? isSelected : interactionArea.containsMouse
+                readonly property real impWidth: ListView.view.width
 
-                clip: true
+                active: !dummyEntry
 
-                implicitWidth: ListView.view.width
-                implicitHeight: Math.max(itemIcon.height, itemTxt.height)
+                sourceComponent: Item {
+                    id: listItem
 
-                function activate() {
-                    root.app.stackInterface.clearAndPush(listItem.path);
-                }
+                    property string label: ld.label
+                    property string path: ld.path
+                    property string icon: ld.icon
 
-                SVGIcon {
-                    id: itemIcon
-                    iconName: listItem.icon
+                    property int index: ld.index
 
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
+                    readonly property int padding: Config.appearance.padding.sm
+                    readonly property bool isSelected: menuItems.currentIndex === index
+                    readonly property bool isActive: root.app.stackInterface.currentPath === path
+                    readonly property bool isHovered: menuItems.activeFocus ? isSelected : interactionArea.containsMouse
 
-                    anchors.leftMargin: listItem.padding
+                    clip: true
 
-                    size: 20
-                    color: Colors.colors.baseContent
-                }
+                    implicitWidth: ld.impWidth
+                    implicitHeight: Math.max(itemIcon.height, itemTxt.height)
 
-                StyledText {
-                    id: itemTxt
-                    text: listItem.label
-
-                    font.pointSize: Config.appearance.fontSize.sm
-                    font.weight: listItem.isActive ? 700 : 500
-
-                    anchors.left: itemIcon.right
-                    anchors.leftMargin: Config.appearance.spacing.sm
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    color: listItem.isHovered ? Colors.colors.primary : Colors.colors.baseContent
-                }
-
-                MouseArea {
-                    id: interactionArea
-
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
+                    function activate() {
                         root.app.stackInterface.clearAndPush(listItem.path);
+                    }
+
+                    SVGIcon {
+                        id: itemIcon
+                        iconName: listItem.icon
+
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        anchors.leftMargin: listItem.padding
+
+                        size: 20
+                        color: Colors.colors.baseContent
+                    }
+
+                    StyledText {
+                        id: itemTxt
+                        text: listItem.label
+
+                        font.pointSize: Config.appearance.fontSize.sm
+                        font.weight: listItem.isActive ? 700 : 500
+
+                        anchors.left: itemIcon.right
+                        anchors.leftMargin: Config.appearance.spacing.sm
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        color: listItem.isHovered ? Colors.colors.primary : Colors.colors.baseContent
+                    }
+
+                    MouseArea {
+                        id: interactionArea
+
+                        anchors.fill: parent
+
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            root.app.stackInterface.clearAndPush(listItem.path);
+                        }
                     }
                 }
             }
