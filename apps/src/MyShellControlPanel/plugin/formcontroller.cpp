@@ -135,7 +135,7 @@ FieldController *FormController::fieldFor(const QString &className,
   return ptr;
 }
 
-void FormController::validate() {
+void FormController::commitValues() {
   if (m_models.isEmpty()) {
     qWarning() << "mscp::FormController::validate: No model to assign "
                   "validated values to.";
@@ -194,9 +194,11 @@ void FormController::validate() {
       }
     }
 
-    for (const auto field : m_fields) {
-      field->setIsDirty(false);
-    }
+    // for (const auto field : m_fields) {
+    //   field->setIsDirty(false);
+    // }
+
+    resetForm();
 
     setIsDirty(false);
   }

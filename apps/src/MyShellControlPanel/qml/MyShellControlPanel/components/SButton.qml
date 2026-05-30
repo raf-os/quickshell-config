@@ -88,15 +88,18 @@ MouseArea {
     Rectangle {
         id: focusRect
 
-        anchors.fill: parent
-        radius: root.radius
+        z: -1
 
-        color: "transparent"
+        anchors.fill: parent
+        anchors.margins: -2
+        radius: root.radius + 2
+
+        color: Colors.colors.neutralContent
         visible: root.enabled
         opacity: root.activeFocus ? 1 : 0
 
-        border.width: 2
-        border.color: Colors.colors.neutralContent
+        // border.width: 2
+        // border.color: Colors.colors.neutralContent
     }
 
     StyledText {
@@ -109,6 +112,6 @@ MouseArea {
         font.family: root.fontFamily
         font.pointSize: root.fontSize
 
-        opacity: root.disabled ? 0.75 : 1
+        opacity: root.enabled ? 1 : 0.75
     }
 }

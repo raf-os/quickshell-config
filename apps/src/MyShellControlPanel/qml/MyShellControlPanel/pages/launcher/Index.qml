@@ -6,9 +6,7 @@ import MyShellControlPanel.components
 import MyShellControlPanel.components.forms
 import MyShellControlPanel.plugin
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
-import QtQuick.Controls
 
 PageStackItem {
     id: root
@@ -17,12 +15,6 @@ PageStackItem {
     FormController {
         id: formController
         models: [Config.launcher] // qmllint disable missing-type
-
-        onFieldsChanged: {
-            enabledField.controller = fieldFor("LauncherConfig", "enabled");
-            widthField.controller = fieldFor("LauncherConfig", "width");
-            prefixField.controller = fieldFor("LauncherConfig", "commandPrefix");
-        }
     }
 
     ColumnLayout {
@@ -49,6 +41,11 @@ PageStackItem {
                 name: "Enable launcher"
 
                 Layout.fillWidth: true
+
+                AutoFormField {
+                    controller: formController
+                    field: ["LauncherConfig", "enabled"]
+                }
             }
 
             SIntegerInput {
@@ -60,6 +57,11 @@ PageStackItem {
 
                 from: 0
                 to: 10000
+
+                AutoFormField {
+                    controller: formController
+                    field: ["LauncherConfig", "width"]
+                }
             }
 
             SStringInput {
@@ -68,6 +70,11 @@ PageStackItem {
                 name: "Command prefix"
 
                 Layout.fillWidth: true
+
+                AutoFormField {
+                    controller: formController
+                    field: ["LauncherConfig", "commandPrefix"]
+                }
             }
 
             FormButtons {

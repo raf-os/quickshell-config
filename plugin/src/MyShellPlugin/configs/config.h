@@ -14,13 +14,15 @@
 #include <qtmetamacros.h>
 
 #include "generated/gen_includes.h" // IWYU pragma: keep
+#include "iconfigserializer.h"
 
 namespace myqmlplugin {
 namespace configs {
-class Config : public QObject {
+class Config : public QObject, public IConfigSerializer {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
+  Q_INTERFACES(myqmlplugin::configs::IConfigSerializer)
 
   Q_PROPERTY(bool isSaving READ isSaving NOTIFY isSavingChanged)
 
@@ -45,6 +47,7 @@ public:
   [[nodiscard]] bool isSaving() const;
 
   Q_INVOKABLE void saveConfigs();
+  void commitSave() override;
 
 signals:
   void sucessfulSave();

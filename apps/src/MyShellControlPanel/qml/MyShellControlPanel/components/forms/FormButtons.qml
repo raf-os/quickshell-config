@@ -13,6 +13,7 @@ RowLayout {
     spacing: Config.appearance.spacing.md
 
     function onSaveForm() {
+        root.controller.commitValues();
     }
 
     function onCancelForm() {

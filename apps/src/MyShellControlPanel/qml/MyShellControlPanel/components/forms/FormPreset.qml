@@ -25,18 +25,12 @@ ColumnLayout {
     property int rows: 0
     property int columns: 0
     property alias layout: layout
+    property alias buttons: actionButtons
 
     property bool isDirty: controller.isDirty ?? false
 
     Layout.fillWidth: true
     spacing: Config.appearance.spacing.md
-
-    function onSave() {
-    }
-
-    function onCancel() {
-        root.controller.resetForm();
-    }
 
     GridLayout {
         id: layout
@@ -73,33 +67,10 @@ ColumnLayout {
         }
     }
 
-    RowLayout {
+    FormButtons {
         id: actionButtons
         Layout.fillWidth: true
 
-        spacing: Config.appearance.spacing.md
-
-        SButton {
-            id: saveButton
-            text: "Save"
-            autoWidth: true
-            Layout.fillWidth: true
-            disabled: !root.isDirty
-        }
-
-        SButton {
-            id: cancelButton
-            text: "Cancel"
-            autoWidth: true
-            Layout.fillWidth: true
-            type: SButton.ButtonType.Destructive
-            disabled: !root.isDirty
-
-            onClicked: {
-                if (disabled)
-                    return;
-                root.onCancel();
-            }
-        }
+        controller: root.controller
     }
 }

@@ -5,6 +5,7 @@ add_subdirectory(validators)
 cp_add_module(panel_plugin
   URI MyShellControlPanel.plugin
   SOURCES
+    autoformfield.h autoformfield.cpp
     formcontroller.h formcontroller.cpp
     fieldcontroller.h fieldcontroller.cpp
     forminput.h forminput.cpp

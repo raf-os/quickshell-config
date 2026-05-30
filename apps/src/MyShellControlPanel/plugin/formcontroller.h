@@ -43,7 +43,7 @@ public:
 
   [[nodiscard]] QQmlListProperty<FieldController> fields();
 
-  Q_INVOKABLE void validate();
+  Q_INVOKABLE void commitValues();
   Q_INVOKABLE void resetForm();
   Q_INVOKABLE FieldController *fieldFor(const QString &className,
                                         const QString &propName);

@@ -23,8 +23,8 @@
 
 namespace myqmlplugin {
 namespace configs {
-Config::Config(QObject *parent) : QObject(parent) {
-  m_saveTimer = new QTimer(this);
+Config::Config(QObject *parent)
+    : QObject(parent), m_saveTimer(new QTimer(this)) {
   m_saveTimer->setSingleShot(true);
   m_saveTimer->setInterval(m_saveTimerInterval);
   QObject::connect(m_saveTimer, &QTimer::timeout, this, [this]() {
@@ -35,7 +35,7 @@ Config::Config(QObject *parent) : QObject(parent) {
 
 #define X(Type, Name)                                                          \
   m_##Name = new Type(this);                                                   \
-  m_propertyTable.insert("##Name", m_##Name);
+  m_propertyTable.insert(#Name, m_##Name);
 #include "generated/gen_types.def"
 #undef X
 
@@ -49,13 +49,11 @@ Config::Config(QObject *parent) : QObject(parent) {
 
 QJsonObject Config::iterateQObject(QObject *obj) {
   QJsonObject jBuff;
-  const QMetaObject *metaObj = obj->metaObject();
+  const auto metaObj = obj->metaObject();
 
-  for (int i = 0; i < metaObj->propertyCount(); ++i) {
-    if (i < metaObj->propertyOffset())
-      continue;
+  for (auto i = metaObj->propertyOffset(); i < metaObj->propertyCount(); ++i) {
+    auto mProp = metaObj->property(i);
 
-    QMetaProperty mProp = metaObject()->property(i);
     if (!mProp.isReadable())
       continue;
 
@@ -71,7 +69,8 @@ QJsonObject Config::iterateQObject(QObject *obj) {
       if (childObj != nullptr) {
         jBuff[pname] = iterateQObject(childObj);
       }
-    } else if (value.canConvert<QVariantList>()) {
+    } else if (!value.canConvert<QString>() &&
+               value.canConvert<QVariantList>()) {
       QJsonArray array;
       for (const QVariant &item : value.toList()) {
         array.append(QJsonValue::fromVariant(item));
@@ -126,6 +125,8 @@ void Config::serializeFromJson(QObject *obj, const QJsonObject &jObj) {
     }
   }
 }
+
+void Config::commitSave() { saveConfigs(); }
 
 void Config::saveConfigs() {
   m_saveTimer->start();

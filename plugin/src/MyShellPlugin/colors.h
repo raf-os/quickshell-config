@@ -103,7 +103,7 @@ public:
   Q_INVOKABLE void loadConfig();
   Q_INVOKABLE void saveConfig();
 
-  void commitSave() override;
+  Q_INVOKABLE void commitSave() override;
 
 signals:
   void metadataChanged();
