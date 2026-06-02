@@ -1,5 +1,6 @@
 #include "colors.h"
 #include "metaiterate.h"
+#include "paths.h"
 
 #include <qbuffer.h>
 #include <qdebug.h>
@@ -40,8 +41,8 @@ Colors::Colors(QObject *parent)
 }
 
 QString Colors::getActiveTheme() {
-  QDir configPath = checkConfigPath();
-  QFile activeThemeFile(configPath.canonicalPath() + "/activetheme");
+  QDir statePath = utils::Paths::instance()->state();
+  QFile activeThemeFile(statePath.canonicalPath() + "/activetheme");
 
   if (!activeThemeFile.exists()) {
     setActiveTheme("default");
@@ -61,8 +62,8 @@ QString Colors::getActiveTheme() {
 }
 
 void Colors::setActiveTheme(const QString &themeName) {
-  QDir configPath = checkConfigPath();
-  QFile activeThemeFile(configPath.canonicalPath() + "/activetheme");
+  QDir statePath = utils::Paths::instance()->state();
+  QFile activeThemeFile(statePath.canonicalPath() + "/activetheme");
 
   if (!activeThemeFile.open(QIODevice::WriteOnly))
     return;
@@ -165,10 +166,11 @@ void Colors::attachFileWatcher() {
   auto dir = checkConfigPath();
   QFile tf(dir.canonicalPath() + "/" + m_themeName + ".json");
 
-  QFile activeThemeFile(dir.canonicalPath() + "/activetheme");
+  QDir stateDir(utils::Paths::instance()->state());
+  QFile activeThemeFile(stateDir.canonicalPath() + "/activetheme");
 
   if (activeThemeFile.exists()) {
-    m_themeSelectorWatcher->addPath(dir.canonicalPath() + "/activetheme");
+    m_themeSelectorWatcher->addPath(stateDir.canonicalPath() + "/activetheme");
   }
 
   if (!tf.exists())

@@ -51,11 +51,14 @@ private:
   QString m_config =
       qEnvironmentVariable("XDG_CONFIG_HOME", m_home + "/.config") + "/myshell";
   QString m_state =
-      qEnvironmentVariable("XDG_STATE_HOME", m_home + "/.state") + "/myshell";
+      qEnvironmentVariable("XDG_STATE_HOME", m_home + "/.local/state") +
+      "/myshell";
   QString m_cache =
       qEnvironmentVariable("XDG_CACHE_HOME", m_home + "/.cache") + "/myshell";
   QString m_data = DATADIR_DEFAULT_PATH;
   QString m_hyprConfig = m_home + "/.config/hypr";
+
+  void ensurePathsExist();
 };
 } // namespace utils
 } // namespace myqmlplugin

@@ -7,10 +7,17 @@
 
 namespace myqmlplugin {
 namespace utils {
-Paths::Paths(QObject *parent) : QObject(parent) {
+Paths::Paths(QObject *parent) : QObject(parent) { ensurePathsExist(); }
+
+void Paths::ensurePathsExist() {
   QDir configDir(m_config);
   if (!configDir.exists()) {
     configDir.mkpath(".");
+  }
+
+  QDir stateDir(m_state);
+  if (!stateDir.exists()) {
+    stateDir.mkpath(".");
   }
 }
 
