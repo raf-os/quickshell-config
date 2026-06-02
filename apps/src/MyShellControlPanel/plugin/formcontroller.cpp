@@ -15,6 +15,7 @@
 #include <utility>
 
 namespace mscp {
+static int step = 0;
 FormController::FormController(QObject *parent) : QObject(parent) {}
 
 void FormController::modelParseProperties() {
@@ -77,6 +78,8 @@ void FormController::modelParseProperties() {
 bool FormController::validationError() const { return m_validationError; }
 
 bool FormController::isDirty() const { return m_isDirty; }
+
+bool FormController::isSaving() const { return m_isSaving; }
 
 void FormController::setIsDirty(bool value) {
   if (m_isDirty != value) {

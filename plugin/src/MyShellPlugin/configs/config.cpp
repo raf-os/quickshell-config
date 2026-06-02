@@ -205,13 +205,17 @@ bool Config::saveToFile(QString filePath) {
   if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
     qWarning() << "myqmlplugin::configs::saveToFile: Failed saving configs to "
                   "json file.";
+    m_isSaving = false;
+    emit isSavingChanged();
     return false;
   }
 
   QTextStream out(&file);
   out << jDoc.toJson(QJsonDocument::Indented);
 
-  emit sucessfulSave();
+  m_isSaving = false;
+  emit isSavingChanged();
+
   return true;
 }
 } // namespace configs

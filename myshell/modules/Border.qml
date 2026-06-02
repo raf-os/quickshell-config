@@ -2,9 +2,9 @@ pragma ComponentBehavior: Bound
 
 import qs.config
 import qs.components
-import qs.services
 import Quickshell
 import Quickshell.Wayland
+import MyShellPlugin
 import QtQuick
 import QtQuick.Effects
 
@@ -15,9 +15,9 @@ Item {
 
     anchors.fill: parent
 
-    StyledRect {
+    Rectangle {
         anchors.fill: parent
-        color: ColorService.current.base
+        color: Colors.colors.base
 
         layer.enabled: true
         layer.effect: MultiEffect {

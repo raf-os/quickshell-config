@@ -302,6 +302,10 @@ myqmlplugin::HyprInputConfig *HyprExtras::inputConfig() const {
   return m_inputConfig;
 }
 
+myqmlplugin::HyprEvents *HyprExtras::eventListener() const {
+  return m_hyprEvents;
+}
+
 void HyprExtras::setKeyboardLayoutHandler(KeyboardLayoutHandler *kbd) {
   if (m_kbLayoutHandler == nullptr || kbd != m_kbLayoutHandler) {
     m_kbLayoutHandler = kbd;

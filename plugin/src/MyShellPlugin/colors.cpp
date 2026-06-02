@@ -1,6 +1,7 @@
 #include "colors.h"
 #include "metaiterate.h"
 
+#include <qbuffer.h>
 #include <qdebug.h>
 #include <qdir.h>
 #include <qdiriterator.h>
@@ -15,21 +16,59 @@
 #include <qlockfile.h>
 #include <qlogging.h>
 #include <qmetaobject.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qprocess.h>
 #include <qstringview.h>
 
 namespace myqmlplugin {
-Colors::Colors(QObject *parent) : QObject(parent) {
-  m_configMetadata = new configs::ColorConfigMetadata(this);
-  m_colors = new configs::ColorConfigColors(this);
+Colors::Colors(QObject *parent)
+    : QObject(parent), m_configMetadata(new configs::ColorConfigMetadata(this)),
+      m_colors(new configs::ColorConfigColors(this)),
+      m_themeSelectorWatcher(new QFileSystemWatcher(this)) {
   m_fileWatcher = new QFileSystemWatcher(this);
 
   QObject::connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this,
                    &Colors::onFileWatcherChanged);
+  QObject::connect(m_themeSelectorWatcher, &QFileSystemWatcher::fileChanged,
+                   this, &Colors::onThemeSelectorFileChanged);
 
-  loadConfig();
+  m_themeName = getActiveTheme();
+  loadFromFile(m_themeName);
   buildThemeDb();
+  attachFileWatcher();
+}
+
+QString Colors::getActiveTheme() {
+  QDir configPath = checkConfigPath();
+  QFile activeThemeFile(configPath.canonicalPath() + "/activetheme");
+
+  if (!activeThemeFile.exists()) {
+    setActiveTheme("default");
+    return "default";
+  }
+
+  if (!activeThemeFile.open(QIODevice::ReadOnly)) {
+    return "default";
+  }
+
+  QByteArray buffer(activeThemeFile.size(), Qt::Uninitialized);
+  activeThemeFile.read(buffer.data(), buffer.size());
+
+  activeThemeFile.close();
+
+  return QString::fromUtf8(buffer);
+}
+
+void Colors::setActiveTheme(const QString &themeName) {
+  QDir configPath = checkConfigPath();
+  QFile activeThemeFile(configPath.canonicalPath() + "/activetheme");
+
+  if (!activeThemeFile.open(QIODevice::WriteOnly))
+    return;
+
+  QTextStream out(&activeThemeFile);
+  out << themeName;
 }
 
 configs::ColorConfigMetadata *Colors::metadata() const {
@@ -38,6 +77,13 @@ configs::ColorConfigMetadata *Colors::metadata() const {
 
 configs::ColorConfigColors *Colors::colors() const { return m_colors; }
 
+configs::ColorConfigMetadata *Colors::metadataPreview() const {
+  return m_previewConfigMetadata;
+}
+configs::ColorConfigColors *Colors::colorsPreview() const {
+  return m_previewColors;
+}
+
 QString Colors::configPath() const { return m_configPath; }
 void Colors::setConfigPath(const QString &path) {
   if (path == m_configPath)
@@ -45,7 +91,10 @@ void Colors::setConfigPath(const QString &path) {
   m_configPath = path;
   emit configPathChanged();
 
+  m_themeName = getActiveTheme();
+
   buildThemeDb();
+  loadFromFile(m_themeName);
 }
 
 QString Colors::themeName() const { return m_themeName; }
@@ -61,8 +110,20 @@ void Colors::setThemeName(const QString &name) {
   m_themeName = name;
   emit themeNameChanged();
 
+  loadFromFile(m_themeName);
+  setActiveTheme(m_themeName);
   attachFileWatcher();
-  loadConfig();
+
+  emit colorsChanged();
+}
+
+QString Colors::previewThemeName() const { return m_previewName; }
+void Colors::setPreviewThemeName(const QString &value) {
+  if (value == m_previewName)
+    return;
+
+  m_previewName = value;
+  emit previewThemeNameChanged();
 }
 
 QList<QString> Colors::themeList() const { return m_themeDb; }
@@ -89,17 +150,27 @@ void Colors::buildThemeDb() {
       newDb.append(f.baseName());
   }
 
-  if (newDb != m_themeDb) {
+  if (newDb != m_themeDb)
+    ;
+  {
     m_themeDb = newDb;
     emit themeListChanged();
   }
 }
 
 void Colors::attachFileWatcher() {
-  m_fileWatcher->removePaths(m_fileWatcher->files());
+  if (!m_fileWatcher->files().isEmpty())
+    m_fileWatcher->removePaths(m_fileWatcher->files());
 
   auto dir = checkConfigPath();
   QFile tf(dir.canonicalPath() + "/" + m_themeName + ".json");
+
+  QFile activeThemeFile(dir.canonicalPath() + "/activetheme");
+
+  if (activeThemeFile.exists()) {
+    m_themeSelectorWatcher->addPath(dir.canonicalPath() + "/activetheme");
+  }
+
   if (!tf.exists())
     return;
 
@@ -113,31 +184,102 @@ void Colors::attachFileWatcher() {
   }
 }
 
-void Colors::onFileWatcherChanged(const QString &path) { loadConfig(); }
+void Colors::onFileWatcherChanged(const QString &path) {
+  loadConfig();
+  attachFileWatcher();
+}
 
-void Colors::loadConfig() {
+void Colors::onThemeSelectorFileChanged(const QString &path) {
+  auto newName = getActiveTheme();
+
+  if (m_themeName == newName)
+    return;
+
+  setThemeName(newName);
+}
+
+bool Colors::isPreviewing() const { return m_isPreviewing; }
+void Colors::setIsPreviewing(bool value) {
+  if (value == m_isPreviewing)
+    return;
+
+  m_isPreviewing = value;
+  emit isPreviewingChanged();
+}
+
+void Colors::loadPreview(const QString &themeName, QObject *handler) {
+  bool emitChange = false;
+  if (!m_previewColors) {
+    m_previewColors = new configs::ColorConfigColors(this);
+    emitChange = true;
+  }
+  if (!m_previewConfigMetadata) {
+    m_previewConfigMetadata = new configs::ColorConfigMetadata(this);
+    emitChange = true;
+  }
+
+  // if (m_previewName == themeName)
+  //   return;
+
+  setIsPreviewing(true);
+  setPreviewThemeName(themeName);
+  emit themePreviewChanged();
+
+  ColorObjPayload payload{.metadata = m_previewConfigMetadata,
+                          .colors = m_previewColors};
+
+  loadFromFile(themeName, &payload);
+
+  if (handler) {
+    QObject::connect(handler, &QObject::destroyed, this, &Colors::closePreview);
+  }
+}
+
+void Colors::closePreview() {
+  if (m_previewColors)
+    m_previewColors->deleteLater();
+  if (m_previewConfigMetadata)
+    m_previewConfigMetadata->deleteLater();
+
+  m_previewColors = nullptr;
+  m_previewConfigMetadata = nullptr;
+
+  setIsPreviewing(false);
+  setPreviewThemeName(m_themeName);
+  emit themePreviewChanged();
+}
+
+void Colors::loadFromFile(const QString &themeName, ColorObjPayload *payload) {
+  configs::ColorConfigMetadata *meta =
+      payload ? payload->metadata : m_configMetadata;
+  configs::ColorConfigColors *colors = payload ? payload->colors : m_colors;
+
+  if (!meta || !colors) {
+    qWarning() << "myqmlplugin::Colors::loadFromFile: Missing payload objects.";
+    return;
+  }
+
   auto dir = checkConfigPath();
-  QFile themeFile(dir.canonicalPath() + "/" + m_themeName + ".json");
+  QFile themeFile(dir.canonicalPath() + "/" + themeName + ".json");
+
   if (!themeFile.exists()) {
-    resetConfigs();
+    utils::resetMetaObj(meta);
+    utils::resetMetaObj(colors);
     return;
   }
 
   if (!themeFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    qWarning() << "myqmlplugin::Colors::loadConfig: Error reading theme "
-                  "file json.";
+    qWarning() << "myqmlplugin::Colors::loadFromFile: Error parsing theme json "
+                  "for theme '"
+               << themeName << "'.";
     return;
   }
 
-  QByteArray tfContent;
-
-  while (!themeFile.atEnd()) {
-    QByteArray line = themeFile.readLine();
-    tfContent.append(line);
-  }
+  QByteArray buffer(themeFile.size(), Qt::Uninitialized);
+  themeFile.read(buffer.data(), buffer.size());
 
   QJsonParseError *error = nullptr;
-  auto tfJson = QJsonDocument::fromJson(tfContent, error);
+  auto tfJson = QJsonDocument::fromJson(buffer, error);
 
   themeFile.close();
 
@@ -148,42 +290,43 @@ void Colors::loadConfig() {
   }
 
   if (tfJson.isObject()) {
-    auto themeData = tfJson.object();
-    auto confMetaObj = m_configMetadata->metaObject();
+    auto data = tfJson.object();
+
+    auto confMetaObj = meta->metaObject();
     for (auto i = confMetaObj->superClass()->propertyCount();
          i < confMetaObj->propertyCount(); ++i) {
       QMetaProperty prop = confMetaObj->property(i);
-      if (auto it = themeData.constFind(prop.name());
-          it != themeData.constEnd()) {
-        prop.write(m_configMetadata, it->toString(""));
+      if (auto it = data.constFind(prop.name()); it != data.constEnd()) {
+        prop.write(meta, it->toString(""));
       } else {
         if (prop.isResettable()) {
-          prop.reset(m_configMetadata);
+          prop.reset(meta);
         }
       }
     }
-    auto colData = themeData["colors"].isObject()
-                       ? themeData["colors"].toObject()
-                       : QJsonObject();
 
-    auto colMeta = m_colors->metaObject();
-    for (auto i = colMeta->superClass()->propertyCount();
-         i < colMeta->propertyCount(); ++i) {
-      QMetaProperty prop = colMeta->property(i);
-      if (auto it = colData.constFind(prop.name()); it != colData.constEnd()) {
-        prop.write(m_colors, it->toString(""));
+    auto columnData =
+        data["colors"].isObject() ? data["colors"].toObject() : QJsonObject();
+    auto colMetaObj = colors->metaObject();
+    for (auto i = colMetaObj->superClass()->propertyCount();
+         i < colMetaObj->propertyCount(); ++i) {
+      QMetaProperty prop = colMetaObj->property(i);
+      if (auto it = columnData.constFind(prop.name());
+          it != columnData.constEnd()) {
+        prop.write(colors, it->toString(""));
       } else {
         if (prop.isResettable()) {
-          prop.reset(m_colors);
+          prop.reset(colors);
         }
       }
     }
   } else {
-    qWarning()
-        << "myqmlplugin::Colors::loadConfig: Invalid JSON data provided.";
+    qWarning() << "myqmlplugin::Colors::loadConfig: Invalid json was provided.";
     return;
   }
 }
+
+void Colors::loadConfig() { return loadFromFile(m_themeName); }
 
 void Colors::commitSave() { saveConfig(); }
 

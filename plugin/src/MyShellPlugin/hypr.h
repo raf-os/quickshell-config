@@ -116,6 +116,7 @@ class HyprExtras : public QObject {
                      keyboardLayoutHandlerChanged REQUIRED)
   Q_PROPERTY(
       myqmlplugin::HyprInputConfig *inputConfig READ inputConfig CONSTANT)
+  Q_PROPERTY(myqmlplugin::HyprEvents *eventListener READ eventListener CONSTANT)
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
@@ -139,6 +140,8 @@ public:
   void setKeyboardLayoutHandler(KeyboardLayoutHandler *kbh);
 
   [[nodiscard]] myqmlplugin::HyprInputConfig *inputConfig() const;
+
+  [[nodiscard]] myqmlplugin::HyprEvents *eventListener() const;
 
   void hyprlangParse();
   void parseInputConfig();

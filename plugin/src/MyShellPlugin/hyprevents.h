@@ -28,6 +28,8 @@ private slots:
 
 signals:
   void configReloaded();
+  void bellRang();
+  void keyboardLayoutChanged(QString keyboardName, QString layoutName);
   void isConnectedChanged();
 
 private:

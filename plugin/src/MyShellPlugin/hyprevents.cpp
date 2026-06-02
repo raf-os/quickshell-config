@@ -85,6 +85,21 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
   if (event == "configreloaded") {
     emit configReloaded();
     return;
+  } else if (event == "bell") {
+    emit bellRang();
+    return;
+  } else if (event == "activelayout") {
+    const auto sepIdx = data.indexOf(",");
+    if (sepIdx == -1 || sepIdx + 1 >= data.length()) {
+      emit keyboardLayoutChanged("", "");
+      return;
+    }
+
+    const auto kbdName = data.first(sepIdx);
+    const auto layoutName = data.sliced(sepIdx + 1);
+
+    emit keyboardLayoutChanged(kbdName, layoutName);
+    return;
   }
 }
 

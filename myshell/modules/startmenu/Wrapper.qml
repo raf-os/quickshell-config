@@ -18,7 +18,7 @@ Item {
     required property var panels
 
     readonly property real initialWidth: content.implicitWidth
-    readonly property int animDuration: 300
+    readonly property int animDuration: 150
     readonly property int isActive: openPanels.startmenu
 
     visible: width > 0

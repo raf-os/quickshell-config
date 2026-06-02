@@ -1,17 +1,25 @@
+import MyShellControlPanel.plugin
 import MyShellControlPanel.components
 import MyShellPlugin
 import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 
-Item {
+FormInput {
     id: root
 
-    required property string name
     property color selectedColor: "black"
 
     Layout.fillWidth: true
     implicitHeight: layoutRoot.implicitHeight
+
+    inputItem: adapter
+
+    QtObject {
+        id: adapter
+
+        property color value: "black"
+    }
 
     RowLayout {
         id: layoutRoot
@@ -26,7 +34,7 @@ Item {
             implicitWidth: 48
             implicitHeight: 48
 
-            color: root.selectedColor
+            color: adapter.value
 
             radius: Config.appearance.rounding.sm
 

@@ -14,13 +14,42 @@ PageStackItem {
     id: root
     title: "Colors"
 
-    readonly property ColorConfigMetadata themeData: Colors.metadata
+    readonly property ColorConfigMetadata themeData: Colors.isPreviewing ? Colors.metadataPreview : Colors.metadata
     readonly property list<string> themeList: Colors.themeList
+    readonly property string selectedTheme: Colors.themeName
+
     property bool isChanged: false
+    property bool themeNameDirty: Colors.isPreviewing
+
+    function debounceThemeName(name: string): void {
+        debounceBuffer.desiredName = name;
+        themeNameDebouncer.restart();
+    }
+
+    Component.onCompleted: {
+        debounceBuffer.desiredName = Colors.themeName;
+    }
+
+    QtObject {
+        id: debounceBuffer
+
+        property string desiredName: "default"
+    }
+
+    Timer {
+        id: themeNameDebouncer
+        interval: 750
+        running: false
+
+        onTriggered: {
+            Colors.loadPreview(debounceBuffer.desiredName, root);
+            formController.resetForm();
+        }
+    }
 
     FormController {
         id: formController
-        models: [Colors.colors] // qmllint disable missing-type
+        models: Colors.isPreviewing ? [Colors.colorsPreview] : [Colors.colors] // qmllint disable missing-type
     }
 
     ColumnLayout {
@@ -46,19 +75,45 @@ PageStackItem {
             StyledText {
                 id: themeMetadataText
 
-                text: `**Theme**: ${root.themeData.name}\n\n**Author:** ${root.themeData.author}\n\n**Version:** ${root.themeData.version}`
+                text: `**Theme**: ${root.themeData?.name ?? ""}\n\n**Author:** ${root.themeData?.author ?? ""}\n\n**Version:** ${root.themeData?.version ?? ""}`
                 textFormat: Text.MarkdownText
                 padding: Config.appearance.padding.md
             }
         }
 
-        LabelWrapper {
+        RowLayout {
             id: themeSelector
-            text: "Selected theme"
             Layout.fillWidth: true
+            spacing: Config.appearance.spacing.md
 
             SCombobox {
+                id: themeNameControl
+
                 model: root.themeList
+                Layout.fillWidth: true
+                enabled: !themeNameDebouncer.running
+
+                Component.onCompleted: {
+                    currentIndex = find(root.selectedTheme);
+                }
+
+                onActivated: {
+                    root.debounceThemeName(currentValue);
+                }
+            }
+
+            SButton {
+                text: "Save"
+
+                disabled: !root.themeNameDirty || themeNameDebouncer.running
+
+                Layout.fillHeight: true
+                implicitWidth: 128
+
+                onClicked: {
+                    Colors.themeName = Colors.previewThemeName;
+                    Colors.closePreview();
+                }
             }
         }
 
@@ -72,11 +127,17 @@ PageStackItem {
             Repeater {
                 model: formController.fields
 
-                delegate: ColorSelector {
+                delegate: Loader {
+                    id: ld
                     required property FieldController modelData
+                    active: !!modelData
+                    Layout.fillWidth: true
 
-                    name: modelData.name
-                    selectedColor: modelData.value
+                    sourceComponent: ColorSelector {
+                        controller: ld.modelData
+
+                        name: ld.modelData?.name ?? ""
+                    }
                 }
             }
         }
@@ -96,6 +157,10 @@ PageStackItem {
                 autoWidth: true
                 Layout.fillWidth: true
                 disabled: !root.isChanged
+
+                onClicked: {
+                    Colors.saveConfig();
+                }
             }
 
             SButton {
