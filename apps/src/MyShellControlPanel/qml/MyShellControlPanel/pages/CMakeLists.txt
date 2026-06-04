@@ -1,7 +1,10 @@
 set(MODULE_PAGES
+  appearance
   colors
   keyboard
-  appearance
+  launcher
+  media
+  taskbar
 )
 
 file(GLOB

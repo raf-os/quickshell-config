@@ -14,6 +14,20 @@ PageStackItem {
     readonly property color fgCol: Colors.colors.base
     property bool hasChanges: false
 
+    Connections {
+        target: Hypr
+
+        function onInputLayoutsChanged() {
+            settingsBuffer.layouts = Hypr.inputLayouts;
+        }
+    }
+
+    SettingsBuffer {
+        id: settingsBuffer
+
+        layouts: Hypr.inputLayouts
+    }
+
     ColumnLayout {
         id: layout
 
@@ -30,71 +44,11 @@ PageStackItem {
                 font.pointSize: Config.appearance.fontSize.sm
             }
 
-            Item {
-                id: lvWrapper
+            ActiveLayoutList {
+                id: activeLayoutList
+                enabled: !Hypr.isKbSwitchOnCooldown
 
-                readonly property int padding: Config.appearance.padding.sm
-
-                Layout.fillWidth: true
-                Layout.margins: padding
-                implicitHeight: 128
-
-                FgWrapperBg {
-                    id: lvWrapperBg
-                }
-
-                ListView {
-                    id: layoutSelectList
-                    model: Hypr.inputLayouts
-
-                    anchors.fill: parent
-                    anchors.margins: lvWrapper.padding
-                    clip: true
-                    focus: true
-
-                    activeFocusOnTab: true
-
-                    spacing: Config.appearance.padding.xs
-
-                    delegate: Item {
-                        id: kbLayout
-                        required property HyprKeyboardLayout modelData
-                        readonly property bool isActive: Hypr.currentLayout?.layout === modelData?.layout ?? false
-
-                        implicitWidth: ListView.view ? ListView.view.width : 0
-                        implicitHeight: layoutName.height
-
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.top: parent.top
-                            implicitWidth: kbLayout.isActive ? parent.implicitWidth : 0
-                            implicitHeight: parent.implicitHeight
-
-                            color: Colors.colors.base4
-                            radius: Config.appearance.rounding.sm
-                            opacity: kbLayout.isActive ? 1 : 0
-
-                            Behavior on implicitWidth {
-                                NAnim {}
-                            }
-
-                            Behavior on opacity {
-                                NAnim {}
-                            }
-                        }
-
-                        StyledText {
-                            id: layoutName
-                            text: kbLayout.modelData?.description ?? ""
-                            font.pointSize: Config.appearance.fontSize.sm
-                            font.weight: kbLayout.isActive ? 600 : 500
-
-                            padding: Config.appearance.padding.xxs
-
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-                }
+                settingsBuffer: settingsBuffer
             }
         }
 

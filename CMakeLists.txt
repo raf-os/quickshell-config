@@ -55,3 +55,4 @@ install(FILES LICENSE DESTINATION "${INSTALL_QSCONFDIR}/myshell")
 
 add_subdirectory(plugin)
 add_subdirectory(apps)
+add_subdirectory(assets)

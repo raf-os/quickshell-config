@@ -12,6 +12,7 @@ Item {
     property bool highlightFollowsCurrentItem: true
     required property var model
 
+    property alias spacing: listView.spacing
     property alias currentIndex: listView.currentIndex
     property alias currentItem: listView.currentItem
     property alias highlightItem: listView.highlightItem
@@ -31,7 +32,7 @@ Item {
 
         readonly property bool isScrollBarActive: contentHeight > height
         readonly property int scrollBarWidth: 8
-        readonly property int scrollBarClearance: scrollBarWidth + Config.appearance.spacing.sm
+        readonly property int scrollBarClearance: isScrollBarActive ? scrollBarWidth + Config.appearance.spacing.sm : 0
 
         clip: true
         boundsBehavior: Flickable.StopAtBounds

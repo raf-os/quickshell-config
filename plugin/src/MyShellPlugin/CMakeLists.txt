@@ -65,6 +65,11 @@ function(qml_module arg_TARGET)
     )
 endfunction()
 
+qt_add_library(myshell SHARED)
+
+target_include_directories(myshell
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 add_subdirectory(interfaces)
 add_subdirectory(configs)
 add_subdirectory(utils)

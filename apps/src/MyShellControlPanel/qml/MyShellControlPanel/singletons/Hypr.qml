@@ -13,6 +13,19 @@ Item {
     readonly property MP.HyprKeyboardLayout currentLayout: inputLayouts[currentLayoutIndex] ?? null
 
     readonly property list<MP.KKeyboardLayout> allLayouts: KbdLayoutHandler.handler.layouts
+    readonly property bool isKbSwitchOnCooldown: kbLayoutCooldown.running
+
+    function switchKeyboardLayout(idx: int): void {
+        if (kbLayoutCooldown.running)
+            return;
+        hyprExtras.hyprctl(["switchxkblayout", "current", String(idx)]);
+        kbLayoutCooldown.restart();
+    }
+
+    Timer {
+        id: kbLayoutCooldown
+        interval: 500
+    }
 
     MP.HyprExtras {
         id: hyprExtras

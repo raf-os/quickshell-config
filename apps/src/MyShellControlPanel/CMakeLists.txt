@@ -4,6 +4,8 @@ find_package(Qt6 REQUIRED COMPONENTS
   Gui
   Quick)
 
+find_package(LibXml2 REQUIRED)
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/.qmlls.ini.in"
   "${CMAKE_CURRENT_SOURCE_DIR}/.qmlls.ini"
@@ -56,7 +58,6 @@ endif()
 
 target_link_libraries(myshell_control_panel
     PRIVATE
-      myshell
       panel_root
       panel_components
       panel_pages

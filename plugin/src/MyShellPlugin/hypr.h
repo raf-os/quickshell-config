@@ -150,6 +150,7 @@ public:
   Q_INVOKABLE void updateCurrentKeyboardConfig();
   Q_INVOKABLE void writeInputConfigToFile();
   Q_INVOKABLE void initConfigParse();
+  Q_INVOKABLE void hyprctl(const QStringList &commands);
 
 signals:
   void isSavingChanged();
@@ -163,6 +164,7 @@ signals:
 
 private:
   HyprEvents *m_hyprEvents = nullptr;
+  QProcess *m_hyprctlProcess = nullptr;
   bool m_isSavingFlag;
   bool m_useLuaConfig = true;
   QTimer *m_lookupCooldownTimer = nullptr;
