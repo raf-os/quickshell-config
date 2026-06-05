@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import MyShellPlugin
 import MyShellPlugin.Configs
+import MyShellControlPanel.plugin
 import MyShellControlPanel.components
 import MyShellControlPanel.singletons
 import QtQuick
@@ -14,31 +15,11 @@ Item {
     Layout.margins: Config.appearance.padding.sm
     implicitHeight: 128
 
-    property int selectedIndex
-    required property SettingsBuffer settingsBuffer
+    required property KeyboardSettingsBuffer settingsBuffer
+    readonly property int selectedIndex: settingsBuffer.selectedId
 
-    Component.onCompleted: {
-        refreshSelectedIndex();
-    }
-
-    function refreshSelectedIndex() {
-        root.selectedIndex = Hypr.currentLayoutIndex;
-    }
-
-    Connections {
-        target: Hypr
-
-        function onCurrentLayoutIndexChanged() {
-            root.refreshSelectedIndex();
-        }
-    }
-
-    Connections {
-        target: root.settingsBuffer
-
-        function onLayoutsChanged() {
-            root.refreshSelectedIndex();
-        }
+    function setSelectedIndex(idx: int): void {
+        settingsBuffer.selectedId = idx;
     }
 
     Rectangle {
@@ -69,11 +50,11 @@ Item {
             id: listHighlight
 
             implicitWidth: ListView.view ? ListView.view.width : 0
-            implicitHeight: ListView.view ? ListView.view.currentItem.height : 0
+            implicitHeight: ListView.view && ListView.view.currentItem ? ListView.view.currentItem.height : 0
 
             visible: (ListView.view && ListView.view.currentItem && root.enabled) ? true : false
 
-            y: ListView.view ? ListView.view.currentItem.y : 0
+            y: ListView.view && ListView.view.currentItem ? ListView.view.currentItem.y : 0
 
             color: "transparent"
             radius: Config.appearance.rounding.sm
@@ -88,24 +69,16 @@ Item {
             }
         }
 
-        delegate: MouseArea {
+        delegate: Item {
             id: kbLayout
 
             required property HyprKeyboardLayout modelData
             required property int index
             readonly property bool isActive: root.selectedIndex === index
-
-            cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            hoverEnabled: root.enabled
+            readonly property bool isRemoveIconActive: root.settingsBuffer.layouts.length > 1
 
             implicitWidth: ListView.view ? ListView.view.width : 0
             implicitHeight: layoutName.height
-
-            onClicked: {
-                if (!root.enabled)
-                    return;
-                root.selectedIndex = kbLayout.index;
-            }
 
             Rectangle {
                 id: selBg
@@ -123,20 +96,72 @@ Item {
                 }
             }
 
-            StyledText {
-                id: layoutName
-                text: kbLayout.modelData?.description ?? ""
+            MouseArea {
+                anchors.left: parent.left
+                anchors.right: itemRemoveIcon.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
 
-                font.pointSize: Config.appearance.fontSize.sm
-                font.weight: kbLayout.isActive ? 600 : 500
+                cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                hoverEnabled: root.enabled
 
-                leftPadding: Config.appearance.padding.sm
-                rightPadding: leftPadding
+                onClicked: {
+                    if (!root.enabled)
+                        return;
+                    root.setSelectedIndex(kbLayout.index);
+                }
 
-                topPadding: Config.appearance.padding.xs
-                bottomPadding: topPadding
+                StyledText {
+                    id: layoutName
+                    text: kbLayout.modelData?.description ?? ""
 
-                anchors.verticalCenter: parent.verticalCenter
+                    font.pointSize: Config.appearance.fontSize.sm
+                    font.weight: kbLayout.isActive ? 600 : 500
+
+                    leftPadding: Config.appearance.padding.sm
+                    rightPadding: leftPadding
+
+                    topPadding: Config.appearance.padding.xs
+                    bottomPadding: topPadding
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+
+            MouseArea {
+                id: itemRemoveIcon
+
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+
+                implicitWidth: minusIcon.font.pixelSize + Config.appearance.padding.sm * 2
+
+                enabled: kbLayout.isRemoveIconActive
+                cursorShape: kbLayout.isRemoveIconActive ? Qt.PointingHandCursor : Qt.ArrowCursor
+                hoverEnabled: true
+
+                onClicked: {
+                    root.settingsBuffer.removeLayoutAtIndex(kbLayout.index);
+                }
+
+                SMaterialIcon {
+                    id: minusIcon
+
+                    text: "remove"
+
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+
+                    font.pixelSize: Config.appearance.fontSize.lg
+                    font.weight: 700
+                    color: itemRemoveIcon.containsMouse ? Colors.colors.primary : Colors.colors.baseContent
+                    opacity: kbLayout.isRemoveIconActive ? 1 : 0.5
+
+                    anchors.centerIn: parent
+                }
             }
         }
     }

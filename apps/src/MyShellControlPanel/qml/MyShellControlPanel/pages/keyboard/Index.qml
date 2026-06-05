@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import MyShellPlugin
 import MyShellPlugin.Configs
+import MyShellControlPanel.plugin
 import MyShellControlPanel.components
 import MyShellControlPanel.singletons
 import QtQuick
@@ -14,18 +15,12 @@ PageStackItem {
     readonly property color fgCol: Colors.colors.base
     property bool hasChanges: false
 
-    Connections {
-        target: Hypr
-
-        function onInputLayoutsChanged() {
-            settingsBuffer.layouts = Hypr.inputLayouts;
-        }
-    }
-
-    SettingsBuffer {
+    KeyboardSettingsBuffer {
         id: settingsBuffer
 
-        layouts: Hypr.inputLayouts
+        Component.onCompleted: {
+            settingsBuffer.instance = Hypr.instance;
+        }
     }
 
     ColumnLayout {
@@ -62,7 +57,11 @@ PageStackItem {
                 font.pointSize: Config.appearance.fontSize.sm
             }
 
-            KeyboardList {}
+            KeyboardList {
+                id: allLayoutsList
+
+                settingsBuffer: settingsBuffer
+            }
         }
 
         RowLayout {

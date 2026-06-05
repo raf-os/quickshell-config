@@ -39,41 +39,33 @@ Item {
         anchors.fill: parent
         anchors.rightMargin: scrollBarClearance
 
-        ScrollBar.vertical: null
+        ScrollBar.vertical: ScrollBar {
+            parent: root
+
+            policy: listView.isScrollBarActive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
+            implicitWidth: listView.scrollBarWidth
+
+            padding: 0
+
+            contentItem: Rectangle {
+                color: Colors.colors.primary
+                radius: width / 2
+            }
+
+            background: Rectangle {
+                color: Colors.colors.base2
+                radius: width / 2
+            }
+        }
 
         model: root.model
         delegate: root.delegate
         highlight: root.hightlight
         highlightFollowsCurrentItem: root.highlightFollowsCurrentItem
-    }
-
-    ScrollBar {
-        policy: listView.isScrollBarActive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
-
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        padding: 0
-
-        size: listView.visibleArea.heightRatio
-        position: listView.visibleArea.yPosition
-
-        onPositionChanged: {
-            if (active) {
-                listView.contentY = position * listView.contentHeight;
-            }
-        }
-
-        implicitWidth: listView.scrollBarWidth
-
-        contentItem: Rectangle {
-            color: Colors.colors.primary
-            radius: width / 2
-        }
-
-        background: Rectangle {
-            color: Colors.colors.base2
-            radius: width / 2
-        }
     }
 }

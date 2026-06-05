@@ -2,6 +2,7 @@
 #include "hyprevents.h"
 #include "kbd.h"
 
+#include <optional>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
 #include <qdir.h>
@@ -21,11 +22,19 @@
 #include <qstringview.h>
 #include <qtenvironmentvariables.h>
 #include <qtimer.h>
+#include <utility>
 
 namespace myqmlplugin {
 HyprKeyboardLayout::HyprKeyboardLayout(const QString &layout,
                                        const QString &variant, QObject *parent)
     : QObject(parent), m_layout(layout), m_variant(variant) {}
+
+HyprKeyboardLayout::HyprKeyboardLayout(const QString &layout,
+                                       const QString &variant,
+                                       const QString &description,
+                                       QObject *parent)
+    : QObject(parent), m_layout(layout), m_variant(variant),
+      m_description(description) {}
 
 QString HyprKeyboardLayout::layout() const { return m_layout; }
 
@@ -81,6 +90,49 @@ void HyprInputConfig::setKbRules(const QString &rules) {
 
 QQmlListProperty<HyprKeyboardLayout> HyprInputConfig::layouts() {
   return QQmlListProperty<HyprKeyboardLayout>(this, &m_layouts);
+}
+
+void HyprInputConfig::setLayouts(
+    const QList<std::pair<QString, QString>> &layouts) {
+  if (m_kbLayoutHandler == nullptr) {
+    qWarning() << "myqmlplugin::HyprInputConfig::setLayouts: Must assign a "
+                  "keyboard layout handler to set layouts.";
+    return;
+  }
+
+  bool isDifferent = false;
+  if (layouts.size() != m_layouts.size()) {
+    isDifferent = true;
+  } else {
+    for (const auto layout : m_layouts) {
+      if (!layouts.contains(std::pair<QString, QString>(layout->layout(),
+                                                        layout->variant()))) {
+        isDifferent = true;
+        break;
+      }
+    }
+  }
+  if (!isDifferent)
+    return;
+
+  for (const auto item : m_layouts) {
+    item->deleteLater();
+  }
+
+  m_layouts.clear();
+
+  for (auto &layout : layouts) {
+    auto k = m_kbLayoutHandler->findLayoutMetadata(std::move(layout.first),
+                                                   std::move(layout.second));
+    if (!k.has_value())
+      continue;
+    auto kb = k.value();
+    auto ly =
+        new HyprKeyboardLayout(kb.layout, kb.variant, kb.description, this);
+    m_layouts.append(ly);
+  }
+
+  emit layoutsChanged();
 }
 
 void HyprInputConfig::setLayouts(const QStringList &layouts,
@@ -600,5 +652,51 @@ void HyprExtras::saveDataToCache() {
   out << jDoc.toJson(QJsonDocument::Compact);
 
   file.close();
+}
+
+HyprKeyboardLayout *HyprExtras::getLayout(const QString &layout,
+                                          const QString &variant,
+                                          QObject *parent) {
+  if (m_kbLayoutHandler == nullptr) {
+    return nullptr;
+  }
+
+  auto l = m_kbLayoutHandler->findLayoutMetadata(layout, variant);
+
+  if (!l.has_value())
+    return nullptr;
+
+  auto layoutData = l.value();
+  auto lobj =
+      new HyprKeyboardLayout(layoutData.layout, layoutData.variant, parent);
+  lobj->setDescription(layoutData.description);
+
+  return lobj;
+}
+
+void HyprExtras::changeSettings(
+    std::optional<QList<std::pair<QString, QString>>> newLayouts,
+    std::optional<int> newIndex) {
+  if (newLayouts.has_value()) {
+    auto list = newLayouts.value();
+    if (list.isEmpty() || list.size() <= 1) {
+      qWarning() << "myqmlplugin::HyprExtras::changeSettings: newLayouts must "
+                    "have at least one item!";
+      return;
+    }
+    m_inputConfig->setLayouts(newLayouts.value());
+  }
+
+  if (newIndex.has_value()) {
+    auto idx = newIndex.value();
+    if (idx < 0)
+      idx = 0;
+    if (const auto maxSize = m_inputConfig->layoutList().size() - 1;
+        idx > maxSize)
+      idx = maxSize;
+
+    if (newLayouts.has_value() || m_kbLayoutIndex != idx)
+      hyprctl({"switchxkblayout", QString::number(idx)});
+  }
 }
 } // namespace myqmlplugin

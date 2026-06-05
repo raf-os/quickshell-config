@@ -15,6 +15,8 @@ Item {
     readonly property list<MP.KKeyboardLayout> allLayouts: KbdLayoutHandler.handler.layouts
     readonly property bool isKbSwitchOnCooldown: kbLayoutCooldown.running
 
+    readonly property MP.HyprExtras instance: hyprExtras
+
     function switchKeyboardLayout(idx: int): void {
         if (kbLayoutCooldown.running)
             return;

@@ -2,6 +2,7 @@
 
 #include "hyprevents.h"
 #include "kbd.h"
+#include <optional>
 #include <qcontainerfwd.h>
 #include <qglobalstatic.h>
 #include <qlist.h>
@@ -13,6 +14,7 @@
 #include <qstringview.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>
+#include <utility>
 
 namespace myqmlplugin {
 class HyprKeyboardLayout : public QObject {
@@ -27,6 +29,9 @@ class HyprKeyboardLayout : public QObject {
 
 public:
   explicit HyprKeyboardLayout(const QString &layout, const QString &variant,
+                              QObject *parent = nullptr);
+  explicit HyprKeyboardLayout(const QString &layout, const QString &variant,
+                              const QString &description,
                               QObject *parent = nullptr);
 
   [[nodiscard]] QString layout() const;
@@ -72,6 +77,7 @@ public:
 
   [[nodiscard]] QQmlListProperty<HyprKeyboardLayout> layouts();
   void setLayouts(const QStringList &layouts, const QStringList &variants);
+  void setLayouts(const QList<std::pair<QString, QString>> &layouts);
 
   [[nodiscard]] QList<HyprKeyboardLayout *> layoutList() const;
 
@@ -147,10 +153,17 @@ public:
   void parseInputConfig();
   void queryCurrentDevices();
 
+  HyprKeyboardLayout *getLayout(const QString &layout, const QString &variant,
+                                QObject *parent);
+
   Q_INVOKABLE void updateCurrentKeyboardConfig();
   Q_INVOKABLE void writeInputConfigToFile();
   Q_INVOKABLE void initConfigParse();
   Q_INVOKABLE void hyprctl(const QStringList &commands);
+
+  void
+  changeSettings(std::optional<QList<std::pair<QString, QString>>> newLayouts,
+                 std::optional<int> newIndex);
 
 signals:
   void isSavingChanged();

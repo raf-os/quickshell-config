@@ -3,6 +3,7 @@
 #include <libxml/parser.h>
 #include <libxml/xmlstring.h>
 #include <libxml/xpath.h>
+#include <optional>
 #include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qlist.h>
@@ -132,6 +133,12 @@ class KeyboardLayoutHandler : public QObject {
 public:
   explicit KeyboardLayoutHandler(QObject *parent = nullptr);
 
+  struct SLayoutMetadata {
+    QString layout;
+    QString variant;
+    QString description;
+  };
+
   [[nodiscard]] QQmlListProperty<KKeyboardModel> models();
   [[nodiscard]] QQmlListProperty<KKeyboardLayout> layouts();
 
@@ -139,6 +146,8 @@ public:
   void setCachePath(const QString &path);
 
   [[nodiscard]] KKeyboardLayout *findLayoutByName(const QString &name);
+  [[nodiscard]] std::optional<SLayoutMetadata>
+  findLayoutMetadata(const QString &name, const QString &variant);
 
   Q_INVOKABLE void debugPrintLayouts();
 

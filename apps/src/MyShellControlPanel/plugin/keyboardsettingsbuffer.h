@@ -23,6 +23,16 @@ class KeyboardSettingsBuffer : public QObject {
 public:
   explicit KeyboardSettingsBuffer(QObject *parent = nullptr);
 
+  enum ReturnCode {
+    Success,
+    LastRemainingLayout,
+    IndexOutOfBounds,
+    LayoutDoesNotExist,
+    DuplicatedLayout,
+    UnknownError
+  };
+  Q_ENUM(ReturnCode)
+
   [[nodiscard]] QList<myqmlplugin::HyprKeyboardLayout *> layouts() const;
 
   [[nodiscard]] myqmlplugin::HyprExtras *instance() const;
@@ -33,9 +43,9 @@ public:
 
   Q_SLOT void refetchLayouts();
 
-  Q_INVOKABLE QVariantMap addLayout(const QString &name,
-                                    const QString &variant);
-  Q_INVOKABLE QVariantMap removeLayoutAtIndex(const int &index);
+  Q_INVOKABLE int addLayout(const QString &name, const QString &variant);
+  Q_INVOKABLE int removeLayoutAtIndex(const int &index);
+  Q_INVOKABLE void applyChanges();
 
 signals:
   void layoutsChanged();
@@ -45,7 +55,15 @@ signals:
 private:
   int m_selectedId;
   QList<myqmlplugin::HyprKeyboardLayout *> m_layouts;
-  myqmlplugin::HyprExtras *m_instance;
-  myqmlplugin::HyprInputConfig *m_inputConfig;
+  QList<myqmlplugin::HyprKeyboardLayout *> m_ownedLayouts;
+  myqmlplugin::HyprExtras *m_instance = nullptr;
+  myqmlplugin::HyprInputConfig *m_inputConfig = nullptr;
+
+  struct {
+    bool idx;
+    bool layouts;
+  } m_dirtyFields;
+
+  void cleanup();
 };
 } // namespace mscp

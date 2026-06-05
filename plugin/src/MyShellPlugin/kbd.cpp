@@ -1,6 +1,7 @@
 #include "kbd.h"
 #include <algorithm>
 #include <functional>
+#include <optional>
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
 #include <qdebug.h>
@@ -351,6 +352,29 @@ KKeyboardLayout *KeyboardLayoutHandler::findLayoutByName(const QString &name) {
     return it.value();
   }
   return nullptr;
+}
+
+std::optional<KeyboardLayoutHandler::SLayoutMetadata>
+KeyboardLayoutHandler::findLayoutMetadata(const QString &name,
+                                          const QString &variant) {
+  auto layout = findLayoutByName(name);
+  if (layout == nullptr) {
+    return std::nullopt;
+  }
+  if (variant == "")
+    return SLayoutMetadata{layout->name(), "", layout->description()};
+
+  KKeyboardVariant *vptr = nullptr;
+  for (const auto v : layout->variantList()) {
+    if (v->name() == variant) {
+      vptr = v;
+      break;
+    }
+  }
+  if (vptr == nullptr)
+    return std::nullopt;
+
+  return SLayoutMetadata{layout->name(), vptr->name(), vptr->description()};
 }
 
 void KeyboardLayoutHandler::debugPrintLayouts() {}
