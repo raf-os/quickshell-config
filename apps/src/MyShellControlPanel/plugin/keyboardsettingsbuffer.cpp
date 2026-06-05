@@ -58,15 +58,10 @@ void KeyboardSettingsBuffer::setInstance(myqmlplugin::HyprExtras *instance) {
 
   refetchLayouts();
 
+  QObject::connect(m_instance, &QObject::destroyed, this,
+                   [this]() { deleteLater(); });
   QObject::connect(m_inputConfig, &myqmlplugin::HyprInputConfig::layoutsChanged,
                    this, &KeyboardSettingsBuffer::refetchLayouts);
-}
-
-void KeyboardSettingsBuffer::cleanup() {
-  m_instance = nullptr;
-  m_inputConfig = nullptr;
-  emit instanceChanged();
-  deleteLater();
 }
 
 void KeyboardSettingsBuffer::refetchLayouts() {
@@ -74,9 +69,6 @@ void KeyboardSettingsBuffer::refetchLayouts() {
     return;
 
   auto listBuf = m_inputConfig->layoutList();
-  if (listBuf == m_layouts) {
-    return;
-  }
 
   m_dirtyFields = {.idx = false, .layouts = false};
 
@@ -96,13 +88,18 @@ void KeyboardSettingsBuffer::refetchLayouts() {
       return;
   }
 
-  m_layouts.clear();
-
-  for (const auto l : m_ownedLayouts) {
+  for (const auto l : m_layouts) {
     l->deleteLater();
   }
 
-  m_layouts = listBuf;
+  m_layouts.clear();
+
+  for (const auto litem : listBuf) {
+    auto hl = new myqmlplugin::HyprKeyboardLayout(
+        litem->layout(), litem->variant(), litem->description(), this);
+    m_layouts.append(hl);
+  }
+
   emit layoutsChanged();
 
   m_selectedId = m_instance->kbdLayoutIndex();
@@ -129,10 +126,42 @@ int KeyboardSettingsBuffer::addLayout(const QString &name,
     return ReturnCode::LayoutDoesNotExist;
 
   m_layouts.append(layout);
-  m_ownedLayouts.append(layout);
   m_dirtyFields.layouts = true;
 
   emit layoutsChanged();
+
+  return ReturnCode::Success;
+}
+
+int KeyboardSettingsBuffer::removeLayout(const QString &name,
+                                         const QString &variant) {
+  if (m_layouts.count() <= 1) {
+    return ReturnCode::LastRemainingLayout;
+  }
+
+  myqmlplugin::HyprKeyboardLayout *foundLayout = nullptr;
+  for (const auto l : m_layouts) {
+    if (l->layout() == name && l->variant() == variant) {
+      foundLayout = l;
+      break;
+    }
+  }
+
+  if (foundLayout == nullptr) {
+    return ReturnCode::LayoutDoesNotExist;
+  }
+
+  foundLayout->deleteLater();
+
+  m_layouts.removeAt(m_layouts.indexOf(foundLayout));
+  m_dirtyFields.layouts = true;
+  emit layoutsChanged();
+
+  if (m_selectedId > m_layouts.size() - 1) {
+    m_selectedId = m_layouts.size() - 1;
+    m_dirtyFields.idx = true;
+    emit selectedIdChanged();
+  }
 
   return ReturnCode::Success;
 }
@@ -148,12 +177,7 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
     return ReturnCode::IndexOutOfBounds;
   }
 
-  if (const auto ownedLayoutIdx = m_ownedLayouts.indexOf(m_layouts.at(index));
-      ownedLayoutIdx != -1) {
-    m_ownedLayouts.at(ownedLayoutIdx)->deleteLater();
-    m_ownedLayouts.removeAt(index);
-  }
-
+  m_layouts.at(index)->deleteLater();
   m_layouts.removeAt(index);
   m_dirtyFields.layouts = true;
   emit layoutsChanged();
@@ -164,7 +188,7 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
     emit selectedIdChanged();
   }
 
-  return ReturnCode(Success);
+  return ReturnCode::Success;
 }
 
 void KeyboardSettingsBuffer::applyChanges() {

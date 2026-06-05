@@ -44,6 +44,7 @@ public:
   Q_SLOT void refetchLayouts();
 
   Q_INVOKABLE int addLayout(const QString &name, const QString &variant);
+  Q_INVOKABLE int removeLayout(const QString &name, const QString &variant);
   Q_INVOKABLE int removeLayoutAtIndex(const int &index);
   Q_INVOKABLE void applyChanges();
 
@@ -55,7 +56,6 @@ signals:
 private:
   int m_selectedId;
   QList<myqmlplugin::HyprKeyboardLayout *> m_layouts;
-  QList<myqmlplugin::HyprKeyboardLayout *> m_ownedLayouts;
   myqmlplugin::HyprExtras *m_instance = nullptr;
   myqmlplugin::HyprInputConfig *m_inputConfig = nullptr;
 

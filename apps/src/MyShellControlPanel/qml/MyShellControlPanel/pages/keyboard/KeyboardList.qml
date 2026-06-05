@@ -39,6 +39,7 @@ Item {
 
         anchors.fill: parent
         anchors.margins: root.padding * 2
+        spacing: Config.appearance.spacing.xxs
         model: Hypr.allLayouts
 
         delegate: Item {
@@ -50,7 +51,7 @@ Item {
                 if (!modelData)
                     return false;
                 root.settingsBuffer.layouts;
-                return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout);
+                return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout && layout.variant === "");
             }
             readonly property bool hasVariants: modelData && modelData.variants && modelData.variants.length > 0
             readonly property bool isExpanded: root.expandedId === index
@@ -92,7 +93,7 @@ Item {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
 
-                spacing: root.padding / 2
+                spacing: 0//root.padding / 2
 
                 MouseArea {
                     id: kbdInfoTitle
@@ -149,7 +150,11 @@ Item {
                         anchors.right: kbdInfoActionButton.left
                         anchors.verticalCenter: parent.verticalCenter
 
-                        padding: 4
+                        leftPadding: Config.appearance.padding.xs
+                        rightPadding: leftPadding
+
+                        topPadding: Config.appearance.padding.sm
+                        bottomPadding: topPadding
                     }
 
                     MouseArea {
@@ -170,7 +175,7 @@ Item {
                                 return;
 
                             if (kbd.isInstalled)
-                                root.settingsBuffer.removeLayoutAtIndex(kbd.index);
+                                root.settingsBuffer.removeLayout(kbd.modelData.name, "");
                             else
                                 root.settingsBuffer.addLayout(kbd.modelData.name, "");
                         }
@@ -224,12 +229,11 @@ Item {
                             id: variantsLayout
 
                             anchors.top: parent.top
-                            anchors.topMargin: variantKbdItem.padding
-                            anchors.bottomMargin: variantKbdItem.padding
                             anchors.left: parent.left
                             anchors.right: parent.right
+                            anchors.margins: variantKbdItem.padding
 
-                            spacing: 0
+                            spacing: Config.appearance.spacing.xxs
 
                             Repeater {
                                 model: kbd.modelData.variants
@@ -237,9 +241,22 @@ Item {
                                 delegate: Item {
                                     id: variantItem
                                     required property KKeyboardVariant modelData
+                                    readonly property bool isInstalled: {
+                                        if (!variantItem.modelData || !kbd.modelData)
+                                            return false;
+                                        return root.settingsBuffer.layouts.some(layout => kbd.modelData.name === layout.layout && modelData.name === layout.variant);
+                                    }
                                     Layout.fillWidth: true
 
                                     implicitHeight: variantItemTitle.height
+
+                                    Rectangle {
+                                        anchors.fill: parent
+
+                                        opacity: variantItem.isInstalled ? 1 : 0
+                                        color: Colors.colors.primary
+                                        radius: Config.appearance.rounding.sm
+                                    }
 
                                     StyledText {
                                         id: variantItemTitle
@@ -252,7 +269,7 @@ Item {
                                         elide: Text.ElideRight
 
                                         font.family: Config.appearance.fontFamily.sans
-                                        font.pointSize: Config.appearance.fontSize.sm
+                                        font.pointSize: Config.appearance.fontSize.xs
 
                                         verticalAlignment: Text.AlignVCenter
 
@@ -261,6 +278,41 @@ Item {
 
                                         topPadding: Config.appearance.padding.sm
                                         bottomPadding: topPadding
+                                    }
+
+                                    MouseArea {
+                                        id: variantItemInteraction
+                                        anchors.right: parent.right
+                                        anchors.rightMargin: root.padding
+                                        anchors.top: parent.top
+                                        anchors.bottom: parent.bottom
+
+                                        enabled: root.enabled
+                                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                                        implicitWidth: variantItemInteractionIcon.width
+
+                                        onClicked: {
+                                            if (!variantItem.modelData || !kbd.modelData)
+                                                return;
+
+                                            if (variantItem.isInstalled)
+                                                root.settingsBuffer.removeLayout(kbd.modelData.name, variantItem.modelData.name);
+                                            else
+                                                root.settingsBuffer.addLayout(kbd.modelData.name, variantItem.modelData.name);
+                                        }
+
+                                        SMaterialIcon {
+                                            id: variantItemInteractionIcon
+                                            text: variantItem.isInstalled ? "remove" : "add"
+
+                                            anchors.centerIn: parent
+                                            font.pixelSize: Config.appearance.fontSize.lg
+                                            font.weight: 700
+
+                                            verticalAlignment: Text.AlignVCenter
+                                            horizontalAlignment: Text.AlignHCenter
+                                        }
                                     }
                                 }
                             }
@@ -275,202 +327,5 @@ Item {
                 }
             }
         }
-
-        // delegate: Item {
-        //     id: kbd
-        //     required property KKeyboardLayout modelData
-        //     required property int index
-        //     property bool isInstalled: evalIsInstalled()
-        //
-        //     readonly property bool hasVariants: modelData && modelData.variants.length > 0
-        //     readonly property bool isExpanded: root.expandedId === index
-        //
-        //     implicitWidth: ListView.view ? ListView.view.width : 0
-        //     implicitHeight: kbdInfo.implicitHeight
-        //
-        //     function evalIsInstalled(): bool {
-        //         if (!modelData) {
-        //             isInstalled = false;
-        //             return;
-        //         }
-        //         isInstalled = root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout);
-        //     }
-        //
-        //     onModelDataChanged: evalIsInstalled()
-        //
-        //     Component.onDestruction: {
-        //         if (root.expandedId === kbd.index) {
-        //             root.expandedId = -1;
-        //         }
-        //     }
-        //
-        //     Connections {
-        //         target: Hypr
-        //
-        //         function onInputLayoutsChanged() {
-        //             kbd.evalIsInstalled();
-        //         }
-        //     }
-        //
-        //     Rectangle {
-        //         opacity: kbd.isInstalled ? 1 : 0
-        //         anchors.fill: parent
-        //
-        //         color: Colors.colors.primary2
-        //         radius: Config.appearance.rounding.sm
-        //     }
-        //
-        //     ColumnLayout {
-        //         id: kbdInfo
-        //
-        //         readonly property color textCol: kbd.isInstalled ? Colors.colors.base0 : Colors.colors.baseContent
-        //
-        //         anchors.left: parent.left
-        //         anchors.right: parent.right
-        //         anchors.verticalCenter: parent.verticalCenter
-        //
-        //         spacing: 0
-        //
-        //         MouseArea {
-        //             id: kbdInfoTitle
-        //
-        //             Layout.fillWidth: true
-        //             implicitHeight: kbdInfoTitleText.implicitHeight
-        //             enabled: kbd.hasVariants
-        //             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        //
-        //             onClicked: {
-        //                 root.toggleExpandById(kbd.index);
-        //             }
-        //
-        //             StyledText {
-        //                 id: kbdInfoTitleExpand
-        //
-        //                 property real rot: kbd.isExpanded ? 90 : 0
-        //
-        //                 visible: kbd.hasVariants
-        //                 anchors.left: parent.left
-        //                 anchors.leftMargin: root.padding
-        //                 anchors.top: parent.top
-        //                 anchors.bottom: parent.bottom
-        //
-        //                 text: "󰅂"
-        //                 color: kbdInfo.textCol
-        //
-        //                 verticalAlignment: Text.AlignVCenter
-        //
-        //                 transform: Rotation {
-        //                     origin.x: kbdInfoTitleExpand.width / 2
-        //                     origin.y: kbdInfoTitleExpand.height / 2
-        //                     angle: kbdInfoTitleExpand.rot
-        //                 }
-        //
-        //                 font.family: Config.appearance.fontFamily.mono
-        //                 font.pointSize: Config.appearance.fontSize.xl
-        //
-        //                 Behavior on rot {
-        //                     NAnim {}
-        //                 }
-        //             }
-        //
-        //             StyledText {
-        //                 id: kbdInfoTitleText
-        //
-        //                 text: kbd.modelData ? `[${kbd.modelData.name}] ${kbd.modelData.description}` : ""
-        //                 color: kbdInfo.textCol
-        //
-        //                 font.pointSize: Config.appearance.fontSize.xs
-        //
-        //                 anchors.left: kbdInfoTitleExpand.right
-        //                 anchors.right: parent.right
-        //                 anchors.verticalCenter: parent.verticalCenter
-        //
-        //                 elide: Text.ElideRight
-        //
-        //                 padding: root.padding
-        //             }
-        //
-        //             MouseArea {
-        //                 id: addRemoveArea
-        //
-        //                 anchors.right: parent.right
-        //                 anchors.top: parent.top
-        //                 anchors.bottom: parent.bottom
-        //
-        //                 implicitWidth: height
-        //
-        //                 StyledText {
-        //                     id: addRemoveText
-        //
-        //                     anchors.centerIn: parent
-        //
-        //                     text: kbd.isInstalled ? "󰍴" : "󰐕"
-        //                     color: kbdInfo.textCol
-        //                     font.pointSize: Config.appearance.fontSize.md
-        //
-        //                     verticalAlignment: Text.AlignVCenter
-        //                     horizontalAlignment: Text.AlignLeft
-        //                 }
-        //             }
-        //         }
-        //
-        //         Loader {
-        //             id: variantsWrapper
-        //
-        //             active: kbd.hasVariants
-        //
-        //             Layout.fillWidth: true
-        //
-        //             sourceComponent: Item {
-        //                 readonly property real fullHeight: variantsLayout.implicitHeight + root.padding * 3
-        //
-        //                 anchors.left: parent.left
-        //                 anchors.right: parent.right
-        //
-        //                 anchors.leftMargin: root.padding
-        //                 anchors.rightMargin: root.padding
-        //
-        //                 implicitHeight: kbd.isExpanded ? fullHeight : 0
-        //
-        //                 clip: true
-        //                 visible: implicitHeight > 0
-        //
-        //                 Rectangle {
-        //                     anchors.fill: parent
-        //                     anchors.bottomMargin: root.padding
-        //                     color: Colors.colors.base0
-        //                     radius: Config.appearance.rounding.sm
-        //                 }
-        //
-        //                 ColumnLayout {
-        //                     id: variantsLayout
-        //                     anchors.top: parent.top
-        //                     anchors.left: parent.left
-        //                     anchors.right: parent.right
-        //                     anchors.margins: root.padding
-        //
-        //                     spacing: Config.appearance.spacing.sm
-        //
-        //                     Repeater {
-        //                         model: kbd.modelData.variants
-        //
-        //                         delegate: StyledText {
-        //                             required property KKeyboardVariant modelData
-        //
-        //                             Layout.fillWidth: true
-        //
-        //                             text: modelData ? `[${modelData.name}] ${modelData.description}` : ""
-        //                             elide: Text.ElideRight
-        //                         }
-        //                     }
-        //                 }
-        //
-        //                 Behavior on implicitHeight {
-        //                     NAnim {}
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
