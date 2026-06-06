@@ -153,8 +153,8 @@ public:
   void parseInputConfig();
   void queryCurrentDevices();
 
-  HyprKeyboardLayout *getLayout(const QString &layout, const QString &variant,
-                                QObject *parent);
+  std::optional<KeyboardLayoutHandler::SLayoutMetadata>
+  getLayout(const QString &layout, const QString &variant);
 
   Q_INVOKABLE void updateCurrentKeyboardConfig();
   Q_INVOKABLE void writeInputConfigToFile();

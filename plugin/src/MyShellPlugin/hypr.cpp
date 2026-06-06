@@ -654,24 +654,11 @@ void HyprExtras::saveDataToCache() {
   file.close();
 }
 
-HyprKeyboardLayout *HyprExtras::getLayout(const QString &layout,
-                                          const QString &variant,
-                                          QObject *parent) {
-  if (m_kbLayoutHandler == nullptr) {
-    return nullptr;
-  }
-
-  auto l = m_kbLayoutHandler->findLayoutMetadata(layout, variant);
-
-  if (!l.has_value())
-    return nullptr;
-
-  auto layoutData = l.value();
-  auto lobj =
-      new HyprKeyboardLayout(layoutData.layout, layoutData.variant, parent);
-  lobj->setDescription(layoutData.description);
-
-  return lobj;
+std::optional<KeyboardLayoutHandler::SLayoutMetadata>
+HyprExtras::getLayout(const QString &layout, const QString &variant) {
+  if (m_kbLayoutHandler == nullptr)
+    return std::nullopt;
+  return m_kbLayoutHandler->findLayoutMetadata(layout, variant);
 }
 
 void HyprExtras::changeSettings(

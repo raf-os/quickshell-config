@@ -2,19 +2,38 @@
 #include "hypr.h"
 
 #include <optional>
+#include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qqmllist.h>
+#include <qvariant.h>
 #include <utility>
 
 namespace mscp {
 KeyboardSettingsBuffer::KeyboardSettingsBuffer(QObject *parent)
-    : QObject(parent) {}
+    : QAbstractListModel(parent) {}
 
-QList<myqmlplugin::HyprKeyboardLayout *>
-KeyboardSettingsBuffer::layouts() const {
+int KeyboardSettingsBuffer::rowCount(const QModelIndex &parent) const {
+  return parent.isValid() ? 0 : m_layouts.size();
+}
+
+QVariant KeyboardSettingsBuffer::data(const QModelIndex &index,
+                                      int role) const {
+  if (!index.isValid())
+    return {};
+
+  switch (role) {
+  case Roles::ModelDataRole:
+    return QVariant::fromValue(m_layouts.at(index.row()));
+  default:
+    return {};
+  }
+}
+
+QList<KeyboardLayoutItem *> KeyboardSettingsBuffer::layouts() {
   return m_layouts;
 }
 
@@ -75,9 +94,6 @@ void KeyboardSettingsBuffer::refetchLayouts() {
   if (listBuf.count() == m_layouts.count()) {
     bool isEqual = false;
     for (int i = 0; i < listBuf.count() - 1; ++i) {
-      if (listBuf.at(i) == m_layouts.at(i))
-        continue;
-
       if ((listBuf.at(i)->layout() != m_layouts.at(i)->variant()) ||
           (listBuf.at(i)->variant() != m_layouts.at(i)->variant())) {
         isEqual = true;
@@ -94,11 +110,15 @@ void KeyboardSettingsBuffer::refetchLayouts() {
 
   m_layouts.clear();
 
+  beginResetModel();
+
   for (const auto litem : listBuf) {
-    auto hl = new myqmlplugin::HyprKeyboardLayout(
-        litem->layout(), litem->variant(), litem->description(), this);
+    auto hl = new KeyboardLayoutItem(litem->layout(), litem->variant(),
+                                     litem->description(), this);
     m_layouts.append(hl);
   }
+
+  endResetModel();
 
   emit layoutsChanged();
 
@@ -120,15 +140,20 @@ int KeyboardSettingsBuffer::addLayout(const QString &name,
   if (isDuplicate)
     return ReturnCode::DuplicatedLayout;
 
-  auto layout = m_instance->getLayout(name, variant, this);
+  auto l = m_instance->getLayout(name, variant);
 
-  if (layout == nullptr)
+  if (!l.has_value()) {
     return ReturnCode::LayoutDoesNotExist;
+  }
 
-  m_layouts.append(layout);
-  m_dirtyFields.layouts = true;
+  auto layout = l.value();
 
-  emit layoutsChanged();
+  auto newLayout = new KeyboardLayoutItem(layout.layout, layout.variant,
+                                          layout.description, this);
+
+  beginInsertRows({}, m_layouts.size(), m_layouts.size());
+  m_layouts.append(newLayout);
+  endInsertRows();
 
   return ReturnCode::Success;
 }
@@ -139,7 +164,7 @@ int KeyboardSettingsBuffer::removeLayout(const QString &name,
     return ReturnCode::LastRemainingLayout;
   }
 
-  myqmlplugin::HyprKeyboardLayout *foundLayout = nullptr;
+  KeyboardLayoutItem *foundLayout = nullptr;
   for (const auto l : m_layouts) {
     if (l->layout() == name && l->variant() == variant) {
       foundLayout = l;
@@ -152,9 +177,12 @@ int KeyboardSettingsBuffer::removeLayout(const QString &name,
   }
 
   foundLayout->deleteLater();
+  auto lidx = m_layouts.indexOf(foundLayout);
 
-  m_layouts.removeAt(m_layouts.indexOf(foundLayout));
+  beginRemoveRows({}, lidx, lidx);
+  m_layouts.removeAt(lidx);
   m_dirtyFields.layouts = true;
+  endRemoveRows();
   emit layoutsChanged();
 
   if (m_selectedId > m_layouts.size() - 1) {
@@ -177,8 +205,10 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
     return ReturnCode::IndexOutOfBounds;
   }
 
+  beginRemoveRows({}, index, index);
   m_layouts.at(index)->deleteLater();
   m_layouts.removeAt(index);
+  endRemoveRows();
   m_dirtyFields.layouts = true;
   emit layoutsChanged();
 
@@ -189,6 +219,27 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
   }
 
   return ReturnCode::Success;
+}
+
+void KeyboardSettingsBuffer::swapItems(int from, int to) {
+  if (from == to)
+    return;
+  if (from < 0 || from >= m_layouts.size())
+    return;
+  if (to < 0 || to >= m_layouts.size())
+    return;
+
+  beginMoveRows({}, from, from, {}, to > from ? to + 1 : to);
+  m_layouts.swapItemsAt(from, to);
+  endMoveRows();
+  emit layoutsChanged();
+}
+
+void KeyboardSettingsBuffer::moveItemToEnd(int index) {
+  if (index < 0 || index >= m_layouts.size())
+    return;
+
+  swapItems(index, m_layouts.size() - 1);
 }
 
 void KeyboardSettingsBuffer::applyChanges() {
