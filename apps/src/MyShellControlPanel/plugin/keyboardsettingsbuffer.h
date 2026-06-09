@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hypr.h"
+#include "hyprevents.h"
 
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
@@ -50,6 +51,7 @@ class KeyboardSettingsBuffer : public QAbstractListModel {
                  NOTIFY instanceChanged)
   Q_PROPERTY(int selectedId READ selectedId WRITE setSelectedId NOTIFY
                  selectedIdChanged)
+  Q_PROPERTY(bool isDirty READ isDirty NOTIFY isDirtyChanged)
 
 public:
   explicit KeyboardSettingsBuffer(QObject *parent = nullptr);
@@ -74,6 +76,8 @@ public:
 
   [[nodiscard]] QList<KeyboardLayoutItem *> layouts();
 
+  [[nodiscard]] bool isDirty() const;
+
   [[nodiscard]] myqmlplugin::HyprExtras *instance() const;
   void setInstance(myqmlplugin::HyprExtras *instance);
 
@@ -86,6 +90,7 @@ public:
   Q_INVOKABLE int removeLayout(const QString &name, const QString &variant);
   Q_INVOKABLE int removeLayoutAtIndex(const int &index);
   Q_INVOKABLE void applyChanges();
+  Q_INVOKABLE void resetForm();
 
   Q_INVOKABLE void swapItems(int from, int to);
   Q_INVOKABLE void moveItemToEnd(int index);
@@ -94,12 +99,14 @@ signals:
   void layoutsChanged();
   void instanceChanged();
   void selectedIdChanged();
+  void isDirtyChanged();
 
 private:
   int m_selectedId;
   QList<KeyboardLayoutItem *> m_layouts;
   myqmlplugin::HyprExtras *m_instance = nullptr;
   myqmlplugin::HyprInputConfig *m_inputConfig = nullptr;
+  myqmlplugin::HyprEvents *m_eventListener = nullptr;
 
   struct {
     bool idx;

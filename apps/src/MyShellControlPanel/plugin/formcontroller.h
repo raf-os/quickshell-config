@@ -61,9 +61,9 @@ signals:
 
 private:
   QList<FieldController *> m_fields;
-  bool m_validationError;
-  bool m_isDirty;
-  bool m_isSaving;
+  bool m_validationError = false;
+  bool m_isDirty = false;
+  bool m_isSaving = false;
   QList<myqmlplugin::configs::CSerializable *> m_models;
 
   void modelParseProperties();

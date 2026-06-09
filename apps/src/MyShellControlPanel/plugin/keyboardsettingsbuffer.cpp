@@ -1,5 +1,6 @@
 #include "keyboardsettingsbuffer.h"
 #include "hypr.h"
+#include "hyprevents.h"
 
 #include <optional>
 #include <qabstractitemmodel.h>
@@ -37,6 +38,10 @@ QList<KeyboardLayoutItem *> KeyboardSettingsBuffer::layouts() {
   return m_layouts;
 }
 
+bool KeyboardSettingsBuffer::isDirty() const {
+  return (m_dirtyFields.idx == true || m_dirtyFields.layouts == true);
+}
+
 int KeyboardSettingsBuffer::selectedId() const { return m_selectedId; }
 void KeyboardSettingsBuffer::setSelectedId(const int &value) {
   if (m_selectedId == value)
@@ -54,6 +59,7 @@ void KeyboardSettingsBuffer::setSelectedId(const int &value) {
 
   m_selectedId = actualValue;
   m_dirtyFields.idx = true;
+  emit isDirtyChanged();
   emit selectedIdChanged();
 }
 
@@ -70,17 +76,32 @@ void KeyboardSettingsBuffer::setInstance(myqmlplugin::HyprExtras *instance) {
   if (m_instance) {
     QObject::disconnect(this, nullptr, m_instance, nullptr);
   }
+  if (m_eventListener) {
+    QObject::disconnect(this, nullptr, m_eventListener, nullptr);
+  }
 
   m_instance = instance;
   m_inputConfig = m_instance->inputConfig();
+  m_eventListener = m_instance->eventListener();
   emit instanceChanged();
 
   refetchLayouts();
 
   QObject::connect(m_instance, &QObject::destroyed, this,
                    [this]() { deleteLater(); });
+  QObject::connect(m_instance, &myqmlplugin::HyprExtras::kbdLayoutIndexChanged,
+                   this, [this]() {
+                     m_selectedId = m_instance->kbdLayoutIndex();
+                     if (m_dirtyFields.idx == true) {
+                       m_dirtyFields.idx = false;
+                       emit isDirtyChanged();
+                     }
+                   });
   QObject::connect(m_inputConfig, &myqmlplugin::HyprInputConfig::layoutsChanged,
                    this, &KeyboardSettingsBuffer::refetchLayouts);
+  QObject::connect(m_eventListener,
+                   &myqmlplugin::HyprEvents::keyboardLayoutChanged, this,
+                   [this]() { refetchLayouts(); });
 }
 
 void KeyboardSettingsBuffer::refetchLayouts() {
@@ -90,6 +111,8 @@ void KeyboardSettingsBuffer::refetchLayouts() {
   auto listBuf = m_inputConfig->layoutList();
 
   m_dirtyFields = {.idx = false, .layouts = false};
+
+  emit isDirtyChanged();
 
   if (listBuf.count() == m_layouts.count()) {
     bool isEqual = false;
@@ -126,6 +149,8 @@ void KeyboardSettingsBuffer::refetchLayouts() {
   emit selectedIdChanged();
 }
 
+void KeyboardSettingsBuffer::resetForm() { refetchLayouts(); }
+
 int KeyboardSettingsBuffer::addLayout(const QString &name,
                                       const QString &variant) {
   QVariantMap response;
@@ -154,6 +179,9 @@ int KeyboardSettingsBuffer::addLayout(const QString &name,
   beginInsertRows({}, m_layouts.size(), m_layouts.size());
   m_layouts.append(newLayout);
   endInsertRows();
+
+  m_dirtyFields.layouts = true;
+  emit isDirtyChanged();
 
   return ReturnCode::Success;
 }
@@ -191,6 +219,8 @@ int KeyboardSettingsBuffer::removeLayout(const QString &name,
     emit selectedIdChanged();
   }
 
+  emit isDirtyChanged();
+
   return ReturnCode::Success;
 }
 
@@ -218,6 +248,8 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
     emit selectedIdChanged();
   }
 
+  emit isDirtyChanged();
+
   return ReturnCode::Success;
 }
 
@@ -232,6 +264,18 @@ void KeyboardSettingsBuffer::swapItems(int from, int to) {
   beginMoveRows({}, from, from, {}, to > from ? to + 1 : to);
   m_layouts.swapItemsAt(from, to);
   endMoveRows();
+
+  if (m_selectedId == from) {
+    setSelectedId(to);
+  } else if (m_selectedId == to) {
+    setSelectedId(from);
+  }
+
+  m_dirtyFields.idx = true;
+  m_dirtyFields.layouts = true;
+
+  emit isDirtyChanged();
+
   emit layoutsChanged();
 }
 
@@ -245,7 +289,7 @@ void KeyboardSettingsBuffer::moveItemToEnd(int index) {
 void KeyboardSettingsBuffer::applyChanges() {
   if (m_instance == nullptr)
     return;
-  if (!m_dirtyFields.idx || !m_dirtyFields.layouts)
+  if (!m_dirtyFields.idx && !m_dirtyFields.layouts)
     return;
 
   std::optional<QList<std::pair<QString, QString>>> optLayouts;

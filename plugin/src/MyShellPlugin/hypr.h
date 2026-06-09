@@ -77,14 +77,12 @@ public:
 
   [[nodiscard]] QQmlListProperty<HyprKeyboardLayout> layouts();
   void setLayouts(const QStringList &layouts, const QStringList &variants);
-  void setLayouts(const QList<std::pair<QString, QString>> &layouts);
+  bool setLayouts(const QList<std::pair<QString, QString>> &layouts);
 
   [[nodiscard]] QList<HyprKeyboardLayout *> layoutList() const;
 
-  [[nodiscard]] QByteArray *tryFetchWriteBuffer();
-
   void attachKeyboardHandler(KeyboardLayoutHandler *obj);
-  bool compileCommandFileString();
+  std::optional<QByteArray> compileCommandFileString();
 
 signals:
   void kbModelChanged();
@@ -92,14 +90,10 @@ signals:
   void kbRulesChanged();
   void layoutsChanged();
 
-  void fileBufferReadyToWrite();
-
 private:
-  QString m_kbModel;
-  QString m_kbOptions;
-  QString m_kbRules;
-  bool m_bufferReadyFlag = true;
-  QByteArray m_confWriteBuffer;
+  QString m_kbModel = "";
+  QString m_kbOptions = "";
+  QString m_kbRules = "";
   mutable QList<HyprKeyboardLayout *> m_layouts;
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 };
@@ -193,7 +187,7 @@ private:
   KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();
-  void saveInputConfig();
+  void saveInputConfig(const QByteArray &buffer);
   void setIsSaving(bool val);
   void saveDataToCache();
   void queryHyprInputConfigs();

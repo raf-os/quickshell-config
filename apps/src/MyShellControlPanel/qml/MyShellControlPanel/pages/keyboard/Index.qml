@@ -13,7 +13,7 @@ PageStackItem {
     title: "Keyboard"
 
     readonly property color fgCol: Colors.colors.base
-    property bool hasChanges: false
+    property bool hasChanges: settingsBuffer.isDirty
 
     KeyboardSettingsBuffer {
         id: settingsBuffer
@@ -74,6 +74,10 @@ PageStackItem {
                 autoWidth: true
                 Layout.fillWidth: true
                 disabled: !root.hasChanges
+
+                onClicked: {
+                    settingsBuffer.applyChanges();
+                }
             }
 
             SButton {
@@ -82,6 +86,10 @@ PageStackItem {
                 Layout.fillWidth: true
                 type: SButton.ButtonType.Destructive
                 disabled: !root.hasChanges
+
+                onClicked: {
+                    settingsBuffer.resetForm();
+                }
             }
         }
     }
