@@ -7,22 +7,18 @@ import qs.services
 import Quickshell
 import QtQuick
 
-ListView {
+StateWrapper {
     id: root
 
-    required property PersistentProperties openPanels
-    required property TextInput textInput
     required property ShellScreen screen
 
     property bool isSelectionActive: false
 
-    signal sendStateMessage(message: string)
-
     model: UserCommandService.entries
 
     clip: true
-    reuseItems: true
-    keyNavigationWraps: true
+    listView.reuseItems: true
+    listView.keyNavigationWraps: true
 
     Component.onCompleted: {
         UserCommandService.attemptFirstLoad();
@@ -64,17 +60,15 @@ ListView {
         isSelectionActive = false;
     }
 
-    delegateModelAccess: DelegateModel.ReadOnly
-
     function onKeyPressReceived(key: int): void {
         const isDownMovement = (key === Qt.Key_Tab || key === Qt.Key_Down);
         const isUpMovement = (key === Qt.Key_Backtab || key === Qt.Key_Up);
 
         if (isSelectionActive) {
             if (isDownMovement)
-                root.incrementCurrentIndex();
+                root.listView.incrementCurrentIndex();
             else if (isUpMovement)
-                root.decrementCurrentIndex();
+                root.listView.decrementCurrentIndex();
         } else {
             if (root.count === 0)
                 return;
@@ -107,7 +101,7 @@ ListView {
             NAnim {}
         }
     }
-    highlightFollowsCurrentItem: false
+    listView.highlightFollowsCurrentItem: false
 
     delegate: CommandItem {
         openPanels: root.openPanels

@@ -1,19 +1,25 @@
-import qs.config
+import qs.components
+import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
-import QtQuick.Layouts
+import QtQuick.Controls
 
-Loader {
+SListView {
     id: root
 
-    required property string myState
-    required property string currentState
+    required property TextInput textInput
+    required property PersistentProperties openPanels
 
-    property real padding: Config.appearance.padding.lg
+    implicitWidth: StackView.view ? StackView.view.width : 0
+    implicitHeight: StackView.view ? StackView.view.height : 0
+    spacing: Config.appearance.spacing.sm
 
-    active: myState === currentState
-    visible: active
+    signal sendStateMessage(message: string)
 
-    anchors.fill: parent
-    anchors.margins: padding
+    function moveForwards() {
+        listView.incrementCurrentIndex();
+    }
+    function moveBackwards() {
+        listView.decrementCurrentIndex();
+    }
 }

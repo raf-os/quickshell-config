@@ -45,8 +45,8 @@ class KeyboardSettingsBuffer : public QAbstractListModel {
   Q_OBJECT
   QML_ELEMENT
 
-  Q_PROPERTY(
-      QList<KeyboardLayoutItem *> layouts READ layouts NOTIFY layoutsChanged)
+  Q_PROPERTY(QQmlListProperty<mscp::KeyboardLayoutItem> layouts READ layouts
+                 NOTIFY layoutsChanged)
   Q_PROPERTY(myqmlplugin::HyprExtras *instance READ instance WRITE setInstance
                  NOTIFY instanceChanged)
   Q_PROPERTY(int selectedId READ selectedId WRITE setSelectedId NOTIFY
@@ -74,7 +74,7 @@ public:
     return {{Roles::ModelDataRole, "modelData"}};
   }
 
-  [[nodiscard]] QList<KeyboardLayoutItem *> layouts();
+  [[nodiscard]] QQmlListProperty<KeyboardLayoutItem> layouts();
 
   [[nodiscard]] bool isDirty() const;
 

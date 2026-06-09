@@ -1,20 +1,15 @@
 import qs.components
 import qs.services
-import qs.utils
 import QtQuick
 import Quickshell
 
-ListView {
+StateWrapper {
     id: root
-
-    required property TextInput textInput
 
     readonly property bool hasQuery: debouncedInput !== ""
 
     property string debouncedInput
     property list<QtObject> filteredList
-
-    signal sendStateMessage(message: string)
 
     model: ScriptModel {
         values: {
@@ -22,10 +17,7 @@ ListView {
         }
     }
 
-    clip: true
-    reuseItems: true
-
-    delegateModelAccess: DelegateModel.ReadOnly
+    listView.reuseItems: true
 
     Component.onCompleted: {
         debouncedInput = textInput.text.trim();
@@ -39,7 +31,7 @@ ListView {
         }
 
         function onAccepted() {
-            const item = root.currentItem;
+            const item = root.listView.currentItem;
             if (!item)
                 return;
 
@@ -49,9 +41,9 @@ ListView {
 
     function onKeyPressReceived(key: int): void {
         if (key === Qt.Key_Up || key === Qt.Key_Backtab) {
-            root.decrementCurrentIndex();
+            root.listView.decrementCurrentIndex();
         } else if (key === Qt.Key_Down || key === Qt.Key_Tab) {
-            root.incrementCurrentIndex();
+            root.listView.incrementCurrentIndex();
         }
     }
 
@@ -67,56 +59,6 @@ ListView {
             root.debouncedInput = newFilter;
             root.filteredList = AppService.query(newFilter);
             root.currentIndex = 0;
-        }
-    }
-
-    add: Transition {
-        enabled: !GlobalStateManager.isGameMode
-        ParallelAnimation {
-            NAnim {
-                property: "x"
-                from: -root.width
-                to: 0
-                duration: 300
-            }
-            NAnim {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 150
-            }
-        }
-    }
-    displaced: Transition {
-        enabled: !GlobalStateManager.isGameMode
-        ParallelAnimation {
-            NAnim {
-                property: "x"
-                from: -root.width
-                to: 0
-                duration: 300
-            }
-            NAnim {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 150
-            }
-        }
-    }
-    remove: Transition {
-        enabled: !GlobalStateManager.isGameMode
-        ParallelAnimation {
-            NAnim {
-                property: "opacity"
-                to: 0
-                duration: 150
-            }
-            NAnim {
-                property: "x"
-                to: root.width
-                duration: 300
-            }
         }
     }
 }

@@ -23,6 +23,7 @@ Item {
 
     visible: width > 0
     clip: true
+    focus: true
 
     implicitHeight: content.implicitHeight
     implicitWidth: 0
@@ -60,7 +61,7 @@ Item {
         ScriptAction {
             script: {
                 root.implicitWidth = Qt.binding(() => content.implicitWidth);
-                content?.item?.forceFocusInput();
+                // content?.item?.forceFocusInput();
             }
         }
     }

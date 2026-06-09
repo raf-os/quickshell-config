@@ -25,7 +25,7 @@ RowLayout {
         text: "Save"
         autoWidth: true
         Layout.fillWidth: true
-        disabled: !root.controller.isDirty
+        disabled: !root.controller.isDirty ?? true
 
         onActivated: {
             if (disabled)
@@ -40,7 +40,7 @@ RowLayout {
         autoWidth: true
         Layout.fillWidth: true
         type: SButton.ButtonType.Destructive
-        disabled: !root.controller.isDirty
+        disabled: !root.controller.isDirty ?? true
 
         onActivated: {
             if (disabled)

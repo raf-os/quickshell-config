@@ -53,6 +53,12 @@ Item {
                 root.settingsBuffer.layouts;
                 return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout && layout.variant === "");
             }
+            readonly property bool isPartiallyInstalled: {
+                if (!modelData)
+                    return false;
+                root.settingsBuffer.layouts;
+                return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout);
+            }
             readonly property bool hasVariants: modelData && modelData.variants && modelData.variants.length > 0
             readonly property bool isExpanded: root.expandedId === index
 
@@ -66,12 +72,15 @@ Item {
             }
 
             Rectangle {
-                opacity: kbd.isInstalled || kbd.isExpanded ? 1 : 0
+                opacity: kbd.isInstalled || kbd.isPartiallyInstalled || kbd.isExpanded ? 1 : 0
                 visible: opacity > 0
 
                 anchors.fill: parent
                 color: kbd.isInstalled ? Colors.colors.primary : Colors.colors.base2
                 radius: Config.appearance.rounding.sm
+
+                border.width: 1
+                border.color: (!kbd.isInstalled && kbd.isPartiallyInstalled) ? Colors.colors.primary : "transparent"
 
                 Behavior on opacity {
                     NAnim {
@@ -270,6 +279,7 @@ Item {
 
                                         font.family: Config.appearance.fontFamily.sans
                                         font.pointSize: Config.appearance.fontSize.xs
+                                        font.weight: variantItem.isInstalled ? 700 : 500
 
                                         verticalAlignment: Text.AlignVCenter
 

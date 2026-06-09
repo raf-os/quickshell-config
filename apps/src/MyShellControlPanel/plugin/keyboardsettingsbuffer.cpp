@@ -34,8 +34,8 @@ QVariant KeyboardSettingsBuffer::data(const QModelIndex &index,
   }
 }
 
-QList<KeyboardLayoutItem *> KeyboardSettingsBuffer::layouts() {
-  return m_layouts;
+QQmlListProperty<KeyboardLayoutItem> KeyboardSettingsBuffer::layouts() {
+  return QQmlListProperty<KeyboardLayoutItem>(this, &m_layouts);
 }
 
 bool KeyboardSettingsBuffer::isDirty() const {
@@ -179,6 +179,8 @@ int KeyboardSettingsBuffer::addLayout(const QString &name,
   beginInsertRows({}, m_layouts.size(), m_layouts.size());
   m_layouts.append(newLayout);
   endInsertRows();
+
+  emit layoutsChanged();
 
   m_dirtyFields.layouts = true;
   emit isDirtyChanged();

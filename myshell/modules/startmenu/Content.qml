@@ -4,13 +4,20 @@ import "items"
 import "states"
 import qs.components
 import qs.services
-import qs.config
+import MyShellPlugin
+import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 
 ColumnLayout {
     id: root
+
+    enum SState {
+        AppList = 0,
+        CommandList = 1
+    }
 
     required property PersistentProperties openPanels
     required property ShellScreen screen
@@ -21,12 +28,12 @@ ColumnLayout {
 
     property string errorMessage: ""
     // property string mode: openPanels.desiredStartMenuTab === "" ? "apps" : openPanels.desiredStartMenuTab ?? "apps"
-    property string mode: "apps"
+    property int mode: Content.SState.AppList
     // Modes: apps | command
 
     property list<QtObject> filteredList
 
-    focus: isActive
+    focus: true
 
     spacing: -padding
 
@@ -34,14 +41,10 @@ ColumnLayout {
         openPanels.startmenu = false;
     }
 
-    Keys.onUpPressed: stateWrapper.receiveKeyPress(Qt.Key_Up)
-    Keys.onDownPressed: stateWrapper.receiveKeyPress(Qt.Key_Down)
-    Keys.onTabPressed: stateWrapper.receiveKeyPress(Qt.Key_Tab)
-    Keys.onBacktabPressed: stateWrapper.receiveKeyPress(Qt.Key_Backtab)
-
-    function forceFocusInput() {
-        cmdinputtxt?.forceActiveFocus();
-    }
+    Keys.onUpPressed: startMenuStack.moveBackwards()
+    Keys.onDownPressed: startMenuStack.moveForwards()
+    Keys.onTabPressed: startMenuStack.moveForwards()
+    Keys.onBacktabPressed: startMenuStack.moveBackwards()
 
     StateTitle {
         currentState: root.mode
@@ -49,27 +52,18 @@ ColumnLayout {
     }
 
     Component.onCompleted: {
+        cmdinputtxt.forceActiveFocus();
         checkDesiredTab();
     }
 
     function checkDesiredTab() {
         const desiredTab = root.openPanels.desiredStartMenuTab;
-        // console.log(desiredTab);
         if (desiredTab === "command") {
-            root.mode = "command";
+            root.mode = Content.SState.CommandList;
             cmdinputtxt.text = Config.launcher.commandPrefix;
         }
         root.openPanels.desiredStartMenuTab = "";
     }
-
-    // Connections {
-    //     target: root.openPanels
-    //
-    //     function onStartmenuChanged(): void {
-    //         if (!root.openPanels.startmenu)
-    //             cmdinputtxt.text = "";
-    //     }
-    // }
 
     function showStateMessage(message: string): void {
         root.errorMessage = message;
@@ -94,10 +88,14 @@ ColumnLayout {
 
         Rectangle {
             id: cmdinputbg
+            readonly property bool isActive: cmdinputtxt.activeFocus
+
             anchors.fill: parent
             radius: Config.appearance.rounding.sm
 
             color: ColorService.current.base0
+            border.width: isActive ? 2 : 0
+            border.color: isActive ? Colors.colors.primary : "transparent"
         }
 
         Item {
@@ -120,9 +118,9 @@ ColumnLayout {
 
                 text: {
                     switch (root.mode) {
-                    case "apps":
+                    case Content.SState.AppList:
                         return "󰍉";
-                    case "command":
+                    case Content.SState.CommandList:
                         return "";
                     default:
                         return "";
@@ -135,10 +133,9 @@ ColumnLayout {
             id: cmdinputtxt
 
             focus: root.isActive
-            // activeFocusOnTab: true
 
             font.pointSize: Config.appearance.fontSize.md
-            font.family: Config.appearance.fontFamily.mono
+            font.family: Config.appearance.fontFamily.sans
 
             anchors.left: modeIconWrapper.right
             anchors.right: parent.right
@@ -152,9 +149,9 @@ ColumnLayout {
                     return;
                 }
                 if (text.startsWith(Config.launcher.commandPrefix)) {
-                    root.mode = "command";
+                    root.mode = Content.SState.CommandList;
                 } else {
-                    root.mode = "apps";
+                    root.mode = Content.SState.AppList;
                     root.dismissStateMessage();
                 }
             }
@@ -289,62 +286,106 @@ ColumnLayout {
         }
     }
 
-    Item {
-        id: stateWrapper
+    StackView {
+        id: startMenuStack
 
-        property var activeChildItem: children.find(child => child.active === true)
+        property bool isCompleted
 
         implicitWidth: Config.launcher.width
 
         Layout.fillHeight: true
+        Layout.margins: root.padding
 
-        function receiveKeyPress(key: int): void {
-            const activeList = activeChildItem.item;
-            if (!activeList)
-                return;
-            activeList?.onKeyPressReceived?.(key);
+        Component.onCompleted: {
+            navigateComponent();
+            isCompleted = true;
         }
 
-        StateWrapper {
-            id: appStateWrap
-            myState: "apps"
-            currentState: root.mode
+        Connections {
+            target: root
 
-            sourceComponent: AppList {
-                id: lview
+            function onModeChanged() {
+                startMenuStack.navigateComponent();
+            }
+        }
 
-                textInput: cmdinputtxt
+        function navigateComponent() {
+            const newComp = mapStateToComponent(root.mode);
+            startMenuStack.replaceCurrentItem(newComp);
+        }
 
-                anchors.fill: parent
-                spacing: root.padding
+        function mapStateToComponent(state: int): Component {
+            switch (state) {
+            case Content.SState.AppList:
+                return appList;
+            case Content.SState.CommandList:
+                return commandList;
+            default:
+                return appList;
+            }
+        }
 
-                onSendStateMessage: message => root.showStateMessage(message)
+        function moveForwards() {
+            const item = currentItem as StateWrapper;
+            item.moveForwards();
+        }
+        function moveBackwards() {
+            const item = currentItem as StateWrapper;
+            item.moveBackwards();
+        }
 
-                delegate: AppItem {
-                    openPanels: root.openPanels
+        replaceEnter: Transition {
+            enabled: startMenuStack.isCompleted
+
+            ParallelAnimation {
+                NAnim {
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: 200
                 }
             }
         }
+        replaceExit: Transition {
+            enabled: startMenuStack.isCompleted
 
-        StateWrapper {
-            id: cmdStateWrap
-            myState: "command"
-            currentState: root.mode
-
-            sourceComponent: CommandList {
-                id: cview
-
-                screen: root.screen
-
-                anchors.fill: parent
-
-                spacing: root.padding
-
-                openPanels: root.openPanels
-                textInput: cmdinputtxt
-
-                onSendStateMessage: message => root.showStateMessage(message)
+            ParallelAnimation {
+                NAnim {
+                    property: "opacity"
+                    from: 1
+                    to: 0
+                    duration: 200
+                }
             }
+        }
+    }
+
+    Component {
+        id: appList
+
+        AppList {
+            id: lview
+
+            openPanels: root.openPanels
+            textInput: cmdinputtxt
+            onSendStateMessage: message => root.showStateMessage(message)
+
+            delegate: AppItem {
+                openPanels: root.openPanels
+            }
+        }
+    }
+
+    Component {
+        id: commandList
+
+        CommandList {
+            id: cview
+
+            screen: root.screen
+            openPanels: root.openPanels
+            textInput: cmdinputtxt
+            onSendStateMessage: message => root.showStateMessage(message)
         }
     }
 }
