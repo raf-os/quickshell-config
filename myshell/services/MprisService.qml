@@ -10,13 +10,16 @@ Singleton {
 
     readonly property list<MprisPlayer> playerList: Mpris.players.values
     readonly property MprisPlayer currentActive: {
-        props.activeOverride;
         playerList;
+        props.activeOverride;
 
         if (!playerList)
             return null;
 
-        return playerList.find(p => Config.media.defaultPlayer) ?? playerList[0] ?? null;
+        if (props.activeOverride)
+            return props.activeOverride;
+
+        return playerList.find(p => p.identity === Config.media.defaultPlayer) ?? playerList[0] ?? null;
     }
     property alias activeOverride: props.activeOverride
 

@@ -16,8 +16,8 @@ Loader {
     required property Item panels
 
     readonly property bool isMediaActive: MprisService.currentActive !== null
-    readonly property DesktopEntry mediaDesktopEntry: isMediaActive ? DesktopEntries.heuristicLookup(MprisService.currentActive?.desktopEntry) : null
-    readonly property string mediaIcon: mediaDesktopEntry?.icon ?? null
+    readonly property string currentEntry: MprisService.currentActive?.desktopEntry ?? null
+
     readonly property int padding: Config.appearance.padding.sm
     readonly property bool shouldBeActive: MprisService.playerList.length > 0
 
@@ -30,6 +30,8 @@ Loader {
     sourceComponent: Item {
         id: content
 
+        property DesktopEntry mediaDesktopEntry: null
+        property string entryIcon: ""
         readonly property int animDuration: 400
         readonly property int initialWidth: Config.bar.sizes.mediaInfoWidth
 
@@ -44,6 +46,41 @@ Loader {
         visible: width > 0
 
         clip: true
+
+        Component.onCompleted: {
+            content.fetchDesktopEntry();
+        }
+
+        Timer {
+            id: delayedRefetch
+            // "desktopEntry" on MprisPlayer does not seem to have a notify signal
+            // or at the very least, it's not possible to bind to it correctly,
+            // so we skip a frame and then access the getter function
+            interval: 1
+            running: true
+            onTriggered: {
+                if (root.currentEntry === "") {
+                    content.mediaDesktopEntry = null;
+                    return;
+                }
+                const entry = DesktopEntries.heuristicLookup(MprisService.currentActive.desktopEntry);
+                content.mediaDesktopEntry = entry;
+                if (entry)
+                    content.entryIcon = entry.icon;
+            }
+        }
+
+        Connections {
+            target: root
+
+            function onCurrentEntryChanged() {
+                content.fetchDesktopEntry();
+            }
+        }
+
+        function fetchDesktopEntry() {
+            delayedRefetch.restart();
+        }
 
         states: State {
             name: "visible"
@@ -99,22 +136,6 @@ Loader {
             anchors.centerIn: parent
         }
 
-        // MouseArea {
-        //     id: rootInteractionArea
-        //
-        //     anchors.fill: parent
-        //
-        //     cursorShape: Qt.PointingHandCursor
-        //
-        //     enabled: root.shouldBeActive
-        //     hoverEnabled: true
-        //
-        //     onClicked: {
-        //         root.panels.openExclusivePanel("mprisViewer");
-        //         // root.openPanels.mprisViewer = !root.openPanels.mprisViewer;
-        //     }
-        // }
-
         StyledRect {
             id: bgRect
 
@@ -124,54 +145,28 @@ Loader {
             color: Colors.colors.base0
         }
 
-        Loader {
+        Item {
             id: iconLoader
 
-            property string iconBuffer: ""
-
-            active: iconBuffer !== ""
+            property string iconBuffer: content.entryIcon
 
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: root.padding
 
-            // Component.onCompleted: {
-            //     updateIconBuffer();
-            // }
+            implicitWidth: iconImage.implicitWidth
 
             Binding {
-                restoreMode: Binding.RestoreBinding
-                target: iconLoader
-                property: "iconBuffer"
-                value: root.mediaIcon
+                restoreMode: Binding.RestoreNone
                 when: root.shouldBeActive
+
+                iconLoader.iconBuffer: content.entryIcon
             }
 
-            // Connections {
-            //     target: root
-            //
-            //     function onMediaIconChanged() {
-            //         iconLoader.updateIconBuffer();
-            //     }
-            //
-            //     function onIsMediaActiveChanged() {
-            //         iconLoader.updateIconBuffer();
-            //     }
-            //
-            //     function onShouldBeActiveChanged() {
-            //         iconLoader.updateIconBuffer();
-            //     }
-            // }
-            //
-            // function updateIconBuffer() {
-            //     if (root.shouldBeActive == false)
-            //         return;
-            //
-            //     iconLoader.iconBuffer = Quickshell.iconPath(root.mediaIcon, true);
-            // }
-
-            sourceComponent: IconImage {
+            IconImage {
+                id: iconImage
                 anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
 
                 source: Quickshell.iconPath(iconLoader.iconBuffer, true)
                 implicitSize: Config.bar.sizes.innerHeight * 0.75
