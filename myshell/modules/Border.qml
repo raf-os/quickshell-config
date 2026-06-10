@@ -1,10 +1,10 @@
 pragma ComponentBehavior: Bound
 
-import qs.config
 import qs.components
 import Quickshell
 import Quickshell.Wayland
 import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Effects
 

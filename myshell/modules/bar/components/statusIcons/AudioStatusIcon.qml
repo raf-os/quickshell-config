@@ -1,8 +1,8 @@
-import qs.config
 import qs.modules.bar
 import qs.components
 import qs.utils
 import qs.services
+import MyShellPlugin.Configs
 import QtQuick
 
 Item {

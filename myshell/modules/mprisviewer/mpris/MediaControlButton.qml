@@ -1,5 +1,5 @@
 import qs.components
-import qs.config
+import MyShellPlugin.Configs
 import qs.services
 import QtQuick
 

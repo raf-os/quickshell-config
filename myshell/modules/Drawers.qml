@@ -1,11 +1,11 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
-import qs.config
 import qs.modules.bar
 import qs.modules.osd as OSDWrapper
 import qs.services
 import qs.utils
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland

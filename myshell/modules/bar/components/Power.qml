@@ -1,7 +1,8 @@
 import qs.components
 import qs.modules.bar
 import qs.services
-import qs.config
+import MyShellPlugin
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
@@ -56,7 +57,7 @@ Item {
         radius: implicitWidth
         opacity: root.isActive ? 0.25 : 0
         scale: root.isActive ? 1 : 0.5
-        color: ColorService.current.destructive
+        color: Colors.colors.destructive
 
         Behavior on opacity {
             NAnim {
@@ -78,7 +79,7 @@ Item {
         anchors.fill: parent
 
         text: "power_settings_new"
-        color: root.isActive ? ColorService.current.destructiveHover : ColorService.current.destructive
+        color: root.isActive ? Colors.colors.destructiveHover : Colors.colors.destructive
         font.bold: true
         font.pointSize: Config.appearance.fontSize.md
 

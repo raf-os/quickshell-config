@@ -1,6 +1,6 @@
-import qs.config
 import qs.services
 import qs.utils
+import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
 

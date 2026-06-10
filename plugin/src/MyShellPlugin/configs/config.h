@@ -6,10 +6,12 @@
 #include <qjsonobject.h>
 #include <qjsonvalue.h>
 #include <qlist.h>
+#include <qlogging.h>
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
+#include <qqmlparserstatus.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>
 
@@ -42,11 +44,17 @@ public:
     return s_instance;
   }
 
-  static Config *create(QQmlEngine *, QJSEngine *) { return instance(); }
+  static Config *create(QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
+    auto inst = instance();
+    if (qmlEngine)
+      qmlEngine->setObjectOwnership(inst, QJSEngine::CppOwnership);
+    return inst;
+  }
 
   [[nodiscard]] bool isSaving() const;
 
   Q_INVOKABLE void saveConfigs();
+  Q_INVOKABLE void earlyLoad() {};
   void commitSave() override;
 
 signals:
@@ -56,6 +64,7 @@ signals:
 private:
   explicit Config(QObject *parent = nullptr);
 
+  QQmlEngine *m_engine = nullptr;
   const QString m_fileSuffix = "/configs.json";
   QHash<QString, QObject *> m_propertyTable;
   QTimer *m_saveTimer = nullptr;

@@ -1,10 +1,9 @@
 import qs.modules.bar
-import qs.config
 import qs.modules.mprisviewer as MprisViewer
 import qs.modules.session as Session
 import qs.modules.bar.popouts as BPP
 import qs.modules.startmenu as StartMenu
-import Quickshell
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Shapes
 

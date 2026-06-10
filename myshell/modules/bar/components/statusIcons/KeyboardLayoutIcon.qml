@@ -1,10 +1,10 @@
 pragma ComponentBehavior: Bound
 
-import qs.config
 import qs.services
 import qs.components
 import qs.modules.bar
-import Quickshell
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 
 Item {
@@ -33,7 +33,7 @@ Item {
         implicitHeight: implicitWidth
 
         radius: Config.appearance.rounding.xs
-        color: ColorService.current.base3
+        color: Colors.colors.base3
 
         opacity: shouldBeActive ? 1 : 0
 

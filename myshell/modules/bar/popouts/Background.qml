@@ -1,6 +1,6 @@
 import qs.components
-import qs.services
-import qs.config
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Shapes
 
@@ -14,7 +14,7 @@ ShapePath {
     readonly property real roundingY: flatten ? Math.round(wrapper.height / 2) : rounding
 
     strokeWidth: -1
-    fillColor: ColorService.current.base0
+    fillColor: Colors.colors.base0
 
     PathLine {
         relativeX: root.wrapper.width + root.rounding * 2

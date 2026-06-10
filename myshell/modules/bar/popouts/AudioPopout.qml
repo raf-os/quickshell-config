@@ -3,8 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.components
 import qs.components.controls
 import qs.services
-import qs.config
-import Quickshell.Services.Pipewire
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls

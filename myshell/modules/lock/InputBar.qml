@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import qs.services
-import qs.config
 import qs.components
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Services.Pam
 import QtQuick

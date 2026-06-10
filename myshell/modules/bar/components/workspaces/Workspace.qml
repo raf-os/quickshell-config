@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
-import qs.config
 import qs.components
 import qs.services
 import qs.utils
+import MyShellPlugin
+import MyShellPlugin.Configs
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
@@ -51,7 +52,7 @@ Item {
             property real shadowOpacity: 0
             anchors.fill: parent
             radius: root.iconActiveSize / 2
-            color: root.isUrgent ? ColorService.current.destructive : ColorService.current.primary
+            color: root.isUrgent ? Colors.colors.destructive : Colors.colors.primary
             blur: 12
             spread: 6
             opacity: shadowOpacity
@@ -128,7 +129,7 @@ Item {
         implicitWidth: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
         implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
 
-        color: root.isUrgent ? ColorService.current.destructiveHover : root.isActive ? ColorService.current.primary5 : root.isOccupied ? ColorService.current.primary : ColorService.current.base3
+        color: root.isUrgent ? Colors.colors.destructiveHover : root.isActive ? Colors.colors.primary5 : root.isOccupied ? Colors.colors.primary : Colors.colors.base3
         radius: 1000
 
         Behavior on color {

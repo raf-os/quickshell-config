@@ -1,12 +1,12 @@
-import qs.config
-import qs.services
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 
 Text {
     property real fill
     property int grade: 0
 
-    color: ColorService.current.baseContent
+    color: Colors.colors.baseContent
     font.family: Config.appearance.fontFamily.material
     font.pointSize: Config.appearance.fontSize.lg
     font.variableAxes: ({

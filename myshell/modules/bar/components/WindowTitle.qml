@@ -1,8 +1,7 @@
 import qs.services
-import qs.config
-import qs.utils
 import qs.components
-import Quickshell
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 
@@ -21,7 +20,7 @@ Item {
 
         implicitHeight: Config.bar.sizes.innerHeight
         // implicitWidth: parent.width
-        color: ColorService.current.base0
+        color: Colors.colors.base0
         radius: Config.appearance.rounding.sm
     }
 

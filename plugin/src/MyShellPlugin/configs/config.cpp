@@ -16,6 +16,7 @@
 #include <qmetaobject.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
+#include <qqmlengine.h>
 #include <qstringview.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>

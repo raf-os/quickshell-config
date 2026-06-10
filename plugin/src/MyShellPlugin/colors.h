@@ -103,7 +103,12 @@ public:
     return s_instance;
   }
 
-  static Colors *create(QQmlEngine *, QJSEngine *) { return instance(); }
+  static Colors *create(QQmlEngine *qmlEngine, QJSEngine *) {
+    auto inst = instance();
+    if (qmlEngine)
+      qmlEngine->setObjectOwnership(inst, QJSEngine::CppOwnership);
+    return instance();
+  }
 
   struct ColorObjPayload {
     configs::ColorConfigMetadata *metadata = Colors::instance()->metadata();
@@ -127,6 +132,7 @@ public:
   [[nodiscard]] bool isPreviewing() const;
   [[nodiscard]] QString previewThemeName() const;
 
+  Q_INVOKABLE void earlyLoad() {};
   Q_INVOKABLE void loadConfig();
   Q_INVOKABLE void saveConfig();
   Q_INVOKABLE void loadPreview(const QString &themeName,

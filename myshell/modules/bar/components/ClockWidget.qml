@@ -1,14 +1,15 @@
 pragma ComponentBehavior: Bound
 
-import qs.services
-import qs.config
 import qs.components
+import qs.services
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 
 RowLayout {
     id: root
-    property color color: ColorService.current.baseContent
+    property color color: Colors.colors.baseContent
     spacing: Config.appearance.spacing.md
     // Layout.alignment: Qt.AlignVCenter
     Layout.fillHeight: true

@@ -1,12 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import qs.utils
-import qs.components
-import qs.services
 import qs.modules.bar
-import qs.modules.bar.popouts
-import qs.config
-import Quickshell
+import MyShellPlugin.Configs
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import QtQuick

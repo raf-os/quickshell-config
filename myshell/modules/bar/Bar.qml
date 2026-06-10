@@ -1,11 +1,11 @@
 pragma ComponentBehavior: Bound
 
-import qs.config
 import "components"
 import "components/workspaces"
 import "popouts"
 import Quickshell
 import Quickshell.Hyprland
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 

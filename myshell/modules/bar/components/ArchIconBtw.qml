@@ -1,9 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import qs.services
-import qs.config
 import qs.components
 import qs.utils
+import MyShellPlugin
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
@@ -63,9 +63,9 @@ Item {
         layer.effect: MultiEffect {
             brightness: osImage.brightness
             colorization: 1
-            colorizationColor: ColorService.current.baseContent
+            colorizationColor: Colors.colors.baseContent
             shadowEnabled: !GlobalStateManager.isGameMode
-            shadowColor: ColorService.current.baseContent
+            shadowColor: Colors.colors.baseContent
             shadowOpacity: root.isMenuActive ? 1 : 0
             shadowScale: 1
             blurMax: 32

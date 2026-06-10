@@ -1,13 +1,12 @@
 pragma ComponentBehavior: Bound
 
-import qs.config
 import qs.modules.session as Session
 import qs.modules.mprisviewer as MprisViewer
 import qs.modules.bar.popouts as BarPopouts
 import qs.modules.startmenu as StartMenuPopout
 import qs.modules.commandcapture
+import MyShellPlugin.Configs
 import Quickshell
-import Quickshell.Hyprland
 import QtQuick
 
 Item {

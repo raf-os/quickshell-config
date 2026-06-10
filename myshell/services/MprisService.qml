@@ -1,6 +1,6 @@
 pragma Singleton
 
-import qs.config
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Services.Mpris
 import QtQuick
@@ -9,7 +9,15 @@ Singleton {
     id: root
 
     readonly property list<MprisPlayer> playerList: Mpris.players.values
-    readonly property MprisPlayer currentActive: props.activeOverride ?? playerList.find(p => resolvePlayerAlias(p) === Config.media.defaultPlayer) ?? playerList[0] ?? null
+    readonly property MprisPlayer currentActive: {
+        props.activeOverride;
+        playerList;
+
+        if (!playerList)
+            return null;
+
+        return playerList.find(p => Config.media.defaultPlayer) ?? playerList[0] ?? null;
+    }
     property alias activeOverride: props.activeOverride
 
     property bool triggerPositionUpdateFlag

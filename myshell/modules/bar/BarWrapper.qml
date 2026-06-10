@@ -1,8 +1,7 @@
 pragma ComponentBehavior: Bound
 
-import qs.components
 import "popouts"
-import qs.config
+import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
 

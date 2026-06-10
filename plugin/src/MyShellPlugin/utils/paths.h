@@ -28,7 +28,12 @@ public:
     return s_instance;
   }
 
-  static Paths *create(QQmlEngine *, QJSEngine *) { return instance(); }
+  static Paths *create(QQmlEngine *qmlEngine, QJSEngine *) {
+    auto inst = instance();
+    if (qmlEngine)
+      qmlEngine->setObjectOwnership(inst, QJSEngine::CppOwnership);
+    return inst;
+  }
 
   [[nodiscard]] QString home() const;
   [[nodiscard]] QString config() const;

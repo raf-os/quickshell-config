@@ -1,6 +1,5 @@
-import qs.services
-import qs.config
 import qs.components
+import MyShellPlugin.Configs
 import QtQuick
 
 MouseArea {

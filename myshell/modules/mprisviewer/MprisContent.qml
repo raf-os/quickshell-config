@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import "mpris"
 import qs.services
-import qs.config
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Services.Mpris
 import QtQuick

@@ -1,10 +1,9 @@
 import qs.components
-import qs.services
-import qs.config
+import MyShellPlugin
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
 
 MouseArea {
     id: root
@@ -22,7 +21,7 @@ MouseArea {
     StyledText {
         id: icon
         text: root.activeNotifications > 0 ? "󰂞" : "󰂜"
-        color: root.activeNotifications > 0 ? ColorService.current.baseContent : ColorService.current.baseContentMuted
+        color: root.activeNotifications > 0 ? Colors.colors.baseContent : Colors.colors.baseContentMuted
         font.pixelSize: Config.appearance.fontSize.xl
         font.family: Config.appearance.fontFamily.monoIcon
         anchors.fill: parent

@@ -1,12 +1,12 @@
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
-import qs.services
-import qs.config
 
 Text {
-  id: root
+    id: root
 
-  color: ColorService.current.baseContent
+    color: Colors.colors.baseContent
 
-  font.family: Config.appearance.fontFamily.sans
-  // font.pointSize: Config.appearance.fontSize.sm
+    font.family: Config.appearance.fontFamily.sans
+    // font.pointSize: Config.appearance.fontSize.sm
 }

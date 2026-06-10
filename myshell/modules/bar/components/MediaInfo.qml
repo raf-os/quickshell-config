@@ -1,10 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import qs.services
-import qs.modules.bar
-import qs.config
 import qs.components
-import qs.utils
+import MyShellPlugin
+import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Widgets
 import QtQuick
@@ -122,7 +121,7 @@ Loader {
             anchors.fill: parent
             radius: Config.appearance.rounding.sm
 
-            color: ColorService.current.base0
+            color: Colors.colors.base0
         }
 
         Loader {
@@ -185,8 +184,9 @@ Loader {
 
             property int dynamicDuration: 5000
 
+            readonly property int spacing: Config.appearance.spacing.xl
             readonly property bool shouldAnimate: textReference.width >= width
-            readonly property int scrollRange: Math.max(textReference.width, scrollingWrapper.width) + Config.appearance.spacing.xl
+            readonly property int scrollRange: Math.max(textReference.width, scrollingWrapper.width) + spacing
 
             anchors.top: parent.top
             anchors.right: parent.right

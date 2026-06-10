@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import "../items"
-import qs.config
 import qs.components
 import qs.services
+import MyShellPlugin
+import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
 
@@ -85,7 +86,7 @@ StateWrapper {
         implicitHeight: root.currentItem?.height ?? 0
 
         y: root.currentItem?.y ?? 0
-        color: ColorService.current.base2
+        color: Colors.colors.base2
         radius: Config.appearance.rounding.sm
 
         opacity: root.isSelectionActive ? 1 : 0

@@ -1,4 +1,4 @@
-import qs.config
+import MyShellPlugin.Configs
 import QtQuick
 
 ColorAnimation {

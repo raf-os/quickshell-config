@@ -1,9 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
-import qs.config
-import qs.services
 import qs.utils
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 
 Item {
@@ -42,7 +42,7 @@ Item {
         implicitWidth: size
         implicitHeight: size
 
-        color: ColorService.current.primary
+        color: Colors.colors.primary
         radius: Config.appearance.rounding.xs
 
         opacity: root.isActive ? 1 : 0
@@ -58,7 +58,7 @@ Item {
         id: icon
         anchors.fill: parent
         text: root.isActive ? "󰖺" : "󰖻"
-        color: root.isActive ? ColorService.current.baseContent : ColorService.current.baseContentMuted
+        color: root.isActive ? Colors.colors.baseContent : Colors.colors.baseContentMuted
 
         font.pixelSize: Config.appearance.fontSize.xxl
         font.family: Config.appearance.fontFamily.monoIcon

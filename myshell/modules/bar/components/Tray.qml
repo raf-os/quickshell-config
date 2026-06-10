@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
-import qs.config
-import qs.services
+import MyShellPlugin
+import MyShellPlugin.Configs
 import qs.modules.bar
 import Quickshell.Services.SystemTray
 import QtQuick
@@ -35,7 +35,7 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: ColorService.current.base0
+        color: Colors.colors.base0
         radius: Config.appearance.rounding.sm
     }
 

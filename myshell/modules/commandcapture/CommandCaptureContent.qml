@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import qs.components
 import qs.services
-import qs.config
+import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
 import QtQuick.Layouts

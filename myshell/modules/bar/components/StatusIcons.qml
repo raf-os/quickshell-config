@@ -5,8 +5,8 @@ import qs.components
 import qs.modules.bar
 import qs.modules.bar.popouts
 import qs.services.network
-import qs.services
-import qs.config
+import MyShellPlugin
+import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 
@@ -26,7 +26,7 @@ Item {
 
         anchors.fill: parent
 
-        color: ColorService.current.base0
+        color: Colors.colors.base0
         radius: Config.appearance.rounding.sm
     }
 
@@ -42,7 +42,7 @@ Item {
         WrappedLoader {
             id: kbdLayoutStatus
             name: "Keyboard layout"
-            active: Config.keymap.enabled === true
+            active: true //Config.keymap.enabled === true
 
             sourceComponent: KeyboardLayoutIcon {
                 popoutHandler: root.popoutHandler

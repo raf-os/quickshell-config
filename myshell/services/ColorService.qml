@@ -1,7 +1,6 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import qs.config
 import qs.utils
 import MyShellPlugin
 import Quickshell
@@ -12,7 +11,11 @@ Singleton {
     id: root
 
     property ColorConfigMetadata themeData: Colors.metadata
-    property ColorConfigColors current: Colors.colors
+    property ColorConfigColors current: Colors ? Colors.colors : backupPalette
+
+    ColorPalette {
+        id: backupPalette
+    }
 
     component ColorPalette: QtObject {
         property color base0: "#1b1510"
