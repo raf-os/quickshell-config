@@ -10,6 +10,7 @@ add_library(myshell_configs_gen
 		mediaconfig.h mediaconfig.cpp
 		appearanceconfig.h appearanceconfig.cpp
 		keymapconfig.h keymapconfig.cpp
+		soundsconfig.h soundsconfig.cpp
 		launcherconfig.h launcherconfig.cpp
 		borderconfig.h borderconfig.cpp
         gen_includes.h)
@@ -32,6 +33,7 @@ set(GENERATED_SOURCES
 	generated/mediaconfig.h generated/mediaconfig.cpp
 	generated/appearanceconfig.h generated/appearanceconfig.cpp
 	generated/keymapconfig.h generated/keymapconfig.cpp
+	generated/soundsconfig.h generated/soundsconfig.cpp
 	generated/launcherconfig.h generated/launcherconfig.cpp
 	generated/borderconfig.h generated/borderconfig.cpp
     PARENT_SCOPE

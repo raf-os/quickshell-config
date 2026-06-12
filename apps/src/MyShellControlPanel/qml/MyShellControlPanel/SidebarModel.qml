@@ -40,6 +40,12 @@ ListModel {
     }
 
     ListElement {
+        label: "System Sounds"
+        path: "/sounds"
+        icon: "media"
+    }
+
+    ListElement {
         label: "Not Found"
         path: "/404"
         icon: ""

@@ -10,332 +10,334 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
-    id: root
-
-    required property KeyboardSettingsBuffer settingsBuffer
-    readonly property int padding: Config.appearance.padding.sm
-    property int expandedId: -1
-
-    function toggleExpandById(id: int) {
-        if (id < 0 || id > Hypr.allLayouts.length) {
-            expandedId = -1;
-            return;
-        }
-        if (expandedId === id)
-            expandedId = -1;
-        else
-            expandedId = id;
-    }
-
-    Layout.fillWidth: true
-    Layout.fillHeight: true
-
-    SectionBg {
-        anchors.margins: root.padding
-    }
-
-    SListView {
-        id: listView
-
-        anchors.fill: parent
-        anchors.margins: root.padding * 2
-        spacing: Config.appearance.spacing.xxs
-        model: Hypr.allLayouts
-
-        delegate: Item {
-            id: kbd
-
-            required property KKeyboardLayout modelData
-            required property int index
-            readonly property bool isInstalled: {
-                if (!modelData)
-                    return false;
-                root.settingsBuffer.layouts;
-                return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout && layout.variant === "");
-            }
-            readonly property bool isPartiallyInstalled: {
-                if (!modelData)
-                    return false;
-                root.settingsBuffer.layouts;
-                return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout);
-            }
-            readonly property bool hasVariants: modelData && modelData.variants && modelData.variants.length > 0
-            readonly property bool isExpanded: root.expandedId === index
-
-            implicitWidth: ListView.view ? ListView.view.width : 0
-            implicitHeight: kbdInfo.implicitHeight
-
-            Component.onDestruction: {
-                if (root.expandedId === kbd.index) {
-                    root.expandedId = -1;
-                }
-            }
-
-            Rectangle {
-                opacity: kbd.isInstalled || kbd.isPartiallyInstalled || kbd.isExpanded ? 1 : 0
-                visible: opacity > 0
-
-                anchors.fill: parent
-                color: kbd.isInstalled ? Colors.colors.primary : Colors.colors.base2
-                radius: Config.appearance.rounding.sm
-
-                border.width: 1
-                border.color: (!kbd.isInstalled && kbd.isPartiallyInstalled) ? Colors.colors.primary : "transparent"
-
-                Behavior on opacity {
-                    NAnim {
-                        duration: 300
-                    }
-                }
-
-                Behavior on color {
-                    CAnim {
-                        duration: 200
-                    }
-                }
-            }
-
-            ColumnLayout {
-                id: kbdInfo
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-
-                spacing: 0//root.padding / 2
-
-                MouseArea {
-                    id: kbdInfoTitle
-
-                    Layout.fillWidth: true
-
-                    implicitHeight: kbdInfoTitleText.height
-                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+	id: root
+
+	required property KeyboardSettingsBuffer settingsBuffer
+	readonly property int padding: Config.appearance.padding.sm
+	property int expandedId: -1
+
+	function toggleExpandById(id: int) {
+		if (id < 0 || id > Hypr.allLayouts.length) {
+			expandedId = -1;
+			return;
+		}
+		if (expandedId === id)
+			expandedId = -1;
+		else
+			expandedId = id;
+	}
+
+	Layout.fillWidth: true
+	Layout.fillHeight: true
+
+	implicitHeight: 320
+
+	SectionBg {
+		anchors.margins: root.padding
+	}
+
+	SListView {
+		id: listView
+
+		anchors.fill: parent
+		anchors.margins: root.padding * 2
+		spacing: Config.appearance.spacing.xxs
+		model: Hypr.allLayouts
+
+		delegate: Item {
+			id: kbd
+
+			required property KKeyboardLayout modelData
+			required property int index
+			readonly property bool isInstalled: {
+				if (!modelData)
+					return false;
+				root.settingsBuffer.layouts;
+				return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout && layout.variant === "");
+			}
+			readonly property bool isPartiallyInstalled: {
+				if (!modelData)
+					return false;
+				root.settingsBuffer.layouts;
+				return root.settingsBuffer.layouts.some(layout => modelData.name === layout.layout);
+			}
+			readonly property bool hasVariants: modelData && modelData.variants && modelData.variants.length > 0
+			readonly property bool isExpanded: root.expandedId === index
+
+			implicitWidth: ListView.view ? ListView.view.width : 0
+			implicitHeight: kbdInfo.implicitHeight
+
+			Component.onDestruction: {
+				if (root.expandedId === kbd.index) {
+					root.expandedId = -1;
+				}
+			}
+
+			Rectangle {
+				opacity: kbd.isInstalled || kbd.isPartiallyInstalled || kbd.isExpanded ? 1 : 0
+				visible: opacity > 0
+
+				anchors.fill: parent
+				color: kbd.isInstalled ? Colors.colors.primary : Colors.colors.base2
+				radius: Config.appearance.rounding.sm
+
+				border.width: 1
+				border.color: (!kbd.isInstalled && kbd.isPartiallyInstalled) ? Colors.colors.primary : "transparent"
+
+				Behavior on opacity {
+					NAnim {
+						duration: 300
+					}
+				}
+
+				Behavior on color {
+					CAnim {
+						duration: 200
+					}
+				}
+			}
+
+			ColumnLayout {
+				id: kbdInfo
+
+				anchors.left: parent.left
+				anchors.right: parent.right
+				anchors.verticalCenter: parent.verticalCenter
+
+				spacing: 0//root.padding / 2
+
+				MouseArea {
+					id: kbdInfoTitle
+
+					Layout.fillWidth: true
+
+					implicitHeight: kbdInfoTitleText.height
+					cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-                    enabled: root.enabled && kbd.hasVariants
+					enabled: root.enabled && kbd.hasVariants
 
-                    onClicked: {
-                        root.toggleExpandById(kbd.index);
-                    }
+					onClicked: {
+						root.toggleExpandById(kbd.index);
+					}
 
-                    SMaterialIcon {
-                        id: kbdInfoTitleExpand
+					SMaterialIcon {
+						id: kbdInfoTitleExpand
 
-                        property real rot: kbd.isExpanded ? 90 : 0
+						property real rot: kbd.isExpanded ? 90 : 0
 
-                        visible: kbd.hasVariants
+						visible: kbd.hasVariants
 
-                        text: "chevron_forward"
-                        font.pointSize: Config.appearance.fontSize.xl
+						text: "chevron_forward"
+						font.pointSize: Config.appearance.fontSize.xl
 
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
+						anchors.left: parent.left
+						anchors.top: parent.top
+						anchors.bottom: parent.bottom
 
-                        verticalAlignment: Text.AlignVCenter
+						verticalAlignment: Text.AlignVCenter
 
-                        transform: Rotation {
-                            origin.x: kbdInfoTitleExpand.width / 2
-                            origin.y: kbdInfoTitleExpand.height / 2
-                            angle: kbdInfoTitleExpand.rot
-                        }
+						transform: Rotation {
+							origin.x: kbdInfoTitleExpand.width / 2
+							origin.y: kbdInfoTitleExpand.height / 2
+							angle: kbdInfoTitleExpand.rot
+						}
 
-                        Behavior on rot {
-                            NAnim {
-                                duration: 100
-                            }
-                        }
-                    }
+						Behavior on rot {
+							NAnim {
+								duration: 100
+							}
+						}
+					}
 
-                    StyledText {
-                        id: kbdInfoTitleText
-                        text: kbd.modelData ? `[${kbd.modelData?.name ?? ""}] ${kbd.modelData?.description ?? ""}` : ""
+					StyledText {
+						id: kbdInfoTitleText
+						text: kbd.modelData ? `[${kbd.modelData?.name ?? ""}] ${kbd.modelData?.description ?? ""}` : ""
 
-                        font.family: Config.appearance.fontFamily.sans
-                        font.pointSize: Config.appearance.fontSize.sm
-                        font.weight: kbd.isInstalled ? 700 : 500
+						font.family: Config.appearance.fontFamily.sans
+						font.pointSize: Config.appearance.fontSize.sm
+						font.weight: kbd.isInstalled ? 700 : 500
 
-                        anchors.left: kbdInfoTitleExpand.right
-                        anchors.right: kbdInfoActionButton.left
-                        anchors.verticalCenter: parent.verticalCenter
+						anchors.left: kbdInfoTitleExpand.right
+						anchors.right: kbdInfoActionButton.left
+						anchors.verticalCenter: parent.verticalCenter
 
-                        leftPadding: Config.appearance.padding.xs
-                        rightPadding: leftPadding
+						leftPadding: Config.appearance.padding.xs
+						rightPadding: leftPadding
 
-                        topPadding: Config.appearance.padding.sm
-                        bottomPadding: topPadding
-                    }
+						topPadding: Config.appearance.padding.sm
+						bottomPadding: topPadding
+					}
 
-                    MouseArea {
-                        id: kbdInfoActionButton
+					MouseArea {
+						id: kbdInfoActionButton
 
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.right: parent.right
-                        anchors.rightMargin: root.padding
+						anchors.top: parent.top
+						anchors.bottom: parent.bottom
+						anchors.right: parent.right
+						anchors.rightMargin: root.padding
 
-                        implicitWidth: kbdInfoActionIcon.width
+						implicitWidth: kbdInfoActionIcon.width
 
-                        enabled: root.enabled
-                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+						enabled: root.enabled
+						cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-                        onClicked: {
-                            if (!kbd.modelData)
-                                return;
+						onClicked: {
+							if (!kbd.modelData)
+								return;
 
-                            if (kbd.isInstalled)
-                                root.settingsBuffer.removeLayout(kbd.modelData.name, "");
-                            else
-                                root.settingsBuffer.addLayout(kbd.modelData.name, "");
-                        }
+							if (kbd.isInstalled)
+								root.settingsBuffer.removeLayout(kbd.modelData.name, "");
+							else
+								root.settingsBuffer.addLayout(kbd.modelData.name, "");
+						}
 
-                        SMaterialIcon {
-                            id: kbdInfoActionIcon
+						SMaterialIcon {
+							id: kbdInfoActionIcon
 
-                            anchors.centerIn: parent
-                            text: kbd.isInstalled ? "remove" : "add"
+							anchors.centerIn: parent
+							text: kbd.isInstalled ? "remove" : "add"
 
-                            font.pixelSize: Config.appearance.fontSize.xl
-                            font.weight: 700
+							font.pixelSize: Config.appearance.fontSize.xl
+							font.weight: 700
 
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
-                }
+							verticalAlignment: Text.AlignVCenter
+						}
+					}
+				}
 
-                Loader {
-                    id: variantsWrapper
+				Loader {
+					id: variantsWrapper
 
-                    active: kbd.hasVariants
-                    Layout.fillWidth: true
+					active: kbd.hasVariants
+					Layout.fillWidth: true
 
-                    sourceComponent: Item {
-                        id: variantKbdItem
-                        readonly property int padding: Config.appearance.padding.xxs
-                        readonly property real fullHeight: variantsLayout.implicitHeight + padding * 3
+					sourceComponent: Item {
+						id: variantKbdItem
+						readonly property int padding: Config.appearance.padding.xxs
+						readonly property real fullHeight: variantsLayout.implicitHeight + padding * 3
 
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
+						anchors.left: parent.left
+						anchors.right: parent.right
+						anchors.top: parent.top
 
-                        anchors.leftMargin: padding
-                        anchors.rightMargin: padding
-                        anchors.bottomMargin: padding
+						anchors.leftMargin: padding
+						anchors.rightMargin: padding
+						anchors.bottomMargin: padding
 
-                        implicitHeight: kbd.isExpanded ? fullHeight : 0
+						implicitHeight: kbd.isExpanded ? fullHeight : 0
 
-                        clip: true
-                        visible: implicitHeight > 0
+						clip: true
+						visible: implicitHeight > 0
 
-                        Rectangle {
-                            anchors.fill: parent
-                            anchors.bottomMargin: variantKbdItem.padding
-                            color: Colors.colors.base0
-                            radius: Config.appearance.rounding.sm
-                        }
+						Rectangle {
+							anchors.fill: parent
+							anchors.bottomMargin: variantKbdItem.padding
+							color: Colors.colors.base0
+							radius: Config.appearance.rounding.sm
+						}
 
-                        ColumnLayout {
-                            id: variantsLayout
+						ColumnLayout {
+							id: variantsLayout
 
-                            anchors.top: parent.top
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.margins: variantKbdItem.padding
+							anchors.top: parent.top
+							anchors.left: parent.left
+							anchors.right: parent.right
+							anchors.margins: variantKbdItem.padding
 
-                            spacing: Config.appearance.spacing.xxs
+							spacing: Config.appearance.spacing.xxs
 
-                            Repeater {
-                                model: kbd.modelData.variants
+							Repeater {
+								model: kbd.modelData.variants
 
-                                delegate: Item {
-                                    id: variantItem
-                                    required property KKeyboardVariant modelData
-                                    readonly property bool isInstalled: {
-                                        if (!variantItem.modelData || !kbd.modelData)
-                                            return false;
-                                        return root.settingsBuffer.layouts.some(layout => kbd.modelData.name === layout.layout && modelData.name === layout.variant);
-                                    }
-                                    Layout.fillWidth: true
+								delegate: Item {
+									id: variantItem
+									required property KKeyboardVariant modelData
+									readonly property bool isInstalled: {
+										if (!variantItem.modelData || !kbd.modelData)
+											return false;
+										return root.settingsBuffer.layouts.some(layout => kbd.modelData.name === layout.layout && modelData.name === layout.variant);
+									}
+									Layout.fillWidth: true
 
-                                    implicitHeight: variantItemTitle.height
+									implicitHeight: variantItemTitle.height
 
-                                    Rectangle {
-                                        anchors.fill: parent
+									Rectangle {
+										anchors.fill: parent
 
-                                        opacity: variantItem.isInstalled ? 1 : 0
-                                        color: Colors.colors.primary
-                                        radius: Config.appearance.rounding.sm
-                                    }
+										opacity: variantItem.isInstalled ? 1 : 0
+										color: Colors.colors.primary
+										radius: Config.appearance.rounding.sm
+									}
 
-                                    StyledText {
-                                        id: variantItemTitle
+									StyledText {
+										id: variantItemTitle
 
-                                        anchors.left: parent.left
-                                        anchors.right: parent.right
-                                        anchors.verticalCenter: parent.verticalCenter
+										anchors.left: parent.left
+										anchors.right: parent.right
+										anchors.verticalCenter: parent.verticalCenter
 
-                                        text: variantItem.modelData ? `[${variantItem.modelData.name ?? ""}]${variantItem.modelData.description ?? ""}` : ""
-                                        elide: Text.ElideRight
+										text: variantItem.modelData ? `[${variantItem.modelData.name ?? ""}]${variantItem.modelData.description ?? ""}` : ""
+										elide: Text.ElideRight
 
-                                        font.family: Config.appearance.fontFamily.sans
-                                        font.pointSize: Config.appearance.fontSize.xs
-                                        font.weight: variantItem.isInstalled ? 700 : 500
+										font.family: Config.appearance.fontFamily.sans
+										font.pointSize: Config.appearance.fontSize.xs
+										font.weight: variantItem.isInstalled ? 700 : 500
 
-                                        verticalAlignment: Text.AlignVCenter
+										verticalAlignment: Text.AlignVCenter
 
-                                        leftPadding: Config.appearance.padding.md
-                                        rightPadding: leftPadding
+										leftPadding: Config.appearance.padding.md
+										rightPadding: leftPadding
 
-                                        topPadding: Config.appearance.padding.sm
-                                        bottomPadding: topPadding
-                                    }
+										topPadding: Config.appearance.padding.sm
+										bottomPadding: topPadding
+									}
 
-                                    MouseArea {
-                                        id: variantItemInteraction
-                                        anchors.right: parent.right
-                                        anchors.rightMargin: root.padding
-                                        anchors.top: parent.top
-                                        anchors.bottom: parent.bottom
+									MouseArea {
+										id: variantItemInteraction
+										anchors.right: parent.right
+										anchors.rightMargin: root.padding
+										anchors.top: parent.top
+										anchors.bottom: parent.bottom
 
-                                        enabled: root.enabled
-                                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+										enabled: root.enabled
+										cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-                                        implicitWidth: variantItemInteractionIcon.width
+										implicitWidth: variantItemInteractionIcon.width
 
-                                        onClicked: {
-                                            if (!variantItem.modelData || !kbd.modelData)
-                                                return;
+										onClicked: {
+											if (!variantItem.modelData || !kbd.modelData)
+												return;
 
-                                            if (variantItem.isInstalled)
-                                                root.settingsBuffer.removeLayout(kbd.modelData.name, variantItem.modelData.name);
-                                            else
-                                                root.settingsBuffer.addLayout(kbd.modelData.name, variantItem.modelData.name);
-                                        }
+											if (variantItem.isInstalled)
+												root.settingsBuffer.removeLayout(kbd.modelData.name, variantItem.modelData.name);
+											else
+												root.settingsBuffer.addLayout(kbd.modelData.name, variantItem.modelData.name);
+										}
 
-                                        SMaterialIcon {
-                                            id: variantItemInteractionIcon
-                                            text: variantItem.isInstalled ? "remove" : "add"
+										SMaterialIcon {
+											id: variantItemInteractionIcon
+											text: variantItem.isInstalled ? "remove" : "add"
 
-                                            anchors.centerIn: parent
-                                            font.pixelSize: Config.appearance.fontSize.lg
-                                            font.weight: 700
+											anchors.centerIn: parent
+											font.pixelSize: Config.appearance.fontSize.lg
+											font.weight: 700
 
-                                            verticalAlignment: Text.AlignVCenter
-                                            horizontalAlignment: Text.AlignHCenter
-                                        }
-                                    }
-                                }
-                            }
-                        }
+											verticalAlignment: Text.AlignVCenter
+											horizontalAlignment: Text.AlignHCenter
+										}
+									}
+								}
+							}
+						}
 
-                        Behavior on implicitHeight {
-                            NAnim {
-                                duration: 300
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+						Behavior on implicitHeight {
+							NAnim {
+								duration: 300
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

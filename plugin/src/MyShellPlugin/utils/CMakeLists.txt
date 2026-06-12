@@ -3,7 +3,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 add_library(myshell_utils
   STATIC
     metaiterate.h metaiterate.cpp
-    paths.h paths.cpp)
+    paths.h paths.cpp
+)
 
 set_target_properties(myshell_utils PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
@@ -25,6 +26,7 @@ qml_module(myshell_utils_plugin
   URI MyShellPlugin.Utils
   SOURCES
     paths.h paths.cpp
+    soundthemes.h soundthemes.cpp
   LIBRARIES
     Qt::Core
     Qt::Quick

@@ -13,6 +13,7 @@ ShellRoot {
 
     Component.onCompleted: {
         UserCommandService.setup();
+        SystemSoundsService.setup();
 
         // Config.earlyLoad();
         // Colors.earlyLoad();

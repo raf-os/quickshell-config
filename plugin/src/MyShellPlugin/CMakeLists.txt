@@ -10,6 +10,9 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 find_package(LibXml2 REQUIRED)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCANBERRA REQUIRED IMPORTED_TARGET libcanberra)
+
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 
 FetchContent_Declare(rapidfuzz
@@ -85,6 +88,7 @@ qml_module(myshell
     hyprevents.h hyprevents.cpp
     networkservice.h networkservice.cpp
     colors.h colors.cpp
+    systemsounds.h systemsounds.cpp
   LIBRARIES
     Qt::Gui
     Qt::Quick
@@ -93,6 +97,7 @@ qml_module(myshell
     Qt::Network
     rapidfuzz::rapidfuzz
     LibXml2::LibXml2
+    PkgConfig::LIBCANBERRA
     myshell_interfaces
     myshell_include
     myshell_utils

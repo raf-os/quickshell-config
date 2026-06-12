@@ -51,7 +51,7 @@ public:
     return inst;
   }
 
-  [[nodiscard]] bool isSaving() const;
+  [[nodiscard]] bool isSaving() const { return m_isSaving; };
 
   Q_INVOKABLE void saveConfigs();
   Q_INVOKABLE void earlyLoad() {};

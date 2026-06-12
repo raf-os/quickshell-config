@@ -62,6 +62,7 @@ Singleton {
 
         onTriggered: {
             // NOTE: for ... in javascript loop did not work. Framework issue or skill issue?
+            // Future me: skill issue
             for (let i = 0; i < root.playerList.length; i++) {
                 if (root.playerList[i]?.positionSupported === true && root.playerList[i]?.isPlaying === true) {
                     root.playerList[i].positionChanged();

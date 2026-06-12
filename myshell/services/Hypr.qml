@@ -9,6 +9,8 @@ import QtQuick
 Singleton {
     id: root
 
+    property alias hyprEvents: hyprExtras.eventListener
+
     readonly property var toplevels: Hyprland.toplevels
     readonly property var workspaces: Hyprland.workspaces
     readonly property var monitors: Hyprland.monitors

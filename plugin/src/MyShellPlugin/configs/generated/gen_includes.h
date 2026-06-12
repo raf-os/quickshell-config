@@ -4,5 +4,6 @@
 #include "mediaconfig.h"
 #include "appearanceconfig.h"
 #include "keymapconfig.h"
+#include "soundsconfig.h"
 #include "launcherconfig.h"
 #include "borderconfig.h"

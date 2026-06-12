@@ -8,13 +8,17 @@ Item {
 
     property alias listView: listView
     property Component delegate: null
-    property Component hightlight: null
+    property Component highlight: null
     property bool highlightFollowsCurrentItem: true
     required property var model
 
     property alias spacing: listView.spacing
+    property alias cacheBuffer: listView.cacheBuffer
     property alias currentIndex: listView.currentIndex
     property alias currentItem: listView.currentItem
+    property alias count: listView.count
+    property alias delegateModelAccess: listView.delegateModelAccess
+    property alias section: listView.section
     property alias highlightItem: listView.highlightItem
     property alias highlightMoveDuration: listView.highlightMoveDuration
     property alias highlightResizeDuration: listView.highlightResizeDuration
@@ -65,7 +69,7 @@ Item {
 
         model: root.model
         delegate: root.delegate
-        highlight: root.hightlight
+        highlight: root.highlight
         highlightFollowsCurrentItem: root.highlightFollowsCurrentItem
     }
 }

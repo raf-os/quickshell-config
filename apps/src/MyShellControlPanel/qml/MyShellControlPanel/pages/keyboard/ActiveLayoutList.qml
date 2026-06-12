@@ -64,8 +64,9 @@ Item {
         spacing: Config.appearance.spacing.xxs
 
         highlightFollowsCurrentItem: false
-        hightlight: Rectangle {
+        highlight: Rectangle {
             id: listHighlight
+            z: 2
 
             implicitWidth: ListView.view ? ListView.view.width : 0
             implicitHeight: ListView.view && ListView.view.currentItem ? ListView.view.currentItem.height : 0
@@ -78,7 +79,7 @@ Item {
             radius: Config.appearance.rounding.sm
 
             border.width: 2
-            border.color: (ListView.view && ListView.view.activeFocus) ? Colors.colors.primary : "transparent"
+            border.color: (ListView.view && ListView.view.activeFocus) ? Colors.colors.neutralContent : "transparent"
 
             Behavior on y {
                 NAnim {

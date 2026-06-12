@@ -1,0 +1,15 @@
+{
+  "className": "SoundsConfig",
+  "properties": [
+    {
+      "name": "enabled",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    {
+      "name": "theme",
+      "type": "QString",
+      "defaultValue": "freedesktop"
+    }
+  ]
+}

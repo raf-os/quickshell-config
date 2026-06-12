@@ -4,6 +4,7 @@ set(MODULE_PAGES
   keyboard
   launcher
   media
+  sounds
   taskbar
 )
 

@@ -103,6 +103,7 @@ FocusScope {
                 pageStack.pushItem(notFoundComp, {
                     "path": "/notfound"
                 });
+                console.warn(component.errorString());
                 currentPath = "/404";
                 modelPathIterate("/404");
                 delete component;

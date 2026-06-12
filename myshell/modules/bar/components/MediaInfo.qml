@@ -51,6 +51,14 @@ Loader {
             content.fetchDesktopEntry();
         }
 
+        QtObject {
+            id: mediaInfo
+
+            property string trackName
+            property string trackArtist
+            property string playerIcon
+        }
+
         Timer {
             id: delayedRefetch
             // "desktopEntry" on MprisPlayer does not seem to have a notify signal

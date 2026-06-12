@@ -54,8 +54,11 @@ Item {
             }
         }
 
-        ListView {
+        SListView {
             id: menuItems
+
+            // acceptedButtons: Qt.NoButton
+            // boundsBehavior: Flickable.StopAtBounds
 
             spacing: Config.appearance.spacing.sm
 

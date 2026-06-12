@@ -42,6 +42,7 @@ This list is incomplete as of now
 * [Sway Notification Center](https://github.com/ErikReider/SwayNotificationCenter)
 * NetworkManager
 * libxml2
+* libcanberra
 
 ### Optional build dependencies
 
