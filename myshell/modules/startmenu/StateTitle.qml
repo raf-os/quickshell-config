@@ -3,190 +3,243 @@ pragma ComponentBehavior: Bound
 import qs.components
 import MyShellPlugin
 import MyShellPlugin.Configs
+import Quickshell
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 
 Item {
-    id: root
+	id: root
 
-    required property int currentState
-    property int padding: 10
+	required property int currentState
+	property int padding: 10
 
-    readonly property int fontPointsize: Config.appearance.fontSize.lg
-    readonly property string fontFamilyName: Config.appearance.fontFamily.sans
-    readonly property int fontWeightAmt: 600
-    readonly property int leftInset: Config.appearance.spacing.xl
+	readonly property int fontPointsize: Config.appearance.fontSize.lg
+	readonly property string fontFamilyName: Config.appearance.fontFamily.sans
+	readonly property int fontWeightAmt: 600
+	readonly property int leftInset: Config.appearance.spacing.xl
 
-    property bool isCompleted: false
+	property bool isCompleted: false
 
-    Layout.fillWidth: true
-    implicitHeight: txtMetric.height + padding * 2
+	signal requestPanelClose
 
-    clip: true
+	Layout.fillWidth: true
+	implicitHeight: txtMetric.height + padding * 2
 
-    Component.onCompleted: {
-        isCompleted = true;
-        updateTitle();
-    }
+	clip: true
 
-    onCurrentStateChanged: updateTitle()
+	Component.onCompleted: {
+		updateTitle();
+		delayedStart.start();
+	}
 
-    function updateTitle() {
-        const comp = mapComponent(root.currentState);
-        sview.replaceCurrentItem(comp);
-    }
+	Timer {
+		id: delayedStart
+		interval: 1
+		onTriggered: {
+			root.isCompleted = true;
+		}
+	}
 
-    function mapComponent(idx: int): Component {
-        switch (idx) {
-        case 0:
-            return appListTitle;
-        case 1:
-            return cmdListTitle;
-        default:
-            return appListTitle;
-        }
-    }
+	onCurrentStateChanged: updateTitle()
 
-    StackView {
-        id: sview
+	function updateTitle() {
+		const comp = mapComponent(root.currentState);
+		sview.replaceCurrentItem(comp);
+	}
 
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-        }
+	function mapComponent(idx: int): Component {
+		switch (idx) {
+		case 0:
+			return appListTitle;
+		case 1:
+			return cmdListTitle;
+		default:
+			return appListTitle;
+		}
+	}
 
-        implicitHeight: parent.implicitHeight
-        clip: true
+	StackView {
+		id: sview
 
-        initialItem: appListTitle
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
-        replaceEnter: Transition {
-            enabled: root.isCompleted
+		implicitHeight: parent.implicitHeight
+		clip: true
 
-            ParallelAnimation {
-                NAnim {
-                    property: "y"
-                    from: -48
-                    to: 0
-                    duration: 200
-                }
-                NAnim {
-                    property: "opacity"
-                    from: 0
-                    to: 1
-                    duration: 200
-                }
-            }
-        }
+		initialItem: appListTitle
 
-        replaceExit: Transition {
-            enabled: root.isCompleted
+		replaceEnter: Transition {
+			enabled: root.isCompleted
 
-            ParallelAnimation {
-                NAnim {
-                    property: "y"
-                    from: 0
-                    to: 48
-                    duration: 200
-                }
-                NAnim {
-                    property: "opacity"
-                    from: 1
-                    to: 0
-                    duration: 200
-                }
-            }
-        }
-    }
+			ParallelAnimation {
+				NAnim {
+					property: "y"
+					from: -48
+					to: 0
+					duration: 200
+				}
+				NAnim {
+					property: "opacity"
+					from: 0
+					to: 1
+					duration: 200
+				}
+			}
+		}
 
-    RowLayout {
-        id: buttonsList
+		replaceExit: Transition {
+			enabled: root.isCompleted
 
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            right: parent.right
-            rightMargin: Config.appearance.padding.md
-        }
+			ParallelAnimation {
+				NAnim {
+					property: "y"
+					from: 0
+					to: 48
+					duration: 200
+				}
+				NAnim {
+					property: "opacity"
+					from: 1
+					to: 0
+					duration: 200
+				}
+			}
+		}
+	}
 
-        TitleButton {
-            icon: "󰒓"
-        }
-    }
+	RowLayout {
+		id: buttonsList
 
-    TextMetrics {
-        id: txtMetric
-        text: "Lorem Ipsum Dolor Sit Amet"
-        font.pointSize: root.fontPointsize
-        font.family: root.fontFamilyName
-    }
+		anchors {
+			top: parent.top
+			bottom: parent.bottom
+			right: parent.right
+			rightMargin: Config.appearance.padding.md
+		}
 
-    Component {
-        id: appListTitle
+		TitleButton {
+			icon: "󰒓"
 
-        TWrapper {
-            text: "Applications"
-        }
-    }
+			function onClicked() {
+				Quickshell.execDetached("myshell-control-panel");
+				root.requestPanelClose();
+			}
+		}
+	}
 
-    Component {
-        id: cmdListTitle
+	TextMetrics {
+		id: txtMetric
+		text: "Lorem Ipsum Dolor Sit Amet"
+		font.pointSize: root.fontPointsize
+		font.family: root.fontFamilyName
+	}
 
-        TWrapper {
-            text: "User Commands"
-        }
-    }
+	Component {
+		id: appListTitle
 
-    component TitleButton: Item {
-        id: titleButton
+		TWrapper {
+			text: "Applications"
+		}
+	}
 
-        property int size: Config.appearance.fontSize.xl
-        property int padding: Config.appearance.padding.xs
-        required property string icon
+	Component {
+		id: cmdListTitle
 
-        implicitWidth: size + padding * 2
-        implicitHeight: size + padding * 2
+		TWrapper {
+			text: "User Commands"
+		}
+	}
 
-        Rectangle {
-            anchors.fill: parent
+	component TitleButton: Item {
+		id: titleButton
 
-            color: Colors.colors.base2
-            radius: Config.appearance.rounding.sm
-        }
+		property int size: Config.appearance.fontSize.xl
+		property int padding: Config.appearance.padding.xs
+		required property string icon
 
-        StyledText {
-            anchors.fill: parent
-            text: titleButton.icon
+		implicitWidth: size + padding * 2
+		implicitHeight: size + padding * 2
 
-            font.family: Config.appearance.fontFamily.mono
-            font.pixelSize: titleButton.size
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-    }
+		function onClicked() {
+		}
 
-    component TWrapper: Item {
-        required property string text
+		MouseArea {
+			id: titleButtonInteractive
 
-        implicitWidth: StackView.view ? StackView.view.width : 0
-        implicitHeight: StackView.view ? StackView.view.height : 0
+			enabled: titleButton.enabled
+			anchors.fill: parent
+			cursorShape: titleButton.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+			hoverEnabled: true
 
-        Text {
-            anchors.fill: parent
-            text: parent.text
+			onClicked: {
+				titleButton.onClicked();
+			}
+		}
 
-            font.pointSize: root.fontPointsize
-            font.family: root.fontFamilyName
-            font.weight: root.fontWeightAmt
-            elide: Text.ElideRight
+		RectangularShadow {
+			anchors.fill: parent
+			color: Qt.rgba(0, 0, 0, 0.35)
 
-            color: Colors.colors.baseContent
+			offset.y: 2
+			radius: titleButtonBg.radius / 2
 
-            leftPadding: root.leftInset
+			blur: 8
+			spread: -1
+		}
 
-            verticalAlignment: Text.AlignVCenter
-        }
-    }
+		Rectangle {
+			id: titleButtonBg
+			anchors.fill: parent
+
+			color: titleButton.enabled ? (titleButtonInteractive.containsMouse ? Colors.colors.primary : Colors.colors.base2) : Colors.colors.base0
+			radius: Config.appearance.rounding.sm
+
+			Behavior on color {
+				ColorAnimation {
+					duration: 100
+				}
+			}
+		}
+
+		StyledText {
+			anchors.fill: parent
+			text: titleButton.icon
+
+			font.family: Config.appearance.fontFamily.mono
+			font.pixelSize: titleButton.size
+			horizontalAlignment: Text.AlignHCenter
+			verticalAlignment: Text.AlignVCenter
+
+			color: titleButton.enabled ? Colors.colors.baseContent : Colors.colors.baseContentMuted
+		}
+	}
+
+	component TWrapper: Item {
+		required property string text
+
+		implicitWidth: StackView.view ? StackView.view.width : 0
+		implicitHeight: StackView.view ? StackView.view.height : 0
+
+		Text {
+			anchors.fill: parent
+			text: parent.text
+
+			font.pointSize: root.fontPointsize
+			font.family: root.fontFamilyName
+			font.weight: root.fontWeightAmt
+			elide: Text.ElideRight
+
+			color: Colors.colors.baseContent
+
+			leftPadding: root.leftInset
+
+			verticalAlignment: Text.AlignVCenter
+		}
+	}
 }

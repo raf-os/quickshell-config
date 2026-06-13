@@ -77,6 +77,7 @@ add_subdirectory(interfaces)
 add_subdirectory(configs)
 add_subdirectory(utils)
 add_subdirectory(components)
+add_subdirectory(notifications)
 
 qml_module(myshell
   URI MyShellPlugin

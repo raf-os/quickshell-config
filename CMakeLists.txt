@@ -36,6 +36,8 @@ include(FetchContent)
 
 include(GNUInstallDirs)
 
+include(cmake/install-qml-module.cmake)
+
 if(DEVMODE)
   set(MYSHELL_INSTALL_DATADIR
     "${CMAKE_CURRENT_SOURCE_DIR}/assets")
