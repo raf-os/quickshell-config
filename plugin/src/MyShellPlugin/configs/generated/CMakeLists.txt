@@ -8,6 +8,7 @@ add_library(myshell_configs_gen
     STATIC
         barconfig.h barconfig.cpp
 		mediaconfig.h mediaconfig.cpp
+		notificationconfig.h notificationconfig.cpp
 		appearanceconfig.h appearanceconfig.cpp
 		keymapconfig.h keymapconfig.cpp
 		soundsconfig.h soundsconfig.cpp
@@ -31,6 +32,7 @@ target_link_libraries(myshell_configs_gen
 set(GENERATED_SOURCES
     generated/barconfig.h generated/barconfig.cpp
 	generated/mediaconfig.h generated/mediaconfig.cpp
+	generated/notificationconfig.h generated/notificationconfig.cpp
 	generated/appearanceconfig.h generated/appearanceconfig.cpp
 	generated/keymapconfig.h generated/keymapconfig.cpp
 	generated/soundsconfig.h generated/soundsconfig.cpp

@@ -13,160 +13,151 @@ import QtQuick
 import QtQuick.Effects
 
 Variants {
-    model: Quickshell.screens
+	model: Quickshell.screens
 
-    Scope {
-        id: scope
+	Scope {
+		id: scope
 
-        required property ShellScreen modelData
+		required property ShellScreen modelData
 
-        Exclusions {
-            screen: scope.modelData
-            bar: bar
-        }
+		Exclusions {
+			screen: scope.modelData
+			bar: bar
+		}
 
-        BasePanel {
-            id: win
+		BasePanel {
+			id: win
 
-            screen: scope.modelData
-            name: "drawers"
+			screen: scope.modelData
+			name: "drawers"
 
-            exclusionMode: ExclusionMode.Ignore
-            WlrLayershell.keyboardFocus: openPanels.startmenu ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+			exclusionMode: ExclusionMode.Ignore
+			WlrLayershell.keyboardFocus: openPanels.startmenu ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-            mask: Region {
-                x: Config.border.thickness
-                y: bar.implicitHeight
-                width: win.width - Config.border.thickness
-                height: win.height - Config.border.thickness * 2
+			mask: Region {
+				x: Config.border.thickness
+				y: bar.implicitHeight
+				width: win.width - Config.border.thickness
+				height: win.height - bar.implicitHeight - Config.border.thickness
 
-                intersection: Intersection.Xor
+				intersection: Intersection.Xor
 
-                regions: regions.instances
-            }
+				regions: regions.instances // qmllint disable stale-property-read
+			}
 
-            anchors {
-                top: true
-                bottom: true
-                left: true
-                right: true
-            }
+			anchors {
+				top: true
+				bottom: true
+				left: true
+				right: true
+			}
 
-            Variants {
-                id: regions
+			Variants {
+				id: regions
 
-                model: panels.children
+				model: panels.children
 
-                Region {
-                    required property Item modelData
+				delegate: Region {
+					required property Item modelData
 
-                    x: modelData.x + Config.border.thickness
-                    y: modelData.y + bar.implicitHeight
-                    width: modelData.width
-                    height: modelData.height
+					x: modelData.x + Config.border.thickness
+					y: modelData.y + bar.implicitHeight
+					width: modelData.width
+					height: modelData.height
 
-                    intersection: Intersection.Subtract
-                }
-            }
+					intersection: Intersection.Subtract
+				}
+			}
 
-            StyledRect {
-                anchors.fill: parent
-                opacity: openPanels.session ? 0.5 : 0
-                color: "black"
+			StyledRect {
+				anchors.fill: parent
+				opacity: openPanels.session ? 0.5 : 0
+				color: "black"
 
-                Behavior on opacity {
-                    NAnim {}
-                }
-            }
+				Behavior on opacity {
+					NAnim {}
+				}
+			}
 
-            Item {
-                anchors.fill: parent
-                layer.enabled: !GlobalStateManager.isGameMode
-                layer.effect: MultiEffect {
-                    shadowEnabled: true
-                    blurMax: 32
-                    shadowColor: Qt.alpha("black", 1)
-                }
+			Item {
+				anchors.fill: parent
+				layer.enabled: !GlobalStateManager.isGameMode
+				layer.effect: MultiEffect {
+					shadowEnabled: true
+					blurMax: 32
+					shadowColor: Qt.alpha("black", 1)
+				}
 
-                Border {
-                    bar: bar
-                }
+				Border {
+					bar: bar
+				}
 
-                PanelBackgrounds {
-                    panels: panels
-                    bar: bar
-                }
-            }
+				PanelBackgrounds {
+					panels: panels
+					bar: bar
+				}
+			}
 
-            PersistentProperties {
-                id: openPanels
-                // reloadableId: "openPanelsState"
+			OpenPanels {
+				id: openPanels
+				screen: scope.modelData
+			}
 
-                property bool session
-                property bool startmenu
-                property bool commandCapture
-                property bool mprisViewer
+			HyprlandFocusGrab {
+				id: focusHandler
+				windows: [win]
+				active: panels.popouts.hasCurrent || panels.startmenu.isActive
+				onCleared: {
+					panels.popouts.close();
+					openPanels.startmenu = false;
+					openPanels.mprisViewer = false;
+				}
+			}
 
-                property string desiredStartMenuTab: ""
+			InteractionHandler {
+				screen: scope.modelData
+				openPanels: openPanels
+				popouts: panels.popouts
+				bar: bar
+				panels: panels
 
-                Component.onCompleted: PanelService.load(scope.modelData, this)
-            }
+				// implicitWidth: bar.implicitWidth
+				// implicitHeight: bar.implicitHeight
 
-            HyprlandFocusGrab {
-                id: focusHandler
-                windows: [win]
-                active: panels.popouts.hasCurrent || panels.startmenu.isActive
-                onCleared: {
-                    panels.popouts.close();
-                    openPanels.startmenu = false;
-                    openPanels.mprisViewer = false;
-                }
-            }
+				// anchors.top: parent.top
+				// anchors.left: parent.left
+				// anchors.right: parent.right
+			}
 
-            InteractionHandler {
-                screen: scope.modelData
-                openPanels: openPanels
-                popouts: panels.popouts
-                bar: bar
-                panels: panels
+			Panels {
+				id: panels
 
-                // implicitWidth: bar.implicitWidth
-                // implicitHeight: bar.implicitHeight
+				screen: scope.modelData
+				openPanels: openPanels
+				bar: bar
+			}
 
-                // anchors.top: parent.top
-                // anchors.left: parent.left
-                // anchors.right: parent.right
-            }
+			BarWrapper {
+				id: bar
 
-            Panels {
-                id: panels
+				anchors.left: parent.left
+				anchors.right: parent.right
+				anchors.top: parent.top
 
-                screen: scope.modelData
-                openPanels: openPanels
-                bar: bar
-            }
+				screen: scope.modelData
+				openPanels: openPanels
+				popouts: panels.popouts // qmllint disable incompatible-type
+				panels: panels
 
-            BarWrapper {
-                id: bar
+				Component.onCompleted: PanelService.bars.set(scope.modelData, this)
+			}
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-
-                screen: scope.modelData
-                openPanels: openPanels
-                popouts: panels.popouts
-                panels: panels
-
-                Component.onCompleted: PanelService.bars.set(scope.modelData, this)
-            }
-
-            OSDWrapper.Wrapper {
-                id: osdWrapper
-                screen: scope.modelData
-                bar: bar
-                openPanels: openPanels
-            }
-        }
-    }
+			OSDWrapper.Wrapper {
+				id: osdWrapper
+				screen: scope.modelData
+				bar: bar
+				openPanels: openPanels
+			}
+		}
+	}
 }

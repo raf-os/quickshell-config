@@ -1,5 +1,6 @@
 X(BarConfig, bar)
 X(MediaConfig, media)
+X(NotificationConfig, notification)
 X(AppearanceConfig, appearance)
 X(KeyMapConfig, keyMap)
 X(SoundsConfig, sounds)

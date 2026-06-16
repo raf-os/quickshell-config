@@ -1,0 +1,10 @@
+{
+  "className": "NotificationConfig",
+  "properties": [
+    {
+      "name": "enabled",
+      "type": "bool",
+      "defaultValue": true
+    }
+  ]
+}

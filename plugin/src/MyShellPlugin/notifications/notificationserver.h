@@ -1,5 +1,8 @@
 #pragma once
 
+#include "notification.h"
+#include "notificationsmodel.h"
+
 #include <qcontainerfwd.h>
 #include <qdbusservicewatcher.h>
 #include <qhash.h>
@@ -7,6 +10,7 @@
 #include <qobject.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
+#include <qtmetamacros.h>
 #include <qtypes.h>
 
 namespace ns {
@@ -15,6 +19,11 @@ class NotificationServer : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
+
+  Q_PROPERTY(ns::notifications::NotificationsModel *model READ model NOTIFY
+                 modelChanged)
+  Q_PROPERTY(
+      bool isActive READ isActive WRITE setIsActive NOTIFY isActiveChanged)
 
 public:
   static NotificationServer *instance() {
@@ -28,6 +37,13 @@ public:
       qmlEngine->setObjectOwnership(i, QJSEngine::CppOwnership);
     return i;
   }
+
+  void deleteNotification(Notification *notification,
+                          NotificationCloseReason::Enum reason);
+
+  [[nodiscard]] NotificationsModel *model() { return &m_model; }
+  [[nodiscard]] bool isActive() const { return m_isActive; }
+  void setIsActive(const bool &value);
 
   // DBus methods
   // clang-format off
@@ -55,20 +71,28 @@ private slots:
   static void onServiceUnregistered(const QString &service);
 
 signals:
-  void notification(void *notification);
+  void notification(Notification *notification);
 
-  void NotificationClosed(quint32 id, quint32 reason);
+  void NotificationClosed(quint32 id, NotificationCloseReason::Enum reason);
   void ActionInvoked(quint32 id, QString action);
   void NotificationReplied(quint32 id, QString replyText);
+
+  void modelChanged();
+  void isActiveChanged();
 
 private:
   explicit NotificationServer(QObject *parent = nullptr);
 
   static void tryRegister();
+  static void closeConnection();
 
+  void resetServerState();
+
+  bool m_isActive = false;
   QDBusServiceWatcher m_serviceWatcher{this};
   quint32 m_curId = 1;
-  QHash<quint32, void *> m_notifications;
+  QHash<quint32, Notification *> m_notificationsMap;
+  NotificationsModel m_model{this};
 };
 } // namespace notifications
 } // namespace ns

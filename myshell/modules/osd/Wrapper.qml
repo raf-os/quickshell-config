@@ -5,114 +5,116 @@ import Quickshell
 import QtQuick
 
 Item {
-    id: root
+	id: root
 
-    required property ShellScreen screen
-    required property Item bar
-    required property PersistentProperties openPanels
-    property bool isActive: false
+	required property ShellScreen screen
+	required property Item bar
+	required property PersistentProperties openPanels
+	property bool isActive: false
 
-    anchors.fill: parent
-    anchors.margins: Config.border.thickness
-    anchors.topMargin: bar.implicitHeight
+	anchors.fill: parent
+	anchors.margins: Config.border.thickness
+	anchors.topMargin: bar.implicitHeight
 
-    Timer {
-        id: dismissTimer
+	Timer {
+		id: dismissTimer
 
-        interval: 3000
+		interval: 3000
 
-        onTriggered: {
-            osdContent?.triggerExitAnim();
-        }
-    }
+		onTriggered: {
+			osdSlot.content?.triggerExitAnim();
+		}
+	}
 
-    Timer {
-        id: initialDelay
-        running: true
+	Timer {
+		id: initialDelay
+		running: true
 
-        interval: 500
+		interval: 500
 
-        onTriggered: {
-            root.isActive = true;
-        }
-    }
+		onTriggered: {
+			root.isActive = true;
+		}
+	}
 
-    function triggerOSD(type: string) {
-        if (!root.isActive)
-            return;
-        const isActive = Hypr.focusedMonitor.name === root.screen.name;
-        if (!isActive) {
-            dismissTimer.stop();
-            osdContent?.hide();
-            return;
-        } else {
-            if (osdContent?.show(type)) {
-                dismissTimer.restart();
-            }
-        }
-    }
+	function triggerOSD(type: string) {
+		if (!root.isActive)
+			return;
+		const isActive = Hypr.focusedMonitor.name === root.screen.name;
+		if (!isActive) {
+			dismissTimer.stop();
+			osdSlot.content?.hide();
+			return;
+		} else {
+			if (osdSlot.content?.show(type)) {
+				dismissTimer.restart();
+			}
+		}
+	}
 
-    Connections {
-        target: Hypr
+	Connections {
+		target: Hypr
 
-        function onKeyboardLayoutChanged() {
-            root.triggerOSD("kbdlayoutchange");
-        }
-    }
+		function onKeyboardLayoutChanged() {
+			root.triggerOSD("kbdlayoutchange");
+		}
+	}
 
-    Connections {
-        target: MprisService
+	Connections {
+		target: MprisService
 
-        enabled: Config.media.enabled
+		enabled: Config.media.enabled
 
-        function onTriggerOsd() {
-            if (root.openPanels.mprisViewer === true)
-                return;
-            const currentPlayer = MprisService.currentActive;
-            if (currentPlayer === null)
-                return;
+		function onTriggerOsd() {
+			if (root.openPanels.mprisViewer === true)
+				return;
+			const currentPlayer = MprisService.currentActive;
+			if (currentPlayer === null)
+				return;
 
-            root.triggerOSD("mprischange");
-        }
-    }
+			root.triggerOSD("mprischange");
+		}
+	}
 
-    Connections {
-        target: AudioService
+	Connections {
+		target: AudioService
 
-        function onIsMutedChanged() {
-            if (AudioService.isMuted)
-                root.triggerOSD("mute");
-            else
-                root.triggerOSD("volumechange");
-        }
+		function onIsMutedChanged() {
+			if (AudioService.isMuted)
+				root.triggerOSD("mute");
+			else
+				root.triggerOSD("volumechange");
+		}
 
-        function onVolumeChanged() {
-            if (!AudioService.isMuted) {
-                root.triggerOSD("volumechange");
-            }
-        }
-    }
+		function onVolumeChanged() {
+			if (!AudioService.isMuted) {
+				root.triggerOSD("volumechange");
+			}
+		}
+	}
 
-    Connections {
-        target: GlobalStateManager
+	Connections {
+		target: GlobalStateManager
 
-        function onIsGameModeChanged() {
-            root.triggerOSD("gamemode");
-        }
-    }
+		function onIsGameModeChanged() {
+			root.triggerOSD("gamemode");
+		}
+	}
 
-    Loader {
-        id: osdSlot
+	Loader {
+		id: osdSlot
 
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
+		readonly property Content content: (active && item) ? (item as Content) : null
 
-        active: true
+		anchors.bottom: parent.bottom
+		anchors.horizontalCenter: parent.horizontalCenter
 
-        Content {
-            id: osdContent
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-    }
+		active: true
+
+		sourceComponent: Content {
+			id: osdContent
+			anchors.bottom: parent.bottom
+			anchors.horizontalCenter: parent.horizontalCenter
+		}
+	}
 }

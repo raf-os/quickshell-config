@@ -1,21 +1,38 @@
 import qs.modules
 import qs.modules.lock
 import qs.services
+import org.nightshell.Notifications
 import MyShellPlugin
 import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
 
 ShellRoot {
-    Drawers {}
-    HyprShortcuts {}
-    Lock {}
+	id: root
 
-    Component.onCompleted: {
-        UserCommandService.setup();
-        SystemSoundsService.setup();
+	Drawers {}
+	HyprShortcuts {}
+	Lock {}
 
-        // Config.earlyLoad();
-        // Colors.earlyLoad();
-    }
+	Connections {
+		target: Config.notification
+
+		function onEnabledChanged() {
+			root.evalNotificationConfig();
+		}
+	}
+
+	function evalNotificationConfig() {
+		NotificationServer.isActive = Config.notification.enabled;
+	}
+
+	Component.onCompleted: {
+		UserCommandService.setup();
+		SystemSoundsService.setup();
+
+		root.evalNotificationConfig();
+
+		// Config.earlyLoad();
+		// Colors.earlyLoad();
+	}
 }

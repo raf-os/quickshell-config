@@ -16,7 +16,8 @@ qt_add_dbus_adaptor(DBUS_INTERFACES
 
 qt_add_library(myshell_notifications SHARED
   notificationserver.cpp
-  # notification.cpp
+  notification.cpp
+  notificationsmodel.cpp
   ${DBUS_INTERFACES}
 )
 
