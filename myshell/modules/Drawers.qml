@@ -5,6 +5,7 @@ import qs.modules.bar
 import qs.modules.osd as OSDWrapper
 import qs.services
 import qs.utils
+import MyShellPlugin
 import MyShellPlugin.Configs
 import Quickshell
 import Quickshell.Wayland
@@ -83,9 +84,18 @@ Variants {
 				anchors.fill: parent
 				layer.enabled: !GlobalStateManager.isGameMode
 				layer.effect: MultiEffect {
+					visible: !GlobalStateManager.isGameMode
+					autoPaddingEnabled: false
 					shadowEnabled: true
-					blurMax: 32
-					shadowColor: Qt.alpha("black", 1)
+
+					// Using shadow scale to mimic shadow "spread"
+					// Can potentially look wonky on screens with
+					// absurd width/height ratios
+					shadowScale: 0.9985
+					blurMultiplier: 0.5
+					blurMax: 18
+					shadowColor: Qt.rgba(0, 0, 0, 1)
+					shadowVerticalOffset: 2
 				}
 
 				Border {

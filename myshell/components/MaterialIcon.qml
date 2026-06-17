@@ -3,16 +3,16 @@ import MyShellPlugin.Configs
 import QtQuick
 
 Text {
-    property real fill
-    property int grade: 0
+	property real fill
+	property int grade: 0
 
-    color: Colors.colors.baseContent
-    font.family: Config.appearance.fontFamily.material
-    font.pointSize: Config.appearance.fontSize.lg
-    font.variableAxes: ({
-            FILL: fill.toFixed(1),
-            GRAD: grade,
-            opsz: fontInfo.pixelSize,
-            wght: fontInfo.weight
-        })
+	color: Colors.colors.baseContent
+	font.family: Config.appearance.fontFamily.material
+	// font.pointSize: Config.appearance.fontSize.lg
+	font.variableAxes: ({
+			FILL: fill.toFixed(1),
+			GRAD: grade,
+			opsz: fontInfo.pixelSize,
+			wght: fontInfo.weight
+		})
 }

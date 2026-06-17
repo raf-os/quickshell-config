@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import "statusIcons"
 import qs.components
+import qs.utils
 import qs.modules.bar
 import qs.modules.bar.popouts
 import qs.services.network
@@ -15,6 +16,7 @@ Item {
 
 	required property PopoutHandler popoutHandler
 	required property PopoutWrapper popoutWrapper
+	required property OpenPanels openPanels
 
 	readonly property string currentPopoutName: popoutWrapper.hasCurrent ? root.popoutWrapper.currentName : ""
 
@@ -63,7 +65,11 @@ Item {
 			name: "Notifications"
 			active: Config.notification.enabled
 
-			sourceComponent: NotificationsIcon {}
+			sourceComponent: NotificationsIcon {
+				onTriggerNotifications: {
+					root.openPanels.toggleNotifications();
+				}
+			}
 		}
 
 		WrappedLoader {

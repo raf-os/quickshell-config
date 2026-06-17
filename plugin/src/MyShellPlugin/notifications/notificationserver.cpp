@@ -88,6 +88,13 @@ void NotificationServer::setIsActive(const bool &value) {
   }
 }
 
+void NotificationServer::closeAllNotifications() {
+  for (auto it = m_notificationsMap.begin(); it != m_notificationsMap.end();
+       ++it) {
+    it.value()->dismiss();
+  }
+}
+
 void NotificationServer::onServiceUnregistered(const QString & /*unused*/) {
   NotificationServer::tryRegister();
 }

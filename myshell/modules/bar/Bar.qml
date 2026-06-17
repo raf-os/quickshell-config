@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import "components"
 import "components/workspaces"
 import "popouts"
+import qs.utils
 import Quickshell
 import Quickshell.Hyprland
 import MyShellPlugin.Configs
@@ -10,143 +11,144 @@ import QtQuick
 import QtQuick.Layouts
 
 Item {
-    id: root
+	id: root
 
-    required property ShellScreen screen
-    required property PersistentProperties openPanels
-    required property PopoutWrapper popouts
-    required property Item panels
+	required property ShellScreen screen
+	required property OpenPanels openPanels
+	required property PopoutWrapper popouts
+	required property Item panels
 
-    readonly property int contentSpacing: Config.appearance.spacing.md
+	readonly property int contentSpacing: Config.appearance.spacing.md
 
-    property alias mediaInfo: mediaInfo
+	property alias mediaInfo: mediaInfo
 
-    property int middleSize: 560
+	property int middleSize: 560
 
-    signal closePopout
+	signal closePopout
 
-    property int spacing: Config.appearance.spacing.md
+	property int spacing: Config.appearance.spacing.md
 
-    function onTriggerPopout(item: Item, name: string): void {
-        const currentCenter = item.mapToItem(root, item.implicitWidth / 2, item.implicitHeight / 2).x + (item.width ?? 0) / 2;
-        const newName = popouts.toggle(item, name, currentCenter);
-        popoutHandler.selectedPopoutId = newName;
-    }
+	function onTriggerPopout(item: Item, name: string): void {
+		const currentCenter = item.mapToItem(root, item.implicitWidth / 2, item.implicitHeight / 2).x + (item.width ?? 0) / 2;
+		const newName = popouts.toggle(item, name, currentCenter);
+		popoutHandler.selectedPopoutId = newName;
+	}
 
-    function handleMouseWheel(x: real, y: real, angleDelta: point) {
-        if (y > Config.bar.sizes.innerHeight + Config.border.thickness * 2)
-            return;
-        const ch = childAt(x, root.height / 2);
-        if (ch?.name === "leftContent" || ch?.name === "midContent") {
-            const angleDir = Math.sign(angleDelta.y);
-            Hyprland.dispatch(`hl.dsp.focus({ workspace = "m${angleDir > 0 ? "-1" : "+1"}" })`);
-        }
-    }
+	function handleMouseWheel(x: real, y: real, angleDelta: point) {
+		if (y > Config.bar.sizes.innerHeight + Config.border.thickness * 2)
+			return;
+		const ch = childAt(x, root.height / 2);
+		if (ch?.name === "leftContent" || ch?.name === "midContent") {
+			const angleDir = Math.sign(angleDelta.y);
+			Hyprland.dispatch(`hl.dsp.focus({ workspace = "m${angleDir > 0 ? "-1" : "+1"}" })`);
+		}
+	}
 
-    Connections {
-        target: root.popouts
+	Connections {
+		target: root.popouts
 
-        function onPopoutClosed() {
-            popoutHandler.selectedPopoutId = null;
-        }
-    }
+		function onPopoutClosed() {
+			popoutHandler.selectedPopoutId = null;
+		}
+	}
 
-    Connections {
-        target: powerWidgetButton
+	Connections {
+		target: powerWidgetButton
 
-        function onPowerButtonActivate() {
-            root.popouts.close();
-        }
-    }
+		function onPowerButtonActivate() {
+			root.popouts.close();
+		}
+	}
 
-    Connections {
-        target: popoutHandler
+	Connections {
+		target: popoutHandler
 
-        function onTriggerPopout(item: Item, name: string) {
-            root.onTriggerPopout(item, name);
-        }
+		function onTriggerPopout(item: Item, name: string) {
+			root.onTriggerPopout(item, name);
+		}
 
-        function onClosePopout() {
-            root.popouts.close();
-        }
-    }
+		function onClosePopout() {
+			root.popouts.close();
+		}
+	}
 
-    PopoutHandler {
-        id: popoutHandler
+	PopoutHandler {
+		id: popoutHandler
 
-        openPanels: root.openPanels
-    }
+		openPanels: root.openPanels
+	}
 
-    RowLayout {
-        id: leftContent
-        property string name: "leftContent"
+	RowLayout {
+		id: leftContent
+		property string name: "leftContent"
 
-        anchors.left: parent.left
-        anchors.right: middleContent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
+		anchors.left: parent.left
+		anchors.right: middleContent.left
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
 
-        anchors.rightMargin: root.contentSpacing
+		anchors.rightMargin: root.contentSpacing
 
-        spacing: root.spacing
+		spacing: root.spacing
 
-        ArchIconBtw {
-            openPanels: root.openPanels
-            panels: root.panels
-        }
-        Workspaces {
-            screen: root.screen
-        }
+		ArchIconBtw {
+			openPanels: root.openPanels
+			panels: root.panels
+		}
+		Workspaces {
+			screen: root.screen
+		}
 
-        Spacing {}
+		Spacing {}
 
-        MediaInfo {
-            id: mediaInfo
-            openPanels: root.openPanels
-            panels: root.panels
-        }
-    }
+		MediaInfo {
+			id: mediaInfo
+			openPanels: root.openPanels
+			panels: root.panels
+		}
+	}
 
-    WindowTitle {
-        id: middleContent
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        property string name: "midContent"
+	WindowTitle {
+		id: middleContent
+		anchors.horizontalCenter: parent.horizontalCenter
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
+		property string name: "midContent"
 
-        implicitWidth: root.middleSize
-    }
+		implicitWidth: root.middleSize
+	}
 
-    RowLayout {
-        id: rightContent
+	RowLayout {
+		id: rightContent
 
-        anchors.left: middleContent.right
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
+		anchors.left: middleContent.right
+		anchors.right: parent.right
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
 
-        anchors.leftMargin: root.contentSpacing
+		anchors.leftMargin: root.contentSpacing
 
-        spacing: root.spacing
+		spacing: root.spacing
 
-        Spacing {}
-        StatusIcons {
-            popoutHandler: popoutHandler
-            popoutWrapper: root.popouts
-        }
-        Tray {
-            popoutHandler: popoutHandler
-        }
-        ClockWidget {}
-        Power {
-            id: powerWidgetButton
-            openPanels: root.openPanels
-            panels: root.panels
-        }
-    }
+		Spacing {}
+		StatusIcons {
+			popoutHandler: popoutHandler
+			popoutWrapper: root.popouts
+			openPanels: root.openPanels
+		}
+		Tray {
+			popoutHandler: popoutHandler
+		}
+		ClockWidget {}
+		Power {
+			id: powerWidgetButton
+			openPanels: root.openPanels
+			panels: root.panels
+		}
+	}
 
-    component Spacing: Item {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-    }
+	component Spacing: Item {
+		Layout.fillWidth: true
+		Layout.fillHeight: true
+	}
 }

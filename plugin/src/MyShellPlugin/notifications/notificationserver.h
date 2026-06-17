@@ -45,6 +45,8 @@ public:
   [[nodiscard]] bool isActive() const { return m_isActive; }
   void setIsActive(const bool &value);
 
+  Q_INVOKABLE void closeAllNotifications();
+
   // DBus methods
   // clang-format off
   void CloseNotification(uint id);

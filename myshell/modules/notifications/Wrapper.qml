@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import qs.modules.notifications
 import qs.components
 import qs.utils
 import org.nightshell.Notifications
@@ -16,147 +17,80 @@ MouseArea {
 	required property OpenPanels openPanels
 
 	readonly property int padding: Config.appearance.padding.md
+	readonly property int desiredWidth: 320
+	readonly property real maxHeight: parent.height - (padding * 2)
 
-	anchors.margins: padding
+	// anchors.margins: padding
 
-	implicitWidth: 320
-	implicitHeight: Math.min(notifListView.contentHeight, parent.height - (padding * 2))
+	implicitWidth: sidebarLoader.item ? (sidebarLoader.item as Item)?.width : 0
 
-	Timer {
-		id: cullTimer
-		interval: 5000
-		onTriggered: {
-			notificationsModel.clear();
-		}
+	// anchors.bottom: sidebarLoader.active ? parent.bottom : undefined
+
+	preventStealing: true
+	acceptedButtons: Qt.NoButton
+	hoverEnabled: true
+
+	function togglePanel() {
+		root.openPanels.notifications = !root.openPanels.notifications;
 	}
 
-	ListModel {
-		id: notificationsModel
+	onEntered: {
+		TempNotifications.stopCullTimer();
 	}
 
-	ListView {
-		id: notifListView
-
-		acceptedButtons: Qt.NoButton
-		interactive: false
-
-		implicitWidth: root.implicitWidth
-		implicitHeight: contentHeight
-
-		clip: true
-		spacing: Config.appearance.spacing.md
-
-		delegate: NotifComponent {}
-		model: notificationsModel
-
-		add: Transition {
-			ParallelAnimation {
-				NAnim {
-					property: "x"
-					from: root.implicitWidth
-					to: 0
-					duration: 400
-				}
-
-				NAnim {
-					property: "opacity"
-					from: 0
-					to: 1
-					duration: 400
-				}
-			}
-		}
+	onExited: {
+		TempNotifications.startCullTimer();
 	}
 
 	Connections {
-		target: NotificationServer
+		target: root.openPanels
+		enabled: Config.notification.enabled
 
-		function onNotification(notification: Notification) {
-			notificationsModel.insert(0, {
-				idx: notification.id,
-				appName: notification.appName,
-				summary: notification.summary,
-				body: notification.body
-			});
-			cullTimer.restart();
+		function onNotificationsChanged() {
+			if (root.openPanels.notifications === true) {
+				TempNotifications.clearNotifications();
+				sidebarLoader.shouldBeActive = true;
+			} else {
+				sidebarLoader.shouldBeActive = false;
+			}
 		}
 	}
 
-	component NotifComponent: MouseArea {
-		id: notifItem
+	// Overlay {
+	// 	id: notifOverlay
+	//
+	// 	isActive: root.openPanels.notifications === false
+	// 	maxHeight: root.maxHeight
+	// }
 
-		required property int index
-		required property int idx
-		required property string appName
-		required property string summary
-		required property string body
+	Loader {
+		id: sidebarLoader
 
-		readonly property int padding: Config.appearance.padding.sm
+		property bool shouldBeActive: false
+		active: false
 
-		implicitWidth: ListView.view ? ListView.view.width : 0
-		implicitHeight: rlayout.implicitHeight + padding * 2
-
-		SequentialAnimation {
-			id: removeAnimation
-			PropertyAction {
-				target: notifItem
-				property: "ListView.delayRemove"
-				value: true
-			}
-			NAnim {
-				target: notifItem
-				property: "x"
-				to: notifListView.width
-				duration: 400
-			}
-			PropertyAction {
-				target: notifItem
-				property: "ListView.delayRemove"
-				value: false
-			}
+		anchors {
+			top: parent.top
+			bottom: parent.bottom
+			right: parent.right
 		}
 
-		ListView.onRemove: removeAnimation.start()
-
-		Rectangle {
-			anchors.fill: parent
-			color: Colors.colors.base
-
-			radius: Config.appearance.rounding.sm
+		onShouldBeActiveChanged: {
+			if (shouldBeActive === true)
+				active = true;
 		}
 
-		RowLayout {
-			id: rlayout
+		sourceComponent: Content {
+			isActive: sidebarLoader.shouldBeActive
+			desiredWidth: root.desiredWidth
 
-			anchors {
-				left: parent.left
-				leftMargin: notifItem.padding
-				right: parent.right
-				rightMargin: notifItem.padding
-				verticalCenter: parent.verticalCenter
+			onReadyToUnload: {
+				sidebarLoader.active = false;
+				root.openPanels.notifications = false;
 			}
 
-			ColumnLayout {
-				Layout.fillWidth: true
-
-				StyledText {
-					Layout.fillWidth: true
-					text: notifItem.appName
-
-					font.family: Config.appearance.fontFamily.sans
-					font.pointSize: Config.appearance.fontSize.md
-					font.weight: 600
-
-					elide: Text.ElideRight
-				}
-
-				StyledText {
-					Layout.fillWidth: true
-
-					text: notifItem.summary
-
-					elide: Text.ElideRight
-				}
+			onLostFocus: {
+				sidebarLoader.shouldBeActive = false;
 			}
 		}
 	}

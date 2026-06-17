@@ -10,6 +10,8 @@ MouseArea {
 	id: root
 	property int activeNotifications: NotificationServer.model.values.length // qmllint disable unresolved-type
 
+	signal triggerNotifications
+
 	cursorShape: Qt.PointingHandCursor
 	implicitWidth: Config.appearance.fontSize.xl
 	// implicitHeight: Config.bar.sizes.innerHeight
@@ -18,6 +20,10 @@ MouseArea {
 	// onClicked: ev => {
 	//     Quickshell.execDetached(['swaync-client', '-t']);
 	// }
+
+	onClicked: ev => {
+		root.triggerNotifications();
+	}
 
 	StyledText {
 		id: icon
@@ -29,6 +35,40 @@ MouseArea {
 
 		horizontalAlignment: Qt.AlignHCenter
 		verticalAlignment: Qt.AlignVCenter
+	}
+
+	Item {
+		id: activeNotifIndicator
+		visible: root.activeNotifications >= 1
+
+		anchors {
+			right: parent.right
+			rightMargin: 1
+			bottom: parent.bottom
+			bottomMargin: 1
+		}
+
+		implicitWidth: Math.max(notifAmountTxt.width, notifAmountTxt.height)
+		implicitHeight: implicitWidth
+
+		Rectangle {
+			anchors.fill: parent
+			radius: width / 2
+			color: Colors.colors.primary
+		}
+
+		Text {
+			id: notifAmountTxt
+
+			anchors.centerIn: parent
+
+			text: root.activeNotifications
+
+			color: Colors.colors.baseContent
+			font.family: Config.appearance.fontFamily.sans
+			font.weight: 600
+			font.pixelSize: 8
+		}
 	}
 
 	// Process {

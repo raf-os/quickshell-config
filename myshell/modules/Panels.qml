@@ -6,6 +6,7 @@ import qs.modules.bar.popouts as BarPopouts
 import qs.modules.startmenu as StartMenuPopout
 import qs.modules.notifications as NotifWrapper
 import qs.modules.commandcapture
+import qs.utils
 import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
@@ -14,13 +15,14 @@ Item {
 	id: root
 
 	required property ShellScreen screen
-	required property PersistentProperties openPanels
+	required property OpenPanels openPanels
 	required property Item bar
 
 	readonly property alias session: session
 	readonly property alias popouts: popouts
 	readonly property alias startmenu: startmenu
 	readonly property alias mprisViewer: mprisViewer
+	readonly property alias notifications: notificationWrapper
 
 	readonly property list<string> validPanelProps: ["session", "startmenu", "mprisViewer"]
 
@@ -81,6 +83,19 @@ Item {
 
 		screen: root.screen
 		openPanels: root.openPanels
+
+		anchors {
+			top: parent.top
+			bottom: parent.bottom
+			right: parent.right
+		}
+	}
+
+	NotifWrapper.Overlay {
+		id: notificationOverlay
+
+		isActive: root.openPanels.notifications === false
+		maxHeight: root.height
 
 		anchors {
 			top: parent.top
