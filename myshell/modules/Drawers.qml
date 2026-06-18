@@ -33,7 +33,7 @@ Variants {
 			name: "drawers"
 
 			exclusionMode: ExclusionMode.Ignore
-			WlrLayershell.keyboardFocus: openPanels.startmenu ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+			WlrLayershell.keyboardFocus: openPanels.startmenu || openPanels.notifications ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
 			mask: Region {
 				x: Config.border.thickness

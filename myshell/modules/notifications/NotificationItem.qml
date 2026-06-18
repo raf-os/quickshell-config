@@ -12,6 +12,7 @@ MouseArea {
 	required property Notification modelData
 	property int enterExitDuration: 300
 	property int padding: Config.appearance.padding.md
+	property Component background: DefaultBackground {}
 
 	readonly property int notifIdx: modelData.id
 	readonly property string appName: modelData.appName
@@ -23,6 +24,8 @@ MouseArea {
 
 	implicitWidth: desiredWidth
 	implicitHeight: mainLayout.implicitHeight + padding * 2
+
+	hoverEnabled: true
 
 	signal closeNotification
 
@@ -47,7 +50,14 @@ MouseArea {
 	}
 	ListView.onRemove: removeAnimation.start()
 
-	Rectangle {
+	Loader {
+		active: true
+		anchors.fill: parent
+
+		sourceComponent: root.background
+	}
+
+	component DefaultBackground: Rectangle {
 		id: backgroundRect
 
 		anchors.fill: parent
@@ -118,7 +128,7 @@ MouseArea {
 						anchors.fill: parent
 						radius: width / 2
 
-						color: closeButton.containsMouse ? Qt.darker(Colors.colors.destructive, 2) : Qt.darker(Colors.colors.destructive, 3)
+						color: closeButton.containsMouse ? Colors.colors.destructive : Colors.colors.base
 
 						border.width: 1
 						border.color: Colors.colors.destructive
@@ -136,7 +146,7 @@ MouseArea {
 						grade: 200
 
 						font.pixelSize: closeButton.iconSize - closeButton.iconPadding * 2
-						color: closeButton.containsMouse ? Colors.colors.destructiveHover : Colors.colors.destructive
+						color: closeButton.containsMouse ? Colors.colors.destructiveContent : Colors.colors.destructive
 
 						anchors.fill: parent
 

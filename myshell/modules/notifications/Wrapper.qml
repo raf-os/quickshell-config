@@ -56,13 +56,6 @@ MouseArea {
 		}
 	}
 
-	// Overlay {
-	// 	id: notifOverlay
-	//
-	// 	isActive: root.openPanels.notifications === false
-	// 	maxHeight: root.maxHeight
-	// }
-
 	Loader {
 		id: sidebarLoader
 

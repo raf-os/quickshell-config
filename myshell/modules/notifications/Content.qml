@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import qs.utils
 import qs.components
 import org.nightshell.Notifications
@@ -14,8 +16,14 @@ Item {
 	required property bool isActive
 	required property real desiredWidth
 
+	readonly property int padding: Config.appearance.padding.md
+	readonly property int leftPadding: padding
+	readonly property int rightPadding: Math.max(0, padding - Config.border.thickness)
+
 	implicitWidth: 0
 	clip: true
+
+	focus: isActive
 
 	anchors {
 		top: parent.top
@@ -25,6 +33,16 @@ Item {
 
 	signal readyToUnload
 	signal lostFocus
+
+	onIsActiveChanged: {
+		if (isActive) {
+			root.forceActiveFocus();
+		}
+	}
+
+	Keys.onEscapePressed: {
+		root.lostFocus();
+	}
 
 	HyprlandFocusGrab {
 		active: root.isActive
@@ -71,24 +89,22 @@ Item {
 	Item {
 		id: header
 
-		readonly property int padding: Config.appearance.padding.md
-
 		anchors {
 			top: parent.top
 			left: parent.left
 		}
 
 		implicitWidth: root.desiredWidth
-		implicitHeight: headerLayout.implicitHeight + padding * 2
+		implicitHeight: headerLayout.implicitHeight + root.padding * 2
 
 		RowLayout {
 			id: headerLayout
 
 			anchors {
 				left: parent.left
-				leftMargin: header.padding
+				leftMargin: root.leftPadding
 				right: parent.right
-				rightMargin: header.padding
+				rightMargin: root.rightPadding
 				verticalCenter: parent.verticalCenter
 			}
 
@@ -115,17 +131,36 @@ Item {
 		id: listView
 		model: NotificationServer.model
 
+		spacing: Config.appearance.spacing.sm
+
 		anchors {
 			top: header.bottom
 			left: parent.left
+			leftMargin: root.leftPadding
 			bottom: parent.bottom
 		}
-		implicitWidth: root.desiredWidth
+
+		implicitWidth: root.desiredWidth - root.leftPadding - root.rightPadding
 		clip: true
 
 		delegate: NotificationItem {
+			id: notifDelegate
+
 			onCloseNotification: {
 				modelData.dismiss();
+			}
+
+			background: Rectangle {
+				readonly property color bgCol: Colors.colors.base2
+				anchors.fill: parent
+				color: notifDelegate.containsMouse ? Qt.lighter(bgCol, 1.25) : bgCol
+				radius: Config.appearance.rounding.sm
+
+				Behavior on color {
+					CAnim {
+						duration: 100
+					}
+				}
 			}
 		}
 	}
@@ -134,8 +169,6 @@ Item {
 		id: noNotifItem
 
 		anchors.fill: listView
-		anchors.margins: Config.appearance.padding.md
-
 		opacity: NotificationServer.model.values.length === 0 ? 1 : 0 // qmllint disable unresolved-type
 
 		StyledText {

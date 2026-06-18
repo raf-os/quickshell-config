@@ -32,10 +32,19 @@ qt_add_qml_module(
   VERSION 0.1
 )
 
+set_target_properties(myshell_notifications
+  PROPERTIES
+  INSTALL_RPATH "${INSTALL_QMLDIR}/org/nightshell/DBusImageProvider"
+)
+
 target_link_libraries(myshell_notifications
   PRIVATE
+    Qt::Core
+    Qt::Gui
+    Qt::Qml
     Qt::Quick
     Qt::DBus
+    nightshell_dbus_imageprovider
 )
 
 install_qml_module(myshell_notifications)

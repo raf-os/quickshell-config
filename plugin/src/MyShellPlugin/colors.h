@@ -58,6 +58,7 @@ class ColorConfigColors : public myqmlplugin::configs::CSerializable {
   AUTO_PROP_DEFAULT(QColor, primary5, "#f4b17a")
 
   AUTO_PROP_DEFAULT(QColor, destructive, "#e32e35")
+  AUTO_PROP_DEFAULT(QColor, destructiveContent, "#200305")
   AUTO_PROP_DEFAULT(QColor, destructiveHover, "#ed5c4b")
 
   AUTO_PROP_DEFAULT(QColor, emphasisFavorite, "#efe302")
