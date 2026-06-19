@@ -28,16 +28,23 @@ public:
     ModelDataRole = Qt::UserRole + 1,
   };
 
-  qint32 rowCount(const QModelIndex &parent = {}) const override;
-  QVariant data(const QModelIndex &index, qint32 role) const override;
-  QHash<int, QByteArray> roleNames() const override {
-    return {{Roles::ModelDataRole, "modelData"}};
+  qint32   rowCount(const QModelIndex &parent = {}) const override;
+  QVariant data(const QModelIndex &index,
+                qint32             role) const override;
+  QHash<int,
+        QByteArray>
+  roleNames() const override {
+    return {
+        {Roles::ModelDataRole, "modelData"}
+    };
   }
 
   void removeAt(qsizetype index);
   bool removeNotification(const Notification *notif);
-  void insertNotification(Notification *notif, qsizetype at = -1);
+  void insertNotification(Notification *notif,
+                          qsizetype     at = -1);
 
+  void clearModel();
   void resetState();
 
   [[nodiscard]] QList<Notification *> values() const {

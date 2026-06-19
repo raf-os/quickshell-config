@@ -38,7 +38,7 @@ Variants {
 			mask: Region {
 				x: Config.border.thickness
 				y: bar.implicitHeight
-				width: win.width - Config.border.thickness
+				width: win.width - Config.border.thickness * 2
 				height: win.height - bar.implicitHeight - Config.border.thickness
 
 				intersection: Intersection.Xor

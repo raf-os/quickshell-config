@@ -16,7 +16,8 @@ qint32 NotificationsModel::rowCount(const QModelIndex &parent) const {
   return static_cast<qint32>(this->m_notifications.length());
 }
 
-QVariant NotificationsModel::data(const QModelIndex &index, qint32 role) const {
+QVariant NotificationsModel::data(const QModelIndex &index,
+                                  qint32             role) const {
   if (!index.isValid())
     return {};
 
@@ -42,7 +43,7 @@ void NotificationsModel::removeAt(qsizetype index) {
     return;
 
   Notification *notification = m_notifications.at(index);
-  auto intIdx = static_cast<qint32>(index);
+  auto          intIdx       = static_cast<qint32>(index);
   beginRemoveRows({}, intIdx, intIdx);
   m_notifications.removeAt(index);
   endRemoveRows();
@@ -50,13 +51,22 @@ void NotificationsModel::removeAt(qsizetype index) {
   emit valuesChanged();
 }
 
-void NotificationsModel::insertNotification(Notification *notif, qsizetype at) {
+void NotificationsModel::insertNotification(Notification *notif,
+                                            qsizetype     at) {
   auto idx = at == -1 ? m_notifications.size() : at;
 
   auto intIdx = static_cast<qint32>(idx);
   beginInsertRows({}, intIdx, intIdx);
   m_notifications.insert(idx, notif);
   endInsertRows();
+
+  emit valuesChanged();
+}
+
+void NotificationsModel::clearModel() {
+  beginRemoveRows({}, 0, m_notifications.size());
+  m_notifications.clear();
+  endRemoveRows();
 
   emit valuesChanged();
 }

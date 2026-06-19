@@ -1,11 +1,11 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Qml Quick)
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 
 qt_add_library(nightshell_dbus_imageprovider SHARED dbusimage.cpp)
 
 target_include_directories(nightshell_dbus_imageprovider
-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 qt_add_qml_module(nightshell_dbus_imageprovider
   URI "${ORG_URI_PREFIX}.DBusImageProvider"
@@ -20,6 +20,8 @@ target_link_libraries(nightshell_dbus_imageprovider PRIVATE
   Qt::Core
   Qt::Gui
   Qt::Qml
-  Qt::Quick)
+  Qt::Quick
+  Qt::DBus
+)
 
 install_qml_module(nightshell_dbus_imageprovider)

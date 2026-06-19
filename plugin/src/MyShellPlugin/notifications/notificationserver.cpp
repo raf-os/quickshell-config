@@ -1,9 +1,11 @@
 #include "notificationserver.h"
 #include "dbus_notifications.h"
+#include "dbusimage.h"
 #include "notification.h"
 
 #include <qcontainerfwd.h>
 #include <qdbusconnection.h>
+#include <qdbusmetatype.h>
 #include <qdbusservicewatcher.h>
 #include <qlogging.h>
 #include <qloggingcategory.h>
@@ -13,9 +15,12 @@
 
 namespace ns {
 namespace notifications {
-Q_LOGGING_CATEGORY(logNSNotifications, "nightshell.notifications")
+Q_LOGGING_CATEGORY(logNSNotifications,
+                   "nightshell.notifications")
 
 NotificationServer::NotificationServer(QObject *parent) : QObject(parent) {
+  qDBusRegisterMetaType<dbusprovider::DBusNotificationImage>();
+
   new DBusNotificationServer(this);
 
   qCInfo(logNSNotifications) << "Starting notification server...";
@@ -33,8 +38,10 @@ NotificationServer::NotificationServer(QObject *parent) : QObject(parent) {
     return;
   }
 
-  QObject::connect(&m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered,
-                   this, &NotificationServer::onServiceUnregistered);
+  QObject::connect(&m_serviceWatcher,
+                   &QDBusServiceWatcher::serviceUnregistered,
+                   this,
+                   &NotificationServer::onServiceUnregistered);
 
   m_serviceWatcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
   // m_serviceWatcher.addWatchedService("org.freedesktop.Notifications");
@@ -44,7 +51,7 @@ NotificationServer::NotificationServer(QObject *parent) : QObject(parent) {
 }
 
 void NotificationServer::tryRegister() {
-  auto bus = QDBusConnection::sessionBus();
+  auto bus  = QDBusConnection::sessionBus();
   auto succ = bus.registerService("org.freedesktop.Notifications");
 
   if (succ) {
@@ -59,7 +66,7 @@ void NotificationServer::tryRegister() {
 }
 
 void NotificationServer::closeConnection() {
-  auto bus = QDBusConnection::sessionBus();
+  auto bus  = QDBusConnection::sessionBus();
   auto succ = bus.unregisterService("org.freedesktop.Notifications");
 
   if (succ) {
@@ -89,6 +96,7 @@ void NotificationServer::setIsActive(const bool &value) {
 }
 
 void NotificationServer::closeAllNotifications() {
+  m_model.clearModel();
   for (auto it = m_notificationsMap.begin(); it != m_notificationsMap.end();
        ++it) {
     it.value()->dismiss();
@@ -111,7 +119,8 @@ void NotificationServer::resetServerState() {
 }
 
 void NotificationServer::deleteNotification(
-    Notification *notification, NotificationCloseReason::Enum reason) {
+    Notification                 *notification,
+    NotificationCloseReason::Enum reason) {
   if (!m_notificationsMap.contains(notification->id()))
     return;
 
@@ -119,6 +128,9 @@ void NotificationServer::deleteNotification(
 
   m_model.removeNotification(notification);
   m_notificationsMap.remove(notification->id());
+
+  // notification->scheduleCleanup();
+  notification->deleteLater();
 
   emit NotificationClosed(notification->id(), reason);
 }
@@ -136,6 +148,7 @@ QStringList NotificationServer::GetCapabilities() const {
 
   capabilities.append("persistence");
   capabilities.append("body");
+  capabilities.append("icon-static");
 
   return capabilities;
 }
@@ -143,16 +156,20 @@ QStringList NotificationServer::GetCapabilities() const {
 QString NotificationServer::GetServerInformation(QString &vendor,
                                                  QString &version,
                                                  QString &specVersion) {
-  vendor = "nightshell";
-  version = "1.0";
+  vendor      = "nightshell";
+  version     = "1.0";
   specVersion = "1.3";
   return "Nightshell Notifications";
 }
 
-uint NotificationServer::Notify(const QString &appName, uint replacesId,
-                                const QString &appIcon, const QString &summary,
-                                const QString &body, const QStringList &actions,
-                                const QVariantMap &hints, int expireTimeout) {
+uint NotificationServer::Notify(const QString     &appName,
+                                uint               replacesId,
+                                const QString     &appIcon,
+                                const QString     &summary,
+                                const QString     &body,
+                                const QStringList &actions,
+                                const QVariantMap &hints,
+                                int                expireTimeout) {
   auto *notification =
       replacesId == 0 ? nullptr : this->m_notificationsMap.value(replacesId);
   bool isUpdate = notification != nullptr;
@@ -162,8 +179,8 @@ uint NotificationServer::Notify(const QString &appName, uint replacesId,
     QQmlEngine::setObjectOwnership(notification, QQmlEngine::CppOwnership);
   }
 
-  notification->updateProperties(appName, appIcon, summary, body, actions,
-                                 hints, expireTimeout);
+  notification->updateProperties(
+      appName, appIcon, summary, body, actions, hints, expireTimeout);
 
   if (!isUpdate) {
     emit this->notification(notification);

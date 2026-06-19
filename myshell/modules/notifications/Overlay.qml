@@ -8,7 +8,7 @@ import MyShellPlugin
 import MyShellPlugin.Configs
 import QtQuick
 
-Item {
+MouseArea {
 	id: root
 
 	required property bool isActive
@@ -16,11 +16,23 @@ Item {
 
 	readonly property int padding: Config.appearance.padding.md
 
-	implicitWidth: 320 - padding
+	implicitWidth: Config.notification.sidebarWidth - padding
 	implicitHeight: notifListView.implicitHeight
 
 	anchors.topMargin: padding
 	anchors.rightMargin: padding
+
+	hoverEnabled: true
+	preventStealing: true
+	acceptedButtons: Qt.NoButton
+
+	onEntered: {
+		TempNotifications.stopCullTimer();
+	}
+
+	onExited: {
+		TempNotifications.startCullTimer();
+	}
 
 	ListView {
 		id: notifListView
@@ -41,8 +53,38 @@ Item {
 		spacing: Config.appearance.spacing.md
 
 		delegate: NotificationItem {
+			id: notificationItemDelegate
+
+			isTemporary: true
+
 			onCloseNotification: {
-				TempNotifications.removeNotificationById(index);
+				if (notificationItemDelegate.modelData) {
+					notificationItemDelegate.modelData.dismiss();
+				}
+			}
+
+			onForceClose: {
+				TempNotifications.removeNotificationById(notificationItemDelegate.index);
+			}
+
+			bodyContent: StyledText {
+				id: notifBody
+
+				anchors {
+					top: parent.top
+					left: parent.left
+					right: parent.right
+				}
+
+				text: notificationItemDelegate.summary !== "" ? notificationItemDelegate.summary : notificationItemDelegate.body
+
+				font.family: Config.appearance.fontFamily.sans
+				font.italic: true
+				font.pointSize: Config.appearance.fontSize.sm
+				opacity: 0.75
+
+				elide: Text.ElideRight
+				maximumLineCount: 2
 			}
 		}
 		model: TempNotifications.model

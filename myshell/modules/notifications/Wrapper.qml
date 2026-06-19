@@ -1,23 +1,19 @@
 pragma ComponentBehavior: Bound
 
 import qs.modules.notifications
-import qs.components
 import qs.utils
-import org.nightshell.Notifications
-import MyShellPlugin
 import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
-import QtQuick.Layouts
 
-MouseArea {
+Item {
 	id: root
 
 	required property ShellScreen screen
 	required property OpenPanels openPanels
 
 	readonly property int padding: Config.appearance.padding.md
-	readonly property int desiredWidth: 320
+	readonly property int desiredWidth: Config.notification.sidebarWidth
 	readonly property real maxHeight: parent.height - (padding * 2)
 
 	// anchors.margins: padding
@@ -26,20 +22,8 @@ MouseArea {
 
 	// anchors.bottom: sidebarLoader.active ? parent.bottom : undefined
 
-	preventStealing: true
-	acceptedButtons: Qt.NoButton
-	hoverEnabled: true
-
 	function togglePanel() {
 		root.openPanels.notifications = !root.openPanels.notifications;
-	}
-
-	onEntered: {
-		TempNotifications.stopCullTimer();
-	}
-
-	onExited: {
-		TempNotifications.startCullTimer();
 	}
 
 	Connections {

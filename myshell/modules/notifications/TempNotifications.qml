@@ -22,7 +22,8 @@ Singleton {
 	}
 
 	function removeNotificationById(idx: int): void {
-		temporaryNotifications.remove(idx, 1);
+		if (temporaryNotifications.get(idx))
+			temporaryNotifications.remove(idx, 1);
 	}
 
 	function startCullTimer(): void {

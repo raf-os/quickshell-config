@@ -10,7 +10,7 @@ import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 
-Item {
+MouseArea {
 	id: root
 
 	required property bool isActive
@@ -25,6 +25,11 @@ Item {
 
 	focus: isActive
 
+	onClicked: {
+		root.resetExpansion();
+	}
+	propagateComposedEvents: true
+
 	anchors {
 		top: parent.top
 		bottom: parent.bottom
@@ -34,6 +39,20 @@ Item {
 	signal readyToUnload
 	signal lostFocus
 
+	function resetExpansion(): void {
+		// root.expandedId = -1;
+		lview.currentIndex = -1;
+	}
+
+	function expandId(idx: int): bool {
+		if (lview.currentIndex === idx) {
+			resetExpansion();
+			return false;
+		}
+		lview.currentIndex = idx;
+		return true;
+	}
+
 	onIsActiveChanged: {
 		if (isActive) {
 			root.forceActiveFocus();
@@ -41,6 +60,7 @@ Item {
 	}
 
 	Keys.onEscapePressed: {
+		root.resetExpansion();
 		root.lostFocus();
 	}
 
@@ -48,6 +68,7 @@ Item {
 		active: root.isActive
 		windows: [QsWindow.window]
 		onCleared: {
+			root.resetExpansion();
 			root.isActive = false;
 		}
 	}
@@ -122,13 +143,14 @@ Item {
 
 				onClicked: {
 					NotificationServer.closeAllNotifications();
+					root.isActive = false;
 				}
 			}
 		}
 	}
 
 	SListView {
-		id: listView
+		id: lview
 		model: NotificationServer.model
 
 		spacing: Config.appearance.spacing.sm
@@ -140,25 +162,79 @@ Item {
 			bottom: parent.bottom
 		}
 
+		listView.highlightFollowsCurrentItem: true
+		listView.highlightMoveDuration: -1
+		listView.highlightMoveVelocity: -1
+
+		onScrollBarPressed: {
+			root.resetExpansion();
+		}
+
 		implicitWidth: root.desiredWidth - root.leftPadding - root.rightPadding
 		clip: true
 
 		delegate: NotificationItem {
 			id: notifDelegate
 
+			expandedId: ListView.view ? ListView.view.currentIndex : -1
+
+			onRequestExpand: idx => {
+				if (root.expandId(idx)) {}
+			}
+
 			onCloseNotification: {
+				if (!modelData)
+					return;
 				modelData.dismiss();
 			}
 
 			background: Rectangle {
-				readonly property color bgCol: Colors.colors.base2
+				readonly property color bgCol: notifDelegate.urgency === NotificationUrgency.Critical ? Colors.colors.destructive : Colors.colors.base2
 				anchors.fill: parent
 				color: notifDelegate.containsMouse ? Qt.lighter(bgCol, 1.25) : bgCol
 				radius: Config.appearance.rounding.sm
 
+				border.width: notifDelegate.isExpanded ? 2 : 0
+				border.color: Colors.colors.primary
+
 				Behavior on color {
 					CAnim {
 						duration: 100
+					}
+				}
+			}
+
+			bodyContent: Item {
+				id: notifBody
+
+				anchors {
+					left: parent.left
+					right: parent.right
+					top: parent.top
+				}
+				clip: true
+
+				implicitHeight: notifBodyLayout.height
+
+				ColumnLayout {
+					id: notifBodyLayout
+
+					anchors {
+						left: parent.left
+						right: parent.right
+						top: parent.top
+					}
+
+					StyledText {
+						Layout.fillWidth: true
+						text: notifDelegate.body !== "" ? notifDelegate.body : notifDelegate.summary
+
+						font.family: Config.appearance.fontFamily.sans
+						font.pointSize: Config.appearance.fontSize.sm
+
+						wrapMode: Text.Wrap
+						maximumLineCount: notifDelegate.isExpanded ? 10000 : 2
+						elide: Text.ElideRight
 					}
 				}
 			}
@@ -168,7 +244,7 @@ Item {
 	Item {
 		id: noNotifItem
 
-		anchors.fill: listView
+		anchors.fill: lview
 		opacity: NotificationServer.model.values.length === 0 ? 1 : 0 // qmllint disable unresolved-type
 
 		StyledText {

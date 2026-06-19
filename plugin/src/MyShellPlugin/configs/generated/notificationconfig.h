@@ -16,6 +16,7 @@ class NotificationConfig : public myqmlplugin::configs::CSerializable {
 	QML_UNCREATABLE("")
 
 	Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged BINDABLE bindableEnabled RESET resetEnabled WRITE setEnabled)
+	Q_PROPERTY(int sidebarWidth READ sidebarWidth NOTIFY sidebarWidthChanged BINDABLE bindableSidebarWidth RESET resetSidebarWidth WRITE setSidebarWidth)
 
 public:
 	explicit NotificationConfig(QObject *root = nullptr, QObject *parent = nullptr);
@@ -27,10 +28,17 @@ public:
 	QBindable<bool> bindableEnabled();
 	Q_SIGNAL void enabledChanged();
 
+	[[nodiscard]] int sidebarWidth() const;
+	void setSidebarWidth(int value);
+	void resetSidebarWidth();
+	QBindable<int> bindableSidebarWidth();
+	Q_SIGNAL void sidebarWidthChanged();
+
 private:	
 	const QString m_className = "NotificationConfig";
 
 	QProperty<bool> m_enabled{true};
+	QProperty<int> m_sidebarWidth{320};
 };
 // END CLASS [[ NotificationConfig ]]
 } // namespace configs

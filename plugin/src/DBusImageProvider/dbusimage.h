@@ -21,16 +21,16 @@
 namespace ns::dbusprovider {
 
 struct DBusNotificationImage {
-  qint32 width = 0;
-  qint32 height = 0;
-  bool hasAlpha = false;
+  qint32     width    = 0;
+  qint32     height   = 0;
+  bool       hasAlpha = false;
   QByteArray data;
-  QMutex mutex;
+  QMutex     mutex;
 };
 
-const QDBusArgument &operator>>(const QDBusArgument &argument,
+const QDBusArgument &operator>>(const QDBusArgument   &argument,
                                 DBusNotificationImage &pixmap);
-const QDBusArgument &operator<<(QDBusArgument &argument,
+const QDBusArgument &operator<<(QDBusArgument               &argument,
                                 const DBusNotificationImage &pixmap);
 
 class DBusAsyncImageRunnable : public QObject, public QRunnable {
@@ -40,22 +40,27 @@ signals:
   void done(QImage image);
 
 public:
-  explicit DBusAsyncImageRunnable(const QString &id, const QSize &requestedSize)
-      : m_id(id), m_requestedSize(requestedSize) {}
+  explicit DBusAsyncImageRunnable(const QString &id,
+                                  const QSize   &requestedSize)
+      : m_id(id),
+        m_requestedSize(requestedSize) {}
 
   void run() override;
 
 private:
   QString m_id;
-  QSize m_requestedSize;
+  QSize   m_requestedSize;
 };
 
 class DBusImageResponse : public QQuickImageResponse {
 public:
-  DBusImageResponse(const QString &id, const QSize &requestedSize,
-                    QThreadPool *pool) {
+  DBusImageResponse(const QString &id,
+                    const QSize   &requestedSize,
+                    QThreadPool   *pool) {
     auto runnable = new DBusAsyncImageRunnable(id, requestedSize);
-    connect(runnable, &DBusAsyncImageRunnable::done, this,
+    connect(runnable,
+            &DBusAsyncImageRunnable::done,
+            this,
             &DBusImageResponse::handleDone);
     pool->start(runnable);
   }
@@ -75,7 +80,8 @@ public:
 class DBusImageProvider : public QQuickAsyncImageProvider {
 public:
   QQuickImageResponse *
-  requestImageResponse(const QString &id, const QSize &requestedSize) override;
+  requestImageResponse(const QString &id,
+                       const QSize   &requestedSize) override;
 
 private:
   QThreadPool pool;
@@ -88,13 +94,20 @@ public:
   Q_DISABLE_COPY_MOVE(DBusImageHandler)
 
   DBusNotificationImage *imageData() { return &image; }
+  [[nodiscard]] bool     hasData() const { return !this->image.data.isEmpty(); }
+  void                   clear() { this->image.data.clear(); }
 
   [[nodiscard]] QString urlFor() const;
-  void imageChanged();
+  void                  imageChanged();
+
+  [[nodiscard]] DBusNotificationImage &writeImage() {
+    this->imageChanged();
+    return this->image;
+  }
 
 private:
-  QString m_id;
-  quint32 m_changeIndex = 0;
+  QString               m_id;
+  quint32               m_changeIndex = 0;
   DBusNotificationImage image;
 };
 
@@ -103,7 +116,8 @@ class DBusImageProviderPlugin : public QQmlEngineExtensionPlugin {
   Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
 
 public:
-  void initializeEngine(QQmlEngine *engine, const char *uri) override {
+  void initializeEngine(QQmlEngine *engine,
+                        const char *uri) override {
     Q_UNUSED(uri)
     engine->addImageProvider("dbusimg", new DBusImageProvider);
   }

@@ -5,6 +5,11 @@
       "name": "enabled",
       "type": "bool",
       "defaultValue": true
+    },
+    {
+      "name": "sidebarWidth",
+      "type": "int",
+      "defaultValue": 320
     }
   ]
 }
