@@ -144,11 +144,8 @@ void NotificationServer::CloseNotification(uint id) {
 }
 
 QStringList NotificationServer::GetCapabilities() const {
-  auto capabilities = QStringList();
-
-  capabilities.append("persistence");
-  capabilities.append("body");
-  capabilities.append("icon-static");
+  const QStringList capabilities = {
+      "actions", "action-icons", "body", "icon-static", "persistence"};
 
   return capabilities;
 }

@@ -3,12 +3,15 @@
 #include "dbusimage.h"
 
 #include <qcontainerfwd.h>
+#include <qlist.h>
 #include <qmap.h>
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
+#include <qqmllist.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
+#include <utility>
 
 namespace ns {
 namespace notifications {
@@ -36,6 +39,8 @@ public:
   Q_ENUM(Enum)
 };
 
+class NotificationAction;
+
 class Notification : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -51,6 +56,10 @@ class Notification : public QObject {
                  bindableAppIcon)
   Q_PROPERTY(QString summary READ default NOTIFY summaryChanged BINDABLE
                  bindableSummary)
+  Q_PROPERTY(QQmlListProperty<NotificationAction> actions READ actions NOTIFY
+                 actionsChanged)
+  Q_PROPERTY(bool hasActionIcons READ default NOTIFY hasActionIconsChanged
+                 BINDABLE bindableHasActionIcons)
   Q_PROPERTY(QString body READ default NOTIFY bodyChanged BINDABLE bindableBody)
   Q_PROPERTY(QString imageUrl READ default NOTIFY imageUrlChanged BINDABLE
                  bindableImageUrl)
@@ -66,6 +75,8 @@ class Notification : public QObject {
 public:
   explicit Notification(quint32  id,
                         QObject *parent);
+
+  [[nodiscard]] QQmlListProperty<NotificationAction> actions();
 
   Q_INVOKABLE void expire();
   Q_INVOKABLE void dismiss();
@@ -97,7 +108,10 @@ public:
   [[nodiscard]] QBindable<QString> bindableImageUrl() const {
     return &m_imageUrl;
   }
-  [[nodiscard]] QBindable<QString>     bindableBody() const { return &m_body; }
+  [[nodiscard]] QBindable<QString> bindableBody() const { return &m_body; }
+  [[nodiscard]] QBindable<bool>    bindableHasActionIcons() const {
+    return &m_hasActionIcons;
+  }
   [[nodiscard]] QBindable<QVariantMap> bindableHints() const {
     return &m_hints;
   }
@@ -120,12 +134,27 @@ signals:
   void summaryChanged();
   void imageUrlChanged();
   void bodyChanged();
+  void actionsChanged();
+  void hasActionIconsChanged();
   void hintsChanged();
   void residentChanged();
   void desktopEntryChanged();
   void urgencyChanged();
 
 private:
+  static qsizetype
+  actionListCount(QQmlListProperty<NotificationAction> *property) {
+    auto *list = static_cast<QList<NotificationAction *> *>(property->data);
+    return list->count();
+  }
+
+  static NotificationAction *
+  actionListAt(QQmlListProperty<NotificationAction> *property,
+               qsizetype                             index) {
+    auto *list = static_cast<QList<NotificationAction *> *>(property->data);
+    return list->at(index);
+  }
+
   Q_OBJECT_BINDABLE_PROPERTY(Notification,
                              qreal,
                              m_expireTimeout,
@@ -146,6 +175,10 @@ private:
                              QString,
                              m_body,
                              &Notification::bodyChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(Notification,
+                             bool,
+                             m_hasActionIcons,
+                             &Notification::hasActionIconsChanged)
   Q_OBJECT_BINDABLE_PROPERTY(Notification,
                              QString,
                              m_imageUrl,
@@ -172,6 +205,39 @@ private:
   NotificationCloseReason::Enum m_closeReason =
       NotificationCloseReason::Dismissed;
   dbusprovider::DBusImageHandler m_imageHandler;
+  QList<NotificationAction *>    m_actions;
+};
+
+class NotificationAction : public QObject {
+  Q_OBJECT
+  QML_ELEMENT
+  QML_UNCREATABLE("")
+
+  Q_PROPERTY(QString identifier READ identifier CONSTANT)
+  Q_PROPERTY(QString text READ text NOTIFY textChanged)
+
+public:
+  explicit NotificationAction(QString       identifier,
+                              QString       text,
+                              Notification *notification)
+      : QObject(notification),
+        m_notification(notification),
+        m_text(std::move(text)),
+        m_identifier(std::move(identifier)) {}
+
+  Q_INVOKABLE void invoke();
+
+  [[nodiscard]] QString identifier() const;
+  [[nodiscard]] QString text() const;
+  void                  setText(const QString &text);
+
+signals:
+  void textChanged();
+
+private:
+  Notification *m_notification;
+  QString       m_identifier;
+  QString       m_text;
 };
 } // namespace notifications
 } // namespace ns
