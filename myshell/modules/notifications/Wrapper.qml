@@ -60,6 +60,7 @@ Item {
 		sourceComponent: Content {
 			isActive: sidebarLoader.shouldBeActive
 			desiredWidth: root.desiredWidth
+			openPanels: root.openPanels
 
 			onReadyToUnload: {
 				sidebarLoader.active = false;

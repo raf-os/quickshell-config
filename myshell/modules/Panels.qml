@@ -94,6 +94,7 @@ Item {
 	NotifWrapper.Overlay {
 		id: notificationOverlay
 
+		openPanels: root.openPanels
 		isActive: root.openPanels.notifications === false
 		maxHeight: root.height
 

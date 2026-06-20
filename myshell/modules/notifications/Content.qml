@@ -15,6 +15,7 @@ MouseArea {
 
 	required property bool isActive
 	required property real desiredWidth
+	required property OpenPanels openPanels
 
 	readonly property int padding: Config.appearance.padding.md
 	readonly property int leftPadding: padding
@@ -39,8 +40,14 @@ MouseArea {
 	signal readyToUnload
 	signal lostFocus
 
+	Component.onCompleted: {
+		const sId = root.openPanels.extractSelectedNotificationId();
+		if (sId !== -1) {
+			lview.currentIndex = sId;
+		}
+	}
+
 	function resetExpansion(): void {
-		// root.expandedId = -1;
 		lview.currentIndex = -1;
 	}
 
@@ -191,7 +198,7 @@ MouseArea {
 			background: Rectangle {
 				readonly property color bgCol: notifDelegate.urgency === NotificationUrgency.Critical ? Colors.colors.destructive : Colors.colors.base2
 				anchors.fill: parent
-				color: notifDelegate.containsMouse ? Qt.lighter(bgCol, 1.25) : bgCol
+				color: notifDelegate.containsMouse ? Qt.lighter(bgCol, 1.1) : bgCol
 				radius: Config.appearance.rounding.sm
 
 				border.width: notifDelegate.isExpanded ? 2 : 0
@@ -235,6 +242,40 @@ MouseArea {
 						wrapMode: Text.Wrap
 						maximumLineCount: notifDelegate.isExpanded ? 10000 : 2
 						elide: Text.ElideRight
+					}
+
+					Item {
+						Layout.fillWidth: true
+
+						implicitHeight: bodyActionsLayout.height
+						clip: true
+
+						ColumnLayout {
+							id: bodyActionsLayout
+
+							anchors {
+								top: parent.top
+								left: parent.left
+								right: parent.right
+							}
+
+							Repeater {
+								Layout.fillWidth: true
+
+								model: notifDelegate.notificationActions
+
+								delegate: ActionButton {
+									required property NotificationAction modelData
+
+									Layout.fillWidth: true
+									hasIcon: notifDelegate.hasActionIcons
+
+									onInvoked: {
+										modelData.invoke();
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -334,6 +375,80 @@ MouseArea {
 			padding: headerBtn.padding
 
 			color: Colors.colors.baseContent
+		}
+	}
+
+	component ActionButton: MouseArea {
+		id: actionButtonComponent
+
+		required property string text
+		required property string identifier
+		required property bool hasIcon
+
+		readonly property int padding: 4
+
+		implicitHeight: Config.appearance.fontSize.xl + padding * 2
+		cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+		hoverEnabled: true
+
+		signal invoked
+
+		onClicked: {
+			invoked();
+		}
+
+		Rectangle {
+			id: actionButtonBg
+			anchors.fill: parent
+
+			color: Colors.colors.base
+
+			border.width: 1
+			border.color: actionButtonComponent.containsMouse ? Colors.colors.primary : Colors.colors.neutral
+
+			radius: Config.appearance.rounding.sm
+		}
+
+		RowLayout {
+			id: actionButtonLayout
+
+			anchors.fill: parent
+			anchors.margins: actionButtonComponent.padding
+
+			Loader {
+				active: actionButtonComponent.hasIcon
+
+				Layout.fillHeight: true
+
+				sourceComponent: Image {
+					id: actionButtonIcon
+
+					asynchronous: true
+					anchors.verticalCenter: parent.verticalCenter
+
+					width: actionButtonLayout.implicitHeight
+					height: width
+
+					source: `image://qicons/qt/${actionButtonComponent.identifier}`
+				}
+			}
+
+			Text {
+				id: actionButtonText
+
+				Layout.fillWidth: true
+				Layout.fillHeight: true
+
+				text: actionButtonComponent.text
+				elide: Text.ElideRight
+
+				font.family: Config.appearance.fontFamily.sans
+				font.pixelSize: parent.height * 0.75
+
+				color: Colors.colors.baseContent
+
+				verticalAlignment: Text.AlignVCenter
+			}
 		}
 	}
 }

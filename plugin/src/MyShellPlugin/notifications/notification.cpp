@@ -109,10 +109,9 @@ void Notification::updateProperties(const QString     &appName,
 
   if (actions.length() % 2 == 0) {
     int actionIndex = 0;
-    int i           = 0;
-    while (i < actions.length()) {
+    for (auto i = 0; i != actions.length(); i += 2) {
       const auto &identifier = actions.at(i);
-      const auto &text       = actions.at(++i);
+      const auto &text       = actions.at(i + 1);
 
       auto *existingAction = actionIndex < m_actions.length()
                                  ? m_actions.at(actionIndex)

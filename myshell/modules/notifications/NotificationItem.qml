@@ -29,6 +29,8 @@ MouseArea {
 	property string summary
 	property string body
 	property string imageUrl
+	property bool hasActionIcons
+	property list<NotificationAction> notificationActions
 
 	Binding {
 		when: (root.modelData !== null && root.modelData !== undefined) && root.isTemporary === false
@@ -39,6 +41,8 @@ MouseArea {
 		root.summary: root.modelData.summary
 		root.body: root.modelData.body
 		root.imageUrl: root.modelData.imageUrl
+		root.hasActionIcons: root.modelData.hasActionIcons
+		root.notificationActions: root.modelData.actions
 	}
 
 	function modelRefetch() {
@@ -76,12 +80,14 @@ MouseArea {
 	signal closeNotification
 	signal forceClose
 	signal requestExpand(idx: int)
+	signal activated(idx: int)
 
 	onClicked: ev => {
-		if (root.isTemporary)
-			return;
-
-		root.requestExpand(root.index);
+		if (root.isTemporary) {
+			root.activated(root.index);
+		} else {
+			root.requestExpand(root.index);
+		}
 	}
 
 	SequentialAnimation {

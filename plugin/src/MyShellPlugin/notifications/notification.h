@@ -56,8 +56,8 @@ class Notification : public QObject {
                  bindableAppIcon)
   Q_PROPERTY(QString summary READ default NOTIFY summaryChanged BINDABLE
                  bindableSummary)
-  Q_PROPERTY(QQmlListProperty<NotificationAction> actions READ actions NOTIFY
-                 actionsChanged)
+  Q_PROPERTY(QQmlListProperty<ns::notifications::NotificationAction> actions
+                 READ actions NOTIFY actionsChanged)
   Q_PROPERTY(bool hasActionIcons READ default NOTIFY hasActionIconsChanged
                  BINDABLE bindableHasActionIcons)
   Q_PROPERTY(QString body READ default NOTIFY bodyChanged BINDABLE bindableBody)

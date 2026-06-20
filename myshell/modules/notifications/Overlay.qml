@@ -13,6 +13,7 @@ MouseArea {
 
 	required property bool isActive
 	required property real maxHeight
+	required property OpenPanels openPanels
 
 	readonly property int padding: Config.appearance.padding.md
 
@@ -56,6 +57,11 @@ MouseArea {
 			id: notificationItemDelegate
 
 			isTemporary: true
+
+			onActivated: idx => {
+				root.openPanels.openNotificationsAtId(idx);
+				TempNotifications.clearNotifications();
+			}
 
 			onCloseNotification: {
 				if (notificationItemDelegate.modelData) {

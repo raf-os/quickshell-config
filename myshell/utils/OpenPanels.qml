@@ -16,8 +16,20 @@ PersistentProperties {
 	property bool notifications
 
 	property string desiredStartMenuTab: ""
+	property int _selectedNotificationBuffer: -1
 
 	Component.onCompleted: PanelService.load(screen, this)
+
+	function openNotificationsAtId(idx: int): void {
+		root.notifications = true;
+		root._selectedNotificationBuffer = Math.max(-1, idx);
+	}
+
+	function extractSelectedNotificationId(): int {
+		const cur = root._selectedNotificationBuffer;
+		root._selectedNotificationBuffer = -1;
+		return cur;
+	}
 
 	function closePanels() {
 		session = false;
