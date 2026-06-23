@@ -1,4 +1,5 @@
 import qs.modules
+import qs.modules.background as WLRBG
 import qs.modules.lock
 import qs.services
 import org.nightshell.Notifications
@@ -10,6 +11,7 @@ import QtQuick
 ShellRoot {
 	id: root
 
+	WLRBG.Background {}
 	Drawers {}
 	HyprShortcuts {}
 	Lock {}

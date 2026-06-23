@@ -6,5 +6,6 @@
 #include "appearanceconfig.h"
 #include "keymapconfig.h"
 #include "soundsconfig.h"
+#include "wallpaperconfig.h"
 #include "launcherconfig.h"
 #include "borderconfig.h"

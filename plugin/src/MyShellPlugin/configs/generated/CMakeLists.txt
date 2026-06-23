@@ -12,6 +12,7 @@ add_library(myshell_configs_gen
 		appearanceconfig.h appearanceconfig.cpp
 		keymapconfig.h keymapconfig.cpp
 		soundsconfig.h soundsconfig.cpp
+		wallpaperconfig.h wallpaperconfig.cpp
 		launcherconfig.h launcherconfig.cpp
 		borderconfig.h borderconfig.cpp
         gen_includes.h)
@@ -36,6 +37,7 @@ set(GENERATED_SOURCES
 	generated/appearanceconfig.h generated/appearanceconfig.cpp
 	generated/keymapconfig.h generated/keymapconfig.cpp
 	generated/soundsconfig.h generated/soundsconfig.cpp
+	generated/wallpaperconfig.h generated/wallpaperconfig.cpp
 	generated/launcherconfig.h generated/launcherconfig.cpp
 	generated/borderconfig.h generated/borderconfig.cpp
     PARENT_SCOPE
