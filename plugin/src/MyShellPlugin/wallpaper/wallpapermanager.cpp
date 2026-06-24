@@ -2,6 +2,7 @@
 #include "paths.h"
 #include "wallpapermeta.h"
 
+#include <algorithm>
 #include <qbuffer.h>
 #include <qdir.h>
 #include <qfileinfo.h>
@@ -26,6 +27,13 @@ WallpaperManager::WallpaperManager(QObject *parent) : QObject(parent) {
   QObject::connect(
       &m_switchTimer, &QTimer::timeout, this, &WallpaperManager::moveForward);
 
+  m_fileDebounceTimer.setSingleShot(true);
+  m_fileDebounceTimer.setInterval(300);
+  QObject::connect(&m_fileDebounceTimer,
+                   &QTimer::timeout,
+                   this,
+                   &WallpaperManager::parseConfig);
+
   QString cfgPath =
       myqmlplugin::utils::Paths::instance()->config() + "/wallpapers.json";
 
@@ -38,7 +46,7 @@ WallpaperManager::WallpaperManager(QObject *parent) : QObject(parent) {
   QObject::connect(&m_fileWatcher,
                    &QFileSystemWatcher::fileChanged,
                    this,
-                   &WallpaperManager::parseConfig);
+                   [this]() { this->m_fileDebounceTimer.start(); });
 }
 
 WallpaperMeta *WallpaperManager::current() {
@@ -56,24 +64,15 @@ WallpaperMeta *WallpaperManager::moveForward() {
 
   const auto cur = current();
 
-  if (m_currentIndex < m_instances.length()) {
-    m_currentIndex++;
-    next = m_instances[m_currentIndex];
-  } else {
-    m_currentIndex = 0;
-    next           = m_instances[0];
-  }
+  m_currentIndex = (m_currentIndex + 1) % m_instances.length();
+  next           = m_instances[m_currentIndex];
 
   if (next != cur) {
     emit currentChanged();
   }
 
   if (next) {
-    const auto interval = next->interval();
-    if (interval > 0) {
-      m_switchTimer.setInterval(interval);
-      m_switchTimer.start();
-    }
+    setupTimer();
   }
 
   return next;
@@ -85,7 +84,7 @@ void WallpaperManager::parseConfig() {
   if (!cfgFile.exists()) {
     qCWarning(logNSWallpaper)
         << "ns::wallpaper::WallpaperManager::parseConfig: Non-existant "
-           "wallpaper config file provided: "
+           "wallpaper config file provided:"
         << m_configPath;
     return;
   }
@@ -139,7 +138,7 @@ void WallpaperManager::parseConfig() {
           continue;
 
         auto wpp = new WallpaperMeta(item.path, this);
-        wpp->setInterval(item.interval);
+        wpp->setInterval(std::min(std::max(-1, item.interval), 2147483));
         wpp->setFillMode(item.fillMode);
         m_instances.append(wpp);
       }
@@ -158,7 +157,26 @@ void WallpaperManager::parseConfig() {
   m_currentIndex = 0;
   emit currentChanged();
 
+  setupTimer();
+
   this->attachWatcher();
+}
+
+void WallpaperManager::setupTimer() {
+  m_switchTimer.stop();
+
+  if (m_instances.length() < 2)
+    return;
+
+  auto cur = current();
+
+  if (!cur)
+    return;
+  if (cur->interval() < 1)
+    return;
+
+  m_switchTimer.setInterval(std::max(cur->interval() * 1000, 5000));
+  m_switchTimer.start();
 }
 
 void WallpaperManager::triggerParse() { return parseConfig(); }

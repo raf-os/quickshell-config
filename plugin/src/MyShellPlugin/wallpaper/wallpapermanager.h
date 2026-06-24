@@ -50,6 +50,7 @@ signals:
 
 private slots:
   void parseConfig();
+  void setupTimer();
 
 private:
   explicit WallpaperManager(QObject *parent = nullptr);
@@ -58,6 +59,7 @@ private:
   QFileSystemWatcher     m_fileWatcher;
   QList<WallpaperMeta *> m_instances;
   QTimer                 m_switchTimer;
+  QTimer                 m_fileDebounceTimer;
   int                    m_currentIndex = 0;
 
   void attachWatcher();

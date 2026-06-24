@@ -13,6 +13,11 @@ class WallpaperMeta : public QObject {
   QML_UNCREATABLE("")
 
   Q_PROPERTY(QString path READ path NOTIFY pathChanged)
+  /// Time before switching to next wallpaper (in seconds)
+  /// Should be between -1 and 2147483.
+  /// Any positive number lower than 5 will be considered to be 5.
+  ///
+  /// -1 means the wallpaper won't change.
   Q_PROPERTY(int interval READ interval NOTIFY intervalChanged)
   Q_PROPERTY(ns::wallpaper::WallpaperFillMode::Enum fillMode READ fillMode
                  NOTIFY fillModeChanged)
