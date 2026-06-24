@@ -8,8 +8,6 @@ Item {
 
 	property string currentSource
 
-	anchors.fill: parent
-
 	Connections {
 		target: WallpaperManager
 
@@ -87,13 +85,19 @@ Item {
 		id: wpImageComponent
 
 		Image {
+			width: StackView.view ? StackView.view.width : 0
+			height: StackView.view ? StackView.view.height : 0
+
+			clip: true
+
 			asynchronous: true
 			cache: false
 
-			visible: StackView.view ? true : false
+			// sourceSize.width: parent.implicitWidth
+			// sourceSize.height: parent.implicitHeight
 
-			width: StackView.view ? StackView.view.width : 0
-			height: StackView.view ? StackView.view.height : 0
+			horizontalAlignment: Image.AlignHCenter
+			verticalAlignment: Image.AlignVCenter
 		}
 	}
 }

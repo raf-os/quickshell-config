@@ -35,7 +35,9 @@ Loader {
 					color: "black"
 				}
 
-				Wallpaper {}
+				Wallpaper {
+					anchors.fill: parent
+				}
 			}
 		}
 	}
