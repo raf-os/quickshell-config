@@ -2,6 +2,7 @@ import qs.modules
 import qs.modules.background as WLRBG
 import qs.modules.lock
 import qs.services
+import org.nightshell.IpcServer
 import org.nightshell.Notifications
 import MyShellPlugin
 import MyShellPlugin.Configs
@@ -31,6 +32,7 @@ ShellRoot {
 	Component.onCompleted: {
 		UserCommandService.setup();
 		SystemSoundsService.setup();
+		IPCServer.setup();
 
 		root.evalNotificationConfig();
 

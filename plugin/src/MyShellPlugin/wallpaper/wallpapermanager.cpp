@@ -1,9 +1,12 @@
 #include "wallpapermanager.h"
 #include "paths.h"
+#include "wallpapercommon.h"
 #include "wallpapermeta.h"
 
+#include <QtCore>
 #include <algorithm>
 #include <qbuffer.h>
+#include <qdebug.h>
 #include <qdir.h>
 #include <qfileinfo.h>
 #include <qfilesystemwatcher.h>
@@ -11,6 +14,7 @@
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 #include <qjsonparseerror.h>
+#include <qjsonvalue.h>
 #include <qlist.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
@@ -59,10 +63,16 @@ WallpaperMeta *WallpaperManager::current() {
 WallpaperMeta *WallpaperManager::moveForward() {
   WallpaperMeta *next = nullptr;
 
+  m_switchTimer.stop();
+
   if (m_instances.length() == 0)
     return next;
 
   const auto cur = current();
+
+  if (m_instances.length() < 2) {
+    return cur;
+  }
 
   m_currentIndex = (m_currentIndex + 1) % m_instances.length();
   next           = m_instances[m_currentIndex];
@@ -177,6 +187,83 @@ void WallpaperManager::setupTimer() {
 
   m_switchTimer.setInterval(std::max(cur->interval() * 1000, 5000));
   m_switchTimer.start();
+}
+
+void WallpaperManager::forceSingleWallpaper(const QString &path,
+                                            const QString &fillMode) {
+  if (m_instances.length() == 1) {
+    auto existingInstance = m_instances[0];
+    if (existingInstance->path() == path) {
+      existingInstance->setFillMode(fillMode);
+      saveConfigToFile();
+      return;
+    }
+  }
+
+  const QFileInfo desiredFile(path);
+
+  if (!desiredFile.exists()) {
+    qCWarning(logNSWallpaper)
+        << "ns::wallpapers::WallpaperManager::forceSingleWallpaper: Requested "
+           "path does not exist.";
+    return;
+  }
+
+  const QList<QString> allowedFileTypes{"jpg", "jpeg", "png"};
+
+  if (!allowedFileTypes.contains(desiredFile.suffix())) {
+    qCWarning(logNSWallpaper)
+        << "ns::wallpapers::WallpaperManager::forceSingleWallpaper: Provided "
+           "file type is not supported.";
+    return;
+  }
+
+  for (auto instance : m_instances) {
+    instance->deleteLater();
+  }
+
+  m_instances.clear();
+  auto newInstance = new WallpaperMeta(path, this);
+  newInstance->setFillMode(fillMode);
+  newInstance->setInterval(-1);
+  m_instances.append(newInstance);
+
+  saveConfigToFile();
+  emit currentChanged();
+}
+
+void WallpaperManager::saveConfigToFile() {
+  QSaveFile cfgFile(m_configPath, this);
+
+  QJsonArray wpArray;
+
+  for (const auto instance : m_instances) {
+    const QJsonObject wpinfoObj{
+        {"path",     instance->path()                                 },
+        {"fillMode", WallpaperFillMode::toString(instance->fillMode())},
+        {"interval", instance->interval()                             }
+    };
+    wpArray.append(QJsonValue(wpinfoObj));
+  }
+
+  QByteArray jDoc = QJsonDocument(wpArray).toJson();
+
+  if (!cfgFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    qCWarning(logNSWallpaper) << "ns::wallpaper::WallpaperManager: Unable to "
+                                 "open config file for saving.";
+    return;
+  }
+
+  QTextStream out(&cfgFile);
+  out << jDoc;
+
+  if (!cfgFile.commit()) {
+    qCWarning(logNSWallpaper)
+        << "ns::wallpaper::WallpaperManager: Saving config file failed. Check "
+           "if folder has correct permissions or if the partition it's located "
+           "at is full.";
+    return;
+  }
 }
 
 void WallpaperManager::triggerParse() { return parseConfig(); }

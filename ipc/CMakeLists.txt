@@ -1,1 +1,1 @@
-include_directories(server)
+add_subdirectory(server)

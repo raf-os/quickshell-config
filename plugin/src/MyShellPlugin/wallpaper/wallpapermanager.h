@@ -48,9 +48,14 @@ public:
 signals:
   void currentChanged();
 
+public slots:
+  void forceSingleWallpaper(const QString &path,
+                            const QString &fillMode);
+
 private slots:
   void parseConfig();
   void setupTimer();
+  void saveConfigToFile();
 
 private:
   explicit WallpaperManager(QObject *parent = nullptr);
