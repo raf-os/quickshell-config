@@ -18,10 +18,8 @@ target_include_directories(
   PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_include_directories(
-  nightshell_ipc_client
-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(nightshell_ipc_client
+                           PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 qt_add_qml_module(nightshell_ipc_server URI "${ORG_URI_PREFIX}.IpcServer"
                   VERSION 0.1)
