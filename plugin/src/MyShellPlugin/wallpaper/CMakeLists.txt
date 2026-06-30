@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui Qml Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui Quick)
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 
