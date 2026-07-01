@@ -1,5 +1,6 @@
 #include "entrymanager.h"
 #include "desktopentry.h"
+#include "entrymonitor.h"
 #include "entryscanner.h"
 
 #include <qbuffer.h>
@@ -24,7 +25,14 @@ namespace ns::desktop::entries {
 Q_LOGGING_CATEGORY(logNSDesktopEntries,
                    "nightshell.desktop.entries")
 
-EntryManager::EntryManager(QObject *parent) : QObject(parent) {}
+EntryManager::EntryManager(QObject *parent)
+    : QObject(parent),
+      m_monitor(new EntryMonitor(this)) {
+  QObject::connect(m_monitor,
+                   &EntryMonitor::entriesChanged,
+                   this,
+                   &EntryManager::scanDesktopEntries);
+}
 
 void EntryManager::scanDesktopEntries() {
   qCDebug(logNSDesktopEntries) << "Starting desktop entry scan...";

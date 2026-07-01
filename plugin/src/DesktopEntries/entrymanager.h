@@ -1,9 +1,9 @@
 #pragma once
 
 #include "desktopentry.h"
+#include "entrymonitor.h"
 #include "entryscanner.h"
 
-#include <optional>
 #include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qhash.h>
@@ -49,7 +49,8 @@ private:
 
   QHash<QString, DesktopEntry *> m_desktopEntries;
 
-  bool m_scanInProgress = false;
-  bool m_scanQueued     = false;
+  bool          m_scanInProgress = false;
+  bool          m_scanQueued     = false;
+  EntryMonitor *m_monitor        = nullptr;
 };
 } // namespace ns::desktop::entries

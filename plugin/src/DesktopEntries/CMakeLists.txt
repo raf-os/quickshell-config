@@ -8,6 +8,7 @@ target_sources(
   nightshell_desktop_entries
   PRIVATE
     entrymanager.cpp
+    entrycacher.cpp
     entryscanner.cpp
     entryutils.cpp
     entrymonitor.cpp
@@ -26,6 +27,9 @@ qt6_add_qml_module(
   VERSION 0.1
 )
 
-target_link_libraries(nightshell_desktop_entries PRIVATE Qt::Core Qt::Qml)
+target_link_libraries(
+  nightshell_desktop_entries
+  PRIVATE Qt::Core Qt::Qml myshell_utils
+)
 
 install_qml_module(nightshell_desktop_entries)
