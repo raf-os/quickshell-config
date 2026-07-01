@@ -2,7 +2,8 @@
 
 #include <qdir.h>
 #include <qtenvironmentvariables.h>
-namespace ns::desktopentries {
+
+namespace ns::desktop::entries {
 // Desktop Entry Specification - Localized values for keys
 // https://specifications.freedesktop.org/desktop-entry/latest/localized-keys.html
 //
@@ -58,4 +59,4 @@ public:
   QString territory;
   QString modifier;
 };
-} // namespace ns::desktopentries
+} // namespace ns::desktop::entries

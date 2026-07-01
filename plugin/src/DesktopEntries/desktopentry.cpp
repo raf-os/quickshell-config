@@ -1,12 +1,15 @@
 #include "desktopentry.h"
-#include "entrymanager.h"
 
 #include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
+#include <utility>
 
-namespace ns::desktopentries {
-DesktopEntry::DesktopEntry(QObject *parent) : QObject(parent) {}
+namespace ns::desktop::entries {
+DesktopEntry::DesktopEntry(QString  id,
+                           QObject *parent)
+    : QObject(parent),
+      m_id(std::move(id)) {}
 
 void DesktopEntry::updateState(const EntryData &newState) {
   {
@@ -21,4 +24,4 @@ void DesktopEntry::updateState(const EntryData &newState) {
 }
 
 void DesktopEntry::updateActions(const QList<EntryActionData> &newActions) {}
-} // namespace ns::desktopentries
+} // namespace ns::desktop::entries

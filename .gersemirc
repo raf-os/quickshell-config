@@ -1,0 +1,3 @@
+cache: true
+indent: 2
+definitions: [ /usr/lib/cmake/Qt6Core/Qt6CoreMacros.cmake, /usr/lib/cmake/Qt6Qml/Qt6QmlMacros.cmake ]

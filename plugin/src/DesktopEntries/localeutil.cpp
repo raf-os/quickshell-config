@@ -1,6 +1,6 @@
 #include "localeutil.h"
 
-namespace ns::desktopentries {
+namespace ns::desktop::entries {
 int LocaleUtils::matchScore(const LocaleUtils &other) const {
   if (this->language != other.language)
     return 0;
@@ -19,4 +19,4 @@ int LocaleUtils::matchScore(const LocaleUtils &other) const {
 
   return score;
 }
-} // namespace ns::desktopentries
+} // namespace ns::desktop::entries

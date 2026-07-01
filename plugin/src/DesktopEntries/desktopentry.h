@@ -1,12 +1,13 @@
 #pragma once
 
-#include "entrymanager.h"
+#include "entryscanner.h"
+
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
-namespace ns::desktopentries {
+namespace ns::desktop::entries {
 class DesktopEntry : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -20,9 +21,11 @@ class DesktopEntry : public QObject {
                  BINDABLE bindableNoDisplay)
 
 public:
-  explicit DesktopEntry(QObject *parent = nullptr);
+  explicit DesktopEntry(QString  m_id,
+                        QObject *parent = nullptr);
 
   void updateState(const EntryData &newState);
+  bool isValid() { return true; }
 
   [[nodiscard]] QBindable<QString> bindableName() const {
     return &this->m_name;
@@ -42,19 +45,20 @@ signals:
 private:
   void updateActions(const QList<EntryActionData> &newActions);
 
-  Q_OBJECT_BINDABLE_PROPERTY(ns::desktopentries::DesktopEntry,
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::DesktopEntry,
                              QString,
                              m_name,
                              &DesktopEntry::nameChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(ns::desktopentries::DesktopEntry,
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::DesktopEntry,
                              QString,
                              m_icon,
                              &DesktopEntry::iconChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(ns::desktopentries::DesktopEntry,
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::DesktopEntry,
                              bool,
                              m_noDisplay,
                              &DesktopEntry::noDisplayChanged)
 
+  QString   m_id;
   EntryData m_state;
 };
-} // namespace ns::desktopentries
+} // namespace ns::desktop::entries
