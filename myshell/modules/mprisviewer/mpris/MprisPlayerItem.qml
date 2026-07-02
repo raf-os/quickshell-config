@@ -10,328 +10,343 @@ import QtQuick
 import QtQuick.Layouts
 
 ColumnLayout {
-    id: root
+	id: root
 
-    required property MprisPlayer modelData
-    readonly property int padding: Config.appearance.padding.sm
+	required property MprisPlayer modelData
+	readonly property int padding: Config.appearance.padding.sm
 
-    readonly property DesktopEntry desktopEntry: modelData !== null ? DesktopEntries.heuristicLookup(modelData?.desktopEntry) : null
-    readonly property string mediaIcon: desktopEntry?.icon ?? null
+	readonly property DesktopEntry desktopEntry: modelData !== null ? DesktopEntries.heuristicLookup(modelData?.desktopEntry) : null
+	readonly property string mediaIcon: desktopEntry?.icon ?? null
+	readonly property int mediaIconSize: 18
 
-    property bool iconLoaded: false
+	property bool iconLoaded: false
 
-    spacing: 0
+	spacing: 0
 
-    Layout.fillWidth: true
+	Layout.fillWidth: true
 
-    QtObject {
-        id: trackData
+	QtObject {
+		id: trackData
 
-        property string trackTitle: root.modelData?.trackTitle ?? "Unknown track"
-        property string trackArtist: root.modelData?.trackArtist ?? "Unknown artist"
-        property string trackArtUrl: root.modelData?.trackArtUrl ?? ""
+		property string trackTitle: root.modelData?.trackTitle ?? "Unknown track"
+		property string trackArtist: root.modelData?.trackArtist ?? "Unknown artist"
+		property string trackArtUrl: root.modelData?.trackArtUrl ?? ""
 
-        function getArtUrl() {
-            trackArtUrl = MprisService.getArtUrl(root.modelData);
-        }
-    }
+		function getArtUrl() {
+			trackArtUrl = MprisService.getArtUrl(root.modelData);
+		}
+	}
 
-    Rectangle {
-        id: titleWrapper
+	Rectangle {
+		id: titleWrapper
 
-        Layout.fillWidth: true
-        Layout.margins: root.padding
+		Layout.fillWidth: true
+		Layout.margins: root.padding
 
-        implicitHeight: playerTitle.implicitHeight + root.padding * 2
+		implicitHeight: playerTitle.implicitHeight + root.padding * 2
 
-        color: ColorService.current.base
-        radius: Config.appearance.rounding.md
+		color: ColorService.current.base
+		radius: Config.appearance.rounding.md
 
-        MouseArea {
-            anchors.fill: parent
+		MouseArea {
+			anchors.fill: parent
 
-            enabled: root.modelData?.canRaise ?? false
+			enabled: root.modelData?.canRaise ?? false
 
-            cursorShape: Qt.PointingHandCursor
+			cursorShape: Qt.PointingHandCursor
 
-            onClicked: {
-                if (!root.modelData.canRaise)
-                    return;
+			onClicked: {
+				if (!root.modelData.canRaise)
+					return;
 
-                root.modelData.raise();
-            }
-        }
+				root.modelData.raise();
+			}
+		}
 
-        RowLayout {
-            id: playerTitle
+		RowLayout {
+			id: playerTitle
 
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.verticalCenter: parent.verticalCenter
 
-            spacing: Config.appearance.spacing.sm
+			spacing: Config.appearance.spacing.sm
 
-            Loader {
-                active: root.iconLoaded === false
+			Loader {
+				active: root.iconLoaded === false
 
-                sourceComponent: StyledText {
-                    id: playerIcon
+				sourceComponent: StyledText {
+					id: playerIcon
 
-                    text: "󰈣"
+					text: "󰈣"
 
-                    font.family: Config.appearance.fontFamily.mono
-                    font.pixelSize: 18
-                }
-            }
+					font.family: Config.appearance.fontFamily.mono
+					font.pixelSize: root.mediaIconSize
+				}
+			}
 
-            IconImage {
-                source: Quickshell.iconPath(root.mediaIcon)
-                implicitSize: 18
-                asynchronous: true
+			Item {
+				implicitWidth: root.mediaIconSize
+				implicitHeight: root.mediaIconSize
 
-                visible: status === Image.Ready
+				Image {
+					// source: Quickshell.iconPath(root.mediaIcon)
+					// HACK: Something's wrong with quickshell's icon rendering, using my own for now
+					source: root.mediaIcon ? `image://qicons/qt/${root.mediaIcon}` : ""
+					sourceSize.width: root.mediaIconSize
+					sourceSize.height: root.mediaIconSize
 
-                onStatusChanged: {
-                    if (status === Image.Error) {} else if (status === Image.Ready) {
-                        root.iconLoaded = true;
-                    }
-                }
-            }
+					anchors.fill: parent
+					asynchronous: true
 
-            StyledText {
-                id: mprisName
+					fillMode: Image.PreserveAspectFit
 
-                Layout.fillWidth: true
+					visible: status === Image.Ready
 
-                text: root.modelData?.identity ?? "Unknown player"
-                elide: Text.ElideRight
+					onStatusChanged: {
+						if (status === Image.Ready) {
+							root.iconLoaded = true;
+						} else {
+							root.iconLoaded = false;
+						}
+					}
+				}
+			}
 
-                font.family: Config.appearance.fontFamily.sans
-                font.pointSize: Config.appearance.fontSize.sm
-                font.weight: 600
-            }
-        }
-    }
+			StyledText {
+				id: mprisName
 
-    RowLayout {
-        id: currentMediaInfo
+				Layout.fillWidth: true
 
-        Layout.fillWidth: true
-        Layout.margins: root.padding
+				text: root.modelData?.identity ?? "Unknown player"
+				elide: Text.ElideRight
 
-        spacing: Config.appearance.spacing.xl
+				font.family: Config.appearance.fontFamily.sans
+				font.pointSize: Config.appearance.fontSize.sm
+				font.weight: 600
+			}
+		}
+	}
 
-        Item {
-            id: mediaArtWrapper
+	RowLayout {
+		id: currentMediaInfo
 
-            implicitWidth: 96
-            implicitHeight: 96
+		Layout.fillWidth: true
+		Layout.margins: root.padding
 
-            Rectangle {
-                id: mediaArtFallbackBg
-                anchors.fill: parent
-                color: ColorService.current.base
-                radius: Config.appearance.rounding.md
+		spacing: Config.appearance.spacing.xl
 
-                visible: mprisArtLoader.isImageValid === false || mprisArtLoader.isImageLoading === true
+		Item {
+			id: mediaArtWrapper
 
-                StyledText {
-                    id: mediaArtFallback
+			implicitWidth: 96
+			implicitHeight: 96
 
-                    anchors.fill: parent
+			Rectangle {
+				id: mediaArtFallbackBg
+				anchors.fill: parent
+				color: ColorService.current.base
+				radius: Config.appearance.rounding.md
 
-                    text: ""
-                    font.family: Config.appearance.fontFamily.monoIcon
-                    font.pixelSize: mediaArtWrapper.implicitWidth * 0.8
+				visible: mprisArtLoader.isImageValid === false || mprisArtLoader.isImageLoading === true
 
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
+				StyledText {
+					id: mediaArtFallback
 
-            Loader {
-                id: mprisArtLoader
+					anchors.fill: parent
 
-                property bool isImageValid: false
-                property bool isImageLoading: true
+					text: ""
+					font.family: Config.appearance.fontFamily.monoIcon
+					font.pixelSize: mediaArtWrapper.implicitWidth * 0.8
 
-                anchors.fill: parent
+					horizontalAlignment: Text.AlignHCenter
+					verticalAlignment: Text.AlignVCenter
+				}
+			}
 
-                active: trackData.trackArtUrl !== ""
+			Loader {
+				id: mprisArtLoader
 
-                sourceComponent: Image {
-                    anchors.fill: parent
-                    source: trackData.trackArtUrl
-                    sourceSize.width: width
-                    sourceSize.height: height
-                    asynchronous: true
+				property bool isImageValid: false
+				property bool isImageLoading: true
 
-                    onStatusChanged: {
-                        if (status === Image.Error) {
-                            mprisArtLoader.isImageValid = false;
-                        } else if (status === Image.Loading) {
-                            mprisArtLoader.isImageLoading = true;
-                        } else if (status === Image.Ready) {
-                            mprisArtLoader.isImageValid = true;
-                            mprisArtLoader.isImageLoading = false;
-                        }
-                    }
-                }
-            }
-        }
+				anchors.fill: parent
 
-        ColumnLayout {
-            id: mediaData
+				active: trackData.trackArtUrl !== ""
 
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+				sourceComponent: Image {
+					anchors.fill: parent
+					source: trackData.trackArtUrl
+					sourceSize.width: width
+					sourceSize.height: height
+					asynchronous: true
 
-            spacing: Config.appearance.spacing.xxs
+					onStatusChanged: {
+						if (status === Image.Error) {
+							mprisArtLoader.isImageValid = false;
+						} else if (status === Image.Loading) {
+							mprisArtLoader.isImageLoading = true;
+						} else if (status === Image.Ready) {
+							mprisArtLoader.isImageValid = true;
+							mprisArtLoader.isImageLoading = false;
+						}
+					}
+				}
+			}
+		}
 
-            StyledText {
-                text: trackData.trackArtist
-                font.family: Config.appearance.fontFamily.sans
-                font.pointSize: Config.appearance.fontSize.xxs
+		ColumnLayout {
+			id: mediaData
 
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-            }
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 
-            StyledText {
-                text: trackData.trackTitle
-                font.family: twoLineTextSample.font.family
-                font.pointSize: twoLineTextSample.font.pointSize
-                font.weight: 600
+			spacing: Config.appearance.spacing.xxs
 
-                Layout.fillWidth: true
-                wrapMode: Text.Wrap
-                elide: Text.ElideRight
+			StyledText {
+				text: trackData.trackArtist
+				font.family: Config.appearance.fontFamily.sans
+				font.pointSize: Config.appearance.fontSize.xxs
 
-                // HACK: fake line height so the height is fixed at 2 lines
-                // to prevent layout shifting
-                Layout.preferredHeight: (twoLineTextSample.height + 2) * 2
+				Layout.fillWidth: true
+				elide: Text.ElideRight
+			}
 
-                maximumLineCount: 2
-            }
+			StyledText {
+				text: trackData.trackTitle
+				font.family: twoLineTextSample.font.family
+				font.pointSize: twoLineTextSample.font.pointSize
+				font.weight: 600
 
-            TextMetrics {
-                id: twoLineTextSample
+				Layout.fillWidth: true
+				wrapMode: Text.Wrap
+				elide: Text.ElideRight
 
-                font.family: Config.appearance.fontFamily.sans
-                font.pointSize: Config.appearance.fontSize.md
-                font.weight: 600
+				// HACK: fake line height so the height is fixed at 2 lines
+				// to prevent layout shifting
+				Layout.preferredHeight: (twoLineTextSample.height + 2) * 2
 
-                text: "\n"
-            }
+				maximumLineCount: 2
+			}
 
-            Loader {
-                id: progressBarLoader
+			TextMetrics {
+				id: twoLineTextSample
 
-                Layout.fillWidth: true
-                Layout.topMargin: Config.appearance.spacing.xxs
+				font.family: Config.appearance.fontFamily.sans
+				font.pointSize: Config.appearance.fontSize.md
+				font.weight: 600
 
-                active: (root.modelData?.positionSupported && root.modelData?.lengthSupported) ?? false
+				text: "\n"
+			}
 
-                sourceComponent: Item {
-                    id: progressBar
+			Loader {
+				id: progressBarLoader
 
-                    readonly property real trackLength: root.modelData?.length ?? 1
-                    readonly property real trackPosition: root.modelData?.position ?? 0
-                    readonly property real progressPercent: trackPosition / trackLength
+				Layout.fillWidth: true
+				Layout.topMargin: Config.appearance.spacing.xxs
 
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    implicitHeight: 10
+				active: (root.modelData?.positionSupported && root.modelData?.lengthSupported) ?? false
 
-                    Rectangle {
-                        id: barBg
+				sourceComponent: Item {
+					id: progressBar
 
-                        anchors.fill: parent
-                        radius: Config.appearance.rounding.md
-                        color: ColorService.current.base2
-                    }
+					readonly property real trackLength: root.modelData?.length ?? 1
+					readonly property real trackPosition: root.modelData?.position ?? 0
+					readonly property real progressPercent: trackPosition / trackLength
 
-                    Rectangle {
-                        id: barFg
+					anchors.left: parent.left
+					anchors.right: parent.right
+					implicitHeight: 10
 
-                        anchors.left: parent.left
+					Rectangle {
+						id: barBg
 
-                        implicitHeight: parent.height
-                        implicitWidth: progressBar.progressPercent * parent.width
+						anchors.fill: parent
+						radius: Config.appearance.rounding.md
+						color: ColorService.current.base2
+					}
 
-                        radius: barBg.radius
-                        color: ColorService.current.primary
-                    }
+					Rectangle {
+						id: barFg
 
-                    FrameAnimation {
-                        running: root.modelData?.isPlaying ?? false
-                        onTriggered: {
-                            MprisService.updateTrackPositions();
-                        }
-                    }
-                }
-            }
+						anchors.left: parent.left
 
-            RowLayout {
-                id: mediaControls
+						implicitHeight: parent.height
+						implicitWidth: progressBar.progressPercent * parent.width
 
-                readonly property bool isPlaying: root.modelData?.isPlaying ?? false
+						radius: barBg.radius
+						color: ColorService.current.primary
+					}
 
-                Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: Config.appearance.spacing.xxs
-                spacing: 0
+					FrameAnimation {
+						running: root.modelData?.isPlaying ?? false
+						onTriggered: {
+							MprisService.updateTrackPositions();
+						}
+					}
+				}
+			}
 
-                MediaControlButton {
-                    id: goPrevious
-                    isEnabled: root.modelData?.canGoPrevious ?? false
+			RowLayout {
+				id: mediaControls
 
-                    iconText: "󰒮"
+				readonly property bool isPlaying: root.modelData?.isPlaying ?? false
 
-                    function clickAction() {
-                        root.modelData.previous();
-                    }
-                }
+				Layout.alignment: Qt.AlignHCenter
+				Layout.topMargin: Config.appearance.spacing.xxs
+				spacing: 0
 
-                MediaControlButton {
-                    id: playPause
-                    isEnabled: (root.modelData?.canPlay && root.modelData?.canPause) ?? false
+				MediaControlButton {
+					id: goPrevious
+					isEnabled: root.modelData?.canGoPrevious ?? false
 
-                    iconText: mediaControls.isPlaying ? "󰏤" : "󰐊"
+					iconText: "󰒮"
 
-                    function clickAction() {
-                        if (mediaControls.isPlaying) {
-                            root.modelData.pause();
-                        } else {
-                            root.modelData.play();
-                        }
-                    }
-                }
+					function clickAction() {
+						root.modelData.previous();
+					}
+				}
 
-                MediaControlButton {
-                    id: goNext
-                    isEnabled: root.modelData?.canGoNext ?? false
+				MediaControlButton {
+					id: playPause
+					isEnabled: (root.modelData?.canPlay && root.modelData?.canPause) ?? false
 
-                    iconText: "󰒭"
+					iconText: mediaControls.isPlaying ? "󰏤" : "󰐊"
 
-                    function clickAction() {
-                        root.modelData.next();
-                    }
-                }
+					function clickAction() {
+						if (mediaControls.isPlaying) {
+							root.modelData.pause();
+						} else {
+							root.modelData.play();
+						}
+					}
+				}
 
-                MediaControlButton {
-                    id: shuffleButton
-                    isEnabled: (root.modelData?.canControl && root.modelData?.shuffleSupported) ?? false
-                    isFaded: isEnabled && root.modelData.shuffle !== true
+				MediaControlButton {
+					id: goNext
+					isEnabled: root.modelData?.canGoNext ?? false
 
-                    visible: isEnabled
+					iconText: "󰒭"
 
-                    iconText: "󰒟"
+					function clickAction() {
+						root.modelData.next();
+					}
+				}
 
-                    function clickAction() {
-                        root.modelData.shuffle = !root.modelData.shuffle;
-                    }
-                }
-            }
-        }
-    }
+				MediaControlButton {
+					id: shuffleButton
+					isEnabled: (root.modelData?.canControl && root.modelData?.shuffleSupported) ?? false
+					isFaded: isEnabled && root.modelData.shuffle !== true
+
+					visible: isEnabled
+
+					iconText: "󰒟"
+
+					function clickAction() {
+						root.modelData.shuffle = !root.modelData.shuffle;
+					}
+				}
+			}
+		}
+	}
 }

@@ -3,7 +3,9 @@ import qs.modules.background as WLRBG
 import qs.modules.lock
 import qs.services
 import org.nightshell.IpcServer
+import org.nightshell.IconProvider
 import org.nightshell.Notifications
+import org.nightshell.DesktopEntries as NDE
 import MyShellPlugin
 import MyShellPlugin.Configs
 import Quickshell
@@ -33,6 +35,7 @@ ShellRoot {
 		UserCommandService.setup();
 		SystemSoundsService.setup();
 		IPCServer.setup();
+		NDE.EntryManager.init();
 
 		root.evalNotificationConfig();
 

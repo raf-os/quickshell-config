@@ -170,6 +170,9 @@ QStringList EntryUtils::parseExecString(const QString &execString) {
   QStringList arguments;
   QString     currentArgument;
 
+  if (execString.isEmpty())
+    return arguments;
+
   auto escape        = 0;
   auto parsingString = false;
   auto percent       = false;

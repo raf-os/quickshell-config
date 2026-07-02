@@ -7,6 +7,7 @@ qt6_add_library(nightshell_desktop_entries SHARED)
 target_sources(
   nightshell_desktop_entries
   PRIVATE
+    entryaction.cpp
     entrymanager.cpp
     entrycacher.cpp
     entryscanner.cpp

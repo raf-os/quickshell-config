@@ -1,6 +1,7 @@
 #pragma once
 
 #include "desktopentry.h"
+#include "entrycacher.h"
 #include "entrymonitor.h"
 #include "entryscanner.h"
 
@@ -37,9 +38,11 @@ public:
 
 public slots:
   void scanDesktopEntries();
+  void init();
 
 private slots:
   void onScanCompleted(const QList<EntryData> &results);
+  void processEntryList(const QList<EntryData> &results);
 
 signals:
   void applicationsChanged();
@@ -52,5 +55,6 @@ private:
   bool          m_scanInProgress = false;
   bool          m_scanQueued     = false;
   EntryMonitor *m_monitor        = nullptr;
+  EntryCacher  *m_entryCacher    = nullptr;
 };
 } // namespace ns::desktop::entries

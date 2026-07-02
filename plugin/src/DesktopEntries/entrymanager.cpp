@@ -1,5 +1,6 @@
 #include "entrymanager.h"
 #include "desktopentry.h"
+#include "entrycacher.h"
 #include "entrymonitor.h"
 #include "entryscanner.h"
 
@@ -27,12 +28,33 @@ Q_LOGGING_CATEGORY(logNSDesktopEntries,
 
 EntryManager::EntryManager(QObject *parent)
     : QObject(parent),
-      m_monitor(new EntryMonitor(this)) {
+      m_monitor(new EntryMonitor(this)),
+      m_entryCacher(new EntryCacher(this)) {
   QObject::connect(m_monitor,
                    &EntryMonitor::entriesChanged,
                    this,
                    &EntryManager::scanDesktopEntries);
+
+  auto isCacheValid = m_entryCacher->isCacheValid();
+  if (isCacheValid) {
+    qCDebug(logNSDesktopEntries)
+        << "Desktop entry cache found: attempting to read from cache...";
+    auto results = m_entryCacher->readFromCache();
+    if (results.has_value()) {
+      m_scanInProgress = true;
+      this->processEntryList(results.value());
+      qCDebug(logNSDesktopEntries)
+          << "Succesfully read desktop entry list from cache!";
+    } else {
+      qCDebug(logNSDesktopEntries)
+          << "Failed acquiring entry cache. Scanning as usual.";
+    }
+  } else {
+    this->scanDesktopEntries();
+  }
 }
+
+void EntryManager::init() {}
 
 void EntryManager::scanDesktopEntries() {
   qCDebug(logNSDesktopEntries) << "Starting desktop entry scan...";
@@ -54,12 +76,12 @@ void EntryManager::scanDesktopEntries() {
   QThreadPool::globalInstance()->start(scanner);
 }
 
-void EntryManager::onScanCompleted(const QList<EntryData> &results) {
+void EntryManager::processEntryList(const QList<EntryData> &results) {
   auto guard = qScopeGuard([this] {
     m_scanInProgress = false;
     if (m_scanQueued) {
       m_scanQueued = false;
-      // scan entries
+      this->scanDesktopEntries();
     }
   });
 
@@ -110,5 +132,12 @@ void EntryManager::onScanCompleted(const QList<EntryData> &results) {
 
   for (auto *e : oldEntries)
     e->deleteLater();
+}
+
+void EntryManager::onScanCompleted(const QList<EntryData> &results) {
+  qCDebug(logNSDesktopEntries)
+      << "Desktop entry scan completed. Processing results...";
+  m_entryCacher->saveToCache(results);
+  this->processEntryList(results);
 }
 } // namespace ns::desktop::entries

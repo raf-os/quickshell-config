@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qlist.h>
 #include <qobject.h>
@@ -12,7 +13,7 @@ struct EntryActionData {
   QString                 name;
   QString                 icon;
   QString                 execString;
-  QList<QString>          command;
+  QStringList             command;
   QHash<QString, QString> entries;
 };
 

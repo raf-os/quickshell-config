@@ -14,13 +14,12 @@ class EntryCacher : public QObject {
 public:
   explicit EntryCacher(QObject *parent = nullptr);
 
-  std::optional<QHash<QString,
-                      EntryData>>
-  readFromCache();
+  std::optional<QList<EntryData>> readFromCache();
 
 public slots:
   bool isCacheValid();
   void recordDirectoryModificationDates();
+  void saveToCache(const QList<EntryData> &data);
 
 private:
   const QString m_dateCacheFilename = "DesktopEntryDirectoryCache.json";

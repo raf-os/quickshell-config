@@ -2,6 +2,7 @@
 #include "entryscanner.h"
 #include "entryutils.h"
 #include "paths.h"
+
 #include <optional>
 #include <qbuffer.h>
 #include <qdatetime.h>
@@ -18,6 +19,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qstringview.h>
+#include <utility>
 
 namespace ns::desktop::entries {
 Q_DECLARE_LOGGING_CATEGORY(logNSDesktopEntries) // from entrymanager.cpp
@@ -82,9 +84,7 @@ bool EntryCacher::isCacheValid() {
   return shouldChange;
 }
 
-std::optional<QHash<QString,
-                    EntryData>>
-EntryCacher::readFromCache() {
+std::optional<QList<EntryData>> EntryCacher::readFromCache() {
   const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
   QFile      file(cachePath + "/" + m_caheFilename);
 
@@ -107,13 +107,18 @@ EntryCacher::readFromCache() {
     return std::nullopt;
   }
 
-  auto                      jRoot = jDoc.object();
-  QHash<QString, EntryData> data;
+  auto             jRoot = jDoc.object();
+  QList<EntryData> data;
 
   for (auto it = jRoot.constBegin(); it != jRoot.constEnd(); ++it) {
     if (!it.value().isObject())
       continue;
-    auto id    = it.key();
+    auto id = it.key();
+    // if (data.contains(id)) {
+    //   qCDebug(logNSDesktopEntries)
+    //       << "EntryCacher::readFromCache: Skipping duplicate entry" << id;
+    //   continue;
+    // }
     auto _data = it.value().toObject();
 
     auto name    = _data.value("Name").toString();
@@ -122,33 +127,120 @@ EntryCacher::readFromCache() {
       continue;
     }
     auto noDisplay        = _data.value("NoDisplay").toBool();
+    auto hidden           = _data.value("Hidden").toBool();
     auto isTerminal       = _data.value("Terminal").toBool();
     auto genericName      = _data.value("GenericName").toString();
     auto comment          = _data.value("Comment").toString();
     auto icon             = _data.value("Icon").toString();
     auto workingDirectory = _data.value("Path").toString();
-    auto actions =
-        _data.value("Actions").toString().split(";", Qt::SkipEmptyParts);
+    auto startupClass     = _data.value("StartupWMClass").toString();
     auto categories =
         _data.value("Categories").toString().split(";", Qt::SkipEmptyParts);
     auto keywords =
         _data.value("Keywords").toString().split(";", Qt::SkipEmptyParts);
+    auto command = EntryUtils::parseExecString(execCmd);
 
     EntryData eData;
     eData.id               = id;
     eData.name             = name;
     eData.genericName      = genericName;
     eData.execStr          = execCmd;
+    eData.command          = command;
     eData.noDisplay        = noDisplay;
+    eData.hidden           = hidden;
     eData.terminal         = isTerminal;
     eData.comment          = comment;
     eData.icon             = icon;
     eData.workingDirectory = workingDirectory;
+    eData.startupClass     = startupClass;
     eData.categories       = categories;
     eData.keywords         = keywords;
+
+    auto _aList = _data.value("Actions");
+    if (_aList.isArray()) {
+      auto actionList = _aList.toObject();
+
+      for (const auto &act : actionList) {
+        if (!act.isObject())
+          continue;
+        auto actData = act.toObject();
+
+        auto actName    = actData.value("Name").toString();
+        auto actIcon    = actData.value("Icon").toString();
+        auto actExecStr = actData.value("Exec").toString();
+        if (actName.isEmpty() || actExecStr.isEmpty()) {
+          // invalid action
+          continue;
+        }
+        auto actExecList = EntryUtils::parseExecString(actExecStr);
+
+        EntryActionData aData;
+        aData.name       = actName;
+        aData.icon       = actIcon;
+        aData.execString = actExecStr;
+        aData.command    = actExecList;
+
+        eData.actions.append(std::move(aData));
+      }
+    }
+
+    data.append(std::move(eData));
   }
 
   return data;
+}
+
+void EntryCacher::saveToCache(const QList<EntryData> &data) {
+  QJsonObject jsonRoot;
+
+  for (const auto &entry : data) {
+    QJsonObject jEntry;
+
+    auto eId = entry.id;
+    if (jsonRoot.contains(eId))
+      continue;
+
+    jEntry.insert("Name", QJsonValue(entry.name));
+    jEntry.insert("GenericName", QJsonValue(entry.genericName));
+    jEntry.insert("Icon", QJsonValue(entry.icon));
+    jEntry.insert("StartupWMClass", QJsonValue(entry.startupClass));
+    jEntry.insert("Comment", QJsonValue(entry.comment));
+    jEntry.insert("Exec", QJsonValue(entry.execStr));
+    jEntry.insert("Path", QJsonValue(entry.workingDirectory));
+    jEntry.insert("Categories", QJsonValue(entry.categories.join(';')));
+    jEntry.insert("Keywords", QJsonValue(entry.keywords.join(';')));
+    jEntry.insert("NoDisplay", QJsonValue(entry.noDisplay));
+    jEntry.insert("Hidden", QJsonValue(entry.hidden));
+    jEntry.insert("Terminal", QJsonValue(entry.terminal));
+
+    QJsonArray jActionList;
+    if (!entry.actions.isEmpty()) {
+      for (const auto &eAction : entry.actions) {
+        QJsonObject jAction;
+        jAction.insert("Name", QJsonValue(eAction.name));
+        jAction.insert("Icon", QJsonValue(eAction.icon));
+        jAction.insert("Exec", QJsonValue(eAction.execString));
+        jActionList.append(std::move(jAction));
+      }
+    }
+    jEntry.insert("Actions", jActionList);
+
+    jsonRoot.insert(eId, jEntry);
+  }
+
+  const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
+  QFile      file(cachePath + "/" + m_caheFilename);
+
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    qCWarning(logNSDesktopEntries)
+        << "Unable to save application database to cache.";
+    return;
+  }
+
+  auto fileData = QJsonDocument(jsonRoot).toJson(QJsonDocument::Compact);
+  file.write(fileData);
+
+  this->recordDirectoryModificationDates();
 }
 
 void EntryCacher::recordDirectoryModificationDates() {
