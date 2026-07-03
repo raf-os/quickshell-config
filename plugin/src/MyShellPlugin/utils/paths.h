@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QtQmlIntegration/qqmlintegration.h>
 #include <qdir.h>
 #include <qjsengine.h>
 #include <qobject.h>
 #include <qqmlengine.h>
+#include <qqmlintegration.h>
 #include <qtenvironmentvariables.h>
 #include <qtmetamacros.h>
 
@@ -28,7 +28,8 @@ public:
     return s_instance;
   }
 
-  static Paths *create(QQmlEngine *qmlEngine, QJSEngine *) {
+  static Paths *create(QQmlEngine *qmlEngine,
+                       QJSEngine *) {
     auto inst = instance();
     if (qmlEngine)
       qmlEngine->setObjectOwnership(inst, QJSEngine::CppOwnership);
@@ -53,14 +54,14 @@ private:
   explicit Paths(QObject *parent = nullptr);
 
   const QString m_home = QDir::homePath();
-  QString m_config =
+  QString       m_config =
       qEnvironmentVariable("XDG_CONFIG_HOME", m_home + "/.config") + "/myshell";
   QString m_state =
       qEnvironmentVariable("XDG_STATE_HOME", m_home + "/.local/state") +
       "/myshell";
   QString m_cache =
       qEnvironmentVariable("XDG_CACHE_HOME", m_home + "/.cache") + "/myshell";
-  QString m_data = DATADIR_DEFAULT_PATH;
+  QString m_data       = DATADIR_DEFAULT_PATH;
   QString m_hyprConfig = m_home + "/.config/hypr";
 
   void ensurePathsExist();

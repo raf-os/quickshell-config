@@ -4,23 +4,25 @@ find_package(Qt6 REQUIRED COMPONENTS
     Quick
 )
 
-add_library(myshell_configs_gen
-    STATIC
-        barconfig.h barconfig.cpp
-		mediaconfig.h mediaconfig.cpp
-		notificationconfig.h notificationconfig.cpp
-		appearanceconfig.h appearanceconfig.cpp
-		keymapconfig.h keymapconfig.cpp
-		soundsconfig.h soundsconfig.cpp
-		wallpaperconfig.h wallpaperconfig.cpp
-		launcherconfig.h launcherconfig.cpp
-		borderconfig.h borderconfig.cpp
-        gen_includes.h)
+qt6_add_library(myshell_configs_gen STATIC gen_includes.h)
+
+target_sources(myshell_configs_gen PRIVATE
+  barconfig.cpp
+  mediaconfig.cpp
+  notificationconfig.cpp
+  appearanceconfig.cpp
+  keymapconfig.cpp
+  soundsconfig.cpp
+  wallpaperconfig.cpp
+  launcherconfig.cpp
+  borderconfig.cpp
+)
 
 set_target_properties(myshell_configs_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(myshell_configs_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(myshell_configs_gen PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(myshell_configs_gen
     PRIVATE
@@ -28,7 +30,7 @@ target_link_libraries(myshell_configs_gen
         Qt::Qml
         Qt::Quick
         myshell_include
-        myshell_configs)
+        myshell_utils)
 
 set(GENERATED_SOURCES
     generated/barconfig.h generated/barconfig.cpp

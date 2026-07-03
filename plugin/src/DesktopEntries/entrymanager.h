@@ -13,7 +13,6 @@
 #include <qobject.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
-#include <qrunnable.h>
 #include <qtmetamacros.h>
 
 namespace ns::desktop::entries {
@@ -35,6 +34,13 @@ public:
       qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
     return inst;
   }
+
+  QHash<QString,
+        DesktopEntry *>
+  getEntries() const;
+
+  Q_INVOKABLE DesktopEntry *findEntryById(const QString &id);
+  Q_INVOKABLE DesktopEntry *findEntry(const QString &name);
 
 public slots:
   void scanDesktopEntries();

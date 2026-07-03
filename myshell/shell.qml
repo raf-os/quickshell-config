@@ -3,6 +3,7 @@ import qs.modules.background as WLRBG
 import qs.modules.lock
 import qs.services
 import org.nightshell.IpcServer
+import org.nightshell.DBusImageProvider
 import org.nightshell.IconProvider
 import org.nightshell.Notifications
 import org.nightshell.DesktopEntries as NDE

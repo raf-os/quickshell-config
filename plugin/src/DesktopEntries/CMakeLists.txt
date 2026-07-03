@@ -15,6 +15,7 @@ target_sources(
     entrymonitor.cpp
     localeutil.cpp
     desktopentry.cpp
+    desktopentriesmodel.cpp
 )
 
 target_include_directories(

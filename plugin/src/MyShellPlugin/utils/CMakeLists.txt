@@ -1,40 +1,31 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 
-add_library(myshell_utils
-  STATIC
-    metaiterate.h metaiterate.cpp
-    paths.h paths.cpp
+qt6_add_library(myshell_utils SHARED)
+
+target_sources(
+  myshell_utils
+  PRIVATE metaiterate.cpp paths.cpp cserializable.cpp soundthemes.cpp
 )
 
-set_target_properties(myshell_utils PROPERTIES
-  POSITION_INDEPENDENT_CODE ON)
+# set_target_properties(myshell_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_compile_definitions(myshell_utils PUBLIC
-  DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
+target_compile_definitions(
+  myshell_utils
+  PUBLIC DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
 )
 
 target_include_directories(myshell_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(myshell_utils
-  PRIVATE
-    Qt::Core
-    Qt::Quick
-    Qt::Qml
-    myshell_include)
+qt6_add_qml_module(myshell_utils URI "MyShellPlugin.Utils" VERSION 0.1)
 
-qml_module(myshell_utils_plugin
-  URI MyShellPlugin.Utils
-  SOURCES
-    paths.h paths.cpp
-    soundthemes.h soundthemes.cpp
-  LIBRARIES
-    Qt::Core
-    Qt::Quick
-    Qt::Qml
-    myshell_include
-    myshell_utils
+target_link_libraries(
+  myshell_utils
+  PRIVATE Qt::Core Qt::Quick Qt::Qml myshell_include
 )
 
-target_compile_definitions(myshell_utils_plugin PRIVATE
-  DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
+install_qml_module(myshell_utils)
+
+target_compile_definitions(
+  myshell_utils
+  PRIVATE DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
 )

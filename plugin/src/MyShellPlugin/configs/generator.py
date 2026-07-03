@@ -512,7 +512,7 @@ def main():
         isChange = isChange | writeIfChanged("./generated/" + fileName + ".h", fileModel.fileDataHeader)
         isChange = isChange | writeIfChanged("./generated/" + fileName + ".cpp", fileModel.fileDataBody)
 
-        fileList.append(f"{fileName}.h {fileName}.cpp")
+        fileList.append(f"{fileName}.cpp")
         fileListGen.append(f"generated/{fileName}.h generated/{fileName}.cpp")
         headersList.append(f"#include \"{fileName}.h\"")
         rootClassesList.append(f"{model.className}")
@@ -523,7 +523,7 @@ def main():
             script_dir = os.path.dirname(os.path.abspath(__file__))
 
             result = subprocess.run(
-                ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"-I{script_dir}/", f"./generated/{fileName}.cpp"],
+                ["clang++", "-fsyntax-only", "-std=c++20", "-I/usr/include/qt6", "-I/usr/include/qt6/QtCore", "-I/usr/include/qt6/QtQml", "-I/usr/include/qt6/QtQmlIntegration", f"-I{script_dir}/../utils/", f"./generated/{fileName}.cpp"],
                 capture_output=True,
                 text=True
             )
@@ -557,15 +557,17 @@ def main():
     Quick
 )
 
-add_library(myshell_configs_gen
-    STATIC
-        """ + "\n\t\t".join(fileList) + """
-        gen_includes.h)
+qt6_add_library(myshell_configs_gen STATIC gen_includes.h)
+
+target_sources(myshell_configs_gen PRIVATE
+  """ + "\n  ".join(fileList) + """
+)
 
 set_target_properties(myshell_configs_gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(myshell_configs_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(myshell_configs_gen PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(myshell_configs_gen
     PRIVATE
@@ -573,12 +575,13 @@ target_link_libraries(myshell_configs_gen
         Qt::Qml
         Qt::Quick
         myshell_include
-        myshell_configs)
+        myshell_utils)
 
 set(GENERATED_SOURCES
     """ + "\n\t".join(fileListGen) + """
     PARENT_SCOPE
-)"""
+)
+"""
     )
 
     isChanged = writeIfChanged("./generated/CMakeLists.txt", cmakeStr)

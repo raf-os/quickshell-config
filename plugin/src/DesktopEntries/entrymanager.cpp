@@ -4,6 +4,7 @@
 #include "entrymonitor.h"
 #include "entryscanner.h"
 
+#include <algorithm>
 #include <qbuffer.h>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
@@ -139,5 +140,46 @@ void EntryManager::onScanCompleted(const QList<EntryData> &results) {
       << "Desktop entry scan completed. Processing results...";
   m_entryCacher->saveToCache(results);
   this->processEntryList(results);
+}
+
+DesktopEntry *EntryManager::findEntryById(const QString &id) {
+  if (auto entry = m_desktopEntries.value(id))
+    return entry;
+  else
+    return nullptr;
+}
+
+DesktopEntry *EntryManager::findEntry(const QString &name) {
+  // TODO: if QString's toLower() brings performance issues somehow, cache the
+  // lowered versions beforehand
+  if (auto entry = this->findEntryById(name))
+    return entry;
+
+  auto entryList = m_desktopEntries.values();
+
+  auto it = std::ranges::find_if(entryList, [&](DesktopEntry *entry) {
+    return name.toLower() == entry->bindableName().value().toLower();
+  });
+  if (it != entryList.end())
+    return *it;
+
+  it = std::ranges::find_if(entryList, [&](DesktopEntry *entry) {
+    return name == entry->bindableStartupClass().value();
+  });
+  if (it != entryList.end())
+    return *it;
+
+  it = std::ranges::find_if(entryList, [&](DesktopEntry *entry) {
+    return name.toLower() == entry->bindableStartupClass().value().toLower();
+  });
+  if (it != entryList.end())
+    return *it;
+  return nullptr;
+}
+
+QHash<QString,
+      DesktopEntry *>
+EntryManager::getEntries() const {
+  return m_desktopEntries;
 }
 } // namespace ns::desktop::entries

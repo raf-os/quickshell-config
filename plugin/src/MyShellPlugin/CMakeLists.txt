@@ -1,12 +1,8 @@
 find_package(
-  Qt6 REQUIRED
-  COMPONENTS Core
-             Qml
-             Gui
-             Quick
-             Sql
-             Network
-             DBus)
+  Qt6
+  REQUIRED
+  COMPONENTS Core Qml Gui Quick Sql Network DBus
+)
 
 find_package(LibXml2 REQUIRED)
 
@@ -18,7 +14,8 @@ set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 FetchContent_Declare(
   rapidfuzz
   GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
-  GIT_TAG v3.3.3)
+  GIT_TAG v3.3.3
+)
 FetchContent_MakeAvailable(rapidfuzz)
 
 add_subdirectory(include)
@@ -35,7 +32,8 @@ function(qml_module arg_TARGET)
     VERSION
     ${VERSION}
     SOURCES
-    ${arg_SOURCES})
+    ${arg_SOURCES}
+  )
 
   qt_query_qml_module(
     ${arg_TARGET}
@@ -50,12 +48,16 @@ function(qml_module arg_TARGET)
     QMLDIR
     module_qmldir
     TYPEINFO
-    module_typeinfo)
+    module_typeinfo
+  )
 
   string(TOUPPER ${arg_TARGET} target_upper)
-  set("${target_upper}_QML_TARGET_PATH"
-      "${module_target_path}"
-      CACHE INTERNAL "")
+  set(
+    "${target_upper}_QML_TARGET_PATH"
+    "${module_target_path}"
+    CACHE INTERNAL
+    ""
+  )
 
   message(STATUS "Created QML module ${module_uri}, version ${module_version}")
 
@@ -63,11 +65,13 @@ function(qml_module arg_TARGET)
   install(
     TARGETS ${arg_TARGET}
     LIBRARY DESTINATION "${module_dir}"
-    RUNTIME DESTINATION "${module_dir}")
+    RUNTIME DESTINATION "${module_dir}"
+  )
   install(
     TARGETS ${module_plugin_target}
     LIBRARY DESTINATION "${module_dir}"
-    RUNTIME DESTINATION "${module_dir}")
+    RUNTIME DESTINATION "${module_dir}"
+  )
   install(FILES "${module_qmldir}" DESTINATION "${module_dir}")
   install(FILES "${module_typeinfo}" DESTINATION "${module_dir}")
 
@@ -118,4 +122,5 @@ qml_module(
   myshell_interfaces
   myshell_include
   myshell_utils
-  myshell_configs)
+  myshell_configs
+)
