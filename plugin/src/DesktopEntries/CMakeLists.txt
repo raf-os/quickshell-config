@@ -1,5 +1,12 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Qml)
 
+FetchContent_Declare(
+  rapidfuzz
+  GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
+  GIT_TAG v3.3.3
+)
+FetchContent_MakeAvailable(rapidfuzz)
+
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 
 qt6_add_library(nightshell_desktop_entries SHARED)
@@ -31,7 +38,13 @@ qt6_add_qml_module(
 
 target_link_libraries(
   nightshell_desktop_entries
-  PRIVATE Qt::Core Qt::Qml myshell_utils
+  PRIVATE
+    Qt::Core
+    Qt::Qml
+    rapidfuzz::rapidfuzz
+    myshell_utils
+    myshell_interfaces
+    myshell_configs
 )
 
 install_qml_module(nightshell_desktop_entries)
