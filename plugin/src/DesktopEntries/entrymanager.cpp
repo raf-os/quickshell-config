@@ -1,8 +1,10 @@
 #include "entrymanager.h"
 #include "desktopentry.h"
+#include "entryaction.h"
 #include "entrycacher.h"
 #include "entrymonitor.h"
 #include "entryscanner.h"
+#include "paths.h"
 
 #include <algorithm>
 #include <qbuffer.h>
@@ -18,10 +20,16 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpair.h>
+#include <qprocess.h>
 #include <qscopeguard.h>
+#include <qsqldatabase.h>
+#include <qsqlerror.h>
+#include <qsqlquery.h>
 #include <qstringview.h>
 #include <qtenvironmentvariables.h>
 #include <qthreadpool.h>
+#include <qtypes.h>
+#include <quuid.h>
 
 namespace ns::desktop::entries {
 Q_LOGGING_CATEGORY(logNSDesktopEntries,
@@ -30,7 +38,8 @@ Q_LOGGING_CATEGORY(logNSDesktopEntries,
 EntryManager::EntryManager(QObject *parent)
     : QObject(parent),
       m_monitor(new EntryMonitor(this)),
-      m_entryCacher(new EntryCacher(this)) {
+      m_entryCacher(new EntryCacher(this)),
+      m_uuid(QUuid::createUuid().toString()) {
   QObject::connect(m_monitor,
                    &EntryMonitor::entriesChanged,
                    this,
@@ -53,9 +62,117 @@ EntryManager::EntryManager(QObject *parent)
   } else {
     this->scanDesktopEntries();
   }
+
+  if (QSqlDatabase::drivers().contains("QSQLITE")) {
+    auto db = QSqlDatabase::addDatabase("QSQLITE", m_uuid);
+
+    auto error = this->initDb();
+    if (error.type() != QSqlError::NoError) {
+      qCWarning(logNSDesktopEntries)
+          << "Unable to open app frequency sqlite database.";
+    } else {
+      m_dbSuccess = true;
+    }
+  } else {
+    qCWarning(logNSDesktopEntries)
+        << "QSQLITE driver is missing! App frequency ranking will not work!";
+  }
 }
 
 void EntryManager::init() {}
+
+QSqlError EntryManager::initDb() {
+  // TODO: Logging
+  auto db = QSqlDatabase::database(m_uuid, false);
+  if (!db.isValid()) {
+    return db.lastError();
+  }
+  const auto path =
+      myqmlplugin::utils::Paths::instance()->state() + "/appdb.sqlite";
+  db.setDatabaseName(path);
+  if (!db.open()) {
+    return db.lastError();
+  }
+
+  QSqlQuery query(db);
+  auto      succ = query.exec("CREATE TABLE IF NOT EXISTS \
+      frequencies (id TEXT PRIMARY KEY, frequency INTEGER)");
+
+  if (!succ)
+    return db.lastError();
+
+  return QSqlError();
+}
+
+quint32 EntryManager::getFrequencyForApp(const QString &id) const {
+  if (m_dbSuccess == false)
+    return 0;
+
+  auto      db = QSqlDatabase::database(m_uuid);
+  QSqlQuery query(db);
+
+  query.prepare("SELECT frequency FROM frequencies WHERE id = :id");
+  query.bindValue(":id", id);
+
+  if (query.exec() && query.next()) {
+    return query.value(0).toUInt();
+  }
+
+  return 0;
+}
+
+void EntryManager::incrementFrequencyFor(DesktopEntry *target) {
+  if (!m_dbSuccess && !target)
+    return;
+
+  auto      db = QSqlDatabase::database(m_uuid);
+  QSqlQuery query(db);
+  query.prepare("INSERT INTO frequencies (id, frequency) \
+      VALUES (:id, 1) \
+      ON CONFLICT (id) DO UPDATE SET frequency = frequency + 1");
+  query.bindValue(":id", target->id());
+  auto succ = query.exec();
+
+  if (succ) {
+    target->incrementFrequency();
+    emit applicationsFrequencyChanged();
+  }
+}
+
+void EntryManager::executeGeneric(const QStringList &cmd,
+                                  const QString     &workingDirectory,
+                                  DesktopEntry      *reference) {
+  if (reference)
+    this->incrementFrequencyFor(reference);
+
+  const bool isTerminal = reference->bindableRunInTerminal().value();
+
+  QString     app;
+  QStringList args;
+
+  if (isTerminal) {
+    app  = "alacritty";
+    args = cmd;
+    args.prepend("-e");
+  } else {
+    app  = cmd.first();
+    args = cmd.sliced(1);
+  }
+
+  QProcess process;
+  if (!workingDirectory.isEmpty()) {
+    process.setWorkingDirectory(workingDirectory);
+  }
+
+  process.setProgram(app);
+  process.setArguments(args);
+
+  process.setStandardInputFile(QProcess::nullDevice());
+  process.setStandardOutputFile(QProcess::nullDevice());
+  process.setStandardErrorFile(QProcess::nullDevice());
+
+  process.startDetached();
+}
 
 void EntryManager::scanDesktopEntries() {
   qCDebug(logNSDesktopEntries) << "Starting desktop entry scan...";
@@ -109,6 +226,7 @@ void EntryManager::processEntryList(const QList<EntryData> &results) {
     } else {
       entry = new DesktopEntry(data.id, this);
       entry->updateState(data);
+      entry->bindableFrequency().setValue(this->getFrequencyForApp(data.id));
     }
 
     if (!entry->isValid()) {
@@ -129,6 +247,7 @@ void EntryManager::processEntryList(const QList<EntryData> &results) {
   }
 
   m_desktopEntries = newEntries;
+
   emit applicationsChanged();
 
   for (auto *e : oldEntries)

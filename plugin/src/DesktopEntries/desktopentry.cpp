@@ -1,5 +1,6 @@
 #include "desktopentry.h"
 #include "entryaction.h"
+#include "entrymanager.h"
 
 #include <algorithm>
 #include <qlist.h>
@@ -14,6 +15,8 @@ DesktopEntry::DesktopEntry(QString  id,
       m_id(std::move(id)) {}
 
 bool DesktopEntry::isValid() { return m_name.value().isEmpty(); }
+
+QString DesktopEntry::id() const { return m_id; }
 
 void DesktopEntry::updateState(const EntryData &newState) {
   {
@@ -65,5 +68,13 @@ void DesktopEntry::updateActions(const QList<EntryActionData> &newActions) {
   for (auto *cleanup : old) {
     cleanup->deleteLater();
   }
+}
+
+void DesktopEntry::incrementFrequency() {
+  this->bindableFrequency().setValue(this->bindableFrequency().value() + 1);
+}
+
+void DesktopEntry::execute() {
+  EntryManager::instance()->executeGeneric(m_command, m_workingDirectory, this);
 }
 } // namespace ns::desktop::entries

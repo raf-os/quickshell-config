@@ -1,6 +1,7 @@
 #pragma once
 
 #include "desktopentry.h"
+#include "entryaction.h"
 #include "entrycacher.h"
 #include "entrymonitor.h"
 #include "entryscanner.h"
@@ -13,7 +14,9 @@
 #include <qobject.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
+#include <qsqlerror.h>
 #include <qtmetamacros.h>
+#include <qtypes.h>
 
 namespace ns::desktop::entries {
 class EntryManager : public QObject {
@@ -42,9 +45,15 @@ public:
   Q_INVOKABLE DesktopEntry *findEntryById(const QString &id);
   Q_INVOKABLE DesktopEntry *findEntry(const QString &name);
 
+  Q_INVOKABLE void executeGeneric(const QStringList &cmd,
+                                  const QString     &workingDirectory,
+                                  DesktopEntry      *reference = nullptr);
+
 public slots:
-  void scanDesktopEntries();
-  void init();
+  quint32 getFrequencyForApp(const QString &id) const;
+  void    incrementFrequencyFor(DesktopEntry *target);
+  void    scanDesktopEntries();
+  void    init();
 
 private slots:
   void onScanCompleted(const QList<EntryData> &results);
@@ -52,15 +61,20 @@ private slots:
 
 signals:
   void applicationsChanged();
+  void applicationsFrequencyChanged();
 
 private:
   explicit EntryManager(QObject *parent = nullptr);
 
+  const QString                  m_uuid;
   QHash<QString, DesktopEntry *> m_desktopEntries;
 
+  bool          m_dbSuccess      = false;
   bool          m_scanInProgress = false;
   bool          m_scanQueued     = false;
   EntryMonitor *m_monitor        = nullptr;
   EntryCacher  *m_entryCacher    = nullptr;
+
+  QSqlError initDb();
 };
 } // namespace ns::desktop::entries

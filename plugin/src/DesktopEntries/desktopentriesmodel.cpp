@@ -36,6 +36,10 @@ DesktopEntriesModel::DesktopEntriesModel(QObject *parent)
                    &EntryManager::applicationsChanged,
                    this,
                    &DesktopEntriesModel::onEntriesChanged);
+  QObject::connect(m_manager,
+                   &EntryManager::applicationsFrequencyChanged,
+                   this,
+                   &DesktopEntriesModel::reSortEntries);
   QObject::connect(
       m_manager, &QObject::destroyed, this, [this]() { this->deleteLater(); });
 
@@ -72,9 +76,27 @@ bool DesktopEntriesModel::sortCompare(DesktopEntry *a,
 
 void DesktopEntriesModel::sortEntries(QList<DesktopEntry *> &list) {
   std::sort(list.begin(), list.end(), [this](DesktopEntry *a, DesktopEntry *b) {
+    bool aFavorite = isEntryFavorite(a);
+    bool bFavorite = isEntryFavorite(b);
+
+    if (aFavorite != bFavorite) {
+      return aFavorite;
+    }
+
+    const auto aFreq = a->bindableFrequency().value();
+    const auto bFreq = b->bindableFrequency().value();
+
+    if (aFreq != bFreq) {
+      return aFreq > bFreq;
+    }
+
     return a->bindableName().value().localeAwareCompare(
-        b->bindableName().value());
+               b->bindableName().value()) < 0;
   });
+}
+
+bool DesktopEntriesModel::isEntryFavorite(DesktopEntry *entry) {
+  return m_favoriteEntries.contains(entry->bindableName().value());
 }
 
 void DesktopEntriesModel::onEntriesChanged() {
@@ -170,11 +192,23 @@ void DesktopEntriesModel::onDebounceTimeout() {
   // There's likely a better way of going about this instead of resetting the
   // entire model state, but it will require a specialized algorithm - likely
   // some sort diff-like algorithm - but it's probably overengineering and qt
-  // views can handle this just fine.
+  // views can handle this just fine. Probably.
   this->beginResetModel();
   m_entries = std::move(filtered);
   this->endResetModel();
   emit entryListChanged();
+}
+
+void DesktopEntriesModel::reSortEntries() {
+  auto old = m_entries;
+  sortEntries(old);
+
+  if (old != m_entries) {
+    this->beginResetModel();
+    m_entries = std::move(old);
+    this->endResetModel();
+    emit entryListChanged();
+  }
 }
 
 void DesktopEntriesModel::resetAllFilters() {

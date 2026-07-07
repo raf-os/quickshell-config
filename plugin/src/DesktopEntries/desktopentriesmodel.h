@@ -58,8 +58,10 @@ public:
                           DesktopEntry *b);
 
   void sortEntries(QList<DesktopEntry *> &list);
+  bool isEntryFavorite(DesktopEntry *entry);
 
 public slots:
+  void reSortEntries();
   void resetAllFilters();
 
 private slots:

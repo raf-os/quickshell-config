@@ -9,6 +9,7 @@
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
+#include <qtypes.h>
 
 namespace ns::desktop::entries {
 class DesktopEntry : public QObject {
@@ -16,6 +17,7 @@ class DesktopEntry : public QObject {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
+  Q_PROPERTY(QString id READ id CONSTANT)
   Q_PROPERTY(QString name READ default WRITE default NOTIFY nameChanged BINDABLE
                  bindableName)
   Q_PROPERTY(QString genericName READ default WRITE default NOTIFY
@@ -42,13 +44,18 @@ class DesktopEntry : public QObject {
                  BINDABLE bindableHidden)
   Q_PROPERTY(bool noDisplay READ default WRITE default NOTIFY noDisplayChanged
                  BINDABLE bindableNoDisplay)
+  Q_PROPERTY(quint32 frequency READ default WRITE default NOTIFY
+                 frequencyChanged BINDABLE bindableFrequency)
 
 public:
   explicit DesktopEntry(QString  m_id,
                         QObject *parent = nullptr);
 
-  void updateState(const EntryData &newState);
-  bool isValid();
+  void                  updateState(const EntryData &newState);
+  bool                  isValid();
+  [[nodiscard]] QString id() const;
+
+  Q_INVOKABLE void execute();
 
   // clang-format off
   [[nodiscard]] QBindable<QString> bindableName() const { return &this->m_name; }
@@ -64,7 +71,11 @@ public:
   [[nodiscard]] QBindable<bool> bindableRunInTerminal() const { return &this->m_runInTerminal; }
   [[nodiscard]] QBindable<bool> bindableHidden() const { return &this->m_hidden; }
   [[nodiscard]] QBindable<bool> bindableNoDisplay() const { return &this->m_noDisplay; }
+  [[nodiscard]] QBindable<quint32> bindableFrequency() const { return &this->m_frequency; }
   // clang-format on
+
+public slots:
+  void incrementFrequency();
 
 signals:
   void nameChanged();
@@ -80,6 +91,7 @@ signals:
   void runInTerminalChanged();
   void hiddenChanged();
   void noDisplayChanged();
+  void frequencyChanged();
 
 private:
   void updateActions(const QList<EntryActionData> &newActions);
@@ -136,6 +148,10 @@ private:
                              bool,
                              m_noDisplay,
                              &DesktopEntry::noDisplayChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::DesktopEntry,
+                             quint32,
+                             m_frequency,
+                             &DesktopEntry::frequencyChanged)
 
   QString              m_id;
   EntryData            m_state;

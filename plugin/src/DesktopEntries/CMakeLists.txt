@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Sql)
 
 FetchContent_Declare(
   rapidfuzz
@@ -39,8 +39,9 @@ qt6_add_qml_module(
 target_link_libraries(
   nightshell_desktop_entries
   PRIVATE
-    Qt::Core
-    Qt::Qml
+    Qt6::Core
+    Qt6::Qml
+    Qt6::Sql
     rapidfuzz::rapidfuzz
     myshell_utils
     myshell_interfaces

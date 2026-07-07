@@ -27,6 +27,9 @@ public:
   explicit EntryAction(QString       id,
                        DesktopEntry *entry = nullptr);
 
+  Q_INVOKABLE void execute();
+  DesktopEntry    *entry();
+
   [[nodiscard]] QString getId() const;
 
   [[nodiscard]] QBindable<QString>     bindableName() const { return &m_name; }
