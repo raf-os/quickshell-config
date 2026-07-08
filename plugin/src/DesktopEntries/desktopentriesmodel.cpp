@@ -9,6 +9,7 @@
 #include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qqmllist.h>
 #include <qtimer.h>
@@ -19,6 +20,8 @@
 #include <string_view>
 
 namespace ns::desktop::entries {
+Q_DECLARE_LOGGING_CATEGORY(logNSDesktopEntries)
+
 DesktopEntriesModel::DesktopEntriesModel(QObject *parent)
     : QAbstractListModel(parent),
       m_manager(EntryManager::instance()) {
@@ -83,8 +86,8 @@ void DesktopEntriesModel::sortEntries(QList<DesktopEntry *> &list) {
       return aFavorite;
     }
 
-    const auto aFreq = a->bindableFrequency().value();
-    const auto bFreq = b->bindableFrequency().value();
+    auto aFreq = a->bindableFrequency().value();
+    auto bFreq = b->bindableFrequency().value();
 
     if (aFreq != bFreq) {
       return aFreq > bFreq;

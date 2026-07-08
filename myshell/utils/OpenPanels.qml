@@ -11,6 +11,7 @@ PersistentProperties {
 
 	property bool session
 	property bool startmenu
+	property bool launcher
 	property bool commandCapture
 	property bool mprisViewer
 	property bool notifications

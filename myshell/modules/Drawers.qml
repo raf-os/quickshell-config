@@ -33,17 +33,23 @@ Variants {
 			name: "drawers"
 
 			exclusionMode: ExclusionMode.Ignore
-			WlrLayershell.keyboardFocus: openPanels.startmenu || openPanels.notifications ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+			WlrLayershell.keyboardFocus: openPanels.startmenu || GlobalShellState.launcherScreen !== null || openPanels.notifications ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-			mask: Region {
-				x: Config.border.thickness
-				y: bar.implicitHeight
-				width: win.width - Config.border.thickness * 2
-				height: win.height - bar.implicitHeight - Config.border.thickness
+			// mask: Region {
+			// 	x: Config.border.thickness
+			// 	y: bar.implicitHeight
+			// 	width: win.width - Config.border.thickness * 2
+			// 	height: win.height - bar.implicitHeight - Config.border.thickness
+			//
+			// 	intersection: Intersection.Xor
+			//
+			// 	regions: [regions.instances] // qmllint disable stale-property-read
+			// }
 
-				intersection: Intersection.Xor
-
-				regions: regions.instances // qmllint disable stale-property-read
+			mask: MaskRegions {
+				bar: bar
+				panels: panels
+				win: win
 			}
 
 			anchors {
@@ -53,22 +59,30 @@ Variants {
 				right: true
 			}
 
-			Variants {
-				id: regions
-
-				model: panels.children
-
-				delegate: Region {
-					required property Item modelData
-
-					x: modelData.x + Config.border.thickness
-					y: modelData.y + bar.implicitHeight
-					width: modelData.width
-					height: modelData.height
-
-					intersection: Intersection.Subtract
-				}
+			Component.onCompleted: {
+				GlobalShellState.registerWindowToScreen(win, scope.modelData);
 			}
+
+			Component.onDestruction: {
+				GlobalShellState.unregisterWindow(win);
+			}
+
+			// Variants {
+			// 	id: regions
+			//
+			// 	model: panels.exclusions
+			//
+			// 	delegate: Region {
+			// 		required property Item modelData
+			//
+			// 		x: modelData.x + Config.border.thickness
+			// 		y: modelData.y + bar.implicitHeight
+			// 		width: modelData.width
+			// 		height: modelData.height
+			//
+			// 		intersection: Intersection.Subtract
+			// 	}
+			// }
 
 			StyledRect {
 				anchors.fill: parent

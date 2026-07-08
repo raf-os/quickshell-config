@@ -74,6 +74,7 @@ std::optional<EntryData> EntryUtils::parseText(const QString &id,
               data.icon = value;
             else if (key == "Exec") {
               data.execStr = value;
+              data.command = EntryUtils::parseExecString(value);
             } else if (key == "Path")
               data.workingDirectory = value;
             else if (key == "Terminal")

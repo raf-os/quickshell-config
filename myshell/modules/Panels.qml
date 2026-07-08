@@ -6,6 +6,7 @@ import qs.modules.bar.popouts as BarPopouts
 import qs.modules.startmenu as StartMenuPopout
 import qs.modules.notifications as NotifWrapper
 import qs.modules.commandcapture
+import qs.modules.launcher as Launcher
 import qs.utils
 import MyShellPlugin.Configs
 import Quickshell
@@ -21,10 +22,16 @@ Item {
 	readonly property alias session: session
 	readonly property alias popouts: popouts
 	readonly property alias startmenu: startmenu
+	readonly property alias launcher: launcher
 	readonly property alias mprisViewer: mprisViewer
 	readonly property alias notifications: notificationWrapper
+	readonly property alias notificationOverlay: notificationOverlay
+	readonly property alias commandCapture: commandcapture
 
 	readonly property list<string> validPanelProps: ["session", "startmenu", "mprisViewer"]
+
+	// readonly property list<Item> exclusions: [commandcapture, mprisViewer, notificationWrapper, notificationOverlay, startmenu, session, popouts]
+	// readonly property list<QtObject> exclusionsRegions: [launcher.region].filter(r => r != null)
 
 	anchors.fill: parent
 	anchors.margins: Config.border.thickness
@@ -113,6 +120,14 @@ Item {
 		anchors.left: parent.left
 		anchors.top: parent.top
 		anchors.bottom: parent.bottom
+	}
+
+	Launcher.Wrapper {
+		id: launcher
+		panelsItem: root
+		screen: root.screen
+
+		anchors.fill: parent
 	}
 
 	Session.Wrapper {

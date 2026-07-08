@@ -4,17 +4,22 @@
 
 #include <algorithm>
 #include <qlist.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qproperty.h>
 #include <utility>
 
 namespace ns::desktop::entries {
+Q_DECLARE_LOGGING_CATEGORY(logNSDesktopEntries)
+
 DesktopEntry::DesktopEntry(QString  id,
                            QObject *parent)
     : QObject(parent),
       m_id(std::move(id)) {}
 
-bool DesktopEntry::isValid() { return m_name.value().isEmpty(); }
+bool DesktopEntry::isValid() {
+  return !m_name.value().isEmpty() && !m_command.value().isEmpty();
+}
 
 QString DesktopEntry::id() const { return m_id; }
 
@@ -22,6 +27,7 @@ void DesktopEntry::updateState(const EntryData &newState) {
   {
     QScopedPropertyUpdateGroup group;
 
+    Qt::beginPropertyUpdateGroup();
     m_name             = newState.name;
     m_genericName      = newState.genericName;
     m_startupClass     = newState.startupClass;
@@ -32,8 +38,10 @@ void DesktopEntry::updateState(const EntryData &newState) {
     m_command          = newState.command;
     m_categories       = newState.categories;
     m_keywords         = newState.keywords;
+    m_runInTerminal    = newState.terminal;
     m_noDisplay        = newState.noDisplay;
     m_hidden           = newState.hidden;
+    Qt::endPropertyUpdateGroup();
   }
 
   m_state = newState;
@@ -71,8 +79,11 @@ void DesktopEntry::updateActions(const QList<EntryActionData> &newActions) {
 }
 
 void DesktopEntry::incrementFrequency() {
-  this->bindableFrequency().setValue(this->bindableFrequency().value() + 1);
+  // this->bindableFrequency().setValue(this->bindableFrequency().value() + 1);
+  m_frequency = m_frequency.value() + 1;
 }
+
+void DesktopEntry::setFrequency(quint32 freq) { m_frequency = freq; }
 
 void DesktopEntry::execute() {
   EntryManager::instance()->executeGeneric(m_command, m_workingDirectory, this);

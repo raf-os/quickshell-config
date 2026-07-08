@@ -31,9 +31,13 @@ bool EntryCacher::isCacheValid() {
   const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
 
   QFile cacheFile(cachePath + "/" + m_dateCacheFilename);
-  if (!cacheFile.exists())
+  if (!cacheFile.exists()) {
+    qCDebug(logNSDesktopEntries) << "No cache file found";
     return false;
+  }
   if (!cacheFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    qCDebug(logNSDesktopEntries)
+        << "Cannot open desktop entry date cache file.";
     return false;
   }
 
@@ -63,7 +67,7 @@ bool EntryCacher::isCacheValid() {
   for (const auto &path : entryPaths) {
     auto it = jObj.constFind(path);
 
-    if (it == jObj.constEnd()) {
+    if (it == jObj.constEnd() && QDir(path).exists()) {
       shouldChange = true;
       break;
     }
@@ -81,7 +85,7 @@ bool EntryCacher::isCacheValid() {
     }
   }
 
-  return shouldChange;
+  return !shouldChange;
 }
 
 std::optional<QList<EntryData>> EntryCacher::readFromCache() {

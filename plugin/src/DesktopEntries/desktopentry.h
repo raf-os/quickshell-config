@@ -62,7 +62,7 @@ public:
   [[nodiscard]] QBindable<QString> bindableGenericName() const { return &this->m_genericName; }
   [[nodiscard]] QBindable<QString> bindableStartupClass() const { return &this->m_startupClass; }
   [[nodiscard]] QBindable<QString> bindableIcon() const { return &this->m_icon; }
-  [[nodiscard]] QBindable<QString> bindableComment() const { return &this->m_icon; }
+  [[nodiscard]] QBindable<QString> bindableComment() const { return &this->m_comment; }
   [[nodiscard]] QBindable<QString> bindableExecString() const { return &this->m_execString; }
   [[nodiscard]] QBindable<QStringList> bindableCommand() const { return &this->m_command; }
   [[nodiscard]] QBindable<QString> bindableWorkingDirectory() const { return &this->m_workingDirectory; }
@@ -73,6 +73,8 @@ public:
   [[nodiscard]] QBindable<bool> bindableNoDisplay() const { return &this->m_noDisplay; }
   [[nodiscard]] QBindable<quint32> bindableFrequency() const { return &this->m_frequency; }
   // clang-format on
+
+  void setFrequency(quint32 freq);
 
 public slots:
   void incrementFrequency();

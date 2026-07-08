@@ -36,6 +36,7 @@ Loader {
 				}
 
 				Wallpaper {
+					id: wppItem
 					anchors.fill: parent
 				}
 			}
