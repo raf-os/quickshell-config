@@ -23,9 +23,15 @@ class ColorConfigMetadata : public myqmlplugin::configs::CSerializable {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
-  AUTO_PROP_DEFAULT(QString, name, "Default")
-  AUTO_PROP_DEFAULT(QString, author, "Anonymous")
-  AUTO_PROP_DEFAULT(QString, version, "1.0")
+  AUTO_PROP_DEFAULT(QString,
+                    name,
+                    "Default")
+  AUTO_PROP_DEFAULT(QString,
+                    author,
+                    "Anonymous")
+  AUTO_PROP_DEFAULT(QString,
+                    version,
+                    "1.0")
 
 public:
   explicit ColorConfigMetadata(QObject *parent = nullptr)
@@ -37,6 +43,7 @@ class ColorConfigColors : public myqmlplugin::configs::CSerializable {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
+  // clang-format off
   AUTO_PROP_DEFAULT(QColor, base0, "#1b1510")
   AUTO_PROP_DEFAULT(QColor, base, "#25201d")
   AUTO_PROP_DEFAULT(QColor, base2, "#322d28")
@@ -56,12 +63,14 @@ class ColorConfigColors : public myqmlplugin::configs::CSerializable {
   AUTO_PROP_DEFAULT(QColor, primary3, "#f48743")
   AUTO_PROP_DEFAULT(QColor, primary4, "#e39e59")
   AUTO_PROP_DEFAULT(QColor, primary5, "#f4b17a")
+  AUTO_PROP_DEFAULT(QColor, primaryContent, "#361814")
 
   AUTO_PROP_DEFAULT(QColor, destructive, "#e32e35")
   AUTO_PROP_DEFAULT(QColor, destructiveContent, "#200305")
   AUTO_PROP_DEFAULT(QColor, destructiveHover, "#ed5c4b")
 
   AUTO_PROP_DEFAULT(QColor, emphasisFavorite, "#efe302")
+  // clang-format on
 
 public:
   explicit ColorConfigColors(QObject *parent = nullptr)
@@ -104,7 +113,8 @@ public:
     return s_instance;
   }
 
-  static Colors *create(QQmlEngine *qmlEngine, QJSEngine *) {
+  static Colors *create(QQmlEngine *qmlEngine,
+                        QJSEngine *) {
     auto inst = instance();
     if (qmlEngine)
       qmlEngine->setObjectOwnership(inst, QJSEngine::CppOwnership);
@@ -113,31 +123,31 @@ public:
 
   struct ColorObjPayload {
     configs::ColorConfigMetadata *metadata = Colors::instance()->metadata();
-    configs::ColorConfigColors *colors = Colors::instance()->colors();
+    configs::ColorConfigColors   *colors   = Colors::instance()->colors();
   };
 
   [[nodiscard]] configs::ColorConfigMetadata *metadata() const;
-  [[nodiscard]] configs::ColorConfigColors *colors() const;
+  [[nodiscard]] configs::ColorConfigColors   *colors() const;
 
   [[nodiscard]] configs::ColorConfigMetadata *metadataPreview() const;
-  [[nodiscard]] configs::ColorConfigColors *colorsPreview() const;
+  [[nodiscard]] configs::ColorConfigColors   *colorsPreview() const;
 
   [[nodiscard]] QString configPath() const;
-  void setConfigPath(const QString &path);
+  void                  setConfigPath(const QString &path);
 
   [[nodiscard]] QString themeName() const;
-  void setThemeName(const QString &name);
+  void                  setThemeName(const QString &name);
 
   [[nodiscard]] QList<QString> themeList() const;
 
-  [[nodiscard]] bool isPreviewing() const;
+  [[nodiscard]] bool    isPreviewing() const;
   [[nodiscard]] QString previewThemeName() const;
 
   Q_INVOKABLE void earlyLoad() {};
   Q_INVOKABLE void loadConfig();
   Q_INVOKABLE void saveConfig();
   Q_INVOKABLE void loadPreview(const QString &themeName,
-                               QObject *handler = nullptr);
+                               QObject       *handler = nullptr);
   Q_INVOKABLE void closePreview();
 
   Q_INVOKABLE void commitSave() override;
@@ -156,19 +166,19 @@ private:
   explicit Colors(QObject *parent = nullptr);
 
   configs::ColorConfigMetadata *m_configMetadata;
-  configs::ColorConfigColors *m_colors;
+  configs::ColorConfigColors   *m_colors;
 
   configs::ColorConfigMetadata *m_previewConfigMetadata = nullptr;
-  configs::ColorConfigColors *m_previewColors = nullptr;
-  bool m_isPreviewing = false;
+  configs::ColorConfigColors   *m_previewColors         = nullptr;
+  bool                          m_isPreviewing          = false;
 
   QFileSystemWatcher *m_fileWatcher;
   QFileSystemWatcher *m_themeSelectorWatcher;
 
   QList<QString> m_themeDb;
 
-  QString m_configPath = utils::Paths::instance()->config();
-  QString m_themeName = "default";
+  QString m_configPath  = utils::Paths::instance()->config();
+  QString m_themeName   = "default";
   QString m_previewName = "default";
 
   void setIsPreviewing(bool value);
@@ -178,15 +188,15 @@ private:
   void buildThemeDb();
   void attachFileWatcher();
   void resetConfigs();
-  void loadFromFile(const QString &themeName,
+  void loadFromFile(const QString   &themeName,
                     ColorObjPayload *payload = nullptr);
 
   void onFileWatcherChanged(const QString &path);
   void onThemeSelectorFileChanged(const QString &path);
 
   QString getActiveTheme();
-  void setActiveTheme(const QString &themeName);
-  void setPreviewThemeName(const QString &themeName);
+  void    setActiveTheme(const QString &themeName);
+  void    setPreviewThemeName(const QString &themeName);
 };
 
 } // namespace myqmlplugin

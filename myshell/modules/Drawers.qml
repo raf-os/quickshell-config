@@ -33,18 +33,7 @@ Variants {
 			name: "drawers"
 
 			exclusionMode: ExclusionMode.Ignore
-			WlrLayershell.keyboardFocus: openPanels.startmenu || GlobalShellState.launcherScreen !== null || openPanels.notifications ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
-
-			// mask: Region {
-			// 	x: Config.border.thickness
-			// 	y: bar.implicitHeight
-			// 	width: win.width - Config.border.thickness * 2
-			// 	height: win.height - bar.implicitHeight - Config.border.thickness
-			//
-			// 	intersection: Intersection.Xor
-			//
-			// 	regions: [regions.instances] // qmllint disable stale-property-read
-			// }
+			WlrLayershell.keyboardFocus: openPanels.startmenu || openPanels.notifications ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
 			mask: MaskRegions {
 				bar: bar
@@ -86,7 +75,7 @@ Variants {
 
 			StyledRect {
 				anchors.fill: parent
-				opacity: openPanels.session ? 0.5 : 0
+				opacity: openPanels.session | GlobalShellState.isLauncherOpen ? 0.5 : 0
 				color: "black"
 
 				Behavior on opacity {

@@ -6,7 +6,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 
-Item {
+FocusScope {
 	id: root
 
 	required property Item panelsItem

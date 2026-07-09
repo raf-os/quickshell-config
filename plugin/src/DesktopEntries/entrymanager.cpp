@@ -1,4 +1,5 @@
 #include "entrymanager.h"
+#include "config.h"
 #include "desktopentry.h"
 #include "entryaction.h"
 #include "entrycacher.h"
@@ -300,6 +301,21 @@ DesktopEntry *EntryManager::findEntry(const QString &name) {
   if (it != entryList.end())
     return *it;
   return nullptr;
+}
+
+void EntryManager::toggleFavorite(DesktopEntry *target) {
+  auto       lconfig = myqmlplugin::configs::Config::instance()->launcher();
+  auto       curApps = lconfig->favoriteApps();
+  const auto idx     = lconfig->favoriteApps().indexOf(target->id());
+  if (idx == -1) {
+    curApps.append(target->id());
+    lconfig->setFavoriteApps(std::move(curApps));
+  } else {
+    curApps.removeAt(idx);
+    lconfig->setFavoriteApps(std::move(curApps));
+  }
+
+  myqmlplugin::configs::Config::instance()->saveConfigs();
 }
 
 QHash<QString,

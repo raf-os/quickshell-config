@@ -25,8 +25,8 @@ class DesktopEntriesModel : public QAbstractListModel {
                  entryList NOTIFY entryListChanged)
   Q_PROPERTY(QString queryString READ queryString WRITE setQueryString NOTIFY
                  queryStringChanged)
-  Q_PROPERTY(bool showTerminalOnly READ showTerminalOnly WRITE
-                 setShowTerminalOnly NOTIFY showTerminalOnlyChanged)
+  Q_PROPERTY(bool hideTerminalOnly READ hideTerminalOnly WRITE
+                 setHideTerminalOnly NOTIFY hideTerminalOnlyChanged)
 
 public:
   explicit DesktopEntriesModel(QObject *parent = nullptr);
@@ -49,8 +49,8 @@ public:
   [[nodiscard]] QString queryString() const;
   void                  setQueryString(const QString &value);
 
-  [[nodiscard]] bool showTerminalOnly() const;
-  void               setShowTerminalOnly(bool value);
+  [[nodiscard]] bool hideTerminalOnly() const;
+  void               setHideTerminalOnly(bool value);
 
   [[nodiscard]] QQmlListProperty<DesktopEntry> entryList();
 
@@ -58,7 +58,9 @@ public:
                           DesktopEntry *b);
 
   void sortEntries(QList<DesktopEntry *> &list);
+  void applyFilters(QList<DesktopEntry *> &list);
   bool isEntryFavorite(DesktopEntry *entry);
+  bool isEntryFiltered(const DesktopEntry *entry);
 
 public slots:
   void reSortEntries();
@@ -70,19 +72,26 @@ private slots:
   void onDebounceTimeout();
 
 signals:
+  void filtersChanged();
   void entryListChanged();
   void queryStringChanged();
-  void showTerminalOnlyChanged();
+  void hideTerminalOnlyChanged();
 
 private:
   EntryManager         *m_manager;
   QList<DesktopEntry *> m_entries;
+  QList<DesktopEntry *> m_filteredEntries;
   QStringList           m_favoriteEntries;
+  quint32               m_filters = 0;
 
-  QString m_previousQueryString;
   QString m_queryString;
   QTimer  m_debouncer;
-  bool    m_showTerminalOnly = false;
+  bool    m_hideTerminalOnly = false;
+
+  struct {
+    bool    hideTerminalOnly = false;
+    QString query            = "";
+  } m_previousState;
 
   static DesktopEntry *entryListAt(QQmlListProperty<DesktopEntry> *property,
                                    qsizetype                       index);

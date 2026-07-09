@@ -13,6 +13,8 @@ MouseArea {
 	required property real boundsHeight
 	readonly property int borderPadding: 200
 
+	property bool isAltPressed: false
+
 	implicitWidth: boundsWidth - borderPadding * 2
 	implicitHeight: boundsHeight - borderPadding * 2
 
@@ -30,6 +32,28 @@ MouseArea {
 	signal nextItemRequested
 	signal previousItemRequested
 	signal currentItemActivated
+	signal hotkeyIndexActivated(key: int)
+
+	Keys.onPressed: ev => {
+		if (ev.key === Qt.Key_Alt) {
+			root.isAltPressed = true;
+			ev.accepted = true;
+			return;
+		}
+
+		if (ev.modifiers & Qt.AltModifier) {
+			if (ev.key >= Qt.Key_1 && ev.key <= Qt.Key_9) {
+				ev.accepted = true;
+				root.hotkeyIndexActivated(ev.key);
+			}
+		}
+	}
+
+	Keys.onReleased: ev => {
+		if (ev.key === Qt.Key_Alt) {
+			root.isAltPressed = false;
+		}
+	}
 
 	Keys.onReturnPressed: ev => {
 		root.currentItemActivated();
@@ -62,6 +86,9 @@ MouseArea {
 		anchors.fill: parent
 
 		color: "black"
+		radius: bgRect.radius
+		spread: 2.0
+		offset: Qt.vector2d(0.0, 2.0)
 	}
 
 	Rectangle {
@@ -85,6 +112,7 @@ MouseArea {
 		AppsList {
 			id: appList
 			queryString: queryInput.text
+			highlightHotkeys: root.isAltPressed
 
 			onRequestClose: {
 				root.closeLauncherRequested();
@@ -111,6 +139,10 @@ MouseArea {
 
 				function onCurrentItemActivated() {
 					appList.selectItem();
+				}
+
+				function onHotkeyIndexActivated(key: int): void {
+					appList.hotkeyTriggered(key);
 				}
 			}
 		}
@@ -188,6 +220,8 @@ MouseArea {
 				font.pointSize: Config.appearance.fontSize.sm
 
 				color: Colors.colors.baseContent
+
+				Keys.forwardTo: [root]
 			}
 		}
 	}

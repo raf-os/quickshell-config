@@ -46,6 +46,8 @@ DesktopEntriesModel::DesktopEntriesModel(QObject *parent)
   QObject::connect(
       m_manager, &QObject::destroyed, this, [this]() { this->deleteLater(); });
 
+  this->onFavoriteEntriesChanged();
+
   QObject::connect(myqmlplugin::configs::Config::instance()->launcher(),
                    &myqmlplugin::configs::LauncherConfig::favoriteAppsChanged,
                    this,
@@ -98,8 +100,20 @@ void DesktopEntriesModel::sortEntries(QList<DesktopEntry *> &list) {
   });
 }
 
+void DesktopEntriesModel::applyFilters(QList<DesktopEntry *> &list) {
+  list.removeIf([this](DesktopEntry *e) { return this->isEntryFiltered(e); });
+}
+
 bool DesktopEntriesModel::isEntryFavorite(DesktopEntry *entry) {
-  return m_favoriteEntries.contains(entry->bindableName().value());
+  return m_favoriteEntries.contains(entry->id());
+}
+
+bool DesktopEntriesModel::isEntryFiltered(const DesktopEntry *entry) {
+  if (this->m_hideTerminalOnly && entry->bindableRunInTerminal().value()) {
+    return true;
+  }
+
+  return false;
 }
 
 void DesktopEntriesModel::onEntriesChanged() {
@@ -107,6 +121,7 @@ void DesktopEntriesModel::onEntriesChanged() {
 
   this->beginResetModel();
   m_entries = newList.values();
+  applyFilters(m_entries);
   sortEntries(m_entries);
   this->endResetModel();
   emit entryListChanged();
@@ -138,25 +153,28 @@ void    DesktopEntriesModel::setQueryString(const QString &value) {
   m_debouncer.start();
 }
 
-bool DesktopEntriesModel::showTerminalOnly() const {
-  return m_showTerminalOnly;
+bool DesktopEntriesModel::hideTerminalOnly() const {
+  return m_hideTerminalOnly;
 }
-void DesktopEntriesModel::setShowTerminalOnly(bool value) {
-  if (value == m_showTerminalOnly)
+void DesktopEntriesModel::setHideTerminalOnly(bool value) {
+  if (value == m_hideTerminalOnly)
     return;
 
-  m_showTerminalOnly = value;
-  emit showTerminalOnlyChanged();
+  m_hideTerminalOnly = value;
+  emit hideTerminalOnlyChanged();
 
   m_debouncer.start();
 }
 
 void DesktopEntriesModel::onDebounceTimeout() {
-  if (m_queryString == m_previousQueryString)
+  if (m_previousState.query == m_queryString &&
+      m_previousState.hideTerminalOnly == m_hideTerminalOnly)
     return;
-  m_previousQueryString = m_queryString;
 
-  if (m_queryString.isEmpty()) {
+  m_previousState.query            = m_queryString;
+  m_previousState.hideTerminalOnly = m_hideTerminalOnly;
+
+  if (m_queryString.isEmpty() && !m_hideTerminalOnly) {
     resetAllFilters();
     return;
   }
@@ -171,6 +189,14 @@ void DesktopEntriesModel::onDebounceTimeout() {
   for (auto it = originalEntries.constBegin(); it != originalEntries.constEnd();
        ++it) {
     const auto entry = it.value();
+
+    if (isEntryFiltered(entry))
+      continue;
+    if (m_queryString.isEmpty()) {
+      filtered.append(entry);
+      continue;
+    }
+
     const auto entryName =
         entry->bindableName().value().toLower().toStdString();
 
@@ -186,7 +212,7 @@ void DesktopEntriesModel::onDebounceTimeout() {
     }
   }
 
-  if (filtered.size() == m_entries.size())
+  if (filtered == m_entries)
     return;
 
   filtered.squeeze();
@@ -221,6 +247,11 @@ void DesktopEntriesModel::resetAllFilters() {
 
   if (managerList == m_entries)
     return;
+
+  if (m_hideTerminalOnly) {
+    m_hideTerminalOnly = false;
+    emit hideTerminalOnlyChanged();
+  }
 
   this->beginResetModel();
   m_entries = std::move(managerList);

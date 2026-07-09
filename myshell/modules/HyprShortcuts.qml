@@ -10,7 +10,7 @@ import Quickshell
 Scope {
 	id: root
 
-	property bool startMenuInterrupted
+	// property bool startMenuInterrupted
 	readonly property bool hasFullscreen: Hypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen === 2) ?? false
 
 	CustomShortcut {
@@ -19,45 +19,44 @@ Scope {
 
 		onPressed: root.startMenuInterrupted = false
 		onReleased: {
-			if (!root.startMenuInterrupted && !root.hasFullscreen) {
-				const openPanels = PanelService.getForActive();
-				openPanels.startmenu = !openPanels.startmenu;
-				// const activeMonitor = Hypr.focusedMonitor;
-				// const activeScreen = Quickshell.screens.find(s => s.name === activeMonitor.name);
-				// if (activeScreen) {
-				// 	if (GlobalShellState.launcherScreen === activeScreen) {
-				// 		GlobalShellState.closeLauncher();
-				// 	} else {
-				// 		GlobalShellState.openLauncher(activeScreen);
-				// 	}
-				// }
+			if (!root.hasFullscreen) {
+				// const openPanels = PanelService.getForActive();
+				// openPanels.startmenu = !openPanels.startmenu;
+				const activeMonitor = Hypr.focusedMonitor;
+				const activeScreen = Quickshell.screens.find(s => s.name === activeMonitor.name);
+				if (activeScreen) {
+					if (GlobalShellState.launcherScreen === activeScreen) {
+						GlobalShellState.closeLauncher();
+					} else {
+						GlobalShellState.openLauncher(activeScreen);
+					}
+				}
 			}
-			root.startMenuInterrupted = false;
 		}
 	}
 
-	CustomShortcut {
-		//TODO: this
-		name: "startmenuCommand"
-		description: "Toggle start menu in command mode"
-
-		onPressed: {
-			root.startMenuInterrupted = true;
-		}
-		onReleased: {
-			const openPanels = PanelService.getForActive();
-			if (openPanels.startmenu === true)
-				return;
-			openPanels.startmenu = true;
-			openPanels.desiredStartMenuTab = "command";
-		}
-	}
-
-	CustomShortcut {
-		name: "startMenuInterrupt"
-		description: "Interrupt start menu keybind"
-		onPressed: root.startMenuInterrupted = true
-	}
+	// CustomShortcut {
+	// 	//TODO: this
+	// 	name: "startmenuCommand"
+	// 	description: "Toggle start menu in command mode"
+	//
+	// 	onPressed: {
+	// 		root.startMenuInterrupted = true;
+	// 	}
+	// 	onReleased: {
+	// 		const openPanels = PanelService.getForActive();
+	// 		if (openPanels.startmenu === true)
+	// 			return;
+	// 		openPanels.startmenu = true;
+	// 		openPanels.desiredStartMenuTab = "command";
+	// 	}
+	// }
+	//
+	// CustomShortcut {
+	// 	name: "startMenuInterrupt"
+	// 	description: "Interrupt start menu keybind"
+	// 	onPressed: root.startMenuInterrupted = true
+	// }
 
 	CustomShortcut {
 		name: "toggleGamemode"

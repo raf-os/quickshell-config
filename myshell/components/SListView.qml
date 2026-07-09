@@ -11,14 +11,24 @@ Item {
 	required property var model
 	property Component delegate: null
 	property Component highlight: null
+	property Component background: null
 
 	property int spacing
+	property int padding
 
 	property alias currentItem: listView.currentItem
 	property alias currentIndex: listView.currentIndex
 	property alias count: listView.count
 
 	signal scrollBarPressed
+
+	Loader {
+		anchors.fill: listView
+		anchors.margins: -root.padding
+
+		active: root.background !== null
+		sourceComponent: root.background
+	}
 
 	ListView {
 		id: listView
@@ -30,7 +40,8 @@ Item {
 		readonly property int scrollBarClearance: isScrollBarActive ? scrollBarWidth + Config.appearance.spacing.sm : 0
 
 		anchors.fill: parent
-		anchors.rightMargin: scrollBarClearance
+		anchors.margins: root.padding
+		anchors.rightMargin: root.padding + scrollBarClearance
 
 		clip: true
 		boundsBehavior: Flickable.StopAtBounds

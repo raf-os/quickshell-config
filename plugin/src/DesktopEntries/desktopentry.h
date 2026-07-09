@@ -95,6 +95,8 @@ signals:
   void noDisplayChanged();
   void frequencyChanged();
 
+  void isFavoriteChanged();
+
 private:
   void updateActions(const QList<EntryActionData> &newActions);
 

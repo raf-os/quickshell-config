@@ -44,6 +44,7 @@ public:
 
   Q_INVOKABLE DesktopEntry *findEntryById(const QString &id);
   Q_INVOKABLE DesktopEntry *findEntry(const QString &name);
+  Q_INVOKABLE void          toggleFavorite(DesktopEntry *target);
 
   Q_INVOKABLE void executeGeneric(const QStringList &cmd,
                                   const QString     &workingDirectory,

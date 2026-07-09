@@ -10,6 +10,7 @@ Singleton {
 	readonly property list<ShellScreen> allScreens: Quickshell.screens
 
 	property alias launcherScreen: props.launcherScreen
+	readonly property bool isLauncherOpen: props.launcherScreen !== null
 
 	PersistentProperties {
 		id: props
