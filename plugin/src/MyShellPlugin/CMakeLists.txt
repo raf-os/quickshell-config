@@ -88,6 +88,7 @@ add_subdirectory(utils)
 add_subdirectory(components)
 add_subdirectory(notifications)
 add_subdirectory(wallpaper)
+add_subdirectory(hyprland)
 
 qml_module(
   myshell
