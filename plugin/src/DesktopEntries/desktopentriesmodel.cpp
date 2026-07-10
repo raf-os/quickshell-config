@@ -1,10 +1,9 @@
 #include "desktopentriesmodel.h"
-#include "config.h"
-#include "desktopentry.h"
-#include "entrymanager.h"
-#include "generated/launcherconfig.h"
 
 #include <algorithm>
+#include <string>
+#include <string_view>
+
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qhash.h>
@@ -16,8 +15,11 @@
 #include <qtypes.h>
 #include <qvariant.h>
 #include <rapidfuzz/fuzz.hpp>
-#include <string>
-#include <string_view>
+
+#include "config.h"
+#include "desktopentry.h"
+#include "entrymanager.h"
+#include "generated/launcherconfig.h"
 
 namespace ns::desktop::entries {
 Q_DECLARE_LOGGING_CATEGORY(logNSDesktopEntries)
@@ -55,21 +57,18 @@ DesktopEntriesModel::DesktopEntriesModel(QObject *parent)
 }
 
 qint32 DesktopEntriesModel::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid())
-    return 0;
+  if (parent.isValid()) return 0;
   return static_cast<qint32>(this->m_entries.size());
 }
 
 QVariant DesktopEntriesModel::data(const QModelIndex &index,
                                    qint32             role) const {
-  if (!index.isValid())
-    return {};
+  if (!index.isValid()) return {};
 
   switch (role) {
   case Roles::ModelDataRole:
     return QVariant::fromValue(m_entries.at(index.row()));
-  default:
-    return {};
+  default: return {};
   }
 }
 
@@ -131,8 +130,7 @@ void DesktopEntriesModel::onFavoriteEntriesChanged() {
   auto newFavs =
       myqmlplugin::configs::Config::instance()->launcher()->favoriteApps();
 
-  if (newFavs == m_favoriteEntries)
-    return;
+  if (newFavs == m_favoriteEntries) return;
 
   m_favoriteEntries = newFavs;
 
@@ -144,8 +142,7 @@ void DesktopEntriesModel::onFavoriteEntriesChanged() {
 
 QString DesktopEntriesModel::queryString() const { return m_queryString; }
 void    DesktopEntriesModel::setQueryString(const QString &value) {
-  if (value == m_queryString)
-    return;
+  if (value == m_queryString) return;
 
   m_queryString = value;
   emit queryStringChanged();
@@ -157,8 +154,7 @@ bool DesktopEntriesModel::hideTerminalOnly() const {
   return m_hideTerminalOnly;
 }
 void DesktopEntriesModel::setHideTerminalOnly(bool value) {
-  if (value == m_hideTerminalOnly)
-    return;
+  if (value == m_hideTerminalOnly) return;
 
   m_hideTerminalOnly = value;
   emit hideTerminalOnlyChanged();
@@ -190,8 +186,7 @@ void DesktopEntriesModel::onDebounceTimeout() {
        ++it) {
     const auto entry = it.value();
 
-    if (isEntryFiltered(entry))
-      continue;
+    if (isEntryFiltered(entry)) continue;
     if (m_queryString.isEmpty()) {
       filtered.append(entry);
       continue;
@@ -212,8 +207,7 @@ void DesktopEntriesModel::onDebounceTimeout() {
     }
   }
 
-  if (filtered == m_entries)
-    return;
+  if (filtered == m_entries) return;
 
   filtered.squeeze();
   sortEntries(filtered);
@@ -245,8 +239,7 @@ void DesktopEntriesModel::resetAllFilters() {
 
   sortEntries(managerList);
 
-  if (managerList == m_entries)
-    return;
+  if (managerList == m_entries) return;
 
   if (m_hideTerminalOnly) {
     m_hideTerminalOnly = false;

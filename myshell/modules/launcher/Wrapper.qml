@@ -13,6 +13,12 @@ FocusScope {
 	required property ShellScreen screen
 
 	readonly property bool shouldBeActive: GlobalShellState.launcherScreen === screen
+	property bool isActive: false
+
+	onShouldBeActiveChanged: {
+		if (shouldBeActive)
+			isActive = true;
+	}
 
 	// focus: shouldBeActive
 
@@ -48,7 +54,7 @@ FocusScope {
 	Loader {
 		id: contentLoader
 
-		active: root.shouldBeActive
+		active: root.isActive
 
 		anchors.centerIn: parent
 
@@ -58,8 +64,26 @@ FocusScope {
 			boundsWidth: root.panelsItem.width
 			boundsHeight: root.panelsItem.height
 
+			Connections {
+				target: root
+
+				function onShouldBeActiveChanged() {
+					if (root.shouldBeActive === false) {
+						launcherContent.onCloseSignal();
+					}
+					if (root.shouldBeActive === true) {
+						launcherContent.checkReEnter();
+					}
+				}
+			}
+
+			onExitAnimationFinished: {
+				root.isActive = false;
+			}
+
 			onCloseLauncherRequested: {
 				GlobalShellState.closeLauncher();
+				onCloseSignal();
 			}
 		}
 	}

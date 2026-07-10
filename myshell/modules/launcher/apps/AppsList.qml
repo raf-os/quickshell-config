@@ -7,26 +7,15 @@ import MyShellPlugin.Configs
 import QtQuick
 import QtQuick.Layouts
 
-Item {
-	id: root
+import ".."
 
-	property string queryString
-	property bool highlightHotkeys
+BaseList {
+	id: root
+	view: lView
 
 	DesktopEntriesModel {
 		id: entriesModel
 		queryString: root.queryString
-	}
-
-	signal requestClose
-	signal hotkeyTriggered(key: int)
-
-	function moveListForwards() {
-		view.listView.incrementCurrentIndex();
-	}
-
-	function moveListBackwards() {
-		view.listView.decrementCurrentIndex();
 	}
 
 	function selectItem() {
@@ -41,7 +30,7 @@ Item {
 
 		anchors.fill: parent
 
-		visible: view.count === 0
+		visible: root.view.count === 0
 
 		StyledText {
 			anchors.fill: parent
@@ -54,47 +43,23 @@ Item {
 		}
 	}
 
-	SListView {
-		id: view
-
-		background: Rectangle {
-			anchors.fill: parent
-			color: Colors.colors.base0
-			radius: Config.appearance.rounding.sm
-		}
+	BaseListView {
+		id: lView
 
 		anchors {
 			left: parent.left
 			right: parent.right
 			top: parent.top
 			bottom: filtersWrapper.top
+			bottomMargin: root.spacing
 		}
-
-		clip: true
-		spacing: Config.appearance.spacing.sm
-		padding: 4
-
-		listView.keyNavigationWraps: true
-
 		model: entriesModel.entryList
 		delegate: AppItem {
 			id: appItemDelegate
-
 			onClicked: {
 				modelData.execute();
 				root.requestClose();
 			}
-		}
-
-		listView.highlightFollowsCurrentItem: true
-		listView.highlightResizeVelocity: -1
-		listView.highlightResizeDuration: -1
-		listView.highlightMoveVelocity: -1
-		listView.highlightMoveDuration: -1
-
-		highlight: Rectangle {
-			color: Colors.colors.primary
-			radius: Config.appearance.rounding.sm - view.padding
 		}
 	}
 
@@ -107,7 +72,7 @@ Item {
 			bottom: parent.bottom
 		}
 
-		implicitHeight: 32
+		implicitHeight: Config.appearance.fontSize.xs * 2
 
 		RowLayout {
 			anchors.fill: parent

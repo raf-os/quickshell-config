@@ -15,6 +15,7 @@ Item {
 
 	property int spacing
 	property int padding
+	property int scrollBarWidth: 8
 
 	property alias currentItem: listView.currentItem
 	property alias currentIndex: listView.currentIndex
@@ -36,8 +37,7 @@ Item {
 		acceptedButtons: Qt.NoButton
 
 		readonly property bool isScrollBarActive: contentHeight > height
-		readonly property int scrollBarWidth: 8
-		readonly property int scrollBarClearance: isScrollBarActive ? scrollBarWidth + Config.appearance.spacing.sm : 0
+		readonly property int scrollBarClearance: isScrollBarActive ? root.scrollBarWidth + Config.appearance.spacing.sm : 0
 
 		anchors.fill: parent
 		anchors.margins: root.padding
@@ -65,7 +65,7 @@ Item {
 			anchors.right: parent.right
 			anchors.bottom: parent.bottom
 
-			implicitWidth: listView.scrollBarWidth
+			implicitWidth: root.scrollBarWidth
 
 			padding: 0
 
