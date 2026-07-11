@@ -78,9 +78,23 @@ function(qml_module arg_TARGET)
   target_link_libraries(${arg_TARGET} PRIVATE Qt::Core Qt::Qml ${arg_LIBRARIES})
 endfunction()
 
-qt_add_library(myshell SHARED)
+qt6_add_library(myshell SHARED)
+
+target_sources(
+  myshell
+  PRIVATE
+    appdb.cpp
+    cmdhandler.cpp
+    kbd.cpp
+    hypr.cpp
+    networkservice.cpp
+    colors.cpp
+    systemsounds.cpp
+)
 
 target_include_directories(myshell PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+qt6_add_qml_module(myshell URI "MyShellPlugin" VERSION ${VERSION})
 
 add_subdirectory(interfaces)
 add_subdirectory(configs)
@@ -90,38 +104,55 @@ add_subdirectory(notifications)
 add_subdirectory(wallpaper)
 add_subdirectory(hyprland)
 
-qml_module(
+target_link_libraries(
   myshell
-  URI
-  MyShellPlugin
-  SOURCES
-  appdb.h
-  appdb.cpp
-  cmdhandler.h
-  cmdhandler.cpp
-  kbd.h
-  kbd.cpp
-  hypr.h
-  hypr.cpp
-  hyprevents.h
-  hyprevents.cpp
-  networkservice.h
-  networkservice.cpp
-  colors.h
-  colors.cpp
-  systemsounds.h
-  systemsounds.cpp
-  LIBRARIES
-  Qt::Gui
-  Qt::Quick
-  Qt::Sql
-  Qt::DBus
-  Qt::Network
-  rapidfuzz::rapidfuzz
-  LibXml2::LibXml2
-  PkgConfig::LIBCANBERRA
-  myshell_interfaces
-  myshell_include
-  myshell_utils
-  myshell_configs
+  PRIVATE
+    Qt6::Core
+    Qt6::Quick
+    Qt6::Sql
+    Qt6::DBus
+    Qt6::Network
+    rapidfuzz::rapidfuzz
+    LibXml2::LibXml2
+    PkgConfig::LIBCANBERRA
+    myshell_utils
+    myshell_interfaces
+    myshell_include
+    myshell_configs
+    myshell_hyprland
 )
+
+# qml_module(
+#   myshell
+#   URI
+#   MyShellPlugin
+#   SOURCES
+#   appdb.h
+#   appdb.cpp
+#   cmdhandler.h
+#   cmdhandler.cpp
+#   kbd.h
+#   kbd.cpp
+#   hypr.h
+#   hypr.cpp
+#   networkservice.h
+#   networkservice.cpp
+#   colors.h
+#   colors.cpp
+#   systemsounds.h
+#   systemsounds.cpp
+#   LIBRARIES
+#   Qt::Gui
+#   Qt::Quick
+#   Qt::Sql
+#   Qt::DBus
+#   Qt::Network
+#   rapidfuzz::rapidfuzz
+#   LibXml2::LibXml2
+#   PkgConfig::LIBCANBERRA
+#   myshell_interfaces
+#   myshell_include
+#   myshell_hyprland
+#   myshell_utils
+#   myshell_configs
+# )

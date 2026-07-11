@@ -1,14 +1,16 @@
 #include "systemsounds.h"
-#include "config.h"
-#include "hyprevents.h"
+
+#include <cstdint>
 
 #include <canberra.h>
-#include <cstdint>
 #include <qdebug.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qstringview.h>
+
+#include "config.h"
+#include "hyprevents.h"
 
 namespace ns {
 SystemSounds::SystemSounds(QObject *parent) : QObject(parent) {
@@ -28,7 +30,7 @@ SystemSounds::SystemSounds(QObject *parent) : QObject(parent) {
     return;
   }
 
-  auto t = myqmlplugin::configs::Config::instance()->sounds()->theme();
+  auto       t = myqmlplugin::configs::Config::instance()->sounds()->theme();
   QByteArray themeName = t.toUtf8();
 
   ca_proplist_sets(plist, "application.name", "nightshell");
@@ -38,7 +40,7 @@ SystemSounds::SystemSounds(QObject *parent) : QObject(parent) {
   ca_context_change_props_full(m_ctx, plist);
   ca_proplist_destroy(plist);
 
-  bool success = false;
+  bool                    success = false;
   const QList<QByteArray> drivers{"pulse", "alsa"};
   for (const auto &driver : drivers) {
     ca_context_set_driver(m_ctx, driver);
@@ -59,27 +61,27 @@ SystemSounds::SystemSounds(QObject *parent) : QObject(parent) {
 }
 
 SystemSounds::~SystemSounds() {
-  if (m_ctx)
-    ca_context_destroy(m_ctx);
+  if (m_ctx) ca_context_destroy(m_ctx);
 }
 
-void SystemSounds::onSoundFinished(ca_context *c, uint32_t id, int error,
-                                   void *userData) {
+void SystemSounds::onSoundFinished(ca_context *c,
+                                   uint32_t    id,
+                                   int         error,
+                                   void       *userData) {
   if (userData) {
-    auto data = static_cast<CallbackProps *>(userData);
-    auto objRef = data->ref;
+    auto data                      = static_cast<CallbackProps *>(userData);
+    auto objRef                    = data->ref;
     objRef->ActiveSounds.BellSound = false;
 
     delete data;
   }
 }
 
-myqmlplugin::HyprEvents *SystemSounds::eventHandler() const {
+ns::hyprland::HyprEvents *SystemSounds::eventHandler() const {
   return m_eventHandler;
 }
-void SystemSounds::setEventHandler(myqmlplugin::HyprEvents *value) {
-  if (m_eventHandler == value)
-    return;
+void SystemSounds::setEventHandler(ns::hyprland::HyprEvents *value) {
+  if (m_eventHandler == value) return;
 
   if (m_eventHandler) {
     QObject::disconnect(this, nullptr, m_eventHandler, nullptr);
@@ -89,18 +91,19 @@ void SystemSounds::setEventHandler(myqmlplugin::HyprEvents *value) {
   emit eventHandlerChanged();
 
   if (m_eventHandler) {
-    QObject::connect(m_eventHandler, &QObject::destroyed, this,
-                     [this]() { setEventHandler(nullptr); });
-    QObject::connect(m_eventHandler, &myqmlplugin::HyprEvents::bellRang, this,
+    QObject::connect(m_eventHandler, &QObject::destroyed, this, [this]() {
+      setEventHandler(nullptr);
+    });
+    QObject::connect(m_eventHandler,
+                     &ns::hyprland::HyprEvents::bellRang,
+                     this,
                      &SystemSounds::onBellRequested);
   }
 }
 
 bool SystemSounds::onBellRequested() {
-  if (!m_ctx)
-    return false;
-  if (ActiveSounds.BellSound)
-    return false;
+  if (!m_ctx) return false;
+  if (ActiveSounds.BellSound) return false;
 
   auto udata = new CallbackProps{this};
 
@@ -114,11 +117,15 @@ bool SystemSounds::onBellRequested() {
   }
 
   ca_proplist_sets(plist, "event.id", "bell");
-  ca_proplist_sets(plist, "event.description",
+  ca_proplist_sets(plist,
+                   "event.description",
                    "An application has requested the bell sound.");
 
-  auto result = ca_context_play_full(m_ctx, ContextId::BellSound, plist,
-                                     &SystemSounds::onSoundFinished, udata);
+  auto result = ca_context_play_full(m_ctx,
+                                     ContextId::BellSound,
+                                     plist,
+                                     &SystemSounds::onSoundFinished,
+                                     udata);
   ca_proplist_destroy(plist);
 
   if (result == CA_SUCCESS) {

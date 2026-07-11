@@ -1,10 +1,15 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml Xml)
 
 qt6_add_library(myshell_utils SHARED)
 
 target_sources(
   myshell_utils
-  PRIVATE metaiterate.cpp paths.cpp cserializable.cpp soundthemes.cpp
+  PRIVATE
+    metaiterate.cpp
+    paths.cpp
+    cserializable.cpp
+    soundthemes.cpp
+    kbdlayouts.cpp
 )
 
 # set_target_properties(myshell_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -20,7 +25,7 @@ qt6_add_qml_module(myshell_utils URI "MyShellPlugin.Utils" VERSION 0.1)
 
 target_link_libraries(
   myshell_utils
-  PRIVATE Qt::Core Qt::Quick Qt::Qml myshell_include
+  PRIVATE Qt::Core Qt::Quick Qt::Qml Qt::Xml myshell_include
 )
 
 install_qml_module(myshell_utils)

@@ -7,13 +7,15 @@
 #include <qstring.h>
 #include <qtenvironmentvariables.h>
 
-namespace myqmlplugin {
+namespace ns::hyprland {
 HyprEvents::HyprEvents(QObject *parent) : QObject(parent) {
   m_socket = new QLocalSocket(this);
 
-  QObject::connect(m_socket, &QLocalSocket::readyRead, this,
-                   &HyprEvents::onReadyRead);
-  QObject::connect(m_socket, &QLocalSocket::stateChanged, this,
+  QObject::connect(
+      m_socket, &QLocalSocket::readyRead, this, &HyprEvents::onReadyRead);
+  QObject::connect(m_socket,
+                   &QLocalSocket::stateChanged,
+                   this,
                    [this](const QLocalSocket::LocalSocketState socketState) {
                      if (socketState == QLocalSocket::ConnectedState) {
                        if (m_isConnected == false) {
@@ -27,8 +29,8 @@ HyprEvents::HyprEvents(QObject *parent) : QObject(parent) {
                        }
                      }
                    });
-  QObject::connect(m_socket, &QLocalSocket::errorOccurred, this,
-                   &HyprEvents::onError);
+  QObject::connect(
+      m_socket, &QLocalSocket::errorOccurred, this, &HyprEvents::onError);
 }
 
 HyprEvents::~HyprEvents() {
@@ -58,30 +60,27 @@ void HyprEvents::onReadyRead() {
   m_buffer += QString::fromUtf8(m_socket->readAll());
 
   while (m_buffer.contains('\n')) {
-    const int newline = m_buffer.indexOf('\n');
-    const QString line = m_buffer.first(newline).trimmed();
+    const int     newline = m_buffer.indexOf('\n');
+    const QString line    = m_buffer.first(newline).trimmed();
 
     // Checking for overflow just to be sure
-    if (newline + 1 >= m_buffer.size())
-      m_buffer = "";
-    else
-      m_buffer = m_buffer.sliced(newline + 1);
+    if (newline + 1 >= m_buffer.size()) m_buffer = "";
+    else m_buffer = m_buffer.sliced(newline + 1);
 
-    if (line.isEmpty())
-      continue;
+    if (line.isEmpty()) continue;
 
     const int separator = line.indexOf(">>");
-    if (separator == -1)
-      continue;
+    if (separator == -1) continue;
 
     const QString event = line.first(separator).trimmed();
-    const QString data = line.sliced(separator + 2).trimmed();
+    const QString data  = line.sliced(separator + 2).trimmed();
 
     dispatchEvent(event, data);
   }
 }
 
-void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
+void HyprEvents::dispatchEvent(const QString &event,
+                               const QString &data) {
   if (event == "configreloaded") {
     emit configReloaded();
     return;
@@ -95,7 +94,7 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
       return;
     }
 
-    const auto kbdName = data.first(sepIdx);
+    const auto kbdName    = data.first(sepIdx);
     const auto layoutName = data.sliced(sepIdx + 1);
 
     emit keyboardLayoutChanged(kbdName, layoutName);
@@ -113,4 +112,4 @@ void HyprEvents::onError(QLocalSocket::LocalSocketError error) {
   qWarning() << "myqmlplugin::HyprEvents: Hyprland socket error: "
              << m_socket->errorString();
 }
-} // namespace myqmlplugin
+} // namespace ns::hyprland

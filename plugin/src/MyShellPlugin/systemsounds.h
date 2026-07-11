@@ -1,21 +1,22 @@
 #pragma once
 
-#include "hyprevents.h"
+#include <cstdint>
 
 #include <canberra.h>
-#include <cstdint>
 #include <qlist.h>
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qstringview.h>
 #include <qtmetamacros.h>
 
+#include "hyprevents.h"
+
 namespace ns {
 class SystemSounds : public QObject {
   Q_OBJECT
   QML_ELEMENT
 
-  Q_PROPERTY(myqmlplugin::HyprEvents *eventHandler READ eventHandler WRITE
+  Q_PROPERTY(ns::hyprland::HyprEvents *eventHandler READ eventHandler WRITE
                  setEventHandler NOTIFY eventHandlerChanged)
 
 public:
@@ -30,20 +31,22 @@ public:
     SystemSounds *ref = nullptr;
   };
 
-  [[nodiscard]] myqmlplugin::HyprEvents *eventHandler() const;
-  void setEventHandler(myqmlplugin::HyprEvents *value);
+  [[nodiscard]] ns::hyprland::HyprEvents *eventHandler() const;
+  void setEventHandler(ns::hyprland::HyprEvents *value);
 
   Q_SLOT bool onBellRequested();
 
-  static void onSoundFinished(ca_context *c, uint32_t id, int error_code,
-                              void *userData);
+  static void onSoundFinished(ca_context *c,
+                              uint32_t    id,
+                              int         error_code,
+                              void       *userData);
 
 signals:
   void eventHandlerChanged();
 
 private:
-  myqmlplugin::HyprEvents *m_eventHandler = nullptr;
-  ca_context *m_ctx = nullptr;
+  ns::hyprland::HyprEvents *m_eventHandler = nullptr;
+  ca_context               *m_ctx          = nullptr;
 
   struct {
     bool BellSound = false;

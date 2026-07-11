@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hyprevents.h"
-#include "kbd.h"
 #include <optional>
+#include <utility>
+
 #include <qcontainerfwd.h>
 #include <qglobalstatic.h>
 #include <qlist.h>
@@ -14,7 +14,9 @@
 #include <qstringview.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>
-#include <utility>
+
+#include "hyprevents.h"
+#include "kbd.h"
 
 namespace myqmlplugin {
 class HyprKeyboardLayout : public QObject {
@@ -28,16 +30,18 @@ class HyprKeyboardLayout : public QObject {
                  descriptionChanged)
 
 public:
-  explicit HyprKeyboardLayout(const QString &layout, const QString &variant,
-                              QObject *parent = nullptr);
-  explicit HyprKeyboardLayout(const QString &layout, const QString &variant,
+  explicit HyprKeyboardLayout(const QString &layout,
+                              const QString &variant,
+                              QObject       *parent = nullptr);
+  explicit HyprKeyboardLayout(const QString &layout,
+                              const QString &variant,
                               const QString &description,
-                              QObject *parent = nullptr);
+                              QObject       *parent = nullptr);
 
   [[nodiscard]] QString layout() const;
   [[nodiscard]] QString variant() const;
   [[nodiscard]] QString description() const;
-  void setDescription(const QString &desc);
+  void                  setDescription(const QString &desc);
 
   bool isValid();
 
@@ -67,21 +71,23 @@ public:
   explicit HyprInputConfig(QObject *parent = nullptr);
 
   [[nodiscard]] QString kbModel() const;
-  void setKbModel(const QString &model);
+  void                  setKbModel(const QString &model);
 
   [[nodiscard]] QString kbOptions() const;
-  void setKbOptions(const QString &opts);
+  void                  setKbOptions(const QString &opts);
 
   [[nodiscard]] QString kbRules() const;
-  void setKbRules(const QString &rules);
+  void                  setKbRules(const QString &rules);
 
   [[nodiscard]] QQmlListProperty<HyprKeyboardLayout> layouts();
-  void setLayouts(const QStringList &layouts, const QStringList &variants);
-  bool setLayouts(const QList<std::pair<QString, QString>> &layouts);
+  void setLayouts(const QStringList &layouts,
+                  const QStringList &variants);
+  bool setLayouts(const QList<std::pair<QString,
+                                        QString>> &layouts);
 
   [[nodiscard]] QList<HyprKeyboardLayout *> layoutList() const;
 
-  void attachKeyboardHandler(KeyboardLayoutHandler *obj);
+  void                      attachKeyboardHandler(KeyboardLayoutHandler *obj);
   std::optional<QByteArray> compileCommandFileString();
 
 signals:
@@ -91,11 +97,11 @@ signals:
   void layoutsChanged();
 
 private:
-  QString m_kbModel = "";
-  QString m_kbOptions = "";
-  QString m_kbRules = "";
+  QString                             m_kbModel   = "";
+  QString                             m_kbOptions = "";
+  QString                             m_kbRules   = "";
   mutable QList<HyprKeyboardLayout *> m_layouts;
-  KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
+  KeyboardLayoutHandler              *m_kbLayoutHandler = nullptr;
 };
 
 class HyprExtras : public QObject {
@@ -116,7 +122,8 @@ class HyprExtras : public QObject {
                      keyboardLayoutHandlerChanged REQUIRED)
   Q_PROPERTY(
       myqmlplugin::HyprInputConfig *inputConfig READ inputConfig CONSTANT)
-  Q_PROPERTY(myqmlplugin::HyprEvents *eventListener READ eventListener CONSTANT)
+  Q_PROPERTY(
+      ns::hyprland::HyprEvents *eventListener READ eventListener CONSTANT)
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
@@ -125,39 +132,40 @@ public:
   [[nodiscard]] bool isSaving() const;
 
   [[nodiscard]] QString configPath() const;
-  void setConfigPath(const QString &path);
+  void                  setConfigPath(const QString &path);
 
   [[nodiscard]] QString shellConfigPath() const;
-  void setShellConfigPath(const QString &path);
+  void                  setShellConfigPath(const QString &path);
 
   [[nodiscard]] QString cachePath() const;
-  void setCachePath(const QString &path);
+  void                  setCachePath(const QString &path);
 
   [[nodiscard]] int kbdLayoutIndex() const;
 
-  [[nodiscard]] myqmlplugin::KeyboardLayoutHandler *
+  [[nodiscard]] myqmlplugin::KeyboardLayoutHandler      *
   keyboardLayoutHandler() const;
   void setKeyboardLayoutHandler(KeyboardLayoutHandler *kbh);
 
   [[nodiscard]] myqmlplugin::HyprInputConfig *inputConfig() const;
 
-  [[nodiscard]] myqmlplugin::HyprEvents *eventListener() const;
+  [[nodiscard]] ns::hyprland::HyprEvents *eventListener() const;
 
   void hyprlangParse();
   void parseInputConfig();
   void queryCurrentDevices();
 
   std::optional<KeyboardLayoutHandler::SLayoutMetadata>
-  getLayout(const QString &layout, const QString &variant);
+  getLayout(const QString &layout,
+            const QString &variant);
 
   Q_INVOKABLE void updateCurrentKeyboardConfig();
   Q_INVOKABLE void writeInputConfigToFile();
   Q_INVOKABLE void initConfigParse();
   Q_INVOKABLE void hyprctl(const QStringList &commands);
 
-  void
-  changeSettings(std::optional<QList<std::pair<QString, QString>>> newLayouts,
-                 std::optional<int> newIndex);
+  void changeSettings(std::optional<QList<std::pair<QString,
+                                                    QString>>> newLayouts,
+                      std::optional<int>                       newIndex);
 
 signals:
   void isSavingChanged();
@@ -170,21 +178,21 @@ signals:
   void inputConfigSaved();
 
 private:
-  HyprEvents *m_hyprEvents = nullptr;
-  QProcess *m_hyprctlProcess = nullptr;
-  bool m_isSavingFlag;
-  bool m_useLuaConfig = true;
-  QTimer *m_lookupCooldownTimer = nullptr;
-  QTimer *m_hyprInputQueryDebouncer = nullptr;
-  QProcess *m_inputQueryProcess = nullptr;
-  QProcess *m_hyprInputQueryProcess = nullptr;
-  QByteArray m_ipProcessBuffer;
-  int m_kbLayoutIndex = 0;
-  QString m_configPath;
-  QString m_shellConfigPath;
-  QString m_cachePath;
-  HyprInputConfig *m_inputConfig = nullptr;
-  KeyboardLayoutHandler *m_kbLayoutHandler = nullptr;
+  ns::hyprland::HyprEvents *m_hyprEvents     = nullptr;
+  QProcess                 *m_hyprctlProcess = nullptr;
+  bool                      m_isSavingFlag;
+  bool                      m_useLuaConfig            = true;
+  QTimer                   *m_lookupCooldownTimer     = nullptr;
+  QTimer                   *m_hyprInputQueryDebouncer = nullptr;
+  QProcess                 *m_inputQueryProcess       = nullptr;
+  QProcess                 *m_hyprInputQueryProcess   = nullptr;
+  QByteArray                m_ipProcessBuffer;
+  int                       m_kbLayoutIndex = 0;
+  QString                   m_configPath;
+  QString                   m_shellConfigPath;
+  QString                   m_cachePath;
+  HyprInputConfig          *m_inputConfig     = nullptr;
+  KeyboardLayoutHandler    *m_kbLayoutHandler = nullptr;
 
   void parseProcessData();
   void saveInputConfig(const QByteArray &buffer);

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "hypr.h"
-#include "hyprevents.h"
-
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qhash.h>
@@ -13,6 +10,9 @@
 #include <qqmllist.h>
 #include <qstringview.h>
 #include <qtmetamacros.h>
+
+#include "hypr.h"
+#include "hyprevents.h"
 
 namespace mscp {
 class KeyboardLayoutItem : public QObject {
@@ -25,10 +25,13 @@ class KeyboardLayoutItem : public QObject {
   Q_PROPERTY(QString description READ description CONSTANT)
 
 public:
-  explicit KeyboardLayoutItem(const QString &layout, const QString &variant,
+  explicit KeyboardLayoutItem(const QString &layout,
+                              const QString &variant,
                               const QString &description,
-                              QObject *parent = nullptr)
-      : QObject(parent), m_layout(layout), m_variant(variant),
+                              QObject       *parent = nullptr)
+      : QObject(parent),
+        m_layout(layout),
+        m_variant(variant),
         m_description(description) {}
 
   [[nodiscard]] QString layout() const { return m_layout; }
@@ -68,10 +71,15 @@ public:
   };
   Q_ENUM(ReturnCode)
 
-  int rowCount(const QModelIndex &parent = {}) const override;
-  QVariant data(const QModelIndex &index, int role) const override;
-  QHash<int, QByteArray> roleNames() const override {
-    return {{Roles::ModelDataRole, "modelData"}};
+  int      rowCount(const QModelIndex &parent = {}) const override;
+  QVariant data(const QModelIndex &index,
+                int                role) const override;
+  QHash<int,
+        QByteArray>
+  roleNames() const override {
+    return {
+        {Roles::ModelDataRole, "modelData"}
+    };
   }
 
   [[nodiscard]] QQmlListProperty<KeyboardLayoutItem> layouts();
@@ -82,17 +90,20 @@ public:
   void setInstance(myqmlplugin::HyprExtras *instance);
 
   [[nodiscard]] int selectedId() const;
-  void setSelectedId(const int &value);
+  void              setSelectedId(const int &value);
 
   Q_SLOT void refetchLayouts();
 
-  Q_INVOKABLE int addLayout(const QString &name, const QString &variant);
-  Q_INVOKABLE int removeLayout(const QString &name, const QString &variant);
-  Q_INVOKABLE int removeLayoutAtIndex(const int &index);
+  Q_INVOKABLE int  addLayout(const QString &name,
+                             const QString &variant);
+  Q_INVOKABLE int  removeLayout(const QString &name,
+                                const QString &variant);
+  Q_INVOKABLE int  removeLayoutAtIndex(const int &index);
   Q_INVOKABLE void applyChanges();
   Q_INVOKABLE void resetForm();
 
-  Q_INVOKABLE void swapItems(int from, int to);
+  Q_INVOKABLE void swapItems(int from,
+                             int to);
   Q_INVOKABLE void moveItemToEnd(int index);
 
 signals:
@@ -102,11 +113,11 @@ signals:
   void isDirtyChanged();
 
 private:
-  int m_selectedId;
-  QList<KeyboardLayoutItem *> m_layouts;
-  myqmlplugin::HyprExtras *m_instance = nullptr;
-  myqmlplugin::HyprInputConfig *m_inputConfig = nullptr;
-  myqmlplugin::HyprEvents *m_eventListener = nullptr;
+  int                           m_selectedId;
+  QList<KeyboardLayoutItem *>   m_layouts;
+  myqmlplugin::HyprExtras      *m_instance      = nullptr;
+  myqmlplugin::HyprInputConfig *m_inputConfig   = nullptr;
+  ns::hyprland::HyprEvents     *m_eventListener = nullptr;
 
   struct {
     bool idx;

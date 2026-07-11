@@ -18,6 +18,7 @@ cp_add_module(panel_plugin
     Qt::Core
     Qt::Qml
     Qt::Quick
+    myshell_hyprland
     myshell_utils
     myshell_interfaces
     panel_plugin_validators

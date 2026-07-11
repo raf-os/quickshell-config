@@ -5,9 +5,11 @@
 #include <qprocess.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
+#include <qtimer.h>
 #include <qtmetamacros.h>
 
 #include "hyprevents.h"
+#include "hyprinputconfig.h"
 
 namespace ns::hyprland {
 class Hyprland : public QObject {
@@ -15,7 +17,7 @@ class Hyprland : public QObject {
   QML_ELEMENT
   QML_SINGLETON
 
-  Q_PROPERTY(myqmlplugin::HyprEvents *eventHandler READ eventHandler CONSTANT)
+  Q_PROPERTY(ns::hyprland::HyprEvents *eventHandler READ eventHandler CONSTANT)
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
                  keyboardLayoutIndexChanged)
 
@@ -33,13 +35,14 @@ public:
     return inst;
   }
 
-  [[nodiscard]] myqmlplugin::HyprEvents *eventHandler();
-  [[nodiscard]] int                      keyboardLayoutIndex() const;
-  void setKeyboardLayoutIndex(const int &value);
+  [[nodiscard]] HyprEvents *eventHandler();
+  [[nodiscard]] int         keyboardLayoutIndex() const;
+  void                      setKeyboardLayoutIndex(const int &value);
 
 private slots:
   void queryHyprInputConfigs();
   void onInputQueryReadyToRead();
+  void queryActiveDevices();
 
 signals:
   void keyboardLayoutIndexChanged();
@@ -47,10 +50,16 @@ signals:
 private:
   explicit Hyprland(QObject *parent = nullptr);
 
-  myqmlplugin::HyprEvents *m_eventHandler;
-  int                      m_keyboardLayoutIndex;
+  HyprEvents *m_eventHandler;
+  int         m_keyboardLayoutIndex;
 
   bool      m_hyprInputQueryQueued = false;
   QProcess *m_hyprInputQueryProcess;
+
+  bool      m_deviceQueryQueued = false;
+  QTimer    m_deviceQueryCooldown;
+  QProcess *m_deviceQueryProcess = nullptr;
+
+  HyprInputConfig *m_inputConfig;
 };
 } // namespace ns::hyprland

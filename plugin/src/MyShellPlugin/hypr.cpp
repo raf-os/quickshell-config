@@ -1,9 +1,8 @@
 #include "hypr.h"
-#include "hyprevents.h"
-#include "kbd.h"
-#include "paths.h"
 
 #include <optional>
+#include <utility>
+
 #include <qcontainerfwd.h>
 #include <qdebug.h>
 #include <qdir.h>
@@ -23,18 +22,26 @@
 #include <qstringview.h>
 #include <qtenvironmentvariables.h>
 #include <qtimer.h>
-#include <utility>
+
+#include "hyprevents.h"
+#include "kbd.h"
+#include "paths.h"
 
 namespace myqmlplugin {
 HyprKeyboardLayout::HyprKeyboardLayout(const QString &layout,
-                                       const QString &variant, QObject *parent)
-    : QObject(parent), m_layout(layout), m_variant(variant) {}
+                                       const QString &variant,
+                                       QObject       *parent)
+    : QObject(parent),
+      m_layout(layout),
+      m_variant(variant) {}
 
 HyprKeyboardLayout::HyprKeyboardLayout(const QString &layout,
                                        const QString &variant,
                                        const QString &description,
-                                       QObject *parent)
-    : QObject(parent), m_layout(layout), m_variant(variant),
+                                       QObject       *parent)
+    : QObject(parent),
+      m_layout(layout),
+      m_variant(variant),
       m_description(description) {}
 
 QString HyprKeyboardLayout::layout() const { return m_layout; }
@@ -51,8 +58,7 @@ void HyprKeyboardLayout::setDescription(const QString &desc) {
 }
 
 bool HyprKeyboardLayout::isValid() {
-  if (m_layout == "")
-    return false;
+  if (m_layout == "") return false;
   return true;
 }
 
@@ -93,8 +99,8 @@ QQmlListProperty<HyprKeyboardLayout> HyprInputConfig::layouts() {
   return QQmlListProperty<HyprKeyboardLayout>(this, &m_layouts);
 }
 
-bool HyprInputConfig::setLayouts(
-    const QList<std::pair<QString, QString>> &layouts) {
+bool HyprInputConfig::setLayouts(const QList<std::pair<QString,
+                                                       QString>> &layouts) {
   if (m_kbLayoutHandler == nullptr) {
     qWarning() << "myqmlplugin::HyprInputConfig::setLayouts: Must assign a "
                   "keyboard layout handler to set layouts.";
@@ -113,8 +119,7 @@ bool HyprInputConfig::setLayouts(
       }
     }
   }
-  if (!isDifferent)
-    return false;
+  if (!isDifferent) return false;
 
   for (const auto item : m_layouts) {
     item->deleteLater();
@@ -125,8 +130,7 @@ bool HyprInputConfig::setLayouts(
   for (auto &layout : layouts) {
     auto k = m_kbLayoutHandler->findLayoutMetadata(std::move(layout.first),
                                                    std::move(layout.second));
-    if (!k.has_value())
-      continue;
+    if (!k.has_value()) continue;
     auto kb = k.value();
     auto ly =
         new HyprKeyboardLayout(kb.layout, kb.variant, kb.description, this);
@@ -254,14 +258,11 @@ std::optional<QByteArray> HyprInputConfig::compileCommandFileString() {
     writeBuffer.append(variants.join(",").toUtf8());
   }
   writeBuffer.append("\",\n\t\tkb_model = \"");
-  if (!m_kbModel.isEmpty())
-    writeBuffer.append(m_kbModel.toUtf8());
+  if (!m_kbModel.isEmpty()) writeBuffer.append(m_kbModel.toUtf8());
   writeBuffer.append("\",\n\t\tkb_options = \"");
-  if (!m_kbOptions.isEmpty())
-    writeBuffer.append(m_kbOptions.toUtf8());
+  if (!m_kbOptions.isEmpty()) writeBuffer.append(m_kbOptions.toUtf8());
   writeBuffer.append("\",\n\t\tkb_rules = \"");
-  if (!m_kbRules.isEmpty())
-    writeBuffer.append(m_kbRules.toUtf8());
+  if (!m_kbRules.isEmpty()) writeBuffer.append(m_kbRules.toUtf8());
   writeBuffer.append("\"\n\t},\n})");
 
   return writeBuffer;
@@ -272,15 +273,19 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
 
   m_inputConfig = new HyprInputConfig(this);
 
-  m_hyprEvents = new HyprEvents(this);
+  m_hyprEvents = new ns::hyprland::HyprEvents(this);
   m_hyprEvents->connectSocket();
 
   m_configPath = utils::Paths::instance()->config();
-  m_cachePath = utils::Paths::instance()->cache();
+  m_cachePath  = utils::Paths::instance()->cache();
 
-  QObject::connect(m_hyprEvents, &HyprEvents::configReloaded, this,
+  QObject::connect(m_hyprEvents,
+                   &ns::hyprland::HyprEvents::configReloaded,
+                   this,
                    &HyprExtras::queryHyprInputConfigs);
-  QObject::connect(m_hyprEvents, &HyprEvents::keyboardLayoutChanged, this,
+  QObject::connect(m_hyprEvents,
+                   &ns::hyprland::HyprEvents::keyboardLayoutChanged,
+                   this,
                    &HyprExtras::queryCurrentDevices);
 }
 
@@ -367,7 +372,7 @@ myqmlplugin::HyprInputConfig *HyprExtras::inputConfig() const {
   return m_inputConfig;
 }
 
-myqmlplugin::HyprEvents *HyprExtras::eventListener() const {
+ns::hyprland::HyprEvents *HyprExtras::eventListener() const {
   return m_hyprEvents;
 }
 
@@ -412,8 +417,7 @@ void HyprExtras::queryCurrentDevices() {
 }
 
 void HyprExtras::parseProcessData() {
-  if (m_ipProcessBuffer.size() == 0)
-    return;
+  if (m_ipProcessBuffer.size() == 0) return;
 
   QJsonParseError parseError;
   QJsonDocument jDoc = QJsonDocument::fromJson(m_ipProcessBuffer, &parseError);
@@ -440,7 +444,7 @@ void HyprExtras::parseProcessData() {
         for (const QJsonValue &value : keyboards) {
           if (value.isObject()) {
             QJsonObject kbInfo = value.toObject();
-            auto isMain = kbInfo["main"].toBool(false);
+            auto        isMain = kbInfo["main"].toBool(false);
 
             if (isMain) {
               auto layoutIdx = kbInfo["active_layout_index"].toInt(0);
@@ -486,7 +490,8 @@ void HyprExtras::queryHyprInputConfigs() {
 
   m_hyprInputQueryProcess->setProgram("hyprctl");
   m_hyprInputQueryProcess->setArguments(
-      {"-j", "--batch",
+      {"-j",
+       "--batch",
        "getoption input.kb_layout;getoption input.kb_variant;getoption "
        "input.kb_model;getoption input.kb_options;getoption input.kb_rules"});
 
@@ -508,21 +513,20 @@ void HyprExtras::queryHyprInputConfigs() {
 }
 
 void HyprExtras::parseHyprInputConfigs(QByteArray &buf) {
-  if (buf.size() == 0)
-    return;
+  if (buf.size() == 0) return;
 
   QStringList layoutBuf;
   QStringList variantsBuf;
-  QString modelBuf;
-  QString optBuf;
-  QString rulesBuf;
+  QString     modelBuf;
+  QString     optBuf;
+  QString     rulesBuf;
 
   auto cmdstr = QString::fromUtf8(buf).trimmed().split("\n\n\n");
   for (const auto line : cmdstr) {
     auto jDoc = QJsonDocument::fromJson(line.toLocal8Bit());
     if (jDoc.isObject()) {
-      QJsonObject obj = jDoc.object();
-      auto optName = obj["option"].toString("");
+      QJsonObject obj     = jDoc.object();
+      auto        optName = obj["option"].toString("");
       if (optName == "input.kb_layout") {
         layoutBuf = obj["str"].toString("us").trimmed().split(",");
       } else if (optName == "input.kb_variants") {
@@ -578,8 +582,7 @@ void HyprExtras::writeInputConfigToFile() {
 }
 
 void HyprExtras::saveInputConfig(const QByteArray &writeBuffer) {
-  if (m_configPath == "")
-    return;
+  if (m_configPath == "") return;
 
   if (writeBuffer == nullptr) {
     return;
@@ -613,19 +616,19 @@ void HyprExtras::saveDataToCache() {
   }
 
   QJsonObject kbdCfg;
-  QJsonArray hyprKeyboards;
+  QJsonArray  hyprKeyboards;
 
   for (auto const &lay : m_inputConfig->layoutList()) {
     QJsonObject kbObj;
-    kbObj["layout"] = lay->layout();
-    kbObj["variant"] = lay->variant();
+    kbObj["layout"]      = lay->layout();
+    kbObj["variant"]     = lay->variant();
     kbObj["description"] = lay->description();
     hyprKeyboards.append(kbObj);
   }
 
-  kbdCfg["hyprKeyboards"] = hyprKeyboards;
-  kbdCfg["hyprKeyboardModel"] = m_inputConfig->kbModel();
-  kbdCfg["hyprKeyboardRules"] = m_inputConfig->kbRules();
+  kbdCfg["hyprKeyboards"]       = hyprKeyboards;
+  kbdCfg["hyprKeyboardModel"]   = m_inputConfig->kbModel();
+  kbdCfg["hyprKeyboardRules"]   = m_inputConfig->kbRules();
   kbdCfg["hyprKeyboardOptions"] = m_inputConfig->kbOptions();
 
   QJsonDocument jDoc(kbdCfg);
@@ -646,15 +649,16 @@ void HyprExtras::saveDataToCache() {
 }
 
 std::optional<KeyboardLayoutHandler::SLayoutMetadata>
-HyprExtras::getLayout(const QString &layout, const QString &variant) {
-  if (m_kbLayoutHandler == nullptr)
-    return std::nullopt;
+HyprExtras::getLayout(const QString &layout,
+                      const QString &variant) {
+  if (m_kbLayoutHandler == nullptr) return std::nullopt;
   return m_kbLayoutHandler->findLayoutMetadata(layout, variant);
 }
 
 void HyprExtras::changeSettings(
-    std::optional<QList<std::pair<QString, QString>>> newLayouts,
-    std::optional<int> newIndex) {
+    std::optional<QList<std::pair<QString,
+                                  QString>>> newLayouts,
+    std::optional<int>                       newIndex) {
   if (newLayouts.has_value()) {
     auto list = newLayouts.value();
     if (list.isEmpty() || list.size() <= 1) {
@@ -671,8 +675,7 @@ void HyprExtras::changeSettings(
   if (newIndex.has_value()) {
     auto idx = newIndex.value();
 
-    if (idx < 0)
-      idx = 0;
+    if (idx < 0) idx = 0;
 
     if (const auto maxSize = m_inputConfig->layoutList().size() - 1;
         idx > maxSize)

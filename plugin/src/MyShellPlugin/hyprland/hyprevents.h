@@ -5,7 +5,7 @@
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
-namespace myqmlplugin {
+namespace ns::hyprland {
 class HyprEvents : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -42,4 +42,4 @@ private:
   void dispatchEvent(const QString &event,
                      const QString &data);
 };
-} // namespace myqmlplugin
+} // namespace ns::hyprland

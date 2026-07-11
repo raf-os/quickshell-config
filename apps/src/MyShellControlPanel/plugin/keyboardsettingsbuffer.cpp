@@ -1,8 +1,8 @@
 #include "keyboardsettingsbuffer.h"
-#include "hypr.h"
-#include "hyprevents.h"
 
 #include <optional>
+#include <utility>
+
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qlist.h>
@@ -11,7 +11,9 @@
 #include <qobject.h>
 #include <qqmllist.h>
 #include <qvariant.h>
-#include <utility>
+
+#include "hypr.h"
+#include "hyprevents.h"
 
 namespace mscp {
 KeyboardSettingsBuffer::KeyboardSettingsBuffer(QObject *parent)
@@ -22,15 +24,13 @@ int KeyboardSettingsBuffer::rowCount(const QModelIndex &parent) const {
 }
 
 QVariant KeyboardSettingsBuffer::data(const QModelIndex &index,
-                                      int role) const {
-  if (!index.isValid())
-    return {};
+                                      int                role) const {
+  if (!index.isValid()) return {};
 
   switch (role) {
   case Roles::ModelDataRole:
     return QVariant::fromValue(m_layouts.at(index.row()));
-  default:
-    return {};
+  default: return {};
   }
 }
 
@@ -42,22 +42,19 @@ bool KeyboardSettingsBuffer::isDirty() const {
   return (m_dirtyFields.idx == true || m_dirtyFields.layouts == true);
 }
 
-int KeyboardSettingsBuffer::selectedId() const { return m_selectedId; }
+int  KeyboardSettingsBuffer::selectedId() const { return m_selectedId; }
 void KeyboardSettingsBuffer::setSelectedId(const int &value) {
-  if (m_selectedId == value)
-    return;
+  if (m_selectedId == value) return;
 
   int actualValue = value;
 
-  if (actualValue < 0)
-    actualValue = 0;
+  if (actualValue < 0) actualValue = 0;
   else if (actualValue > m_layouts.count() - 1)
     actualValue = m_layouts.count() - 1;
 
-  if (actualValue == m_selectedId)
-    return;
+  if (actualValue == m_selectedId) return;
 
-  m_selectedId = actualValue;
+  m_selectedId      = actualValue;
   m_dirtyFields.idx = true;
   emit isDirtyChanged();
   emit selectedIdChanged();
@@ -67,8 +64,7 @@ myqmlplugin::HyprExtras *KeyboardSettingsBuffer::instance() const {
   return m_instance;
 }
 void KeyboardSettingsBuffer::setInstance(myqmlplugin::HyprExtras *instance) {
-  if (m_instance == instance)
-    return;
+  if (m_instance == instance) return;
 
   if (m_inputConfig) {
     QObject::disconnect(this, nullptr, m_inputConfig, nullptr);
@@ -80,33 +76,37 @@ void KeyboardSettingsBuffer::setInstance(myqmlplugin::HyprExtras *instance) {
     QObject::disconnect(this, nullptr, m_eventListener, nullptr);
   }
 
-  m_instance = instance;
-  m_inputConfig = m_instance->inputConfig();
+  m_instance      = instance;
+  m_inputConfig   = m_instance->inputConfig();
   m_eventListener = m_instance->eventListener();
   emit instanceChanged();
 
   refetchLayouts();
 
-  QObject::connect(m_instance, &QObject::destroyed, this,
-                   [this]() { deleteLater(); });
-  QObject::connect(m_instance, &myqmlplugin::HyprExtras::kbdLayoutIndexChanged,
-                   this, [this]() {
+  QObject::connect(
+      m_instance, &QObject::destroyed, this, [this]() { deleteLater(); });
+  QObject::connect(m_instance,
+                   &myqmlplugin::HyprExtras::kbdLayoutIndexChanged,
+                   this,
+                   [this]() {
                      m_selectedId = m_instance->kbdLayoutIndex();
                      if (m_dirtyFields.idx == true) {
                        m_dirtyFields.idx = false;
                        emit isDirtyChanged();
                      }
                    });
-  QObject::connect(m_inputConfig, &myqmlplugin::HyprInputConfig::layoutsChanged,
-                   this, &KeyboardSettingsBuffer::refetchLayouts);
+  QObject::connect(m_inputConfig,
+                   &myqmlplugin::HyprInputConfig::layoutsChanged,
+                   this,
+                   &KeyboardSettingsBuffer::refetchLayouts);
   QObject::connect(m_eventListener,
-                   &myqmlplugin::HyprEvents::keyboardLayoutChanged, this,
+                   &ns::hyprland::HyprEvents::keyboardLayoutChanged,
+                   this,
                    [this]() { refetchLayouts(); });
 }
 
 void KeyboardSettingsBuffer::refetchLayouts() {
-  if (m_instance == nullptr || m_inputConfig == nullptr)
-    return;
+  if (m_instance == nullptr || m_inputConfig == nullptr) return;
 
   auto listBuf = m_inputConfig->layoutList();
 
@@ -123,8 +123,7 @@ void KeyboardSettingsBuffer::refetchLayouts() {
         break;
       }
     }
-    if (isEqual)
-      return;
+    if (isEqual) return;
   }
 
   for (const auto l : m_layouts) {
@@ -136,8 +135,8 @@ void KeyboardSettingsBuffer::refetchLayouts() {
   beginResetModel();
 
   for (const auto litem : listBuf) {
-    auto hl = new KeyboardLayoutItem(litem->layout(), litem->variant(),
-                                     litem->description(), this);
+    auto hl = new KeyboardLayoutItem(
+        litem->layout(), litem->variant(), litem->description(), this);
     m_layouts.append(hl);
   }
 
@@ -154,7 +153,7 @@ void KeyboardSettingsBuffer::resetForm() { refetchLayouts(); }
 int KeyboardSettingsBuffer::addLayout(const QString &name,
                                       const QString &variant) {
   QVariantMap response;
-  bool isDuplicate = false;
+  bool        isDuplicate = false;
 
   for (const auto l : m_layouts) {
     if (l->layout() == name && l->variant() == variant) {
@@ -162,8 +161,7 @@ int KeyboardSettingsBuffer::addLayout(const QString &name,
       break;
     }
   }
-  if (isDuplicate)
-    return ReturnCode::DuplicatedLayout;
+  if (isDuplicate) return ReturnCode::DuplicatedLayout;
 
   auto l = m_instance->getLayout(name, variant);
 
@@ -173,8 +171,8 @@ int KeyboardSettingsBuffer::addLayout(const QString &name,
 
   auto layout = l.value();
 
-  auto newLayout = new KeyboardLayoutItem(layout.layout, layout.variant,
-                                          layout.description, this);
+  auto newLayout = new KeyboardLayoutItem(
+      layout.layout, layout.variant, layout.description, this);
 
   beginInsertRows({}, m_layouts.size(), m_layouts.size());
   m_layouts.append(newLayout);
@@ -216,7 +214,7 @@ int KeyboardSettingsBuffer::removeLayout(const QString &name,
   emit layoutsChanged();
 
   if (m_selectedId > m_layouts.size() - 1) {
-    m_selectedId = m_layouts.size() - 1;
+    m_selectedId      = m_layouts.size() - 1;
     m_dirtyFields.idx = true;
     emit selectedIdChanged();
   }
@@ -245,7 +243,7 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
   emit layoutsChanged();
 
   if (m_selectedId > m_layouts.size() - 1) {
-    m_selectedId = m_layouts.size() - 1;
+    m_selectedId      = m_layouts.size() - 1;
     m_dirtyFields.idx = true;
     emit selectedIdChanged();
   }
@@ -255,13 +253,11 @@ int KeyboardSettingsBuffer::removeLayoutAtIndex(const int &index) {
   return ReturnCode::Success;
 }
 
-void KeyboardSettingsBuffer::swapItems(int from, int to) {
-  if (from == to)
-    return;
-  if (from < 0 || from >= m_layouts.size())
-    return;
-  if (to < 0 || to >= m_layouts.size())
-    return;
+void KeyboardSettingsBuffer::swapItems(int from,
+                                       int to) {
+  if (from == to) return;
+  if (from < 0 || from >= m_layouts.size()) return;
+  if (to < 0 || to >= m_layouts.size()) return;
 
   beginMoveRows({}, from, from, {}, to > from ? to + 1 : to);
   m_layouts.swapItemsAt(from, to);
@@ -273,7 +269,7 @@ void KeyboardSettingsBuffer::swapItems(int from, int to) {
     setSelectedId(from);
   }
 
-  m_dirtyFields.idx = true;
+  m_dirtyFields.idx     = true;
   m_dirtyFields.layouts = true;
 
   emit isDirtyChanged();
@@ -282,28 +278,25 @@ void KeyboardSettingsBuffer::swapItems(int from, int to) {
 }
 
 void KeyboardSettingsBuffer::moveItemToEnd(int index) {
-  if (index < 0 || index >= m_layouts.size())
-    return;
+  if (index < 0 || index >= m_layouts.size()) return;
 
   swapItems(index, m_layouts.size() - 1);
 }
 
 void KeyboardSettingsBuffer::applyChanges() {
-  if (m_instance == nullptr)
-    return;
-  if (!m_dirtyFields.idx && !m_dirtyFields.layouts)
-    return;
+  if (m_instance == nullptr) return;
+  if (!m_dirtyFields.idx && !m_dirtyFields.layouts) return;
 
   std::optional<QList<std::pair<QString, QString>>> optLayouts;
-  std::optional<int> optInt;
+  std::optional<int>                                optInt;
 
   if (m_dirtyFields.layouts) {
     QList<std::pair<QString, QString>> newLayouts(m_layouts.size(),
                                                   Qt::Uninitialized);
     for (int i = 0; i < m_layouts.size(); ++i) {
       std::pair<QString, QString> p;
-      p.first = m_layouts.at(i)->layout();
-      p.second = m_layouts.at(i)->variant();
+      p.first       = m_layouts.at(i)->layout();
+      p.second      = m_layouts.at(i)->variant();
       newLayouts[i] = std::move(p);
     }
     optLayouts = std::move(newLayouts);
