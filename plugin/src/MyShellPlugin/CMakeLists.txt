@@ -108,6 +108,7 @@ target_link_libraries(
   myshell
   PRIVATE
     Qt6::Core
+    Qt6::Qml
     Qt6::Quick
     Qt6::Sql
     Qt6::DBus
@@ -121,6 +122,8 @@ target_link_libraries(
     myshell_configs
     myshell_hyprland
 )
+
+install_qml_module(myshell)
 
 # qml_module(
 #   myshell
