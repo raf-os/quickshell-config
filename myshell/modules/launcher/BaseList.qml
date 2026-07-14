@@ -29,7 +29,7 @@ Item {
 		view.listView.incrementCurrentIndex();
 	}
 	function moveListBackwards() {
-		view.listView.incrementCurrentIndex();
+		view.listView.decrementCurrentIndex();
 	}
 	function moveListToBeginning() {
 		view.listView.currentIndex = 0;

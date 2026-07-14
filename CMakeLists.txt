@@ -15,12 +15,14 @@ endif()
 
 string(REGEX REPLACE "^v" "" VERSION "${VERSION}")
 
-project(myshell VERSION ${VERSION} LANGUAGES CXX)
+project(myshell VERSION ${VERSION} LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+
+set(QT_NO_PRIVATE_MODULE_WARNING ON)
 
 set(INSTALL_QMLDIR "/usr/lib/qt6/qml")
 set(ORG_URI_PREFIX "org.nightshell")
@@ -36,6 +38,7 @@ include(FetchContent)
 include(GNUInstallDirs)
 
 include(cmake/install-qml-module.cmake)
+include(cmake/gen-wayland-protocol.cmake)
 
 if(DEVMODE)
   set(MYSHELL_INSTALL_DATADIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
@@ -55,6 +58,7 @@ list(
   "${INSTALL_QMLDIR}/org/nightshell/Wallpaper"
   "${INSTALL_QMLDIR}/org/nightshell/DesktopEntries"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland"
+  "${INSTALL_QMLDIR}/org/nightshell/Hyprland/Toplevels"
 )
 
 find_package(Qt6 REQUIRED COMPONENTS Core)

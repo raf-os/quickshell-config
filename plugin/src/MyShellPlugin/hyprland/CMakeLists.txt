@@ -4,7 +4,7 @@ find_package(
   COMPONENTS Core Gui Qml Quick Network
 )
 
-qt6_add_library(myshell_hyprland SHARED)
+qt6_add_library(myshell_hyprland STATIC)
 
 target_include_directories(myshell_hyprland PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -12,6 +12,10 @@ target_sources(
   myshell_hyprland
   PRIVATE hyprland.cpp hyprevents.cpp hyprinputconfig.cpp hyprkeyboardlayout.cpp
 )
+
+set_target_properties(myshell_hyprland PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_subdirectory(toplevels)
 
 qt6_add_qml_module(
   myshell_hyprland
@@ -21,7 +25,7 @@ qt6_add_qml_module(
 
 target_link_libraries(
   myshell_hyprland
-  PRIVATE Qt6::Core Qt6::Qml Qt6::Network myshell_utils
+  PRIVATE Qt6::Core Qt6::Quick Qt6::Qml Qt6::Network myshell_utils
 )
 
 install_qml_module(myshell_hyprland)

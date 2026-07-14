@@ -20,64 +20,6 @@ FetchContent_MakeAvailable(rapidfuzz)
 
 add_subdirectory(include)
 
-# This function was taken from Caelestia, which was likely adapted from
-# Quickshell, which then was adapted from KDE ECM
-function(qml_module arg_TARGET)
-  cmake_parse_arguments(PARSE_ARGV 1 arg "" "URI" "SOURCES;LIBRARIES")
-
-  qt_add_qml_module(
-    ${arg_TARGET}
-    URI
-    ${arg_URI}
-    VERSION
-    ${VERSION}
-    SOURCES
-    ${arg_SOURCES}
-  )
-
-  qt_query_qml_module(
-    ${arg_TARGET}
-    URI
-    module_uri
-    VERSION
-    module_version
-    PLUGIN_TARGET
-    module_plugin_target
-    TARGET_PATH
-    module_target_path
-    QMLDIR
-    module_qmldir
-    TYPEINFO
-    module_typeinfo
-  )
-
-  string(TOUPPER ${arg_TARGET} target_upper)
-  set(
-    "${target_upper}_QML_TARGET_PATH"
-    "${module_target_path}"
-    CACHE INTERNAL
-    ""
-  )
-
-  message(STATUS "Created QML module ${module_uri}, version ${module_version}")
-
-  set(module_dir "${INSTALL_QMLDIR}/${module_target_path}")
-  install(
-    TARGETS ${arg_TARGET}
-    LIBRARY DESTINATION "${module_dir}"
-    RUNTIME DESTINATION "${module_dir}"
-  )
-  install(
-    TARGETS ${module_plugin_target}
-    LIBRARY DESTINATION "${module_dir}"
-    RUNTIME DESTINATION "${module_dir}"
-  )
-  install(FILES "${module_qmldir}" DESTINATION "${module_dir}")
-  install(FILES "${module_typeinfo}" DESTINATION "${module_dir}")
-
-  target_link_libraries(${arg_TARGET} PRIVATE Qt::Core Qt::Qml ${arg_LIBRARIES})
-endfunction()
-
 qt6_add_library(myshell SHARED)
 
 target_sources(
@@ -94,7 +36,7 @@ target_sources(
 
 target_include_directories(myshell PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-qt6_add_qml_module(myshell URI "MyShellPlugin" VERSION ${VERSION})
+qt6_add_qml_module(myshell URI "MyShellPlugin" VERSION 0.1)
 
 add_subdirectory(interfaces)
 add_subdirectory(configs)
@@ -124,38 +66,3 @@ target_link_libraries(
 )
 
 install_qml_module(myshell)
-
-# qml_module(
-#   myshell
-#   URI
-#   MyShellPlugin
-#   SOURCES
-#   appdb.h
-#   appdb.cpp
-#   cmdhandler.h
-#   cmdhandler.cpp
-#   kbd.h
-#   kbd.cpp
-#   hypr.h
-#   hypr.cpp
-#   networkservice.h
-#   networkservice.cpp
-#   colors.h
-#   colors.cpp
-#   systemsounds.h
-#   systemsounds.cpp
-#   LIBRARIES
-#   Qt::Gui
-#   Qt::Quick
-#   Qt::Sql
-#   Qt::DBus
-#   Qt::Network
-#   rapidfuzz::rapidfuzz
-#   LibXml2::LibXml2
-#   PkgConfig::LIBCANBERRA
-#   myshell_interfaces
-#   myshell_include
-#   myshell_hyprland
-#   myshell_utils
-#   myshell_configs
-# )
