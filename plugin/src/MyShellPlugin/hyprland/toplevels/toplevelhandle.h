@@ -29,6 +29,7 @@ public:
   [[nodiscard]] bool            fullscreen() const;
 
   Q_INVOKABLE void activate();
+  Q_INVOKABLE void close();
 
 signals:
   void ready();

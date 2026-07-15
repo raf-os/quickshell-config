@@ -13,6 +13,7 @@
 
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
+#include "toplevelmodel.h"
 
 namespace ns::hyprland {
 Q_LOGGING_CATEGORY(logNSHyprland,
@@ -21,6 +22,7 @@ Q_LOGGING_CATEGORY(logNSHyprland,
 Hyprland::Hyprland(QObject *parent)
     : QObject(parent),
       m_eventHandler(new HyprEvents(this)),
+      m_toplevelModel(new ToplevelModel(this)),
       m_inputConfig(new HyprInputConfig(this)),
       m_hyprInputQueryProcess(new QProcess(this)) {
   m_hyprInputQueryProcess->setProgram("hyprctl");
@@ -45,7 +47,8 @@ Hyprland::Hyprland(QObject *parent)
   });
 }
 
-HyprEvents *Hyprland::eventHandler() { return m_eventHandler; }
+HyprEvents    *Hyprland::eventHandler() { return m_eventHandler; }
+ToplevelModel *Hyprland::toplevelModel() { return m_toplevelModel; }
 
 int  Hyprland::keyboardLayoutIndex() const { return m_keyboardLayoutIndex; }
 void Hyprland::setKeyboardLayoutIndex(const int &value) {

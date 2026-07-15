@@ -1,4 +1,4 @@
-import org.nightshell.Hyprland.Toplevels
+import org.nightshell.Hyprland
 import QtQuick
 
 import ".." as Launcher
@@ -11,8 +11,7 @@ Launcher.BaseList {
 		id: lView
 		anchors.fill: parent
 
-		// model: []
-		model: ToplevelManager.toplevels
+		model: []
 		delegate: WindowItem {}
 	}
 }

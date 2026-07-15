@@ -2,7 +2,6 @@ import qs.modules.bar
 import qs.modules.mprisviewer as MprisViewer
 import qs.modules.session as Session
 import qs.modules.bar.popouts as BPP
-import qs.modules.startmenu as StartMenu
 import qs.modules.notifications as Notifs
 import MyShellPlugin.Configs
 import QtQuick
@@ -31,13 +30,6 @@ Shape {
 		wrapper: root.panels.mprisViewer // qmllint disable incompatible-type
 
 		startX: wrapper.x
-		startY: 0
-	}
-
-	StartMenu.Background {
-		wrapper: root.panels.startmenu // qmllint disable incompatible-type
-
-		startX: 0
 		startY: 0
 	}
 

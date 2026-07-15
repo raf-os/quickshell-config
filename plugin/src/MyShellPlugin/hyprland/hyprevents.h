@@ -4,6 +4,7 @@
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
+#include <qtypes.h>
 
 namespace ns::hyprland {
 class HyprEvents : public QObject {
@@ -32,6 +33,7 @@ signals:
   void bellRang();
   void keyboardLayoutChanged(QString keyboardName,
                              QString layoutName);
+  void activeWindowChanged(quint64 address);
   void isConnectedChanged();
 
 private:

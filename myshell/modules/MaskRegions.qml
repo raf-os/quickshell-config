@@ -37,10 +37,6 @@ Region {
 		panel: root.panels.notificationOverlay
 	}
 
-	R {
-		panel: root.panels.startmenu
-	}
-
 	RR {
 		region: root.panels.launcher.region
 	}

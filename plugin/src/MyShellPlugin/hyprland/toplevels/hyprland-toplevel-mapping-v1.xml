@@ -42,19 +42,8 @@
 
     <request name="get_window_for_toplevel">
       <description summary="get window address for toplevel">
-        Get the window address for a toplevel.
+        Removed
       </description>
-      <arg
-        name="handle"
-        type="new_id"
-        interface="hyprland_toplevel_window_mapping_handle_v1"
-      />
-      <arg
-        name="toplevel"
-        type="object"
-        interface="ext_foreign_toplevel_handle_v1"
-        summary="toplevel to get the window address for"
-      />
     </request>
 
     <request name="get_window_for_toplevel_wlr">

@@ -18,9 +18,6 @@ class ToplevelManager : public QWaylandClientExtensionTemplate<ToplevelManager>,
   QML_ELEMENT
   QML_SINGLETON
 
-  Q_PROPERTY(
-      QList<ToplevelHandle *> toplevels READ toplevels NOTIFY toplevelReady)
-
 public:
   static ToplevelManager *instance();
   static ToplevelManager *create(QQmlEngine *qmlEngine,
@@ -30,9 +27,11 @@ public:
   [[nodiscard]] ToplevelHandle *
   handleFor(::zwlr_foreign_toplevel_handle_v1 *toplevel);
   [[nodiscard]] QList<ToplevelHandle *> toplevels();
+  [[nodiscard]] QList<ToplevelHandle *> readyToplevels();
 
 signals:
   void toplevelReady(ToplevelHandle *toplevel);
+  void toplevelClosed(ToplevelHandle *toplevel);
 
 protected:
   explicit ToplevelManager();

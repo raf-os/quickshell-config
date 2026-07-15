@@ -99,6 +99,13 @@ void HyprEvents::dispatchEvent(const QString &event,
 
     emit keyboardLayoutChanged(kbdName, layoutName);
     return;
+  } else if (event == "activewindow2") {
+    bool isOk;
+    auto addr = data.toULongLong(&isOk);
+    qDebug() << addr;
+    if (isOk) {
+      emit activeWindowChanged(addr);
+    }
   }
 }
 

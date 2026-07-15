@@ -31,6 +31,10 @@ void ToplevelHandle::activate() {
       inputDevice->object());
 }
 
+void ToplevelHandle::close() {
+  this->QtWayland::zwlr_foreign_toplevel_handle_v1::close();
+}
+
 void ToplevelHandle::zwlr_foreign_toplevel_handle_v1_done() {
   auto wasReady = this->isReady;
   this->isReady = true;

@@ -109,7 +109,7 @@ MouseArea {
 				width: parent.implicitWidth
 				height: parent.implicitHeight
 
-				source: `image://qicons/qt/${root.modelData.icon}`
+				source: root.modelData.icon ? `image://qicons/qt/${root.modelData.icon}` : ``
 				asynchronous: true
 			}
 		}

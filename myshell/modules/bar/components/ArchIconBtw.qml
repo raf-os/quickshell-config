@@ -11,64 +11,65 @@ import Quickshell
 import Quickshell.Widgets
 
 Item {
-    id: root
+	id: root
 
-    required property PersistentProperties openPanels
-    required property Item panels
-    readonly property bool isMenuActive: openPanels.startmenu
+	required property ShellScreen screen
+	readonly property bool isMenuActive: GlobalShellState.launcherScreen === screen
 
-    // implicitWidth: Config.appearance.fontSize.xl
-    Layout.fillHeight: true
-    implicitWidth: height
+	// implicitWidth: Config.appearance.fontSize.xl
+	Layout.fillHeight: true
+	implicitWidth: height
 
-    MouseArea {
-        cursorShape: Qt.PointingHandCursor
-        // propagateComposedEvents: true
-        anchors.centerIn: parent
+	MouseArea {
+		cursorShape: Qt.PointingHandCursor
+		// propagateComposedEvents: true
+		anchors.centerIn: parent
 
-        implicitWidth: parent.width
-        implicitHeight: parent.height
+		implicitWidth: parent.width
+		implicitHeight: parent.height
 
-        onClicked: ev => {
-            // root.openPanels.startmenu = !root.openPanels.startmenu;
-            root.panels.openExclusivePanel("startmenu");
-            ev.accepted = false;
-        }
-    }
+		onClicked: ev => {
+			if (!root.isMenuActive)
+				GlobalShellState.openLauncher(root.screen);
+			else
+				GlobalShellState.closeLauncher();
+			ev.accepted = false;
+		}
+	}
 
-    IconImage {
-        id: osImage
+	IconImage {
+		id: osImage
 
-        anchors.fill: parent
+		anchors.fill: parent
 
-        property real brightness: root.isMenuActive ? 0.9 : 0.5
+		property real brightness: root.isMenuActive ? 0.9 : 0.5
 
-        source: SysInfo.osLogo
-        scale: root.isMenuActive ? 1 : 0.8
-        // implicitSize: parent.height
+		source: SysInfo.osLogo
+		scale: root.isMenuActive ? 1 : 0.8
+		// implicitSize: parent.height
 
-        Behavior on scale {
-            NAnim {
-                duration: 300
-            }
-        }
+		Behavior on scale {
+			NAnim {
+				duration: 300
+			}
+		}
 
-        Behavior on brightness {
-            NAnim {
-                duration: 300
-            }
-        }
+		Behavior on brightness {
+			NAnim {
+				duration: 300
+			}
+		}
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            brightness: osImage.brightness
-            colorization: 1
-            colorizationColor: Colors.colors.baseContent
-            shadowEnabled: !GlobalStateManager.isGameMode
-            shadowColor: Colors.colors.baseContent
-            shadowOpacity: root.isMenuActive ? 1 : 0
-            shadowScale: 1
-            blurMax: 32
-        }
-    }
+		layer.enabled: true
+		layer.effect: MultiEffect {
+			brightness: osImage.brightness
+			colorization: 1
+			colorizationColor: Colors.colors.baseContent
+			shadowEnabled: !GlobalStateManager.isGameMode
+			shadowColor: Colors.colors.baseContent
+			shadowOpacity: root.isMenuActive ? 1 : 0
+			shadowScale: 1
+			blurMax: 32
+		}
+	}
 }

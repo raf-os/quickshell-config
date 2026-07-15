@@ -61,7 +61,11 @@ void ToplevelManager::onToplevelClosed() {
   auto *handle = qobject_cast<ToplevelHandle *>(this->sender());
   m_readyToplevels.removeOne(handle);
   m_toplevels.removeOne(handle);
+  emit toplevelClosed(handle);
 }
 
 QList<ToplevelHandle *> ToplevelManager::toplevels() { return m_toplevels; }
+QList<ToplevelHandle *> ToplevelManager::readyToplevels() {
+  return m_readyToplevels;
+}
 } // namespace ns::hyprland::toplevels

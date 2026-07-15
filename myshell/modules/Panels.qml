@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import qs.modules.session as Session
 import qs.modules.mprisviewer as MprisViewer
 import qs.modules.bar.popouts as BarPopouts
-import qs.modules.startmenu as StartMenuPopout
 import qs.modules.notifications as NotifWrapper
 import qs.modules.commandcapture
 import qs.modules.launcher as Launcher
@@ -21,14 +20,13 @@ Item {
 
 	readonly property alias session: session
 	readonly property alias popouts: popouts
-	readonly property alias startmenu: startmenu
 	readonly property alias launcher: launcher
 	readonly property alias mprisViewer: mprisViewer
 	readonly property alias notifications: notificationWrapper
 	readonly property alias notificationOverlay: notificationOverlay
 	readonly property alias commandCapture: commandcapture
 
-	readonly property list<string> validPanelProps: ["session", "startmenu", "mprisViewer"]
+	readonly property list<string> validPanelProps: ["session", "mprisViewer"]
 
 	// readonly property list<Item> exclusions: [commandcapture, mprisViewer, notificationWrapper, notificationOverlay, startmenu, session, popouts]
 	// readonly property list<QtObject> exclusionsRegions: [launcher.region].filter(r => r != null)
@@ -109,17 +107,6 @@ Item {
 			top: parent.top
 			right: parent.right
 		}
-	}
-
-	StartMenuPopout.Wrapper {
-		id: startmenu
-		openPanels: root.openPanels
-		panels: root
-		screen: root.screen
-
-		anchors.left: parent.left
-		anchors.top: parent.top
-		anchors.bottom: parent.bottom
 	}
 
 	Launcher.Wrapper {

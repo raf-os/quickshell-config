@@ -119,7 +119,7 @@ Variants {
 			HyprlandFocusGrab {
 				id: focusHandler
 				windows: [win]
-				active: panels.popouts.hasCurrent || panels.startmenu.isActive
+				active: panels.popouts.hasCurrent
 				onCleared: {
 					panels.popouts.close();
 					openPanels.startmenu = false;

@@ -4,6 +4,7 @@ import "components"
 import "components/workspaces"
 import "popouts"
 import qs.utils
+import qs.services
 import Quickshell
 import Quickshell.Hyprland
 import MyShellPlugin.Configs
@@ -92,8 +93,7 @@ Item {
 		spacing: root.spacing
 
 		ArchIconBtw {
-			openPanels: root.openPanels
-			panels: root.panels
+			screen: root.screen
 		}
 		Workspaces {
 			screen: root.screen

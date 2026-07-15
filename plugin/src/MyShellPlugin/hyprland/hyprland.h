@@ -10,6 +10,7 @@
 
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
+#include "toplevelmodel.h"
 
 namespace ns::hyprland {
 class Hyprland : public QObject {
@@ -18,6 +19,8 @@ class Hyprland : public QObject {
   QML_SINGLETON
 
   Q_PROPERTY(ns::hyprland::HyprEvents *eventHandler READ eventHandler CONSTANT)
+  Q_PROPERTY(
+      ns::hyprland::ToplevelModel *toplevelModel READ toplevelModel CONSTANT)
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
                  keyboardLayoutIndexChanged)
 
@@ -28,16 +31,17 @@ public:
   }
 
   static Hyprland *create(QQmlEngine *qmlEngine,
-                          QJSEngine /*unused*/) {
+                          QJSEngine  *jsEngine) {
     auto inst = instance();
     if (qmlEngine)
       qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
     return inst;
   }
 
-  [[nodiscard]] HyprEvents *eventHandler();
-  [[nodiscard]] int         keyboardLayoutIndex() const;
-  void                      setKeyboardLayoutIndex(const int &value);
+  [[nodiscard]] HyprEvents    *eventHandler();
+  [[nodiscard]] ToplevelModel *toplevelModel();
+  [[nodiscard]] int            keyboardLayoutIndex() const;
+  void                         setKeyboardLayoutIndex(const int &value);
 
 private slots:
   void queryHyprInputConfigs();
@@ -50,8 +54,9 @@ signals:
 private:
   explicit Hyprland(QObject *parent = nullptr);
 
-  HyprEvents *m_eventHandler;
-  int         m_keyboardLayoutIndex;
+  HyprEvents    *m_eventHandler  = nullptr;
+  ToplevelModel *m_toplevelModel = nullptr;
+  int            m_keyboardLayoutIndex;
 
   bool      m_hyprInputQueryQueued = false;
   QProcess *m_hyprInputQueryProcess;
