@@ -26,7 +26,6 @@ ToplevelInstance::ToplevelInstance(toplevels::ToplevelHandle *handle,
         if (m_waylandHandle) {
           QObject::disconnect(m_waylandHandle, nullptr, this, nullptr);
         }
-        m_waylandHandle.clear();
       });
   QObject::connect(m_waylandHandle,
                    &toplevels::ToplevelHandle::appIdChanged,
@@ -76,18 +75,16 @@ void ToplevelInstance::onHyprAddress(toplevels::ToplevelHandle *handle,
   if (address == m_address || address == 0) return;
   if (!m_waylandHandle || m_waylandHandle != handle) return;
 
-  m_address = address;
-  emit addressChanged();
-
   QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
                       nullptr,
                       this,
                       nullptr);
 
-  if (m_waylandHandle) {
-    m_isValid = true;
-    emit ready();
-  }
+  m_address = address;
+  emit addressChanged();
+  m_isValid = true;
+
+  emit ready();
 }
 
 ToplevelModel::ToplevelModel(QObject *parent) : QAbstractListModel(parent) {
@@ -171,8 +168,7 @@ void ToplevelModel::insertAtIndex(ToplevelInstance *instance,
 }
 void ToplevelModel::insertAtEnd(ToplevelInstance *instance,
                                 bool              noModelUpdate) {
-  return this->insertAtIndex(
-      instance, m_readyToplevels.size() - 1, noModelUpdate);
+  return this->insertAtIndex(instance, m_readyToplevels.size(), noModelUpdate);
 }
 
 void ToplevelModel::removeAtIndex(int index) {
@@ -197,6 +193,7 @@ void ToplevelModel::createNewInstance(toplevels::ToplevelHandle *handle,
     insertAtEnd(inst, noModelUpdate);
     return;
   } else {
+    m_pendingToplevels.append(inst);
     QObject::connect(
         inst,
         &ToplevelInstance::ready,

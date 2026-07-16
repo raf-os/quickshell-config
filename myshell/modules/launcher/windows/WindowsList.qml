@@ -11,7 +11,7 @@ Launcher.BaseList {
 		id: lView
 		anchors.fill: parent
 
-		model: []
+		model: Hyprland.toplevelModel
 		delegate: WindowItem {}
 	}
 }

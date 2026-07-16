@@ -1,15 +1,26 @@
 #include "hyprland.h"
 
+#include <functional>
+#include <utility>
+
+#include <qbytearrayview.h>
 #include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <qhash.h>
+#include <qjsengine.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 #include <qjsonparseerror.h>
 #include <qjsonvalue.h>
+#include <qlist.h>
+#include <qlocalsocket.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qprocess.h>
 #include <qscopeguard.h>
+#include <qstringview.h>
+#include <qtenvironmentvariables.h>
 
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
@@ -23,28 +34,75 @@ Hyprland::Hyprland(QObject *parent)
     : QObject(parent),
       m_eventHandler(new HyprEvents(this)),
       m_toplevelModel(new ToplevelModel(this)),
-      m_inputConfig(new HyprInputConfig(this)),
-      m_hyprInputQueryProcess(new QProcess(this)) {
-  m_hyprInputQueryProcess->setProgram("hyprctl");
-  m_hyprInputQueryProcess->setArguments(
-      {"-j",
-       "--batch",
-       "getoption input.kb_layout;getoption input.kb_variant;getoption "
-       "input.kb_model;getoption input.kb_options;getoption input.kb_rules"});
-  QObject::connect(m_hyprInputQueryProcess,
-                   &QProcess::finished,
+      m_inputConfig(new HyprInputConfig(this)) {
+  auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
+  if (his.isEmpty()) {
+    qCWarning(logNSHyprland) << "$HYPRLAND_INSTANCE_SIGNATURE is unset, unable "
+                                "to connect to hyprland's sockets.";
+    return;
+  }
+
+  auto runDir  = qEnvironmentVariable("XDG_RUNTIME_DIR");
+  auto hyprDir = runDir + "/hypr/" + his;
+  if (!QFileInfo(hyprDir).isDir()) {
+    hyprDir = "/tmp/hypr/" + his;
+  }
+  if (!QFileInfo(hyprDir).isDir()) {
+    qCWarning(logNSHyprland) << "Unable to find hyprland sockets.";
+    return;
+  }
+
+  m_requestSocketPath = hyprDir + "/.socket.sock";
+
+  queryActiveDevices();
+  queryHyprInputConfigs();
+
+  QObject::connect(m_eventHandler,
+                   &HyprEvents::configReloaded,
                    this,
-                   &Hyprland::onInputQueryReadyToRead);
+                   &Hyprland::queryActiveDevices);
+  QObject::connect(m_eventHandler,
+                   &HyprEvents::keyboardLayoutChanged,
+                   this,
+                   [this](QString /* unused */, QString /* unused */) {
+                     this->queryActiveDevices();
+                   });
+}
 
-  m_deviceQueryCooldown.setInterval(250);
-  m_deviceQueryCooldown.setSingleShot(true);
+void Hyprland::hyprctl(const QByteArray                      &request,
+                       const std::function<void(bool,
+                                                QByteArray)> &callback) {
+  if (m_requestSocketPath.isEmpty()) return;
 
-  QObject::connect(m_eventHandler, &HyprEvents::configReloaded, this, [this] {
-    if (this->m_deviceQueryQueued) {
-      this->m_deviceQueryQueued = false;
-      this->queryActiveDevices();
-    }
-  });
+  auto requestSocket = new QLocalSocket(this);
+
+  auto onConnectedCallback = [this, request, requestSocket, callback]() {
+    auto responseCallback = [requestSocket, callback]() {
+      auto response = requestSocket->readAll();
+      callback(true, std::move(response));
+      delete requestSocket;
+    };
+
+    QObject::connect(
+        requestSocket, &QLocalSocket::readyRead, this, responseCallback);
+
+    requestSocket->write(request);
+    requestSocket->flush();
+  };
+
+  auto onErrorCallback = [=](QLocalSocket::LocalSocketError error) {
+    qCWarning(logNSHyprland)
+        << "Error making hyprland request:" << error << "request:" << request;
+    requestSocket->deleteLater();
+    callback(false, {});
+  };
+
+  QObject::connect(
+      requestSocket, &QLocalSocket::connected, this, onConnectedCallback);
+  QObject::connect(
+      requestSocket, &QLocalSocket::errorOccurred, this, onErrorCallback);
+
+  requestSocket->connectToServer(m_requestSocketPath);
 }
 
 HyprEvents    *Hyprland::eventHandler() { return m_eventHandler; }
@@ -59,88 +117,98 @@ void Hyprland::setKeyboardLayoutIndex(const int &value) {
 }
 
 void Hyprland::queryHyprInputConfigs() {
-  if (m_hyprInputQueryProcess->state() != QProcess::NotRunning) {
-    m_hyprInputQueryQueued = true;
-    return;
+  if (m_requestSocketPath.isEmpty()) return;
+
+  if (m_requestingInputConfig) return;
+  m_requestingInputConfig = true;
+
+  auto requestSocket = new QLocalSocket(this);
+
+  InputQueryPayload                      payload;
+  QList<QPair<QByteArray, QByteArray *>> propMap = {
+      {"input.kb_layout",  &payload.kbLayout },
+      {"input.kb_variant", &payload.kbVariant},
+      {"input.kb_model",   &payload.kbModel  },
+      {"input.kb_options", &payload.kbOptions},
+      {"input.kb_rules",   &payload.kbRules  }
+  };
+  auto fetchHyprData = [this, payload, requestSocket](QByteArrayView opt,
+                                                      QByteArray    *target) {
+    requestSocket->connectToServer(this->m_requestSocketPath);
+    requestSocket->waitForConnected(5000);
+
+    if (!requestSocket->isValid()) return false;
+
+    requestSocket->write("j/getoption " + opt);
+    requestSocket->waitForBytesWritten(1000);
+    requestSocket->waitForReadyRead(1000);
+    auto response = requestSocket->readAll();
+    // hyprland will forcefully disconnect us, but just to be sure we'll attempt
+    // to disconnect
+    requestSocket->disconnectFromServer();
+    if (requestSocket->state() != QLocalSocket::UnconnectedState) {
+      requestSocket->waitForDisconnected(1000);
+    }
+    target->assign(response);
+    return true;
+  };
+
+  bool isError = false;
+  for (auto &prop : propMap) {
+    auto res = fetchHyprData(prop.first, prop.second);
+    if (!res || requestSocket->state() != QLocalSocket::UnconnectedState) {
+      isError = true;
+      qCWarning(logNSHyprland)
+          << "error fetching input data from hyprland socket";
+      break;
+    }
   }
 
-  m_hyprInputQueryProcess->start();
+  delete requestSocket;
+  if (!isError) this->onInputQueryReadyToRead(std::move(payload));
 }
 
-void Hyprland::onInputQueryReadyToRead() {
-  const auto contents = m_hyprInputQueryProcess->readAllStandardOutput();
+void Hyprland::onInputQueryReadyToRead(InputQueryPayload payload) {
+  auto getStringValueFromResponse = [](QByteArray &chars) {
+    QJsonParseError parseError;
+    auto            jDoc = QJsonDocument::fromJson(chars, &parseError);
 
-  QString     parsedModel, parsedOptions, parsedRules;
-  QStringList parsedLayouts, parsedVariants;
+    if (parseError.error != QJsonParseError::NoError) return QString();
+    if (!jDoc.isObject()) return QString();
 
-  auto cmdList = QString::fromUtf8(contents).trimmed().split("\n\n\n");
-  for (const auto &line : cmdList) {
-    auto jDoc = QJsonDocument::fromJson(line.toUtf8());
-    if (!jDoc.isObject()) continue;
+    auto jObj = jDoc.object();
+    return jObj.value("str").toString();
+  };
 
-    QJsonObject jObj    = jDoc.object();
-    QString     optName = jObj.value("option").toString();
-    auto        optVal  = jObj.value("str");
-    if (optName.isEmpty()) continue;
+  auto parsedModel   = getStringValueFromResponse(payload.kbModel);
+  auto parsedOptions = getStringValueFromResponse(payload.kbOptions);
+  auto parsedRules   = getStringValueFromResponse(payload.kbRules);
+  auto parsedLayouts = getStringValueFromResponse(payload.kbLayout).split(",");
+  auto parsedVariants =
+      getStringValueFromResponse(payload.kbVariant).split(",");
 
-    if (optName == "input.kb_layout") {
-      parsedLayouts = optVal.toString("us").trimmed().split(",");
-    } else if (optName == "input.kb_variants") {
-      parsedVariants = optVal.toString("").trimmed().split(",");
-    } else if (optName == "input.kb_model") {
-      parsedModel = optVal.toString().trimmed();
-    } else if (optName == "input.kb_options") {
-      parsedOptions = optVal.toString().trimmed();
-    } else if (optName == "input.kb_rules") {
-      parsedRules = optVal.toString().trimmed();
-    }
+  if (parsedLayouts.isEmpty()) {
+    parsedLayouts.append("us");
   }
 
   m_inputConfig->b_kbModel().setValue(parsedModel);
   m_inputConfig->b_kbOptions().setValue(parsedOptions);
   m_inputConfig->b_kbRules().setValue(parsedRules);
   m_inputConfig->setLayouts(parsedLayouts, parsedVariants);
-
-  if (m_hyprInputQueryQueued) {
-    m_hyprInputQueryQueued = false;
-    this->queryHyprInputConfigs();
-  }
 }
 
 void Hyprland::queryActiveDevices() {
-  if (m_deviceQueryCooldown.isActive()) {
-    m_deviceQueryQueued = true;
-    return;
-  }
+  if (m_requestingDevices) return;
+  m_requestingDevices = true;
 
-  if (m_deviceQueryProcess != nullptr) {
-    return;
-  }
+  this->hyprctl("j/devices", [this](bool success, const QByteArray &response) {
+    m_requestingDevices = false;
 
-  m_deviceQueryProcess = new QProcess(this);
-  m_deviceQueryProcess->setProgram("hyprctl");
-  m_deviceQueryProcess->setArguments({
-      {"devices", "-j"}
-  });
-
-  QObject::connect(m_deviceQueryProcess, &QProcess::finished, this, [this]() {
-    auto guard = qScopeGuard([this] {
-      if (m_deviceQueryProcess) {
-        m_deviceQueryProcess->deleteLater();
-        m_deviceQueryProcess = nullptr;
-      }
-      m_deviceQueryCooldown.start();
-      if (m_deviceQueryQueued) {
-        m_deviceQueryQueued = false;
-        this->queryActiveDevices();
-      }
-    });
-
-    auto result = m_deviceQueryProcess->readAllStandardOutput();
-    if (result.isEmpty()) return;
+    if (!success) return;
+    if (response.isEmpty()) return;
 
     QJsonParseError parseError;
-    QJsonDocument   jDoc = QJsonDocument::fromJson(result, &parseError);
+    QJsonDocument   jDoc = QJsonDocument::fromJson(response, &parseError);
 
     if (parseError.error != QJsonParseError::NoError) {
       qCWarning(logNSHyprland)

@@ -152,6 +152,11 @@ void KeyboardLayouts::buildDatabase() {
   m_layouts.clear();
   m_sortedLayoutList.clear();
 
+  if (!file.open(QIODevice::ReadOnly)) {
+    qCWarning(logNSUtilsKeyboard) << "unable to open evdev file for reading.";
+    return;
+  }
+
   QXmlStreamReader xml(&file);
 
   while (xml.readNextStartElement()) {
@@ -161,6 +166,8 @@ void KeyboardLayouts::buildDatabase() {
       xml.skipCurrentElement();
     }
   }
+
+  file.close();
 
   m_sortedLayoutList = m_layouts.values();
   std::sort(m_sortedLayoutList.begin(),

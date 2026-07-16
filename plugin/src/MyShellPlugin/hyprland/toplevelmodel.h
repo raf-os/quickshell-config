@@ -49,9 +49,9 @@ signals:
   void addressChanged();
 
 private:
-  QPointer<toplevels::ToplevelHandle> m_waylandHandle = nullptr;
-  quint64                             m_address;
-  bool                                m_isValid = false;
+  toplevels::ToplevelHandle *m_waylandHandle = nullptr;
+  quint64                    m_address;
+  bool                       m_isValid = false;
 };
 
 class ToplevelModel : public QAbstractListModel {

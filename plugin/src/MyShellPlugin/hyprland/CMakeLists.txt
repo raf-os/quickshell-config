@@ -21,6 +21,7 @@ target_sources(
 set_target_properties(myshell_hyprland PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(toplevels)
+add_subdirectory(common)
 
 qt6_add_qml_module(
   myshell_hyprland
@@ -37,6 +38,7 @@ target_link_libraries(
     Qt6::Network
     myshell_utils
     myshell_hyprland_toplevels
+    nightshell_hyprland_common
 )
 
 install_qml_module(myshell_hyprland)

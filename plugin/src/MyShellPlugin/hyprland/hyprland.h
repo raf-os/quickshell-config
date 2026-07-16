@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <qjsengine.h>
 #include <qobject.h>
 #include <qprocess.h>
@@ -38,14 +40,26 @@ public:
     return inst;
   }
 
+  struct InputQueryPayload {
+    QByteArray kbLayout;
+    QByteArray kbVariant;
+    QByteArray kbModel;
+    QByteArray kbOptions;
+    QByteArray kbRules;
+  };
+
   [[nodiscard]] HyprEvents    *eventHandler();
   [[nodiscard]] ToplevelModel *toplevelModel();
   [[nodiscard]] int            keyboardLayoutIndex() const;
   void                         setKeyboardLayoutIndex(const int &value);
 
+  void hyprctl(const QByteArray                      &request,
+               const std::function<void(bool,
+                                        QByteArray)> &callback);
+
 private slots:
   void queryHyprInputConfigs();
-  void onInputQueryReadyToRead();
+  void onInputQueryReadyToRead(InputQueryPayload payload);
   void queryActiveDevices();
 
 signals:
@@ -54,16 +68,14 @@ signals:
 private:
   explicit Hyprland(QObject *parent = nullptr);
 
+  QString m_requestSocketPath;
+
+  bool m_requestingDevices     = false;
+  bool m_requestingInputConfig = false;
+
   HyprEvents    *m_eventHandler  = nullptr;
   ToplevelModel *m_toplevelModel = nullptr;
   int            m_keyboardLayoutIndex;
-
-  bool      m_hyprInputQueryQueued = false;
-  QProcess *m_hyprInputQueryProcess;
-
-  bool      m_deviceQueryQueued = false;
-  QTimer    m_deviceQueryCooldown;
-  QProcess *m_deviceQueryProcess = nullptr;
 
   HyprInputConfig *m_inputConfig;
 };
