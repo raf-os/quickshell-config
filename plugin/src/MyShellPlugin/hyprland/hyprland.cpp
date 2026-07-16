@@ -24,6 +24,7 @@
 
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
+#include "toplevelmanager.h"
 #include "toplevelmodel.h"
 
 namespace ns::hyprland {
@@ -53,6 +54,7 @@ Hyprland::Hyprland(QObject *parent)
   }
 
   m_requestSocketPath = hyprDir + "/.socket.sock";
+  m_eventHandler->connectSocket();
 
   queryActiveDevices();
   queryHyprInputConfigs();
@@ -67,6 +69,16 @@ Hyprland::Hyprland(QObject *parent)
                    [this](QString /* unused */, QString /* unused */) {
                      this->queryActiveDevices();
                    });
+
+  QObject::connect(m_eventHandler,
+                   &HyprEvents::activeWindowChanged,
+                   m_toplevelModel,
+                   &ToplevelModel::onAddressActivated);
+
+  QObject::connect(toplevels::ToplevelManager::instance(),
+                   &toplevels::ToplevelManager::toplevelsChanged,
+                   this,
+                   &Hyprland::queryHyprClients);
 }
 
 void Hyprland::hyprctl(const QByteArray                      &request,
@@ -247,6 +259,16 @@ void Hyprland::queryActiveDevices() {
         break;
       }
     }
+  });
+}
+
+void Hyprland::queryHyprClients() {
+  if (m_requestingToplevels) return;
+  m_requestingToplevels = true;
+
+  this->hyprctl("j/clients", [this](bool success, const QByteArray &result) {
+    m_requestingToplevels = false;
+    m_toplevelModel->handleHyprClientsPayload(result);
   });
 }
 } // namespace ns::hyprland

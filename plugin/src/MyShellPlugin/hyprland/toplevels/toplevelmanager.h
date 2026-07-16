@@ -32,6 +32,7 @@ public:
 signals:
   void toplevelReady(ToplevelHandle *toplevel);
   void toplevelClosed(ToplevelHandle *toplevel);
+  void toplevelsChanged();
 
 protected:
   explicit ToplevelManager();

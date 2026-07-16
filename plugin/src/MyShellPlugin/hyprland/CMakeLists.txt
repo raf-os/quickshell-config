@@ -31,14 +31,8 @@ qt6_add_qml_module(
 
 target_link_libraries(
   myshell_hyprland
-  PRIVATE
-    Qt6::Core
-    Qt6::Quick
-    Qt6::Qml
-    Qt6::Network
-    myshell_utils
-    myshell_hyprland_toplevels
-    nightshell_hyprland_common
+  PRIVATE Qt6::Core Qt6::Quick Qt6::Qml Qt6::Network myshell_utils
+  PUBLIC myshell_hyprland_toplevels nightshell_hyprland_common
 )
 
 install_qml_module(myshell_hyprland)

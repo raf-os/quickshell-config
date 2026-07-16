@@ -19,6 +19,10 @@ MouseArea {
 
 	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
+	function activate() {
+		modelData.activate();
+	}
+
 	Item {
 		id: imageWrapper
 
@@ -43,7 +47,7 @@ MouseArea {
 
 	StyledText {
 		id: toplevelText
-		text: `${root.modelData.title}`
+		text: `${root.modelData.title} [${root.modelData.workspaceId}]`
 
 		anchors {
 			left: imageWrapper.right

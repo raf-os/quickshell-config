@@ -24,6 +24,7 @@
 #include <qtimer.h>
 
 #include "hyprevents.h"
+#include "hyprland.h"
 #include "kbd.h"
 #include "paths.h"
 
@@ -273,8 +274,8 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
 
   m_inputConfig = new HyprInputConfig(this);
 
-  m_hyprEvents = new ns::hyprland::HyprEvents(this);
-  m_hyprEvents->connectSocket();
+  m_hyprEvents = ns::hyprland::Hyprland::instance()->eventHandler();
+  // m_hyprEvents->connectSocket();
 
   m_configPath = utils::Paths::instance()->config();
   m_cachePath  = utils::Paths::instance()->cache();
@@ -288,8 +289,6 @@ HyprExtras::HyprExtras(QObject *parent) : QObject(parent) {
                    this,
                    &HyprExtras::queryCurrentDevices);
 }
-
-HyprExtras::~HyprExtras() { m_hyprEvents->disconnectSocket(); };
 
 void HyprExtras::hyprctl(const QStringList &commands) {
   if (m_hyprctlProcess) {

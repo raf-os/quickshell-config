@@ -2,7 +2,9 @@
 
 #include <functional>
 
+#include <qhash.h>
 #include <qjsengine.h>
+#include <qlist.h>
 #include <qobject.h>
 #include <qprocess.h>
 #include <qqmlengine.h>
@@ -61,6 +63,7 @@ private slots:
   void queryHyprInputConfigs();
   void onInputQueryReadyToRead(InputQueryPayload payload);
   void queryActiveDevices();
+  void queryHyprClients();
 
 signals:
   void keyboardLayoutIndexChanged();
@@ -71,6 +74,7 @@ private:
   QString m_requestSocketPath;
 
   bool m_requestingDevices     = false;
+  bool m_requestingToplevels   = false;
   bool m_requestingInputConfig = false;
 
   HyprEvents    *m_eventHandler  = nullptr;

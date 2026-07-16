@@ -59,5 +59,8 @@ Item {
 		function onHotkeyIndexActivated(key: int): void {
 			root.hotkeyTriggered(key);
 		}
+		function onCurrentItemActivated(): void {
+			root.selectItem();
+		}
 	}
 }

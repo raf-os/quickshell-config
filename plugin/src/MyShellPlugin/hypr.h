@@ -127,7 +127,6 @@ class HyprExtras : public QObject {
 
 public:
   explicit HyprExtras(QObject *parent = nullptr);
-  ~HyprExtras() override;
 
   [[nodiscard]] bool isSaving() const;
 

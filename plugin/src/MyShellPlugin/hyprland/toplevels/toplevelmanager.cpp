@@ -55,6 +55,7 @@ void ToplevelManager::onToplevelReady() {
   auto *handle = qobject_cast<ToplevelHandle *>(this->sender());
   m_readyToplevels.append(handle);
   emit toplevelReady(handle);
+  emit toplevelsChanged();
 }
 
 void ToplevelManager::onToplevelClosed() {
@@ -62,6 +63,7 @@ void ToplevelManager::onToplevelClosed() {
   m_readyToplevels.removeOne(handle);
   m_toplevels.removeOne(handle);
   emit toplevelClosed(handle);
+  emit toplevelsChanged();
 }
 
 QList<ToplevelHandle *> ToplevelManager::toplevels() { return m_toplevels; }
