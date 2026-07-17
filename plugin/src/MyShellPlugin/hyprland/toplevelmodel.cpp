@@ -2,22 +2,28 @@
 
 #include <algorithm>
 #include <iterator>
+#include <string>
+#include <string_view>
+#include <utility>
 
-#include <qabstractitemmodel.h>
 #include <qhash.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 #include <qjsonparseerror.h>
+#include <qlist.h>
 #include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qqmllist.h>
 #include <qstringview.h>
 #include <qtypes.h>
 #include <qvariant.h>
 
 #include "hyprtoplevelmanager.h"
+#include "qlisthelpers.h"
+#include "rapidfuzz/fuzz.hpp"
 #include "toplevelhandle.h"
 #include "toplevelmanager.h"
 
@@ -128,7 +134,7 @@ void ToplevelInstance::onToplevelMap(toplevels::ToplevelHandle *handle) {
   emit ready();
 }
 
-ToplevelModel::ToplevelModel(QObject *parent) : QAbstractListModel(parent) {
+ToplevelModel::ToplevelModel(QObject *parent) : QObject(parent) {
   QObject::connect(toplevels::ToplevelManager::instance(),
                    &toplevels::ToplevelManager::destroyed,
                    this,
@@ -136,7 +142,7 @@ ToplevelModel::ToplevelModel(QObject *parent) : QAbstractListModel(parent) {
 
   for (auto toplevel :
        toplevels::ToplevelManager::instance()->readyToplevels()) {
-    this->createNewInstance(toplevel, true);
+    this->createNewInstance(toplevel);
   }
 
   QObject::connect(toplevels::ToplevelManager::instance(),
@@ -150,27 +156,24 @@ ToplevelModel::ToplevelModel(QObject *parent) : QAbstractListModel(parent) {
                    &ToplevelModel::onWaylandToplevelDestroyed);
 }
 
-QHash<int,
-      QByteArray>
-ToplevelModel::roleNames() const {
-  return {
-      {Roles::ModelDataRole, "modelData"},
-  };
+QQmlListProperty<ToplevelInstance> ToplevelModel::items() {
+  return readonlyQmlList<ToplevelInstance>(this, &m_filteredToplevels);
 }
 
-qint32 ToplevelModel::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid()) return 0;
-  return static_cast<qint32>(m_readyToplevels.size());
-}
+QString ToplevelModel::searchQuery() const { return m_searchQuery; }
+void    ToplevelModel::setSearchQuery(const QString &value) {
+  if (value == m_searchQuery) return;
 
-QVariant ToplevelModel::data(const QModelIndex &index,
-                             qint32             role) const {
-  if (!index.isValid()) return {};
+  const auto lval = value.toLower();
+  m_searchQuery   = lval;
+  emit searchQueryChanged();
 
-  switch (role) {
-  case Roles::ModelDataRole:
-    return QVariant::fromValue(m_readyToplevels.at(index.row()));
-  default: return {};
+  auto filtered = m_readyToplevels;
+  this->applyFilters(&filtered);
+
+  if (filtered != m_filteredToplevels) {
+    m_filteredToplevels = filtered;
+    emit itemsChanged();
   }
 }
 
@@ -189,34 +192,26 @@ void ToplevelModel::onWaylandToplevelDestroyed(
 
   if (it != m_readyToplevels.end()) {
     auto toplevelInstance = *it;
-    auto idx              = std::distance(m_readyToplevels.begin(), it);
-    this->removeAtIndex(idx);
+    this->removeInstance(toplevelInstance);
     m_allTopLevels.removeOne(toplevelInstance);
     toplevelInstance->deleteLater();
     return;
   }
 }
 
-void ToplevelModel::insertAtIndex(ToplevelInstance *instance,
-                                  int               index,
-                                  bool              noModelUpdate) {
-  if (noModelUpdate) {
-    m_readyToplevels.append(instance);
-  } else {
-    beginInsertRows({}, index, index);
-    m_readyToplevels.append(instance);
-    endInsertRows();
+void ToplevelModel::insertAtEnd(ToplevelInstance *instance) {
+  m_readyToplevels.append(instance);
+  auto filtered = m_readyToplevels;
+  this->applyFilters(&filtered);
+
+  if (filtered != m_filteredToplevels) {
+    m_filteredToplevels = filtered;
+    emit itemsChanged();
   }
-}
-void ToplevelModel::insertAtEnd(ToplevelInstance *instance,
-                                bool              noModelUpdate) {
-  return this->insertAtIndex(instance, m_readyToplevels.size(), noModelUpdate);
 }
 
 void ToplevelModel::removeAtIndex(int index) {
-  beginRemoveRows({}, index, index);
   m_readyToplevels.removeAt(index);
-  endRemoveRows();
 }
 
 void ToplevelModel::removeInstance(ToplevelInstance *instance) {
@@ -224,6 +219,9 @@ void ToplevelModel::removeInstance(ToplevelInstance *instance) {
   auto idx = m_readyToplevels.indexOf(instance);
   if (idx != -1) {
     this->removeAtIndex(idx);
+  }
+  if (m_filteredToplevels.removeOne(instance)) {
+    emit itemsChanged();
   }
   instance->deleteLater();
 }
@@ -254,12 +252,11 @@ ToplevelInstance *ToplevelModel::createNewInstance(const quint64 &address) {
 }
 
 ToplevelInstance *
-ToplevelModel::createNewInstance(toplevels::ToplevelHandle *handle,
-                                 bool                       noModelUpdate) {
+ToplevelModel::createNewInstance(toplevels::ToplevelHandle *handle) {
   auto inst = new ToplevelInstance(handle, this);
 
   if (inst->isValid()) {
-    insertAtEnd(inst, noModelUpdate);
+    insertAtEnd(inst);
   } else {
     m_allTopLevels.append(inst);
     QObject::connect(
@@ -290,9 +287,7 @@ void ToplevelModel::onAddressActivated(quint64 address) {
   if (it != m_readyToplevels.end()) {
     auto idx = std::distance(m_readyToplevels.begin(), it);
     if (idx == 0 || idx >= m_readyToplevels.size()) return;
-    this->beginMoveRows({}, idx, idx, {}, 0);
     m_readyToplevels.move(idx, 0);
-    this->endMoveRows();
   }
 }
 
@@ -337,5 +332,28 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
       toplevel->setWorkspaceId(workspaceObj.value("id").toInt(0));
     }
   }
+}
+
+void ToplevelModel::applyFilters(QList<ToplevelInstance *> *target) {
+  if (m_searchQuery.isEmpty()) {
+    return;
+  }
+
+  const auto                                qstr = m_searchQuery.toStdString();
+  rapidfuzz::fuzz::CachedPartialRatio<char> scorer(qstr);
+
+  target->removeIf([qstr, scorer](ToplevelInstance *item) {
+    const auto name = item->title().toLower().toStdString();
+
+    if (name.contains(qstr)) return false;
+
+    auto score = scorer.similarity(std::string_view(name), 80.0);
+
+    if (score > 80.0) {
+      return false;
+    }
+
+    return true;
+  });
 }
 } // namespace ns::hyprland

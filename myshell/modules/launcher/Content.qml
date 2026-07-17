@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.services
+import org.nightshell.DesktopEntries
 import MyShellPlugin
 import MyShellPlugin.Configs
 import QtQuick
@@ -31,6 +33,13 @@ MouseArea {
 	Component.onCompleted: {
 		queryInput.forceActiveFocus();
 		enterAnim.start();
+
+		const desiredTab = GlobalShellState.desiredLauncherTab;
+	}
+
+	DesktopEntriesModel {
+		id: entriesModel
+		queryString: queryInput.text
 	}
 
 	onClicked: {
@@ -350,6 +359,7 @@ MouseArea {
 			queryString: queryInput.text
 			highlightHotkeys: root.isAltPressed
 			spacing: root.spacing
+			model: entriesModel
 
 			onRequestClose: {
 				root.closeLauncherRequested();

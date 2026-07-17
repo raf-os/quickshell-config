@@ -13,15 +13,17 @@ Scope {
 	// property bool startMenuInterrupted
 	readonly property bool hasFullscreen: Hypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen === 2) ?? false
 
-	CustomShortcut {
-		name: "startmenu"
-		description: "Toggle start menu"
+	function getActiveScreen(): ShellScreen {
+		return Quickshell.screens.find(s => s.name === Hypr.focusedMonitor.name);
+	}
 
-		onPressed: root.startMenuInterrupted = false
+	CustomShortcut {
+		name: "launcher"
+		description: "Toggle launcher"
+
+		// onPressed: root.startMenuInterrupted = false
 		onReleased: {
 			if (!root.hasFullscreen) {
-				// const openPanels = PanelService.getForActive();
-				// openPanels.startmenu = !openPanels.startmenu;
 				const activeMonitor = Hypr.focusedMonitor;
 				const activeScreen = Quickshell.screens.find(s => s.name === activeMonitor.name);
 				if (activeScreen) {
@@ -30,6 +32,20 @@ Scope {
 					} else {
 						GlobalShellState.openLauncher(activeScreen);
 					}
+				}
+			}
+		}
+	}
+
+	CustomShortcut {
+		name: "launcher-windows"
+		description: "Open launcher on the 'windows' tab"
+
+		onReleased: {
+			if (!root.hasFullscreen) {
+				const screen = root.getActiveScreen();
+				if (screen) {
+					GlobalShellState.openLauncherWithArgs(screen, "windows");
 				}
 			}
 		}

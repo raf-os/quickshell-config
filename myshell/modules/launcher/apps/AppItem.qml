@@ -20,9 +20,16 @@ MouseArea {
 	implicitWidth: ListView.view ? ListView.view.width : 0
 	implicitHeight: mainLayout.implicitHeight + padding * 2
 	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+	hoverEnabled: true
+
+	signal hovered
 
 	function activate() {
 		modelData.execute();
+	}
+
+	onEntered: {
+		root.hovered();
 	}
 
 	MouseArea {

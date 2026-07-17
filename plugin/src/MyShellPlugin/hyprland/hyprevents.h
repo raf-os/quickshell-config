@@ -34,6 +34,7 @@ signals:
   void keyboardLayoutChanged(QString keyboardName,
                              QString layoutName);
   void activeWindowChanged(quint64 address);
+  void workspacesChanged();
   void isConnectedChanged();
 
 private:

@@ -12,6 +12,8 @@ Singleton {
 	property alias launcherScreen: props.launcherScreen
 	readonly property bool isLauncherOpen: props.launcherScreen !== null
 
+	property string desiredLauncherTab: ""
+
 	PersistentProperties {
 		id: props
 
@@ -32,6 +34,12 @@ Singleton {
 	function openLauncher(screen: ShellScreen): bool {
 		// if (!root.allScreens.includes(screen))
 		// 	return false;
+		desiredLauncherTab = "";
+		props.launcherScreen = screen;
+	}
+
+	function openLauncherWithArgs(screen: ShellScreen, arg: string) {
+		desiredLauncherTab = arg;
 		props.launcherScreen = screen;
 	}
 

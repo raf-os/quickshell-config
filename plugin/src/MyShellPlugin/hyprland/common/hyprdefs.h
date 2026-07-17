@@ -12,4 +12,10 @@ struct HyprWindowData {
   quint32 pid;
   quint64 address;
 };
+
+struct HyprWorkspaceData {
+  bool    isPersistent;
+  int     id;
+  QString name;
+};
 } // namespace ns::hyprland::common

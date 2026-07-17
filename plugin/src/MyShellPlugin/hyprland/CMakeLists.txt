@@ -15,7 +15,9 @@ target_sources(
     hyprevents.cpp
     hyprinputconfig.cpp
     hyprkeyboardlayout.cpp
+    hyprworkspace.cpp
     toplevelmodel.cpp
+    workspacesmodel.cpp
 )
 
 set_target_properties(myshell_hyprland PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -31,7 +33,14 @@ qt6_add_qml_module(
 
 target_link_libraries(
   myshell_hyprland
-  PRIVATE Qt6::Core Qt6::Quick Qt6::Qml Qt6::Network myshell_utils
+  PRIVATE
+    Qt6::Core
+    Qt6::Quick
+    Qt6::Qml
+    Qt6::Network
+    rapidfuzz::rapidfuzz
+    myshell_utils
+    myshell_include
   PUBLIC myshell_hyprland_toplevels nightshell_hyprland_common
 )
 

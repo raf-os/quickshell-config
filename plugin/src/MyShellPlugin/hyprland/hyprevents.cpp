@@ -105,6 +105,9 @@ void HyprEvents::dispatchEvent(const QString &event,
     if (isOk) {
       emit activeWindowChanged(addr);
     }
+  } else if (event == "createworkspace" || event == "destroyworkspace" ||
+             event == "moveworkspace" || event == "renameworkspace") {
+    emit workspacesChanged();
   }
 }
 

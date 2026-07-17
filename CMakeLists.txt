@@ -65,6 +65,13 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup(REQUIRES 6.9)
 
+FetchContent_Declare(
+  rapidfuzz
+  GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
+  GIT_TAG v3.3.3
+)
+FetchContent_MakeAvailable(rapidfuzz)
+
 install(
   DIRECTORY "${CMAKE_SOURCE_DIR}/myshell"
   DESTINATION "${INSTALL_QSCONFDIR}"

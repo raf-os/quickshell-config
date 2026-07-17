@@ -1,6 +1,5 @@
 #pragma once
 
-#include <qabstractitemmodel.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -8,6 +7,7 @@
 #include <qpointer.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
+#include <qqmllist.h>
 #include <qstringview.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
@@ -67,22 +67,27 @@ private:
   void setupToplevelConnections();
 };
 
-class ToplevelModel : public QAbstractListModel {
+class ToplevelModel : public QObject {
   Q_OBJECT
   QML_ELEMENT
+  QML_UNCREATABLE("")
+
+  Q_PROPERTY(QString searchQuery READ searchQuery WRITE setSearchQuery NOTIFY
+                 searchQueryChanged)
+  Q_PROPERTY(QQmlListProperty<ns::hyprland::ToplevelInstance> items READ items
+                 NOTIFY itemsChanged)
 
 public:
   explicit ToplevelModel(QObject *parent = nullptr);
 
-  enum Roles {
-    ModelDataRole = Qt::UserRole + 1,
-  };
-  QHash<int,
-        QByteArray>
-           roleNames() const override;
-  qint32   rowCount(const QModelIndex &parent = {}) const override;
-  QVariant data(const QModelIndex &index,
-                qint32             role) const override;
+  [[nodiscard]] QString searchQuery() const;
+  void                  setSearchQuery(const QString &value);
+
+  [[nodiscard]] QQmlListProperty<ToplevelInstance> items();
+
+signals:
+  void searchQueryChanged();
+  void itemsChanged();
 
 public slots:
   void onWaylandToplevelCreated(toplevels::ToplevelHandle *toplevel);
@@ -93,17 +98,17 @@ public slots:
 private:
   QList<ToplevelInstance *> m_allTopLevels;
   QList<ToplevelInstance *> m_readyToplevels;
+  QList<ToplevelInstance *> m_filteredToplevels;
+
+  QString m_searchQuery;
 
   ToplevelInstance *createNewInstance(const quint64 &address);
-  ToplevelInstance *createNewInstance(toplevels::ToplevelHandle *handle,
-                                      bool noModelUpdate = false);
+  ToplevelInstance *createNewInstance(toplevels::ToplevelHandle *handle);
 
-  void insertAtIndex(ToplevelInstance *instance,
-                     int               index,
-                     bool              noModelUpdate = false);
-  void insertAtEnd(ToplevelInstance *instance,
-                   bool              noModelUpdate = false);
+  void insertAtEnd(ToplevelInstance *instance);
   void removeAtIndex(int index);
   void removeInstance(ToplevelInstance *instance);
+
+  void applyFilters(QList<ToplevelInstance *> *target);
 };
 } // namespace ns::hyprland

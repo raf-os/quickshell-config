@@ -26,6 +26,7 @@
 #include "hyprinputconfig.h"
 #include "toplevelmanager.h"
 #include "toplevelmodel.h"
+#include "workspacesmodel.h"
 
 namespace ns::hyprland {
 Q_LOGGING_CATEGORY(logNSHyprland,
@@ -35,6 +36,7 @@ Hyprland::Hyprland(QObject *parent)
     : QObject(parent),
       m_eventHandler(new HyprEvents(this)),
       m_toplevelModel(new ToplevelModel(this)),
+      m_workspacesModel(new WorkspacesModel(this)),
       m_inputConfig(new HyprInputConfig(this)) {
   auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
   if (his.isEmpty()) {
@@ -56,8 +58,9 @@ Hyprland::Hyprland(QObject *parent)
   m_requestSocketPath = hyprDir + "/.socket.sock";
   m_eventHandler->connectSocket();
 
-  queryActiveDevices();
-  queryHyprInputConfigs();
+  this->queryActiveDevices();
+  this->queryHyprInputConfigs();
+  this->queryWorkspaces();
 
   QObject::connect(m_eventHandler,
                    &HyprEvents::configReloaded,
@@ -69,11 +72,14 @@ Hyprland::Hyprland(QObject *parent)
                    [this](QString /* unused */, QString /* unused */) {
                      this->queryActiveDevices();
                    });
-
   QObject::connect(m_eventHandler,
                    &HyprEvents::activeWindowChanged,
                    m_toplevelModel,
                    &ToplevelModel::onAddressActivated);
+  QObject::connect(m_eventHandler,
+                   &HyprEvents::workspacesChanged,
+                   this,
+                   &Hyprland::queryWorkspaces);
 
   QObject::connect(toplevels::ToplevelManager::instance(),
                    &toplevels::ToplevelManager::toplevelsChanged,
@@ -269,6 +275,16 @@ void Hyprland::queryHyprClients() {
   this->hyprctl("j/clients", [this](bool success, const QByteArray &result) {
     m_requestingToplevels = false;
     m_toplevelModel->handleHyprClientsPayload(result);
+  });
+}
+
+void Hyprland::queryWorkspaces() {
+  if (m_requestingWorkspaces) return;
+  m_requestingWorkspaces = true;
+
+  this->hyprctl("j/workspaces", [this](bool success, const QByteArray &result) {
+    m_requestingWorkspaces = false;
+    m_workspacesModel->updateFromPayload(result);
   });
 }
 } // namespace ns::hyprland

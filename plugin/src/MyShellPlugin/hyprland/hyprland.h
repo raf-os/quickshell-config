@@ -15,6 +15,7 @@
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
 #include "toplevelmodel.h"
+#include "workspacesmodel.h"
 
 namespace ns::hyprland {
 class Hyprland : public QObject {
@@ -64,6 +65,7 @@ private slots:
   void onInputQueryReadyToRead(InputQueryPayload payload);
   void queryActiveDevices();
   void queryHyprClients();
+  void queryWorkspaces();
 
 signals:
   void keyboardLayoutIndexChanged();
@@ -76,10 +78,12 @@ private:
   bool m_requestingDevices     = false;
   bool m_requestingToplevels   = false;
   bool m_requestingInputConfig = false;
+  bool m_requestingWorkspaces  = false;
 
-  HyprEvents    *m_eventHandler  = nullptr;
-  ToplevelModel *m_toplevelModel = nullptr;
-  int            m_keyboardLayoutIndex;
+  HyprEvents      *m_eventHandler    = nullptr;
+  ToplevelModel   *m_toplevelModel   = nullptr;
+  WorkspacesModel *m_workspacesModel = nullptr;
+  int              m_keyboardLayoutIndex;
 
   HyprInputConfig *m_inputConfig;
 };

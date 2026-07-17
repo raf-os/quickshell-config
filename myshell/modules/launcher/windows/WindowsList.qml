@@ -16,11 +16,19 @@ Launcher.BaseList {
 		requestClose();
 	}
 
+	Component.onCompleted: {
+		Hyprland.toplevelModel.searchQuery = root.queryString;
+	}
+
+	onQueryStringChanged: {
+		Hyprland.toplevelModel.searchQuery = root.queryString;
+	}
+
 	Launcher.BaseListView {
 		id: lView
 		anchors.fill: parent
 
-		model: Hyprland.toplevelModel
+		model: Hyprland.toplevelModel.items
 		delegate: WindowItem {
 			onClicked: {
 				modelData.activate();

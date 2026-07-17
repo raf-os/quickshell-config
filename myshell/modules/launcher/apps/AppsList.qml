@@ -13,10 +13,7 @@ BaseList {
 	id: root
 	view: lView
 
-	DesktopEntriesModel {
-		id: entriesModel
-		queryString: root.queryString
-	}
+	required property DesktopEntriesModel model
 
 	function selectItem() {
 		if (view.currentItem as AppItem) {
@@ -53,7 +50,7 @@ BaseList {
 			bottom: filtersWrapper.top
 			bottomMargin: root.spacing
 		}
-		model: entriesModel.entryList
+		model: root.model.entryList
 		delegate: AppItem {
 			id: appItemDelegate
 			onClicked: {
@@ -82,10 +79,10 @@ BaseList {
 			FilterItem {
 				name: "(ALT+1) Hide terminal-only entries"
 				hotKey: Qt.Key_1
-				isActive: entriesModel.hideTerminalOnly
+				isActive: root.model.hideTerminalOnly
 
 				function trigger() {
-					entriesModel.hideTerminalOnly = !entriesModel.hideTerminalOnly;
+					root.model.hideTerminalOnly = !root.model.hideTerminalOnly;
 				}
 			}
 		}

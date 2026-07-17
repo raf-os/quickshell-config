@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.services
 import org.nightshell.Components
 import MyShellPlugin
 import MyShellPlugin.Configs
@@ -33,6 +34,18 @@ RoundedClipRect {
 		Apps = 0,
 		Windows = 1,
 		Workspaces = 2
+	}
+
+	Component.onCompleted: {
+		switch (GlobalShellState.desiredLauncherTab) {
+		case "windows":
+			root.activeTab = Tabs.T.Windows;
+			break;
+		default:
+			root.activeTab = Tabs.T.Apps;
+			break;
+		}
+		GlobalShellState.desiredLauncherTab = "";
 	}
 
 	Rectangle {
