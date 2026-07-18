@@ -10,18 +10,22 @@
 #include <qlist.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
+#include <qqmllist.h>
 #include <qstringview.h>
 #include <qtypes.h>
 
 #include "hyprdefs.h"
 #include "hyprworkspace.h"
+#include "qlisthelpers.h"
 
 namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland)
 
 WorkspacesModel::WorkspacesModel(QObject *parent) : QObject(parent) {}
 
-QList<HyprWorkspace *> WorkspacesModel::values() const { return m_workspaces; }
+QQmlListProperty<HyprWorkspace> WorkspacesModel::values() {
+  return readonlyQmlList<HyprWorkspace>(this, &m_workspaces);
+}
 
 void WorkspacesModel::updateFromPayload(const QByteArray &data) {
   QJsonParseError parseError;
@@ -47,7 +51,6 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
 
     const auto id = obj.value("id").toInt(-1);
     if (id == -1) continue;
-
     const auto name = obj.value("name").toString();
     if (name.isEmpty()) continue;
 
@@ -73,17 +76,26 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
     wpdata.id           = id;
     wpdata.name         = name;
     wpdata.isPersistent = obj.value("ispersistent").toBool(false);
+    wpdata.monitorId    = obj.value("monitorID").toInt(-1);
+    wpdata.monitorName  = obj.value("monitorName").toString();
 
     workspace->updateData(std::move(wpdata));
   }
 
   std::sort(nlist.begin(), nlist.end(), [](HyprWorkspace *a, HyprWorkspace *b) {
-    return a->id() > b->id();
+    auto mona = a->bindableMonitorId().value();
+    auto monb = b->bindableMonitorId().value();
+
+    if (mona != monb) {
+      return monb > mona;
+    }
+
+    return b->id() > a->id();
   });
 
   if (nlist != m_workspaces) {
     m_workspaces = nlist;
-    emit workspacesChanged();
+    emit workspacesChanged(m_workspaces);
   }
 
   for (auto *cleanup : old) {

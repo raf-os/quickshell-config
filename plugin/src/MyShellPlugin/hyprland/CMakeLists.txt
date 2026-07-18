@@ -15,7 +15,9 @@ target_sources(
     hyprevents.cpp
     hyprinputconfig.cpp
     hyprkeyboardlayout.cpp
+    hyprmonitorsmodel.cpp
     hyprworkspace.cpp
+    hyprmonitor.cpp
     toplevelmodel.cpp
     workspacesmodel.cpp
 )

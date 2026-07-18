@@ -11,6 +11,7 @@ import QtQuick.Effects
 
 import "apps"
 import "windows"
+import "workspaces"
 
 MouseArea {
 	id: root
@@ -52,6 +53,8 @@ MouseArea {
 			return appsListComponent;
 		case Tabs.T.Windows:
 			return windowsListComponent;
+		case Tabs.T.Workspaces:
+			return workspacesListComponent;
 		default:
 			return null;
 		}
@@ -371,6 +374,24 @@ MouseArea {
 		id: windowsListComponent
 
 		WindowsList {
+			id: windowsList
+
+			content: root
+			tabIdx: Tabs.T.Windows
+			queryString: queryInput.text
+			highlightHotkeys: root.isAltPressed
+			spacing: root.spacing
+
+			onRequestClose: {
+				root.closeLauncherRequested();
+			}
+		}
+	}
+
+	Component {
+		id: workspacesListComponent
+
+		WorkspacesList {
 			id: windowsList
 
 			content: root

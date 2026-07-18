@@ -286,8 +286,19 @@ void ToplevelModel::onAddressActivated(quint64 address) {
 
   if (it != m_readyToplevels.end()) {
     auto idx = std::distance(m_readyToplevels.begin(), it);
-    if (idx == 0 || idx >= m_readyToplevels.size()) return;
+    if (idx == 0 || idx > m_readyToplevels.size()) return;
     m_readyToplevels.move(idx, 0);
+    auto fit = std::ranges::find_if(m_filteredToplevels.begin(),
+                                    m_filteredToplevels.end(),
+                                    [address](ToplevelInstance *inst) {
+                                      return inst->address() == address;
+                                    });
+    if (fit != m_filteredToplevels.end()) {
+      auto fidx = std::distance(m_filteredToplevels.begin(), fit);
+      if (fidx != 0) {
+        m_filteredToplevels.move(fidx, 0);
+      }
+    }
   }
 }
 

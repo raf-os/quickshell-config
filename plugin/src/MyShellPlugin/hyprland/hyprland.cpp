@@ -24,6 +24,7 @@
 
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
+#include "hyprmonitorsmodel.h"
 #include "toplevelmanager.h"
 #include "toplevelmodel.h"
 #include "workspacesmodel.h"
@@ -36,6 +37,7 @@ Hyprland::Hyprland(QObject *parent)
     : QObject(parent),
       m_eventHandler(new HyprEvents(this)),
       m_toplevelModel(new ToplevelModel(this)),
+      m_monitorsModel(new HyprMonitorsModel(this)),
       m_workspacesModel(new WorkspacesModel(this)),
       m_inputConfig(new HyprInputConfig(this)) {
   auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
@@ -60,6 +62,9 @@ Hyprland::Hyprland(QObject *parent)
 
   this->queryActiveDevices();
   this->queryHyprInputConfigs();
+  this->queryMonitors(); // explicitly doing this one first so the newly created
+                         // instances can automatically fill up its workspace
+                         // child list
   this->queryWorkspaces();
 
   QObject::connect(m_eventHandler,
@@ -123,8 +128,10 @@ void Hyprland::hyprctl(const QByteArray                      &request,
   requestSocket->connectToServer(m_requestSocketPath);
 }
 
-HyprEvents    *Hyprland::eventHandler() { return m_eventHandler; }
-ToplevelModel *Hyprland::toplevelModel() { return m_toplevelModel; }
+HyprEvents        *Hyprland::eventHandler() { return m_eventHandler; }
+ToplevelModel     *Hyprland::toplevelModel() { return m_toplevelModel; }
+WorkspacesModel   *Hyprland::workspacesModel() { return m_workspacesModel; }
+HyprMonitorsModel *Hyprland::monitorsModel() { return m_monitorsModel; }
 
 int  Hyprland::keyboardLayoutIndex() const { return m_keyboardLayoutIndex; }
 void Hyprland::setKeyboardLayoutIndex(const int &value) {
@@ -285,6 +292,16 @@ void Hyprland::queryWorkspaces() {
   this->hyprctl("j/workspaces", [this](bool success, const QByteArray &result) {
     m_requestingWorkspaces = false;
     m_workspacesModel->updateFromPayload(result);
+  });
+}
+
+void Hyprland::queryMonitors() {
+  if (m_requestingMonitors) return;
+  m_requestingMonitors = true;
+
+  this->hyprctl("j/monitors", [this](bool success, const QByteArray &result) {
+    m_requestingMonitors = false;
+    m_monitorsModel->processMonitorData(result);
   });
 }
 } // namespace ns::hyprland

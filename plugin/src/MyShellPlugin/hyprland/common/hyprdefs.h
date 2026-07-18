@@ -16,6 +16,20 @@ struct HyprWindowData {
 struct HyprWorkspaceData {
   bool    isPersistent;
   int     id;
+  int     monitorId;
+  QString monitorName;
   QString name;
+};
+
+struct HyprMonitorData {
+  bool    disabled;
+  int     id;
+  int     width;
+  int     height;
+  int     x;
+  int     y;
+  QString name;
+  QString model;
+  QString serial;
 };
 } // namespace ns::hyprland::common

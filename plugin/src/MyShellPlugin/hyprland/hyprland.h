@@ -14,6 +14,7 @@
 
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
+#include "hyprmonitorsmodel.h"
 #include "toplevelmodel.h"
 #include "workspacesmodel.h"
 
@@ -26,6 +27,10 @@ class Hyprland : public QObject {
   Q_PROPERTY(ns::hyprland::HyprEvents *eventHandler READ eventHandler CONSTANT)
   Q_PROPERTY(
       ns::hyprland::ToplevelModel *toplevelModel READ toplevelModel CONSTANT)
+  Q_PROPERTY(ns::hyprland::WorkspacesModel *workspacesModel READ workspacesModel
+                 CONSTANT)
+  Q_PROPERTY(ns::hyprland::HyprMonitorsModel *monitorsModel READ monitorsModel
+                 CONSTANT)
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
                  keyboardLayoutIndexChanged)
 
@@ -51,10 +56,12 @@ public:
     QByteArray kbRules;
   };
 
-  [[nodiscard]] HyprEvents    *eventHandler();
-  [[nodiscard]] ToplevelModel *toplevelModel();
-  [[nodiscard]] int            keyboardLayoutIndex() const;
-  void                         setKeyboardLayoutIndex(const int &value);
+  [[nodiscard]] HyprEvents        *eventHandler();
+  [[nodiscard]] ToplevelModel     *toplevelModel();
+  [[nodiscard]] WorkspacesModel   *workspacesModel();
+  [[nodiscard]] HyprMonitorsModel *monitorsModel();
+  [[nodiscard]] int                keyboardLayoutIndex() const;
+  void                             setKeyboardLayoutIndex(const int &value);
 
   void hyprctl(const QByteArray                      &request,
                const std::function<void(bool,
@@ -66,6 +73,7 @@ private slots:
   void queryActiveDevices();
   void queryHyprClients();
   void queryWorkspaces();
+  void queryMonitors();
 
 signals:
   void keyboardLayoutIndexChanged();
@@ -79,11 +87,13 @@ private:
   bool m_requestingToplevels   = false;
   bool m_requestingInputConfig = false;
   bool m_requestingWorkspaces  = false;
+  bool m_requestingMonitors    = false;
 
-  HyprEvents      *m_eventHandler    = nullptr;
-  ToplevelModel   *m_toplevelModel   = nullptr;
-  WorkspacesModel *m_workspacesModel = nullptr;
-  int              m_keyboardLayoutIndex;
+  HyprEvents        *m_eventHandler    = nullptr;
+  ToplevelModel     *m_toplevelModel   = nullptr;
+  WorkspacesModel   *m_workspacesModel = nullptr;
+  HyprMonitorsModel *m_monitorsModel   = nullptr;
+  int                m_keyboardLayoutIndex;
 
   HyprInputConfig *m_inputConfig;
 };

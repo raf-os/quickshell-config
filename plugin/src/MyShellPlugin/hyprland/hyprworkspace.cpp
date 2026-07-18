@@ -17,8 +17,11 @@ void HyprWorkspace::updateData(common::HyprWorkspaceData data) {
   {
     QScopedPropertyUpdateGroup group;
 
-    b_name         = data.name;
+    if (QString::number(m_id) == data.name) b_name = "";
+    else b_name = data.name;
     b_isPersistent = data.isPersistent;
+    b_monitorId    = data.monitorId;
+    b_monitorName  = data.monitorName;
   }
 }
 } // namespace ns::hyprland
