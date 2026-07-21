@@ -1,11 +1,14 @@
 #pragma once
 
+#include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
+#include <qqmllist.h>
 #include <qtmetamacros.h>
 
 #include "hyprdefs.h"
+#include "toplevelmodel.h"
 
 namespace ns::hyprland {
 class HyprWorkspace : public QObject {
@@ -21,6 +24,8 @@ class HyprWorkspace : public QObject {
                  bindableMonitorId)
   Q_PROPERTY(QString monitorName READ default NOTIFY monitorNameChanged BINDABLE
                  bindableMonitorName)
+  Q_PROPERTY(QQmlListProperty<ns::hyprland::ToplevelInstance> toplevels READ
+                 toplevels NOTIFY toplevelsChanged)
 
 public:
   explicit HyprWorkspace(int      id,
@@ -35,17 +40,23 @@ public:
   [[nodiscard]] QBindable<QString> bindableMonitorName() {
     return &b_monitorName;
   }
+  [[nodiscard]] QQmlListProperty<ToplevelInstance> toplevels();
 
   void updateData(common::HyprWorkspaceData data);
+
+  void attachToplevel(ToplevelInstance *toplevel);
+  void detachToplevel(ToplevelInstance *toplevel);
 
 signals:
   void nameChanged();
   void isPersistentChanged();
   void monitorIdChanged();
   void monitorNameChanged();
+  void toplevelsChanged();
 
 private:
-  int m_id;
+  const int                 m_id;
+  QList<ToplevelInstance *> m_childToplevels;
 
   Q_OBJECT_BINDABLE_PROPERTY(HyprWorkspace,
                              QString,

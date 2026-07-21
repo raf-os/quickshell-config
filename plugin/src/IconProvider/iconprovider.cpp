@@ -113,7 +113,10 @@ QPixmap IconImageProvider::requestPixmap(const QString &id,
                                          QSize         *size,
                                          const QSize   &requestedSize) {
   QSize resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
-  auto  idx          = id.indexOf("/");
+
+  if (id.isEmpty()) return placeholderIcon(resolvedSize);
+
+  auto idx = id.indexOf("/");
 
   if (idx < 0 || idx + 1 > id.size())
     return handleQtIcon(id, size, resolvedSize);
@@ -131,7 +134,29 @@ QPixmap IconImageProvider::requestPixmap(const QString &id,
 QPixmap IconImageProvider::handleQtIcon(const QString &name,
                                         QSize         *size,
                                         const QSize   &resolvedSize) {
-  auto requestedIcon = QIcon::fromTheme(name);
+  auto    queryIdx = name.indexOf("?");
+  QString iconName;
+  QString fallbackIcon;
+
+  if (queryIdx != -1) {
+    const auto fullQuery = name.sliced(queryIdx + 1);
+    iconName             = name.sliced(0, queryIdx);
+
+    auto args = fullQuery.split(";");
+    for (auto &arg : args) {
+      if (arg.startsWith("fallback=")) {
+        fallbackIcon = arg.sliced(9);
+      }
+    }
+  } else {
+    iconName = name;
+  }
+
+  auto requestedIcon = QIcon::fromTheme(iconName);
+
+  if (requestedIcon.isNull() && !fallbackIcon.isEmpty()) {
+    requestedIcon = QIcon::fromTheme(fallbackIcon);
+  }
 
   if (requestedIcon.isNull()) {
     return placeholderIcon(resolvedSize);

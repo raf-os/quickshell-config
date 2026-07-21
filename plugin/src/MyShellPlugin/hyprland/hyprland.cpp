@@ -72,6 +72,10 @@ Hyprland::Hyprland(QObject *parent)
                    this,
                    &Hyprland::queryActiveDevices);
   QObject::connect(m_eventHandler,
+                   &HyprEvents::configReloaded,
+                   this,
+                   &Hyprland::queryWorkspaces);
+  QObject::connect(m_eventHandler,
                    &HyprEvents::keyboardLayoutChanged,
                    this,
                    [this](QString /* unused */, QString /* unused */) {
@@ -82,6 +86,10 @@ Hyprland::Hyprland(QObject *parent)
                    m_toplevelModel,
                    &ToplevelModel::onAddressActivated);
   QObject::connect(m_eventHandler,
+                   &HyprEvents::windowMoved,
+                   m_toplevelModel,
+                   &ToplevelModel::onWindowMoveWorkspace);
+  QObject::connect(m_eventHandler,
                    &HyprEvents::workspacesChanged,
                    this,
                    &Hyprland::queryWorkspaces);
@@ -90,6 +98,15 @@ Hyprland::Hyprland(QObject *parent)
                    &toplevels::ToplevelManager::toplevelsChanged,
                    this,
                    &Hyprland::queryHyprClients);
+
+  QObject::connect(m_toplevelModel,
+                   &ToplevelModel::readyToplevelsChanged,
+                   m_workspacesModel,
+                   &WorkspacesModel::onToplevelsChanged);
+  QObject::connect(m_toplevelModel,
+                   &ToplevelModel::windowMoved,
+                   m_workspacesModel,
+                   &WorkspacesModel::onWindowMoved);
 }
 
 void Hyprland::hyprctl(const QByteArray                      &request,
@@ -124,6 +141,40 @@ void Hyprland::hyprctl(const QByteArray                      &request,
       requestSocket, &QLocalSocket::connected, this, onConnectedCallback);
   QObject::connect(
       requestSocket, &QLocalSocket::errorOccurred, this, onErrorCallback);
+
+  requestSocket->connectToServer(m_requestSocketPath);
+}
+
+void Hyprland::dispatch(const QString &request) {
+  if (m_requestSocketPath.isEmpty()) return;
+
+  auto escaped = request;
+  escaped.replace("'", "\\'");
+  auto rchar         = QString("dispatch %0").arg(escaped).toUtf8();
+  auto requestSocket = new QLocalSocket(this);
+
+  auto onConnected = [this, rchar, requestSocket]() {
+    auto responseCallback = [requestSocket]() {
+      auto data = requestSocket->readAll();
+      qCDebug(logNSHyprland) << data;
+      delete requestSocket;
+    };
+
+    QObject::connect(
+        requestSocket, &QLocalSocket::readyRead, this, responseCallback);
+
+    requestSocket->write(rchar);
+    requestSocket->flush();
+  };
+
+  auto onError = [=](QLocalSocket::LocalSocketError error) {
+    qCWarning(logNSHyprland) << "Error making hyprland dispatch call:" << error
+                             << "request:" << escaped;
+    requestSocket->deleteLater();
+  };
+
+  QObject::connect(requestSocket, &QLocalSocket::connected, this, onConnected);
+  QObject::connect(requestSocket, &QLocalSocket::errorOccurred, this, onError);
 
   requestSocket->connectToServer(m_requestSocketPath);
 }

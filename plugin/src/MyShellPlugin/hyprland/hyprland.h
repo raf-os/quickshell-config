@@ -9,6 +9,7 @@
 #include <qprocess.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
+#include <qstringview.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>
 
@@ -63,9 +64,10 @@ public:
   [[nodiscard]] int                keyboardLayoutIndex() const;
   void                             setKeyboardLayoutIndex(const int &value);
 
-  void hyprctl(const QByteArray                      &request,
-               const std::function<void(bool,
-                                        QByteArray)> &callback);
+  void             hyprctl(const QByteArray                      &request,
+                           const std::function<void(bool,
+                                                    QByteArray)> &callback);
+  Q_INVOKABLE void dispatch(const QString &request);
 
 private slots:
   void queryHyprInputConfigs();

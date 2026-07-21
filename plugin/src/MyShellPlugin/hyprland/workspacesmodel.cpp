@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <utility>
 
+#include <qhash.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
@@ -17,6 +18,7 @@
 #include "hyprdefs.h"
 #include "hyprworkspace.h"
 #include "qlisthelpers.h"
+#include "toplevelmodel.h"
 
 namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland)
@@ -24,7 +26,7 @@ Q_DECLARE_LOGGING_CATEGORY(logNSHyprland)
 WorkspacesModel::WorkspacesModel(QObject *parent) : QObject(parent) {}
 
 QQmlListProperty<HyprWorkspace> WorkspacesModel::values() {
-  return readonlyQmlList<HyprWorkspace>(this, &m_workspaces);
+  return readonlyQmlList<HyprWorkspace>(this, &m_workspacesByMonitor);
 }
 
 void WorkspacesModel::updateFromPayload(const QByteArray &data) {
@@ -40,9 +42,7 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
   auto       jArray = jDoc.array();
   const auto aSize  = jArray.size();
 
-  auto                   old = m_workspaces;
-  QList<HyprWorkspace *> nlist;
-  nlist.reserve(std::clamp<qsizetype>(aSize, 0, 100));
+  auto old = m_workspaces;
 
   for (auto entry : jArray) {
     auto obj = entry.toObject();
@@ -56,21 +56,17 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
 
     HyprWorkspace *workspace = nullptr;
 
-    auto it =
-        std::ranges::find_if(old.begin(), old.end(), [id](HyprWorkspace *w) {
-          return w->id() == id;
-        });
+    auto hasOld = old.contains(id);
 
-    if (it != old.end()) {
-      workspace = *it;
-      old.erase(it);
+    if (hasOld) {
+      workspace = old.value(id);
+      old.remove(id);
     } else {
       workspace = new HyprWorkspace(id, this);
+      m_workspaces.insert(id, workspace);
     }
 
     if (!workspace) continue; // huh
-
-    nlist.append(workspace);
 
     common::HyprWorkspaceData wpdata;
     wpdata.id           = id;
@@ -81,6 +77,13 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
 
     workspace->updateData(std::move(wpdata));
   }
+
+  for (auto it = old.begin(); it != old.end(); ++it) {
+    it.value()->deleteLater();
+    m_workspaces.remove(it.key());
+  }
+
+  auto nlist = m_workspaces.values();
 
   std::sort(nlist.begin(), nlist.end(), [](HyprWorkspace *a, HyprWorkspace *b) {
     auto mona = a->bindableMonitorId().value();
@@ -93,13 +96,28 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
     return b->id() > a->id();
   });
 
-  if (nlist != m_workspaces) {
-    m_workspaces = nlist;
-    emit workspacesChanged(m_workspaces);
+  if (nlist != m_workspacesByMonitor) {
+    m_workspacesByMonitor = nlist;
+    emit workspacesChanged(m_workspacesByMonitor);
   }
 
   for (auto *cleanup : old) {
     cleanup->deleteLater();
   }
+}
+
+void WorkspacesModel::onToplevelsChanged(
+    const QList<ToplevelInstance *> &newToplevels) {
+  for (const auto &toplevel : newToplevels) {
+    auto workspaceId = toplevel->workspaceId();
+    if (!m_workspaces.contains(workspaceId)) continue;
+    m_workspaces.value(workspaceId)->attachToplevel(toplevel);
+  }
+}
+
+void WorkspacesModel::onWindowMoved(ToplevelInstance *toplevel) {
+  auto workspaceId = toplevel->workspaceId();
+  if (!m_workspaces.contains(workspaceId)) return;
+  m_workspaces.value(workspaceId)->attachToplevel(toplevel);
 }
 } // namespace ns::hyprland

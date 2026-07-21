@@ -41,7 +41,7 @@ MouseArea {
 			anchors.centerIn: parent
 			width: 24
 			height: 24
-			source: `image://qicons/${root.modelData.appId}`
+			source: `image://qicons/${root.modelData.appId}?fallback=application-octet-stream`
 		}
 	}
 
@@ -61,6 +61,6 @@ MouseArea {
 		color: root.textColor
 
 		font.family: Config.appearance.fontFamily.sans
-		font.pointSize: Config.appearance.fontSize.sm
+		font.pointSize: Config.appearance.fontSize.md
 	}
 }

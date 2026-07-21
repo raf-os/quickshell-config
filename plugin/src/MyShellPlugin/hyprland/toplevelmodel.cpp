@@ -4,7 +4,6 @@
 #include <iterator>
 #include <string>
 #include <string_view>
-#include <utility>
 
 #include <qhash.h>
 #include <qjsonarray.h>
@@ -88,6 +87,22 @@ quint64 ToplevelInstance::address() const { return m_address; }
 toplevels::ToplevelHandle *ToplevelInstance::handle() const {
   return m_waylandHandle;
 }
+void ToplevelInstance::setAddress(const quint64 &address) {
+  if (m_address == address) return;
+
+  QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
+                      nullptr,
+                      this,
+                      nullptr);
+
+  m_address = address;
+  emit addressChanged();
+
+  if (m_waylandHandle) {
+    m_isValid = true;
+    emit ready();
+  }
+}
 int  ToplevelInstance::workspaceId() const { return m_workspaceId; }
 void ToplevelInstance::setWorkspaceId(int value) {
   if (m_workspaceId == value) return;
@@ -159,6 +174,9 @@ ToplevelModel::ToplevelModel(QObject *parent) : QObject(parent) {
 QQmlListProperty<ToplevelInstance> ToplevelModel::items() {
   return readonlyQmlList<ToplevelInstance>(this, &m_filteredToplevels);
 }
+QList<ToplevelInstance *> ToplevelModel::toplevelList() const {
+  return m_readyToplevels;
+}
 
 QString ToplevelModel::searchQuery() const { return m_searchQuery; }
 void    ToplevelModel::setSearchQuery(const QString &value) {
@@ -201,6 +219,8 @@ void ToplevelModel::onWaylandToplevelDestroyed(
 
 void ToplevelModel::insertAtEnd(ToplevelInstance *instance) {
   m_readyToplevels.append(instance);
+  emit readyToplevelsChanged(m_readyToplevels);
+
   auto filtered = m_readyToplevels;
   this->applyFilters(&filtered);
 
@@ -212,6 +232,7 @@ void ToplevelModel::insertAtEnd(ToplevelInstance *instance) {
 
 void ToplevelModel::removeAtIndex(int index) {
   m_readyToplevels.removeAt(index);
+  emit readyToplevelsChanged(m_readyToplevels);
 }
 
 void ToplevelModel::removeInstance(ToplevelInstance *instance) {
@@ -221,11 +242,19 @@ void ToplevelModel::removeInstance(ToplevelInstance *instance) {
     this->removeAtIndex(idx);
   }
   if (m_filteredToplevels.removeOne(instance)) {
-    emit itemsChanged();
+    auto filtered = m_readyToplevels;
+    this->applyFilters(&filtered);
+
+    if (filtered != m_filteredToplevels) {
+      m_filteredToplevels = filtered;
+      emit itemsChanged();
+    }
   }
   instance->deleteLater();
 }
 
+/* This will create memory leaks as of now
+ */
 ToplevelInstance *ToplevelModel::createNewInstance(const quint64 &address) {
   auto inst = new ToplevelInstance(address, this);
 
@@ -336,12 +365,48 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
     ToplevelInstance *toplevel = it == tlist.end() ? nullptr : *it;
     bool              exists   = toplevel != nullptr;
 
-    if (!exists) toplevel = createNewInstance(address);
+    // if (!exists) toplevel = createNewInstance(address);
+
+    if (!exists) {
+      auto addr = toplevels::HyprlandToplevelMappingManager::instance()
+                      ->getHandleForAddress(address);
+
+      if (addr == nullptr) {
+        qCWarning(logNSHyprland) << "Could not match address" << address
+                                 << "to any wayland toplevels.";
+        continue;
+      }
+
+      auto iit = std::ranges::find_if(
+          tlist.begin(), tlist.end(), [addr](ToplevelInstance *inst) {
+            return inst->handle() == addr;
+          });
+
+      if (iit == tlist.end()) continue;
+
+      toplevel = *iit;
+      toplevel->setAddress(address);
+    }
 
     auto workspaceObj = jObj.value("workspace").toObject();
     if (!workspaceObj.isEmpty()) {
       toplevel->setWorkspaceId(workspaceObj.value("id").toInt(0));
     }
+  }
+
+  emit readyToplevelsChanged(m_readyToplevels);
+}
+
+void ToplevelModel::onWindowMoveWorkspace(const quint64 &address,
+                                          int            workspaceId) {
+  auto it = std::ranges::find_if(
+      m_readyToplevels.begin(),
+      m_readyToplevels.end(),
+      [address](ToplevelInstance *inst) { return inst->address() == address; });
+
+  if (it != m_readyToplevels.end()) {
+    (*it)->setWorkspaceId(workspaceId);
+    emit windowMoved(*it);
   }
 }
 

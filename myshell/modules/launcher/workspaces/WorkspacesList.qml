@@ -26,7 +26,12 @@ Launcher.BaseList {
 		anchors.fill: parent
 
 		model: Hyprland.workspacesModel.values
-		delegate: WorkspaceItem {}
+		delegate: WorkspaceItem {
+			onClicked: {
+				activate();
+				root.requestClose();
+			}
+		}
 
 		listView.section.property: "monitorId"
 		listView.section.criteria: ViewSection.FullString

@@ -35,6 +35,8 @@ signals:
                              QString layoutName);
   void activeWindowChanged(quint64 address);
   void workspacesChanged();
+  void windowMoved(quint64 address,
+                   int     workspaceId);
   void isConnectedChanged();
 
 private:

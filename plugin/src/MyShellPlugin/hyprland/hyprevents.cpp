@@ -108,6 +108,18 @@ void HyprEvents::dispatchEvent(const QString &event,
   } else if (event == "createworkspace" || event == "destroyworkspace" ||
              event == "moveworkspace" || event == "renameworkspace") {
     emit workspacesChanged();
+  } else if (event == "movewindowv2") {
+    const auto dataParams = data.split(",");
+
+    if (dataParams.size() > 2) {
+      bool isOk;
+      auto addr = dataParams.at(0).toULongLong(&isOk, 16);
+      auto wpid = dataParams.at(1).toInt();
+
+      if (isOk) {
+        emit windowMoved(addr, wpid);
+      }
+    }
   }
 }
 

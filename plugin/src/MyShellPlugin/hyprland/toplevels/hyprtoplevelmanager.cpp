@@ -70,4 +70,9 @@ quint64 HyprlandToplevelMappingManager::getToplevelAddress(
     ToplevelHandle *handle) const {
   return m_addresses.value(handle);
 }
+
+ToplevelHandle *HyprlandToplevelMappingManager::getHandleForAddress(
+    const quint64 &address) const {
+  return m_addresses.key(address, nullptr);
+}
 } // namespace ns::hyprland::toplevels

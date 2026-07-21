@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qhash.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qqmlintegration.h>
@@ -8,6 +9,7 @@
 #include <qtmetamacros.h>
 
 #include "hyprworkspace.h"
+#include "toplevelmodel.h"
 
 namespace ns::hyprland {
 class WorkspacesModel : public QObject {
@@ -24,10 +26,15 @@ public:
   void                            updateFromPayload(const QByteArray &data);
   QQmlListProperty<HyprWorkspace> values();
 
+public slots:
+  void onWindowMoved(ToplevelInstance *instance);
+  void onToplevelsChanged(const QList<ToplevelInstance *> &newToplevels);
+
 signals:
   void workspacesChanged(const QList<HyprWorkspace *> &newWorkspaces);
 
 private:
-  QList<HyprWorkspace *> m_workspaces;
+  QHash<int, HyprWorkspace *> m_workspaces;
+  QList<HyprWorkspace *>      m_workspacesByMonitor;
 };
 } // namespace ns::hyprland

@@ -116,7 +116,7 @@ MouseArea {
 				width: parent.implicitWidth
 				height: parent.implicitHeight
 
-				source: root.modelData.icon ? `image://qicons/qt/${root.modelData.icon}` : ``
+				source: root.modelData.icon ? `image://qicons/qt/${root.modelData.icon}?fallback=application-octet-stream` : `image://qicons/qt/application-octet-stream`
 				asynchronous: true
 			}
 		}

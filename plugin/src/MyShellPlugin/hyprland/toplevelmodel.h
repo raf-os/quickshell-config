@@ -35,6 +35,7 @@ public:
   [[nodiscard]] QString                    appId() const;
   [[nodiscard]] QString                    title() const;
   [[nodiscard]] quint64                    address() const;
+  void                                     setAddress(const quint64 &address);
   [[nodiscard]] toplevels::ToplevelHandle *handle() const;
 
   [[nodiscard]] int workspaceId() const;
@@ -84,16 +85,21 @@ public:
   void                  setSearchQuery(const QString &value);
 
   [[nodiscard]] QQmlListProperty<ToplevelInstance> items();
+  [[nodiscard]] QList<ToplevelInstance *>          toplevelList() const;
 
 signals:
   void searchQueryChanged();
   void itemsChanged();
+  void readyToplevelsChanged(const QList<ToplevelInstance *> &newToplevels);
+  void windowMoved(ToplevelInstance *toplevel);
 
 public slots:
   void onWaylandToplevelCreated(toplevels::ToplevelHandle *toplevel);
   void onWaylandToplevelDestroyed(toplevels::ToplevelHandle *toplevel);
   void onAddressActivated(quint64 address);
   void handleHyprClientsPayload(const QByteArray &data);
+  void onWindowMoveWorkspace(const quint64 &address,
+                             int            workspaceId);
 
 private:
   QList<ToplevelInstance *> m_allTopLevels;

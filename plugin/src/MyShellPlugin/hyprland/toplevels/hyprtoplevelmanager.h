@@ -25,6 +25,8 @@ public:
 
   [[nodiscard]] bool    hasAddress(ToplevelHandle *handle) const;
   [[nodiscard]] quint64 getToplevelAddress(ToplevelHandle *handle) const;
+  [[nodiscard]] ToplevelHandle *
+  getHandleForAddress(const quint64 &address) const;
 
 signals:
   void toplevelAddressed(ToplevelHandle *handle,
