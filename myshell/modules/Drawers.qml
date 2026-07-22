@@ -94,10 +94,10 @@ Variants {
 					// Using shadow scale to mimic shadow "spread"
 					// Can potentially look wonky on screens with
 					// absurd width/height ratios
-					shadowScale: 0.9985
-					blurMultiplier: 0.5
-					blurMax: 18
-					shadowColor: Qt.rgba(0, 0, 0, 1)
+					shadowScale: 0.998
+					blurMax: 12
+					shadowColor: Qt.rgba(0, 0, 0, 1.0)
+					shadowOpacity: 0.7
 					shadowVerticalOffset: 2
 				}
 

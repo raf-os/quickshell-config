@@ -239,6 +239,7 @@ MouseArea {
 			function switchTabs(newTab: int) {
 				const newComponent = root.mapTabToComponent(newTab);
 				if (newComponent) {
+					queryInput.text = "";
 					replaceCurrentItem(newComponent, {});
 				} else {
 					if (!empty)
