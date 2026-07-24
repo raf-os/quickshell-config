@@ -11,6 +11,7 @@
 #include <qwaylandclientextension.h>
 #include <wayland-client-protocol.h>
 #include <wayland-linux-dmabuf-v1-client-protocol.h>
+#include <wayland-util.h>
 
 #include "dmabuf.h"
 #include "inplacevector.h"
@@ -39,6 +40,17 @@ public:
   explicit LinuxDmabufFeedback(::zwp_linux_dmabuf_feedback_v1 *feedback);
   ~LinuxDmabufFeedback() override;
   Q_DISABLE_COPY_MOVE(LinuxDmabufFeedback)
+
+protected:
+  void zwp_linux_dmabuf_feedback_v1_main_device(wl_array *device) override;
+  void zwp_linux_dmabuf_feedback_v1_format_table(int32_t  fd,
+                                                 uint32_t size) override;
+  void
+  zwp_linux_dmabuf_feedback_v1_tranche_target_device(wl_array *device) override;
+  void zwp_linux_dmabuf_feedback_v1_tranche_flags(uint32_t flags) override;
+  void zwp_linux_dmabuf_feedback_v1_tranche_formats(wl_array *indices) override;
+  void zwp_linux_dmabuf_feedback_v1_tranche_done() override;
+  void zwp_linux_dmabuf_feedback_v1_done() override;
 
 private:
   dev_t                     mainDevice = 0;
