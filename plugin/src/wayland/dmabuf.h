@@ -3,8 +3,6 @@
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <string>
-#include <utility>
 
 #include <gbm.h>
 #include <qdebug.h>
@@ -14,6 +12,8 @@
 #include <wayland-client-protocol.h>
 #include <xf86drm.h>
 
+#include "gbmdevice.h"
+#include "linuxdmabufmanager.h"
 #include "wlbuffer.h"
 #include "wlbufferrequest.h"
 
@@ -58,22 +58,6 @@ QDebug &operator<<(QDebug          &debug,
 QDebug &operator<<(QDebug             &debug,
                    const FourCCModStr &fourcc);
 
-struct GbmDevice {
-  GbmDevice(dev_t       handle,
-            std::string renderNode,
-            gbm_device *device)
-      : handle(handle),
-        renderNode(std::move(renderNode)),
-        device(device) {};
-  ~GbmDevice();
-
-  Q_DISABLE_COPY_MOVE(GbmDevice)
-
-  dev_t       handle = 0;
-  std::string renderNode;
-  gbm_device *device = nullptr;
-};
-
 class WlDmaBuffer : public WlBuffer {
 public:
   ~WlDmaBuffer() override;
@@ -106,12 +90,14 @@ private:
   wl_buffer                 *m_buffer = nullptr;
 
   int    planeCount = 0;
-  Plane *planes     = nullptr;
+  Plane *planes     = nullptr; // could this be a QList instead?
 
   uint32_t format               = 0;
   uint64_t modifier             = 0;
   uint32_t width                = 0;
   uint32_t height               = 0;
   bool     usedImplicitModifier = false;
+
+  friend class LinuxDmabufManager;
 };
 } // namespace ns::wayland::buffer::dmabuf

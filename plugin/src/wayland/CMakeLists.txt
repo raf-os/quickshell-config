@@ -14,9 +14,12 @@ qt6_add_library(
   STATIC
   wlbuffer.cpp
   wlbufferrequest.cpp
+  gbmdevice.cpp
   dmabuf.cpp
+  dmabufutils.cpp
   linuxdmabufmanager.cpp
   manager.cpp
+  qsg.cpp
 )
 
 target_include_directories(

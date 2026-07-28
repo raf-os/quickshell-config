@@ -1,6 +1,7 @@
 #include "manager.h"
 
 #include <qjsengine.h>
+#include <qloggingcategory.h>
 #include <qqmlengine.h>
 #include <qtenvironmentvariables.h>
 
@@ -9,6 +10,8 @@
 #include "wlbufferrequest.h"
 
 namespace ns::wayland::buffer {
+Q_DECLARE_LOGGING_CATEGORY(logNSDmabuf)
+
 WlBufferManager::WlBufferManager() : p(new WlBufferManagerPrivate(this)) {}
 
 WlBufferManager::~WlBufferManager() { delete this->p; }
@@ -33,6 +36,11 @@ void *WlBufferManager::createBuffer(const WlBufferRequest &request) {
   static const bool dmabufDisabled =
       qEnvironmentVariableIsSet("QS_DISABLE_DMABUF");
 
+  if (request.width == 0 || request.height == 0) {
+    qCWarning(logNSDmabuf) << "Attempted to create zero-sized buffer.";
+    return nullptr;
+  }
+
   if (!dmabufDisabled && !this->p->renderFormatsFailed) {
     // if (auto &buf = this->p->dmabuf.createDmabuf(request)) return buf;
     // else it failed
@@ -43,7 +51,8 @@ void *WlBufferManager::createBuffer(const WlBufferRequest &request) {
 }
 
 WlBufferManagerPrivate::WlBufferManagerPrivate(WlBufferManager *manager)
-    : manager(manager) {}
+    : manager(manager),
+      dmabuf(this) {}
 
 void WlBufferManagerPrivate::dmabufReady() {
   this->dmabufFormatsReady = true;

@@ -2,9 +2,8 @@
 
 #include <cstdint>
 
+#include <qvarlengtharray.h>
 #include <sys/types.h>
-
-#include "inplacevector.h"
 
 namespace ns::wayland::buffer {
 struct WlBufferRequest {
@@ -18,18 +17,18 @@ struct WlBufferRequest {
     void               pushMod(uint64_t mod);
     [[nodiscard]] bool isModsDefined() const;
 
-    uint32_t                    format = 0;
-    InplaceVector<uint64_t, 10> modifiers;
-    bool                        implicit = false;
+    uint32_t                      format = 0;
+    QVarLengthArray<uint64_t, 10> modifiers;
+    bool                          implicit = false;
   };
 
   struct {
-    InplaceVector<uint32_t, 1> formats;
+    QVarLengthArray<uint32_t, 1> formats;
   } shm;
 
   struct {
-    dev_t                       device = 0;
-    InplaceVector<DmaFormat, 1> formats;
+    dev_t                         device = 0;
+    QVarLengthArray<DmaFormat, 1> formats;
   } dmabuf;
 
   void reset();

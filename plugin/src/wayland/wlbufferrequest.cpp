@@ -3,15 +3,14 @@
 #include <cstdint>
 
 #include <drm_fourcc.h>
-
-#include "inplacevector.h"
+#include <qvarlengtharray.h>
 
 namespace ns::wayland::buffer {
 void WlBufferRequest::DmaFormat::pushMod(uint64_t mod) {
   if (mod == DRM_FORMAT_MOD_INVALID) {
     this->implicit = true;
   } else {
-    this->modifiers.push(mod);
+    this->modifiers.push_back(mod);
   }
 }
 
@@ -22,8 +21,8 @@ bool WlBufferRequest::DmaFormat::isModsDefined() const {
 void WlBufferRequest::reset() {
   this->width          = 0;
   this->height         = 0;
-  this->shm.formats    = InplaceVector<uint32_t, 1>{};
+  this->shm.formats    = QVarLengthArray<uint32_t, 1>{};
   this->dmabuf.device  = 0;
-  this->dmabuf.formats = InplaceVector<DmaFormat, 1>{};
+  this->dmabuf.formats = QVarLengthArray<DmaFormat, 1>{};
 }
 } // namespace ns::wayland::buffer
