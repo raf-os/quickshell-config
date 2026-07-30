@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <qquickwindow.h>
 #include <qsize.h>
 #include <qtclasshelpermacros.h>
 #include <wayland-client-protocol.h>
@@ -9,6 +10,8 @@
 #include "wlbufferrequest.h"
 
 namespace ns::wayland::buffer {
+class WlBufferQSGTexture;
+
 class WlBuffer {
 public:
   virtual ~WlBuffer() = default;
@@ -20,6 +23,9 @@ public:
   [[nodiscard]] virtual bool
                 isCompatible(const WlBufferRequest &request) const = 0;
   [[nodiscard]] operator bool() const { return this->buffer(); }
+
+  [[nodiscard]] virtual WlBufferQSGTexture *
+  createQsgTexture(QQuickWindow *window) const = 0;
 
 protected:
   explicit WlBuffer() = default;

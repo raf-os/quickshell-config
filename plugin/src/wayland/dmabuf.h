@@ -6,6 +6,7 @@
 
 #include <gbm.h>
 #include <qdebug.h>
+#include <qquickwindow.h>
 #include <qsize.h>
 #include <qtclasshelpermacros.h>
 #include <sys/types.h>
@@ -75,6 +76,8 @@ public:
 
   [[nodiscard]] bool
   isCompatible(const WlBufferRequest &request) const override;
+  [[nodiscard]] WlBufferQSGTexture *
+  createQsgTexture(QQuickWindow *window) const override;
 
 private:
   WlDmaBuffer() noexcept = default;
@@ -99,5 +102,15 @@ private:
   bool     usedImplicitModifier = false;
 
   friend class LinuxDmabufManager;
+  friend QDebug &operator<<(QDebug            &debug,
+                            const WlDmaBuffer *buffer);
+
+  [[nodiscard]] WlBufferQSGTexture *
+  createQsgTextureGl(QQuickWindow *window) const;
+  [[nodiscard]] WlBufferQSGTexture *
+  createQsgTextureVulkan(QQuickWindow *window) const;
 };
+
+QDebug &operator<<(QDebug            &debug,
+                   const WlDmaBuffer *buffer);
 } // namespace ns::wayland::buffer::dmabuf

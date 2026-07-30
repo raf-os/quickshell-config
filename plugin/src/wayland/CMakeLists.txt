@@ -20,6 +20,9 @@ qt6_add_library(
   linuxdmabufmanager.cpp
   manager.cpp
   qsg.cpp
+  shm.cpp
+  dmabuftex_opengl.cpp
+  dmabuftex_vulkan.cpp
 )
 
 target_include_directories(
