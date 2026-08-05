@@ -6,6 +6,7 @@
 #include <EGL/egl.h>
 #include <libdrm/drm_fourcc.h>
 #include <qloggingcategory.h>
+#include <qmatrix4x4.h>
 #include <vulkan/vulkan_core.h>
 #include <xf86drm.h>
 

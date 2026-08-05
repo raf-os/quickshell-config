@@ -4,21 +4,36 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
+#include <vector>
 
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <EGL/eglplatform.h>
 #include <fcntl.h>
 #include <gbm.h>
 #include <libdrm/drm_fourcc.h>
+#include <qdir.h>
 #include <qlogging.h>
 #include <qloggingcategory.h>
+#include <qobject.h>
+#include <qopenglcontext.h>
 #include <qpair.h>
+#include <qquickwindow.h>
 #include <qscopeguard.h>
+#include <qsgrendererinterface.h>
+#include <qvulkanfunctions.h>
+#include <qvulkaninstance.h>
 #include <qwaylandclientextension.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vulkan/vulkan_core.h>
 #include <xf86drm.h>
 
 #include "dmabuf.h"
+#include "dmabufutils.h"
 #include "manager_p.h"
 #include "qwayland-linux-dmabuf-v1.h"
 #include "wayland-linux-dmabuf-v1-client-protocol.h"
@@ -181,6 +196,273 @@ LinuxDmabufManager::LinuxDmabufManager(WlBufferManagerPrivate *manager)
   if (this->isActive()) {
     new LinuxDmabufFeedback(this->get_default_feedback());
   }
+}
+
+bool LinuxDmabufManager::initRenderFormatsVk(QQuickWindow *window) {
+  auto *ri     = window->rendererInterface();
+  auto *vkInst = window->vulkanInstance();
+
+  if (!vkInst) {
+    qCCritical(logNSDmabuf)
+        << "Failed to query render formats: no QVulkanInstance.";
+    return false;
+  }
+
+  auto *vkDevicePtr = static_cast<VkDevice *>(
+      ri->getResource(window, QSGRendererInterface::DeviceResource));
+  auto *vkPhysDevicePtr = static_cast<VkPhysicalDevice *>(
+      ri->getResource(window, QSGRendererInterface::PhysicalDeviceResource));
+
+  if (!vkDevicePtr || !vkPhysDevicePtr) {
+    qCCritical(logNSDmabuf)
+        << "Failed to query render formats: could not get Vulkan device.";
+    return false;
+  }
+
+  auto *physDevice = *vkPhysDevicePtr;
+  auto *instFuncs  = vkInst->functions();
+
+  auto drmProps = VkPhysicalDeviceDrmPropertiesEXT{
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT};
+
+  auto props2 = VkPhysicalDeviceProperties2{
+      .sType      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+      .pNext      = &drmProps,
+      .properties = {}};
+
+  instFuncs->vkGetPhysicalDeviceProperties2(physDevice, &props2);
+
+  auto devDri     = QDir("/dev/dri");
+  auto entries    = devDri.entryList(QDir::System);
+  auto findNodeFn = [&](uint32_t maj, uint32_t min) -> QString {
+    for (const QString &file : entries) {
+      auto        path = devDri.filePath(file);
+      struct stat st   = {};
+      if (::stat(path.toLocal8Bit().constData(), &st) != 0) continue;
+      if (major(st.st_rdev) == maj && minor(st.st_rdev) == min) {
+        return path;
+      }
+    }
+    return QString();
+  };
+
+  QString node;
+  if (drmProps.hasRender)
+    node = findNodeFn(drmProps.renderMajor, drmProps.renderMinor);
+  else if (drmProps.hasPrimary) {
+    node = findNodeFn(drmProps.primaryMajor, drmProps.primaryMinor);
+  }
+
+  if (!node.isEmpty()) {
+    this->renderNode = node.toLocal8Bit();
+    qCDebug(logNSDmabuf)
+        << "LinuxDmabufManager::initRenderFormatsVk: found render node"
+        << this->renderNode;
+  }
+
+  for (const auto &format : SUPPORTED_VK_FORMATS) {
+    VkDrmFormatModifierPropertiesListEXT modList{
+        .sType = VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT,
+        .pNext = nullptr,
+        .drmFormatModifierCount       = 0,
+        .pDrmFormatModifierProperties = nullptr};
+
+    VkFormatProperties2 props2{.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
+                               .pNext = &modList,
+                               .formatProperties = {}};
+
+    instFuncs->vkGetPhysicalDeviceFormatProperties2(
+        physDevice, format.vkFormat, &props2);
+    if (modList.drmFormatModifierCount == 0) continue;
+
+    auto vkMods = std::vector<VkDrmFormatModifierPropertiesEXT>(
+        modList.drmFormatModifierCount);
+    modList.pDrmFormatModifierProperties = vkMods.data();
+
+    instFuncs->vkGetPhysicalDeviceFormatProperties2(
+        physDevice, format.vkFormat, &props2);
+
+    qCDebug(logNSDmabuf) << "  Format" << FourCCStr(format.drmFormat);
+
+    LinuxDmabufModifiers mods;
+
+    for (const auto &m : vkMods) {
+      VkPhysicalDeviceImageDrmFormatModifierInfoEXT modInfo{
+          .sType =
+              VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT,
+          .pNext                 = nullptr,
+          .drmFormatModifier     = m.drmFormatModifier,
+          .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
+          .queueFamilyIndexCount = 0,
+          .pQueueFamilyIndices   = nullptr};
+
+      VkPhysicalDeviceImageFormatInfo2 info{
+          .sType  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2,
+          .pNext  = &modInfo,
+          .format = format.vkFormat,
+          .type   = VK_IMAGE_TYPE_2D,
+          .tiling = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT,
+          .usage  = VK_IMAGE_USAGE_SAMPLED_BIT,
+          .flags  = {}};
+
+      VkImageFormatProperties2 props = {
+          .sType                 = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2,
+          .pNext                 = nullptr,
+          .imageFormatProperties = {}};
+
+      auto res = instFuncs->vkGetPhysicalDeviceImageFormatProperties2(
+          physDevice, &info, &props);
+
+      if (res == VK_SUCCESS) {
+        mods.modifiers.push_back(m.drmFormatModifier);
+        qCDebug(logNSDmabuf)
+            << "\tExplicit modifier" << FourCCModStr(m.drmFormatModifier);
+      } else if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
+        qCDebug(logNSDmabuf)
+            << "\tExplicit modifier" << FourCCModStr(m.drmFormatModifier)
+            << "(not usable)";
+      } else {
+        qCDebug(logNSDmabuf)
+            << "\tExplicit modifier" << FourCCModStr(m.drmFormatModifier)
+            << "(unknown error)";
+      }
+    }
+
+    if (mods.modifiers.isEmpty()) continue;
+
+    // According to quickshell, implicit modifiers do not work in this
+    // implementation
+    // TODO: Look into this
+    this->renderFormats.formats.push_back(qMakePair(format.drmFormat, mods));
+  }
+
+  return true;
+}
+
+bool LinuxDmabufManager::initRenderFormatsGl(QQuickWindow *window) {
+  auto *ri      = window->rendererInterface();
+  auto *context = static_cast<QOpenGLContext *>(
+      ri->getResource(window, QSGRendererInterface::OpenGLContextResource));
+
+  if (!context) {
+    qCCritical(logNSDmabuf) << "Failed to query render formats: No GL context.";
+    return false;
+  }
+
+  auto *qEglContext = context->nativeInterface<QNativeInterface::QEGLContext>();
+  if (!qEglContext) {
+    qCCritical(logNSDmabuf)
+        << "Failed to query render formats: No EGL context.";
+    return false;
+  }
+
+  auto display = qEglContext->display();
+
+  static auto *eglQueryDisplayAttribEXT =
+      eglProc<PFNEGLQUERYDISPLAYATTRIBEXTPROC>("eglQueryDisplayAttribEXT");
+  static auto *eglQueryDeviceStringEXT =
+      eglProc<PFNEGLQUERYDEVICESTRINGEXTPROC>("eglQueryDeviceStringEXT");
+  static auto *eglQueryDmaBufFormatsEXT =
+      eglProc<PFNEGLQUERYDMABUFFORMATSEXTPROC>("eglQueryDmaBufFormatsEXT");
+  static auto *eglQueryDmaBufModifiersEXT =
+      eglProc<PFNEGLQUERYDMABUFMODIFIERSEXTPROC>("eglQueryDmaBufModifiersEXT");
+
+  if (!eglQueryDisplayAttribEXT || !eglQueryDeviceStringEXT ||
+      !eglQueryDmaBufFormatsEXT || !eglQueryDmaBufModifiersEXT) {
+    return false;
+  }
+
+  EGLAttrib deviceAttrib = 0;
+  if (!eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT, &deviceAttrib)) {
+    qCCritical(logNSDmabuf)
+        << "Failed to find render device: device display attrib missing.";
+    return false;
+  }
+
+  auto *dev = reinterpret_cast<EGLDeviceEXT>(deviceAttrib);
+
+  if (const auto *renderNode =
+          eglQueryDeviceStringEXT(dev, EGL_DRM_RENDER_NODE_FILE_EXT)) {
+    this->renderNode = renderNode;
+  } else if (const auto *primaryNode =
+                 eglQueryDeviceStringEXT(dev, EGL_DRM_DEVICE_FILE_EXT)) {
+    this->renderNode = primaryNode;
+  } else {
+    qCCritical(logNSDmabuf)
+        << "Failed to find render device: no render or primary node found.";
+    return false;
+  }
+
+  qCDebug(logNSDmabuf) << "Found render node:" << this->renderNode;
+
+  EGLint numFormats = 0;
+  if (!eglQueryDmaBufFormatsEXT(display, 0, nullptr, &numFormats)) {
+    qCCritical(logNSDmabuf)
+        << "Failed to query render formats: eglQueryDmaBufFormatsEXT failed.";
+    return false;
+  }
+
+  if (numFormats == 0) {
+    qCCritical(logNSDmabuf) << "Failed to query render formats: zero formats.";
+    return false;
+  }
+
+  auto formats = std::vector<EGLint>(numFormats);
+  if (!eglQueryDmaBufFormatsEXT(
+          display, numFormats, formats.data(), &numFormats)) {
+    qCCritical(logNSDmabuf)
+        << "Failed to query render formats: eglQueryDmaBufFormatsEXT failed.";
+    return false;
+  }
+
+  qCDebug(logNSDmabuf) << "Render formats:";
+  for (auto format : formats) {
+    qCDebug(logNSDmabuf) << "  [FORMAT]" << FourCCStr(format);
+    qCDebug(logNSDmabuf) << "\tImplicit modifier";
+
+    EGLint numModifiers = 0;
+    if (!eglQueryDmaBufModifiersEXT(
+            display, format, 0, nullptr, nullptr, &numModifiers)) {
+      qCCritical(logNSDmabuf) << "Failed to query render formats: "
+                                 "eglQueryDmaBufModifiersEXT failed.";
+      return false;
+    }
+
+    auto modifiers    = std::vector<EGLuint64KHR>(numModifiers);
+    auto externalOnly = std::vector<EGLBoolean>(numModifiers);
+    if (!eglQueryDmaBufModifiersEXT(display,
+                                    format,
+                                    numModifiers,
+                                    modifiers.data(),
+                                    externalOnly.data(),
+                                    &numModifiers)) {
+      qCCritical(logNSDmabuf) << "Failed to query render formats: "
+                                 "eglQueryDmaBufModifiersEXT failed.";
+      return false;
+    }
+
+    LinuxDmabufModifiers mods;
+    for (size_t i = 0; i != modifiers.size(); ++i) {
+      // NOTE: No support for importing external-only modifiers, required for
+      // some MGPU cases. Will fall back to SHM.
+      // TODO: Look into this
+      auto external = externalOnly[i] == EGL_TRUE;
+      auto modifier = modifiers[i];
+
+      if (external) {
+        qCDebug(logNSDmabuf) << "\tExplicit modifier" << FourCCModStr(modifier)
+                             << "(external / skipped)";
+      } else {
+        mods.modifiers.push_back(modifier);
+        qCDebug(logNSDmabuf) << "\tExplicit modifier" << FourCCModStr(modifier);
+      }
+    }
+
+    mods.implicit = true;
+    this->renderFormats.formats.push_back(qMakePair(format, mods));
+  }
+
+  return true;
 }
 
 void LinuxDmabufManager::feedbackDone() { this->manager->dmabufReady(); }
@@ -365,9 +647,9 @@ LinuxDmabufManager::createDmabuf(const std::shared_ptr<GbmDevice> &device,
   }
 
   buffer->planeCount = gbm_bo_get_plane_count(bo);
-  buffer->planes =
-      new WlDmaBuffer::Plane[buffer->planeCount](); // TODO: use a QList
-                                                    // instead?
+  // buffer->planes   = new WlDmaBuffer::Plane[buffer->planeCount]();
+  // using std::vector instead of raw VLA
+  buffer->planes   = std::vector<WlDmaBuffer::Plane>(buffer->planeCount);
   buffer->modifier = gbm_bo_get_modifier(bo);
 
   auto params = QtWayland::zwp_linux_buffer_params_v1(this->create_params());

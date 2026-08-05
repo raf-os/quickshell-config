@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include <gbm.h>
 #include <qdebug.h>
@@ -92,8 +93,10 @@ private:
   gbm_bo                    *bo       = nullptr;
   wl_buffer                 *m_buffer = nullptr;
 
-  int    planeCount = 0;
-  Plane *planes     = nullptr; // could this be a QList instead?
+  int planeCount = 0;
+  // Plane *planes     = nullptr;
+  std::vector<Plane>
+      planes{}; // CHANGED FROM QUICKSHELL: check if it works correctly
 
   uint32_t format               = 0;
   uint64_t modifier             = 0;

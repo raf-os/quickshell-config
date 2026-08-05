@@ -6,6 +6,7 @@
 #include <qtenvironmentvariables.h>
 
 #include "manager_p.h"
+#include "shm.h"
 #include "wlbuffer.h"
 #include "wlbufferrequest.h"
 
@@ -36,18 +37,21 @@ void *WlBufferManager::createBuffer(const WlBufferRequest &request) {
   static const bool dmabufDisabled =
       qEnvironmentVariableIsSet("QS_DISABLE_DMABUF");
 
+  // for (const auto &format : request.dmabuf.formats) {
+  // }
+
   if (request.width == 0 || request.height == 0) {
     qCWarning(logNSDmabuf) << "Attempted to create zero-sized buffer.";
     return nullptr;
   }
 
   if (!dmabufDisabled && !this->p->renderFormatsFailed) {
-    // if (auto &buf = this->p->dmabuf.createDmabuf(request)) return buf;
-    // else it failed
+    if (auto *buf = this->p->dmabuf.createDmabuf(request)) return buf;
+    qCWarning(logNSDmabuf)
+        << "DMA buffer creation failed, falling back to SHM.";
   }
 
-  // return shm buffer
-  return this;
+  return shm::ShmbufManager::createShmbuf(request);
 }
 
 WlBufferManagerPrivate::WlBufferManagerPrivate(WlBufferManager *manager)

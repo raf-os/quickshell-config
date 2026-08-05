@@ -11,11 +11,14 @@
 #include <GL/gl.h>
 #include <gbm.h>
 #include <libdrm/drm_fourcc.h>
+#include <private/qquickwindow_p.h>
+#include <private/qrhivulkan_p.h>
 #include <qdebug.h>
 #include <qloggingcategory.h>
 #include <qopenglcontext.h>
 #include <qopenglcontext_platform.h>
 #include <qquickwindow.h>
+#include <qscopeguard.h>
 #include <qsgrendererinterface.h>
 #include <qsgtexture_platform.h>
 #include <qsize.h>
@@ -25,6 +28,7 @@
 #include <wayland-client-protocol.h>
 
 #include "dmabuftex_opengl.h"
+#include "dmabuftex_vulkan.h"
 #include "dmabufutils.h"
 #include "qsg.h"
 #include "wlbufferrequest.h"
@@ -77,7 +81,7 @@ WlDmaBuffer::~WlDmaBuffer() {
     if (plane.fd) close(plane.fd);
   }
 
-  delete[] this->planes;
+  // delete[] this->planes;
 }
 
 WlDmaBuffer::WlDmaBuffer(WlDmaBuffer &&other) noexcept
@@ -244,13 +248,15 @@ WlDmaBuffer::createQsgTextureGl(QQuickWindow *window) const {
 
 WlBufferQSGTexture *
 WlDmaBuffer::createQsgTextureVulkan(QQuickWindow *window) const {
-  // Straight up ripped off of quickshell, as of now this might as well be black
-  // magic to my eyes. Had I not been using Qt I probably could've gotten away
-  // with using EGL only. Maybe.
+  // This is ripped off of quickshell, and mostly cleaned up a bit, using scope
+  // guards instead of "goto"
   //
-  // Note to self: read up on Vulkan
-  // documentation and go through some tutorials or something (and optionally
-  // keep your sanity while you're at it)
+  // TODO: read up on vulkan API; check if it's too much of a pain to use
+  // Vulkan-Hpp - maybe it's not even necessary and may add more crap to the
+  // compilation stage, on top of having an extra Vulkan SDK dependency. Plus, a
+  // lot of the cpp wrapper raii methods take ownership of the created
+  // structures which is a big no-no considering Qt is the one managing vulkan,
+  // and it may also throw exceptions, which qt does not like much at all
   //
   // https://git.outfoxxed.me/quickshell/quickshell/src/branch/master/src/wayland/buffer/dmabuf.cpp
   auto *ri     = window->rendererInterface();
@@ -322,41 +328,47 @@ WlDmaBuffer::createQsgTextureVulkan(QQuickWindow *window) const {
 
   const bool useModifier = this->modifier != DRM_FORMAT_MOD_INVALID;
 
-  // What a mouthful
-  VkExternalMemoryImageCreateInfo externalInfo = {};
-  externalInfo.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
-  externalInfo.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+  VkExternalMemoryImageCreateInfo externalInfo = {
+      .sType       = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+      .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT};
 
-  VkImageDrmFormatModifierExplicitCreateInfoEXT modifierInfo = {};
-  modifierInfo.sType =
-      VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT;
-  modifierInfo.drmFormatModifier = this->modifier;
-  modifierInfo.drmFormatModifierPlaneCount =
-      static_cast<uint32_t>(this->planeCount);
-  modifierInfo.pPlaneLayouts = planeLayouts.data();
+  VkImageDrmFormatModifierExplicitCreateInfoEXT modifierInfo = {
+      .sType =
+          VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT,
+      .drmFormatModifier           = this->modifier,
+      .drmFormatModifierPlaneCount = static_cast<uint32_t>(this->planeCount),
+      .pPlaneLayouts               = planeLayouts.data()};
 
   if (useModifier) {
     externalInfo.pNext = &modifierInfo;
   }
 
-  VkImageCreateInfo imageInfo = {};
-  imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-  imageInfo.pNext             = &externalInfo;
-  imageInfo.imageType         = VK_IMAGE_TYPE_2D;
-  imageInfo.format            = vkFormat;
-  imageInfo.extent = {.width = this->width, .height = this->height, .depth = 1};
-  imageInfo.mipLevels   = 1;
-  imageInfo.arrayLayers = 1;
-  imageInfo.samples     = VK_SAMPLE_COUNT_1_BIT;
-  imageInfo.tiling      = useModifier ? VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT
-                                      : VK_IMAGE_TILING_LINEAR;
-  imageInfo.usage       = VK_IMAGE_USAGE_SAMPLED_BIT;
-  imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  VkImageCreateInfo imageInfo = {
+      .sType       = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .pNext       = &externalInfo,
+      .imageType   = VK_IMAGE_TYPE_2D,
+      .format      = vkFormat,
+      .extent      = {.width = this->width, .height = this->height, .depth = 1},
+      .mipLevels   = 1,
+      .arrayLayers = 1,
+      .samples     = VK_SAMPLE_COUNT_1_BIT,
+      .tiling      = useModifier ? VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT
+                                 : VK_IMAGE_TILING_LINEAR,
+      .usage       = VK_IMAGE_USAGE_SAMPLED_BIT,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+  };
 
   VkImage  image = VK_NULL_HANDLE;
   VkResult result =
       devFuncs->vkCreateImage(device, &imageInfo, nullptr, &image);
+
+  // First scope guard, will free image memory
+  auto imageScopeGuard = qScopeGuard([device, devFuncs, image] {
+    if (image != VK_NULL_HANDLE) {
+      devFuncs->vkDestroyImage(device, image, nullptr);
+    }
+  });
 
   if (result != VK_SUCCESS) {
     qCWarning(logNSDmabuf)
@@ -366,99 +378,186 @@ WlDmaBuffer::createQsgTextureVulkan(QQuickWindow *window) const {
 
   VkDeviceMemory memory = VK_NULL_HANDLE;
 
-  // idk man gotta duplicate the file descriptor to prevent double close
+  // Second scope guard, will free device memory
+  auto memoryScopeGuard = qScopeGuard([device, devFuncs, memory] {
+    if (memory != VK_NULL_HANDLE) {
+      devFuncs->vkFreeMemory(device, memory, nullptr);
+    }
+  });
+
+  // Gotta duplicate the file descriptor, as vkAllocateMemory takes ownership
   const int dupFd = dup(this->planes[0].fd);
   if (dupFd < 0) {
     qCWarning(logNSDmabuf) << "Failed to dup() fd for DMA-BUF import.";
-    goto cleanup_fail;
+    return nullptr;
   }
 
-  {
-    VkMemoryRequirements memReqs = {};
-    devFuncs->vkGetImageMemoryRequirements(device, image, &memReqs);
+  VkMemoryRequirements memReqs = {};
+  devFuncs->vkGetImageMemoryRequirements(device, image, &memReqs);
 
-    VkMemoryFdPropertiesKHR fdProps = {};
-    fdProps.sType = VK_STRUCTURE_TYPE_MEMORY_FD_PROPERTIES_KHR;
+  VkMemoryFdPropertiesKHR fdProps = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_FD_PROPERTIES_KHR,
+  };
 
-    result =
-        getMemoryFdPropertiesKHR(device,
-                                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
-                                 dupFd,
-                                 &fdProps); // I'm guessing this is where vulkan
-                                            // takes ownership of the fd
+  result = getMemoryFdPropertiesKHR(
+      device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT, dupFd, &fdProps);
 
-    if (result != VK_SUCCESS) {
-      close(dupFd);
-      qCWarning(logNSDmabuf)
-          << "vkGetMemoryFdPropertiesKHR failed, result:" << result;
-      goto cleanup_fail;
+  if (result != VK_SUCCESS) {
+    close(dupFd);
+    qCWarning(logNSDmabuf) << "vkGetMemoryFdPropertiesKHR failed, result:"
+                           << result;
+    return nullptr;
+  }
+
+  const uint32_t memTypeBits = memReqs.memoryTypeBits & fdProps.memoryTypeBits;
+
+  VkPhysicalDeviceMemoryProperties memProps = {};
+  instFuncs->vkGetPhysicalDeviceMemoryProperties(physDevice, &memProps);
+
+  uint32_t memTypeIndex = UINT32_MAX;
+  for (uint32_t j = 0; j < memProps.memoryTypeCount; ++j) {
+    if (memTypeBits & (1u << j)) {
+      memTypeIndex = j;
+      break;
     }
+  }
 
-    const uint32_t memTypeBits =
-        memReqs.memoryTypeBits & fdProps.memoryTypeBits;
+  if (memTypeIndex == UINT32_MAX) {
+    close(dupFd);
+    qCWarning(logNSDmabuf) << "No compatible memory type for DMA-BUF import.";
+    return nullptr;
+  }
 
-    VkPhysicalDeviceMemoryProperties memProps = {};
-    instFuncs->vkGetPhysicalDeviceMemoryProperties(physDevice, &memProps);
+  VkImportMemoryFdInfoKHR importInfo = {
+      .sType      = VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+      .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
+      .fd         = dupFd};
 
-    uint32_t memTypeIndex = UINT32_MAX;
-    for (uint32_t j = 0; j < memProps.memoryTypeCount; ++j) {
-      if (memTypeBits & (1u << j)) {
-        memTypeIndex = j;
+  VkMemoryDedicatedAllocateInfo dedicatedInfo = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+      .pNext = &importInfo,
+      .image = image};
+
+  VkMemoryAllocateInfo allocInfo = {.sType =
+                                        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                                    .pNext           = &dedicatedInfo,
+                                    .allocationSize  = memReqs.size,
+                                    .memoryTypeIndex = memTypeIndex};
+
+  result = devFuncs->vkAllocateMemory(device, &allocInfo, nullptr, &memory);
+  if (result != VK_SUCCESS) {
+    close(dupFd);
+    qCWarning(logNSDmabuf) << "vkAllocateMemory failed, result:" << result;
+    return nullptr;
+  }
+
+  result = devFuncs->vkBindImageMemory(device, image, memory, 0);
+  if (result != VK_SUCCESS) {
+    close(dupFd);
+    qCWarning(logNSDmabuf) << "vkBindImageMemory failed, result:" << result;
+    return nullptr;
+  }
+
+  window->beginExternalCommands();
+
+  auto *cmdBufPtr = static_cast<VkCommandBuffer *>(
+      ri->getResource(window, QSGRendererInterface::CommandListResource));
+
+  if (cmdBufPtr && *cmdBufPtr) {
+    VkCommandBuffer cmdBuf = *cmdBufPtr;
+
+    uint32_t graphicsQueueFamily = 0;
+    uint32_t queueFamilyCount    = 0;
+
+    instFuncs->vkGetPhysicalDeviceQueueFamilyProperties(
+        physDevice, &queueFamilyCount, nullptr);
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+
+    instFuncs->vkGetPhysicalDeviceQueueFamilyProperties(
+        physDevice, &queueFamilyCount, queueFamilies.data());
+
+    for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+      if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        graphicsQueueFamily = i;
         break;
       }
     }
 
-    if (memTypeIndex == UINT32_MAX) {
-      close(dupFd);
-      qCWarning(logNSDmabuf) << "No compatible memory type for DMA-BUF import.";
-      goto cleanup_fail;
-    }
+    VkImageMemoryBarrier barrier = {
+        .sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask       = 0,
+        .dstAccessMask       = VK_ACCESS_SHADER_READ_BIT,
+        .oldLayout           = VK_IMAGE_LAYOUT_GENERAL,
+        .newLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_FOREIGN_EXT,
+        .dstQueueFamilyIndex = graphicsQueueFamily,
+        .image               = image,
+        .subresourceRange    = {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                                .baseMipLevel   = 0,
+                                .levelCount     = 1,
+                                .baseArrayLayer = 0,
+                                .layerCount     = 1},
+    };
 
-    VkImportMemoryFdInfoKHR importInfo = {};
-    importInfo.sType      = VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR;
-    importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-    importInfo.fd         = dupFd;
+    devFuncs->vkCmdPipelineBarrier(cmdBuf,
+                                   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                   0,
+                                   0,
+                                   nullptr,
+                                   0,
+                                   nullptr,
+                                   1,
+                                   &barrier);
+  }
 
-    VkMemoryDedicatedAllocateInfo dedicatedInfo = {};
-    dedicatedInfo.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO;
-    dedicatedInfo.image = image;
-    dedicatedInfo.pNext = &importInfo;
+  window->endExternalCommands();
 
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.pNext                = &dedicatedInfo;
-    allocInfo.allocationSize       = memReqs.size;
-    allocInfo.memoryTypeIndex      = memTypeIndex;
+  auto *qsgTexture =
+      QQuickWindowPrivate::get(window)->createTextureFromNativeTexture(
+          reinterpret_cast<quint64>(image),
+          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+          static_cast<uint>(vkFormat),
+          QSize(static_cast<int>(this->width), static_cast<int>(this->height)),
+          {});
 
-    result = devFuncs->vkAllocateMemory(device, &allocInfo, nullptr, &memory);
+  // Opaque DRM formats have undefined alpha bytes. Vulkan, as explicit and as
+  // verbose as it is, does not like that. So we remap alpha to one (fully
+  // opaque) for these formats
+  if (!drmFormatHasAlpha(this->format)) {
+    auto *vkTexture = static_cast<QVkTexture *>(qsgTexture->rhiTexture());
+
+    devFuncs->vkDestroyImageView(device, vkTexture->imageView, nullptr);
+
+    VkImageViewCreateInfo viewInfo = {
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image            = image,
+        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+        .format           = vkFormat,
+        .components       = {.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                             .a = VK_COMPONENT_SWIZZLE_ONE},
+        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .levelCount = 1,
+                             .layerCount = 1}
+    };
+
+    result = devFuncs->vkCreateImageView(
+        device, &viewInfo, nullptr, &vkTexture->imageView);
     if (result != VK_SUCCESS) {
-      close(dupFd);
-      qCWarning(logNSDmabuf) << "vkAllocateMemory failed, result:" << result;
-      goto cleanup_fail;
-    }
-
-    result = devFuncs->vkBindImageMemory(device, image, memory, 0);
-    if (result != VK_SUCCESS) {
-      close(dupFd);
-      qCWarning(logNSDmabuf) << "vkBindImageMemory failed, result:" << result;
-      goto cleanup_fail;
+      qCWarning(logNSDmabuf)
+          << "Failed to create alpha-swizzled VkImageView, result:" << result;
     }
   }
 
-  {
-    window->beginExternalCommands();
+  // By now everything must've worked correctly, so we gotta dismiss the scope
+  // guards to avoid catastrophic use-after-frees
+  imageScopeGuard.dismiss();
+  memoryScopeGuard.dismiss();
 
-    window->endExternalCommands();
-  }
-
-cleanup_fail:
-  // Likely required by vulkan's C nature?
-  if (image != VK_NULL_HANDLE) {
-    devFuncs->vkDestroyImage(device, image, nullptr);
-  }
-  if (memory != VK_NULL_HANDLE) {
-    devFuncs->vkFreeMemory(device, memory, nullptr);
-  }
-  return nullptr;
+  auto *tex = new WlDmaBufferVulkanQSGTexture(
+      devFuncs, device, image, memory, qsgTexture);
+  return tex;
 }
 } // namespace ns::wayland::buffer::dmabuf

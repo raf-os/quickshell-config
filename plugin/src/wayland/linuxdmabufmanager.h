@@ -6,6 +6,7 @@
 
 #include <qcontainerfwd.h>
 #include <qlist.h>
+#include <qquickwindow.h>
 #include <qtclasshelpermacros.h>
 #include <qvarlengtharray.h>
 #include <qwayland-linux-dmabuf-v1.h>
@@ -80,6 +81,9 @@ public:
 
 private:
   std::shared_ptr<GbmDevice> getGbmDevice(dev_t handle);
+
+  bool initRenderFormatsVk(QQuickWindow *window);
+  bool initRenderFormatsGl(QQuickWindow *window);
 
   void feedbackDone();
 
