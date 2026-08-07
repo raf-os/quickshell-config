@@ -34,6 +34,12 @@ qt6_add_qml_module(
 )
 
 gen_wayland_protocol(
+  wlp-ext-foreign-toplevel
+  ext-foreign-toplevel-list-v1
+  "${WAYLAND_PROTOCOLS}/staging/ext-foreign-toplevel-list"
+)
+
+gen_wayland_protocol(
   wlp-foreign-toplevel
   wlr-foreign-toplevel-management-unstable-v1
   "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -66,7 +72,10 @@ target_link_libraries(
     Qt6::Quick
     Qt6::WaylandClient
     Qt6::WaylandClientPrivate
-  PUBLIC wlp-foreign-toplevel wlp-hyprland-toplevel-mapping
+  PUBLIC
+    wlp-ext-foreign-toplevel
+    wlp-foreign-toplevel
+    wlp-hyprland-toplevel-mapping
 )
 
 install_qml_module(myshell_hyprland_toplevels)

@@ -21,11 +21,9 @@ public:
   ~WlBufferManager() override;
 
   static WlBufferManager *instance();
-  static WlBufferManager *create(QQmlEngine *qmlEngine,
-                                 QJSEngine * /*unused*/);
 
-  [[nodiscard]] bool  isReady() const;
-  [[nodiscard]] void *createBuffer(const WlBufferRequest &request);
+  [[nodiscard]] bool      isReady() const;
+  [[nodiscard]] WlBuffer *createBuffer(const WlBufferRequest &request);
 
 signals:
   void ready();

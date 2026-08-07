@@ -5,6 +5,7 @@
 #include <qqmlengine.h>
 #include <qtenvironmentvariables.h>
 
+#include "dmabuf.h"
 #include "manager_p.h"
 #include "shm.h"
 #include "wlbuffer.h"
@@ -22,35 +23,50 @@ WlBufferManager *WlBufferManager::instance() {
   return s_instance;
 }
 
-WlBufferManager *WlBufferManager::create(QQmlEngine *qmlEngine,
-                                         QJSEngine * /*unused*/) {
-  auto inst = instance();
-  if (qmlEngine) qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
-  return inst;
-}
-
 bool WlBufferManager::isReady() const {
   return this->p->dmabufFormatsReady && this->p->renderFormatsReady;
 }
 
-void *WlBufferManager::createBuffer(const WlBufferRequest &request) {
-  static const bool dmabufDisabled =
-      qEnvironmentVariableIsSet("QS_DISABLE_DMABUF");
+WlBuffer *WlBufferManager::createBuffer(const WlBufferRequest &request) {
+  qCDebug(logNSDmabuf).nospace()
+      << "Creating buffer from request: (" << request.width << ","
+      << request.height << ")";
+  qCDebug(logNSDmabuf).nospace()
+      << "\tDmabuf requests on device " << request.dmabuf.device << ":";
 
-  // for (const auto &format : request.dmabuf.formats) {
-  // }
+  for (const auto &format : request.dmabuf.formats) {
+    qCDebug(logNSDmabuf).nospace()
+        << "\tFormat " << dmabuf::FourCCStr(format.format)
+        << (format.modifiers.length() == 0 ? "(no modifiers)" : "");
+
+    if (format.implicit) {
+      qCDebug(logNSDmabuf) << "\t\tImplicit Modifier";
+    }
+
+    for (const auto &modifier : format.modifiers) {
+      qCDebug(logNSDmabuf) << "\t\tExplicit Modifier"
+                           << dmabuf::FourCCModStr(modifier);
+    }
+  }
+
+  qCDebug(logNSDmabuf) << "\tShm requests:";
+
+  for (const auto &format : request.shm.formats) {
+    qCDebug(logNSDmabuf) << "\t\tFormat" << format;
+  }
 
   if (request.width == 0 || request.height == 0) {
     qCWarning(logNSDmabuf) << "Attempted to create zero-sized buffer.";
     return nullptr;
   }
 
-  if (!dmabufDisabled && !this->p->renderFormatsFailed) {
+  if (!this->p->renderFormatsFailed) {
     if (auto *buf = this->p->dmabuf.createDmabuf(request)) return buf;
     qCWarning(logNSDmabuf)
         << "DMA buffer creation failed, falling back to SHM.";
   }
 
+  // Fallback path, not ideal at all
   return shm::ShmbufManager::createShmbuf(request);
 }
 

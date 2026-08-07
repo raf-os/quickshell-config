@@ -27,7 +27,7 @@ qt6_add_library(
 
 target_include_directories(
   nightshell_wayland_buffer
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 gen_wayland_protocol(
@@ -51,3 +51,5 @@ target_link_libraries(
     Vulkan::Headers
     myshell_interfaces
 )
+
+add_subdirectory(screencopy)
