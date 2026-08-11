@@ -19,4 +19,4 @@ target_link_libraries(
 )
 
 add_subdirectory(wlr_screencopy)
-# add_subdirectory(image_copy_capture)
+add_subdirectory(image_copy_capture)

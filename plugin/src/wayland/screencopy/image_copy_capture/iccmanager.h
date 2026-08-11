@@ -1,9 +1,9 @@
 #pragma once
 
-#include <qwayland-ext-image-capture-source-v1.h>
-#include <qwayland-ext-image-copy-capture-v1.h>
 #include <qwaylandclientextension.h>
 
+#include "qwayland-ext-image-capture-source-v1.h"
+#include "qwayland-ext-image-copy-capture-v1.h"
 #include "screencopy_context.h"
 
 namespace ns::wayland::screencopy::icc {

@@ -14,7 +14,7 @@
 #include "toplevelmanager.h"
 #include "wayland-wlr-foreign-toplevel-management-unstable-v1-client-protocol.h"
 
-namespace ns::hyprland::toplevels {
+namespace ns::wayland::wlr::toplevels {
 QString         ToplevelHandle::appId() const { return m_appId; }
 QString         ToplevelHandle::title() const { return m_title; }
 ToplevelHandle *ToplevelHandle::parent() const { return m_parent; }
@@ -138,4 +138,4 @@ void ToplevelHandle::onParentClosed() {
   m_parent = nullptr;
   emit parentChanged();
 }
-} // namespace ns::hyprland::toplevels
+} // namespace ns::wayland::wlr::toplevels

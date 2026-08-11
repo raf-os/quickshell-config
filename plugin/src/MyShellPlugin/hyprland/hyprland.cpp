@@ -94,8 +94,8 @@ Hyprland::Hyprland(QObject *parent)
                    this,
                    &Hyprland::queryWorkspaces);
 
-  QObject::connect(toplevels::ToplevelManager::instance(),
-                   &toplevels::ToplevelManager::toplevelsChanged,
+  QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
+                   &wayland::wlr::toplevels::ToplevelManager::toplevelsChanged,
                    this,
                    &Hyprland::queryHyprClients);
 

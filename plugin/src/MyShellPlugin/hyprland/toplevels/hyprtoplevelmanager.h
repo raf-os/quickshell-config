@@ -23,27 +23,29 @@ public:
   static HyprlandToplevelMappingManager *create(QQmlEngine *qmlEngine,
                                                 QJSEngine * /* unused */);
 
-  [[nodiscard]] bool    hasAddress(ToplevelHandle *handle) const;
-  [[nodiscard]] quint64 getToplevelAddress(ToplevelHandle *handle) const;
-  [[nodiscard]] ToplevelHandle *
+  [[nodiscard]] bool
+  hasAddress(wayland::wlr::toplevels::ToplevelHandle *handle) const;
+  [[nodiscard]] quint64
+  getToplevelAddress(wayland::wlr::toplevels::ToplevelHandle *handle) const;
+  [[nodiscard]] wayland::wlr::toplevels::ToplevelHandle *
   getHandleForAddress(const quint64 &address) const;
 
 signals:
-  void toplevelAddressed(ToplevelHandle *handle,
-                         quint64         address);
+  void toplevelAddressed(wayland::wlr::toplevels::ToplevelHandle *handle,
+                         quint64                                  address);
 
 private slots:
-  void onToplevelReady(ToplevelHandle *handle);
+  void onToplevelReady(wayland::wlr::toplevels::ToplevelHandle *handle);
   void onToplevelDestroyed(QObject *object);
 
 protected:
   explicit HyprlandToplevelMappingManager();
 
 private:
-  QHash<ToplevelHandle *, quint64> m_addresses;
+  QHash<wayland::wlr::toplevels::ToplevelHandle *, quint64> m_addresses;
 
-  void assignAddress(ToplevelHandle *handle,
-                     quint64         address);
+  void assignAddress(wayland::wlr::toplevels::ToplevelHandle *handle,
+                     quint64                                  address);
 
   friend class HyprlandToplevelMappingHandle;
 };

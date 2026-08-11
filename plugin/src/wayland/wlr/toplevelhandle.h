@@ -5,7 +5,7 @@
 #include <qtmetamacros.h>
 #include <qwayland-wlr-foreign-toplevel-management-unstable-v1.h>
 
-namespace ns::hyprland::toplevels {
+namespace ns::wayland::wlr::toplevels {
 class ToplevelHandle : public QObject,
                        public QtWayland::zwlr_foreign_toplevel_handle_v1 {
   Q_OBJECT
@@ -14,8 +14,8 @@ class ToplevelHandle : public QObject,
 
   Q_PROPERTY(QString appId READ appId NOTIFY appIdChanged)
   Q_PROPERTY(QString title READ title NOTIFY titleChanged)
-  Q_PROPERTY(ns::hyprland::toplevels::ToplevelHandle *parent READ parent NOTIFY
-                 parentChanged)
+  Q_PROPERTY(ns::wayland::wlr::toplevels::ToplevelHandle *parent READ parent
+                 NOTIFY parentChanged)
   Q_PROPERTY(bool activated READ activated NOTIFY activatedChanged)
   Q_PROPERTY(bool fullscreen READ fullscreen NOTIFY fullscreenChanged)
 
@@ -66,4 +66,4 @@ private:
   bool            m_minimized  = false;
   bool            m_fullscreen = false;
 };
-} // namespace ns::hyprland::toplevels
+} // namespace ns::wayland::wlr::toplevels

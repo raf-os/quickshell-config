@@ -4,6 +4,8 @@ find_package(
   COMPONENTS Core Qml Gui GuiPrivate Quick QuickPrivate
 )
 
+set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(dmabuf-deps REQUIRED IMPORTED_TARGET libdrm gbm egl)
 
@@ -52,4 +54,6 @@ target_link_libraries(
     myshell_interfaces
 )
 
+add_subdirectory(wlr)
+add_subdirectory(toplevels)
 add_subdirectory(screencopy)

@@ -15,8 +15,6 @@ find_package(
 qt6_add_library(
   myshell_hyprland_toplevels
   STATIC
-  toplevelmanager.cpp
-  toplevelhandle.cpp
   hyprtoplevelmanager.cpp
   hyprtoplevelhandle.cpp
 )
@@ -56,6 +54,10 @@ set_target_properties(
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 set_target_properties(
+  wlp-ext-foreign-toplevel
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+set_target_properties(
   wlp-hyprland-toplevel-mapping
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
@@ -76,6 +78,7 @@ target_link_libraries(
     wlp-ext-foreign-toplevel
     wlp-foreign-toplevel
     wlp-hyprland-toplevel-mapping
+    nightshell_wayland_wlr
 )
 
 install_qml_module(myshell_hyprland_toplevels)

@@ -14,7 +14,7 @@ class HyprlandToplevelMappingHandle
 
 public:
   explicit HyprlandToplevelMappingHandle(
-      ToplevelHandle                               *handle,
+      wayland::wlr::toplevels::ToplevelHandle      *handle,
       ::hyprland_toplevel_window_mapping_handle_v1 *mapping)
       : QtWayland::hyprland_toplevel_window_mapping_handle_v1(mapping),
         m_handle(handle) {};
@@ -27,6 +27,6 @@ protected:
   void hyprland_toplevel_window_mapping_handle_v1_failed() override;
 
 private:
-  ToplevelHandle *m_handle;
+  wayland::wlr::toplevels::ToplevelHandle *m_handle;
 };
 } // namespace ns::hyprland::toplevels

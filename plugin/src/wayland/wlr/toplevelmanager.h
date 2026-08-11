@@ -11,7 +11,7 @@
 #include "toplevelhandle.h"
 #include "wayland-wlr-foreign-toplevel-management-unstable-v1-client-protocol.h"
 
-namespace ns::hyprland::toplevels {
+namespace ns::wayland::wlr::toplevels {
 class ToplevelManager : public QWaylandClientExtensionTemplate<ToplevelManager>,
                         public QtWayland::zwlr_foreign_toplevel_manager_v1 {
   Q_OBJECT
@@ -48,4 +48,4 @@ private:
   QList<ToplevelHandle *> m_toplevels;
   QList<ToplevelHandle *> m_readyToplevels;
 };
-} // namespace ns::hyprland::toplevels
+} // namespace ns::wayland::wlr::toplevels

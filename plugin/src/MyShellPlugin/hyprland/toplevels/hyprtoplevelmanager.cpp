@@ -19,12 +19,13 @@ HyprlandToplevelMappingManager::HyprlandToplevelMappingManager()
     return;
   }
 
-  QObject::connect(ToplevelManager::instance(),
-                   &ToplevelManager::toplevelReady,
+  QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
+                   &wayland::wlr::toplevels::ToplevelManager::toplevelReady,
                    this,
                    &HyprlandToplevelMappingManager::onToplevelReady);
 
-  for (auto *toplevel : ToplevelManager::instance()->readyToplevels()) {
+  for (auto *toplevel :
+       wayland::wlr::toplevels::ToplevelManager::instance()->readyToplevels()) {
     this->onToplevelReady(toplevel);
   }
 }
@@ -42,7 +43,8 @@ HyprlandToplevelMappingManager::create(QQmlEngine *qmlEngine,
   return inst;
 }
 
-void HyprlandToplevelMappingManager::onToplevelReady(ToplevelHandle *handle) {
+void HyprlandToplevelMappingManager::onToplevelReady(
+    wayland::wlr::toplevels::ToplevelHandle *handle) {
   QObject::connect(handle,
                    &QObject::destroyed,
                    this,
@@ -53,25 +55,29 @@ void HyprlandToplevelMappingManager::onToplevelReady(ToplevelHandle *handle) {
 }
 
 void HyprlandToplevelMappingManager::onToplevelDestroyed(QObject *object) {
-  m_addresses.remove(static_cast<ToplevelHandle *>(object));
+  m_addresses.remove(
+      static_cast<wayland::wlr::toplevels::ToplevelHandle *>(object));
 }
 
-void HyprlandToplevelMappingManager::assignAddress(ToplevelHandle *handle,
-                                                   quint64         address) {
+void HyprlandToplevelMappingManager::assignAddress(
+    wayland::wlr::toplevels::ToplevelHandle *handle,
+    quint64                                  address) {
   m_addresses.insert(handle, address);
   emit toplevelAddressed(handle, address);
 }
 
-bool HyprlandToplevelMappingManager::hasAddress(ToplevelHandle *handle) const {
+bool HyprlandToplevelMappingManager::hasAddress(
+    wayland::wlr::toplevels::ToplevelHandle *handle) const {
   return m_addresses.contains(handle);
 }
 
 quint64 HyprlandToplevelMappingManager::getToplevelAddress(
-    ToplevelHandle *handle) const {
+    wayland::wlr::toplevels::ToplevelHandle *handle) const {
   return m_addresses.value(handle);
 }
 
-ToplevelHandle *HyprlandToplevelMappingManager::getHandleForAddress(
+wayland::wlr::toplevels::ToplevelHandle *
+HyprlandToplevelMappingManager::getHandleForAddress(
     const quint64 &address) const {
   return m_addresses.key(address, nullptr);
 }

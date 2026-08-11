@@ -27,16 +27,16 @@ class ToplevelInstance : public QObject {
   Q_PROPERTY(int workspaceId READ workspaceId NOTIFY workspaceIdChanged)
 
 public:
-  explicit ToplevelInstance(toplevels::ToplevelHandle *handle,
-                            QObject                   *parent = nullptr);
+  explicit ToplevelInstance(wayland::wlr::toplevels::ToplevelHandle *handle,
+                            QObject *parent = nullptr);
   explicit ToplevelInstance(quint64  address,
                             QObject *parent = nullptr);
 
-  [[nodiscard]] QString                    appId() const;
-  [[nodiscard]] QString                    title() const;
-  [[nodiscard]] quint64                    address() const;
-  void                                     setAddress(const quint64 &address);
-  [[nodiscard]] toplevels::ToplevelHandle *handle() const;
+  [[nodiscard]] QString appId() const;
+  [[nodiscard]] QString title() const;
+  [[nodiscard]] quint64 address() const;
+  void                  setAddress(const quint64 &address);
+  [[nodiscard]] wayland::wlr::toplevels::ToplevelHandle *handle() const;
 
   [[nodiscard]] int workspaceId() const;
   void              setWorkspaceId(int value);
@@ -46,11 +46,11 @@ public:
   bool isValid() const;
 
 public slots:
-  void onToplevelMap(toplevels::ToplevelHandle *handle);
+  void onToplevelMap(wayland::wlr::toplevels::ToplevelHandle *handle);
 
 private slots:
-  void onHyprAddress(toplevels::ToplevelHandle *handle,
-                     quint64                    address);
+  void onHyprAddress(wayland::wlr::toplevels::ToplevelHandle *handle,
+                     quint64                                  address);
 
 signals:
   void ready();
@@ -60,10 +60,10 @@ signals:
   void workspaceIdChanged();
 
 private:
-  toplevels::ToplevelHandle *m_waylandHandle = nullptr;
-  quint64                    m_address;
-  int                        m_workspaceId = -1;
-  bool                       m_isValid     = false;
+  wayland::wlr::toplevels::ToplevelHandle *m_waylandHandle = nullptr;
+  quint64                                  m_address;
+  int                                      m_workspaceId = -1;
+  bool                                     m_isValid     = false;
 
   void setupToplevelConnections();
 };
@@ -94,8 +94,10 @@ signals:
   void windowMoved(ToplevelInstance *toplevel);
 
 public slots:
-  void onWaylandToplevelCreated(toplevels::ToplevelHandle *toplevel);
-  void onWaylandToplevelDestroyed(toplevels::ToplevelHandle *toplevel);
+  void
+  onWaylandToplevelCreated(wayland::wlr::toplevels::ToplevelHandle *toplevel);
+  void
+  onWaylandToplevelDestroyed(wayland::wlr::toplevels::ToplevelHandle *toplevel);
   void onAddressActivated(quint64 address);
   void handleHyprClientsPayload(const QByteArray &data);
   void onWindowMoveWorkspace(const quint64 &address,
@@ -109,7 +111,8 @@ private:
   QString m_searchQuery;
 
   ToplevelInstance *createNewInstance(const quint64 &address);
-  ToplevelInstance *createNewInstance(toplevels::ToplevelHandle *handle);
+  ToplevelInstance *
+  createNewInstance(wayland::wlr::toplevels::ToplevelHandle *handle);
 
   void insertAtEnd(ToplevelInstance *instance);
   void removeAtIndex(int index);

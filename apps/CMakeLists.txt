@@ -1,1 +1,1 @@
-add_subdirectory(src/MyShellControlPanel)
+# add_subdirectory(src/MyShellControlPanel)

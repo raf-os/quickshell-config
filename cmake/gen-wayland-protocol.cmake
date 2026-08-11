@@ -26,57 +26,61 @@ else()
 endif()
 
 function(gen_wayland_protocol target name dir)
-  set(PROTO_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/wl-proto/${name})
-  file(MAKE_DIRECTORY ${PROTO_BUILD_PATH})
+  if(NOT TARGET ${target})
+    set(PROTO_BUILD_PATH ${CMAKE_BINARY_DIR}/wayland-protocols/${name})
+    file(MAKE_DIRECTORY ${PROTO_BUILD_PATH})
 
-  set(WS_CLIENT_HEADER "${PROTO_BUILD_PATH}/wayland-${name}-client-protocol.h")
-  set(WS_CLIENT_BODY "${PROTO_BUILD_PATH}/wayland-${name}.c")
-  set(QWS_CLIENT_HEADER "${PROTO_BUILD_PATH}/qwayland-${name}.h")
-  set(QWS_CLIENT_BODY "${PROTO_BUILD_PATH}/qwayland-${name}.cpp")
-  set(PATH "${dir}/${name}.xml")
+    set(
+      WS_CLIENT_HEADER
+      "${PROTO_BUILD_PATH}/wayland-${name}-client-protocol.h"
+    )
+    set(WS_CLIENT_BODY "${PROTO_BUILD_PATH}/wayland-${name}.c")
+    set(QWS_CLIENT_HEADER "${PROTO_BUILD_PATH}/qwayland-${name}.h")
+    set(QWS_CLIENT_BODY "${PROTO_BUILD_PATH}/qwayland-${name}.cpp")
+    set(PATH "${dir}/${name}.xml")
 
-  add_custom_command(
-    OUTPUT "${WS_CLIENT_HEADER}"
-    COMMAND Wayland::Scanner client-header "${PATH}" "${WS_CLIENT_HEADER}"
-    DEPENDS Wayland::Scanner "${PATH}"
-  )
+    add_custom_command(
+      OUTPUT "${WS_CLIENT_HEADER}"
+      COMMAND Wayland::Scanner client-header "${PATH}" "${WS_CLIENT_HEADER}"
+      DEPENDS Wayland::Scanner "${PATH}"
+    )
 
-  add_custom_command(
-    OUTPUT "${WS_CLIENT_BODY}"
-    COMMAND Wayland::Scanner private-code "${PATH}" "${WS_CLIENT_BODY}"
-    DEPENDS Wayland::Scanner "${PATH}"
-  )
+    add_custom_command(
+      OUTPUT "${WS_CLIENT_BODY}"
+      COMMAND Wayland::Scanner private-code "${PATH}" "${WS_CLIENT_BODY}"
+      DEPENDS Wayland::Scanner "${PATH}"
+    )
 
-  add_custom_command(
-    OUTPUT "${QWS_CLIENT_HEADER}"
-    COMMAND
-      Qt6::qtwaylandscanner client-header "${PATH}" > "${QWS_CLIENT_HEADER}"
-    DEPENDS Qt6::qtwaylandscanner "${PATH}"
-  )
+    add_custom_command(
+      OUTPUT "${QWS_CLIENT_HEADER}"
+      COMMAND
+        Qt6::qtwaylandscanner client-header "${PATH}" > "${QWS_CLIENT_HEADER}"
+      DEPENDS Qt6::qtwaylandscanner "${PATH}"
+    )
 
-  add_custom_command(
-    OUTPUT "${QWS_CLIENT_BODY}"
-    COMMAND Qt6::qtwaylandscanner client-code "${PATH}" > "${QWS_CLIENT_BODY}"
-    DEPENDS Qt6::qtwaylandscanner "${PATH}"
-  )
+    add_custom_command(
+      OUTPUT "${QWS_CLIENT_BODY}"
+      COMMAND Qt6::qtwaylandscanner client-code "${PATH}" > "${QWS_CLIENT_BODY}"
+      DEPENDS Qt6::qtwaylandscanner "${PATH}"
+    )
 
-  add_library(
-    ${target}
-    STATIC
-    ${WS_CLIENT_HEADER}
-    ${WS_CLIENT_BODY}
-    ${QWS_CLIENT_HEADER}
-    ${QWS_CLIENT_BODY}
-  )
+    add_library(${target} STATIC)
 
-  target_include_directories(${target} PUBLIC ${PROTO_BUILD_PATH})
+    target_sources(
+      ${target}
+      PUBLIC ${WS_CLIENT_HEADER} ${QWS_CLIENT_HEADER}
+      PRIVATE ${WS_CLIENT_BODY} ${QWS_CLIENT_BODY}
+    )
 
-  target_link_libraries(
-    ${target}
-    PUBLIC
-      Qt6::Core
-      Qt6::WaylandClient
-      Qt6::WaylandClientPrivate
-      PkgConfig::WAYLAND_CLIENT
-  )
+    target_include_directories(${target} PUBLIC ${PROTO_BUILD_PATH})
+
+    target_link_libraries(
+      ${target}
+      PUBLIC
+        Qt6::Core
+        Qt6::WaylandClient
+        Qt6::WaylandClientPrivate
+        PkgConfig::WAYLAND_CLIENT
+    )
+  endif()
 endfunction()

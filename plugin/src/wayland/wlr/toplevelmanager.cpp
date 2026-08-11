@@ -7,7 +7,7 @@
 #include "toplevelhandle.h"
 #include "wayland-wlr-foreign-toplevel-management-unstable-v1-client-protocol.h"
 
-namespace ns::hyprland::toplevels {
+namespace ns::wayland::wlr::toplevels {
 ToplevelManager::ToplevelManager() : QWaylandClientExtensionTemplate(3) {
   this->initialize();
 }
@@ -70,4 +70,4 @@ QList<ToplevelHandle *> ToplevelManager::toplevels() { return m_toplevels; }
 QList<ToplevelHandle *> ToplevelManager::readyToplevels() {
   return m_readyToplevels;
 }
-} // namespace ns::hyprland::toplevels
+} // namespace ns::wayland::wlr::toplevels
