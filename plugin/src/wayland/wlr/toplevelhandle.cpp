@@ -13,6 +13,7 @@
 #include "qwayland-wlr-foreign-toplevel-management-unstable-v1.h"
 #include "toplevelmanager.h"
 #include "wayland-wlr-foreign-toplevel-management-unstable-v1-client-protocol.h"
+#include "wl_toplevel_handle.h"
 
 namespace ns::wayland::wlr::toplevels {
 QString         ToplevelHandle::appId() const { return m_appId; }
@@ -137,5 +138,25 @@ void ToplevelHandle::zwlr_foreign_toplevel_handle_v1_parent(
 void ToplevelHandle::onParentClosed() {
   m_parent = nullptr;
   emit parentChanged();
+}
+
+void ToplevelHandle::mapWaylandExtHandle(
+    wayland::toplevels::WLToplevelHandle *handle) {
+  if (handle == m_waylandExtHandle) return;
+
+  if (m_waylandExtHandle) {
+    QObject::disconnect(m_waylandExtHandle, nullptr, this, nullptr);
+  }
+
+  m_waylandExtHandle = handle;
+  QObject::connect(m_waylandExtHandle, &QObject::destroyed, this, [this] {
+    m_waylandExtHandle = nullptr;
+  });
+
+  emit waylandExtHandleChanged();
+}
+
+wayland::toplevels::WLToplevelHandle *ToplevelHandle::getWaylandExtHandle() {
+  return m_waylandExtHandle;
 }
 } // namespace ns::wayland::wlr::toplevels

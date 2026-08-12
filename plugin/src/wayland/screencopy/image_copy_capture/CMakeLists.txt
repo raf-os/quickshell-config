@@ -42,5 +42,6 @@ target_link_libraries(
     wlp-image-copy-capture
     wlp-image-capture-source
     wlp-ext-foreign-toplevel
+    nightshell_wayland_toplevels
     nightshell_wayland_screencopy
 )

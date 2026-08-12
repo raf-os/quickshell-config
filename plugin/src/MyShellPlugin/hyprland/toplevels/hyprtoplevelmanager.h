@@ -9,8 +9,8 @@
 #include <qwayland-hyprland-toplevel-mapping-v1.h>
 #include <qwaylandclientextension.h>
 
-#include "hyprtoplevelhandle.h"
 #include "toplevelhandle.h"
+#include "wl_toplevel_handle.h"
 
 namespace ns::hyprland::toplevels {
 class HyprlandToplevelMappingManager
@@ -36,6 +36,7 @@ signals:
 
 private slots:
   void onToplevelReady(wayland::wlr::toplevels::ToplevelHandle *handle);
+  void onWlExtToplevelReady(wayland::toplevels::WLToplevelHandle *handle);
   void onToplevelDestroyed(QObject *object);
 
 protected:
@@ -44,9 +45,11 @@ protected:
 private:
   QHash<wayland::wlr::toplevels::ToplevelHandle *, quint64> m_addresses;
 
-  void assignAddress(wayland::wlr::toplevels::ToplevelHandle *handle,
-                     quint64                                  address);
+  QHash<quint64, wayland::toplevels::WLToplevelHandle *> m_pendingMappings;
 
-  friend class HyprlandToplevelMappingHandle;
+  void assignAddressWlr(wayland::wlr::toplevels::ToplevelHandle *handle,
+                        quint64                                  address);
+  void assignAddressWlExt(wayland::toplevels::WLToplevelHandle *handle,
+                          quint64                               address);
 };
 } // namespace ns::hyprland::toplevels

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <QtCore>
+#include <qsggeometry.h>
 #include <qtclasshelpermacros.h>
 #include <wayland-util.h>
 
@@ -19,6 +21,8 @@ public:
   IccScreencopyContext(::ext_image_copy_capture_session_v1 *session);
   ~IccScreencopyContext() override;
   Q_DISABLE_COPY_MOVE(IccScreencopyContext)
+
+  void captureFrame() override;
 
 protected:
   // ext-image-copy-capture-session-v1
@@ -43,6 +47,15 @@ protected:
   void ext_image_copy_capture_frame_v1_failed(uint32_t reason) override;
 
 private:
-  buffer::WlBufferRequest request;
+  void commitCapture();
+  void clearOldState();
+
+  buffer::WlBufferRequest m_request;
+
+  bool m_capturePending = false;
+  bool m_statePending   = false;
+
+  QRect m_damage;
+  QRect m_lastDamage;
 };
 } // namespace ns::wayland::screencopy::icc

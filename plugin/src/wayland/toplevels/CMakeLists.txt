@@ -8,10 +8,7 @@ qt6_add_library(nightshell_wayland_toplevels STATIC)
 
 target_sources(
   nightshell_wayland_toplevels
-  PRIVATE
-    wl_toplevel_handle.cpp
-    wl_toplevel_manager.cpp
-    wl_toplevel_mappings.cpp
+  PRIVATE wl_toplevel_handle.cpp wl_toplevel_manager.cpp
 )
 
 target_include_directories(
@@ -33,5 +30,5 @@ set_target_properties(
 target_link_libraries(
   nightshell_wayland_toplevels
   PRIVATE Qt6::Core Qt6::Qml Qt6::WaylandClient Qt6::WaylandClientPrivate
-  PUBLIC wlp-ext-foreign-toplevel nightshell_wayland_wlr
+  PUBLIC wlp-ext-foreign-toplevel
 )

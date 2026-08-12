@@ -48,7 +48,7 @@ target_link_libraries(
     Qt6::Quick
     Qt6::WaylandClient
     Qt6::WaylandClientPrivate
-  PUBLIC wlp-foreign-toplevel
+  PUBLIC wlp-foreign-toplevel nightshell_wayland_toplevels
 )
 
 install_qml_module(nightshell_wayland_wlr)

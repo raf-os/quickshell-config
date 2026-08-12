@@ -2,10 +2,16 @@
 
 #include <qobject.h>
 
+#include "wayland-ext-foreign-toplevel-list-v1-client-protocol.h"
+
 namespace ns::wayland::toplevels {
 QString WLToplevelHandle::appId() const { return m_appId; }
 QString WLToplevelHandle::title() const { return m_title; }
 QString WLToplevelHandle::identifier() const { return m_identifier; }
+
+::ext_foreign_toplevel_handle_v1 *WLToplevelHandle::getHandle() {
+  return this->object();
+}
 
 void WLToplevelHandle::ext_foreign_toplevel_handle_v1_closed() {
   this->destroy();

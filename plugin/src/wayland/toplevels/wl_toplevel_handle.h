@@ -3,6 +3,7 @@
 #include <qobject.h>
 
 #include "qwayland-ext-foreign-toplevel-list-v1.h"
+#include "wayland-ext-foreign-toplevel-list-v1-client-protocol.h"
 
 namespace ns::wayland::toplevels {
 class WLToplevelHandle : public QObject,
@@ -20,6 +21,8 @@ public:
   [[nodiscard]] QString appId() const;
   [[nodiscard]] QString title() const;
   [[nodiscard]] QString identifier() const;
+
+  [[nodiscard]] ::ext_foreign_toplevel_handle_v1 *getHandle();
 
 signals:
   void closed();

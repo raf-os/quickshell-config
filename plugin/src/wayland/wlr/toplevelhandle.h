@@ -5,6 +5,8 @@
 #include <qtmetamacros.h>
 #include <qwayland-wlr-foreign-toplevel-management-unstable-v1.h>
 
+#include "wl_toplevel_handle.h"
+
 namespace ns::wayland::wlr::toplevels {
 class ToplevelHandle : public QObject,
                        public QtWayland::zwlr_foreign_toplevel_handle_v1 {
@@ -18,6 +20,8 @@ class ToplevelHandle : public QObject,
                  NOTIFY parentChanged)
   Q_PROPERTY(bool activated READ activated NOTIFY activatedChanged)
   Q_PROPERTY(bool fullscreen READ fullscreen NOTIFY fullscreenChanged)
+  Q_PROPERTY(wayland::toplevels::WLToplevelHandle *waylandExtHandle READ
+                 getWaylandExtHandle NOTIFY waylandExtHandleChanged)
 
 public:
   [[nodiscard]] QString         appId() const;
@@ -31,6 +35,9 @@ public:
   Q_INVOKABLE void activate();
   Q_INVOKABLE void close();
 
+  void mapWaylandExtHandle(wayland::toplevels::WLToplevelHandle *handle);
+  [[nodiscard]] wayland::toplevels::WLToplevelHandle *getWaylandExtHandle();
+
 signals:
   void ready();
   void closed();
@@ -42,6 +49,8 @@ signals:
   void minimizedChanged();
   void fullscreenChanged();
   void parentChanged();
+
+  void waylandExtHandleChanged();
 
 private slots:
   void onParentClosed();
@@ -56,6 +65,8 @@ private:
   void zwlr_foreign_toplevel_handle_v1_output_leave(wl_output *output) override;
   void zwlr_foreign_toplevel_handle_v1_parent(
       ::zwlr_foreign_toplevel_handle_v1 *parent) override;
+
+  wayland::toplevels::WLToplevelHandle *m_waylandExtHandle = nullptr;
 
   bool            isReady = false;
   QString         m_appId;

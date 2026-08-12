@@ -2,8 +2,6 @@
 
 #include <qtypes.h>
 
-#include "hyprtoplevelmanager.h"
-
 namespace ns::hyprland::toplevels {
 HyprlandToplevelMappingHandle::~HyprlandToplevelMappingHandle() {
   if (this->isInitialized()) this->destroy();
@@ -14,7 +12,9 @@ void HyprlandToplevelMappingHandle::
         quint32 addressHi,
         quint32 addressLo) {
   auto address = static_cast<quint64>(addressHi) << 32 | addressLo;
-  HyprlandToplevelMappingManager::instance()->assignAddress(m_handle, address);
+  // HyprlandToplevelMappingManager::instance()->assignAddress(m_handle,
+  // address);
+  if (m_callbackFn) m_callbackFn(m_handle, address);
   delete this;
 }
 

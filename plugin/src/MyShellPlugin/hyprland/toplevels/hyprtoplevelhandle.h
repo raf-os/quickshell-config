@@ -1,24 +1,29 @@
 #pragma once
 
+#include <functional>
+
 #include <qtclasshelpermacros.h>
 #include <qtypes.h>
 
 #include "qwayland-hyprland-toplevel-mapping-v1.h"
-#include "toplevelhandle.h"
 #include "wayland-hyprland-toplevel-mapping-v1-client-protocol.h"
 
 namespace ns::hyprland::toplevels {
 class HyprlandToplevelMappingHandle
     : QtWayland::hyprland_toplevel_window_mapping_handle_v1 {
-  Q_DISABLE_COPY_MOVE(HyprlandToplevelMappingHandle)
+  using ManagerCallbackFn = std::function<void(void *, quint64 address)>;
 
 public:
   explicit HyprlandToplevelMappingHandle(
-      wayland::wlr::toplevels::ToplevelHandle      *handle,
+      ManagerCallbackFn                             callbackFn,
+      void                                         *handle,
       ::hyprland_toplevel_window_mapping_handle_v1 *mapping)
       : QtWayland::hyprland_toplevel_window_mapping_handle_v1(mapping),
-        m_handle(handle) {};
+        m_handle(handle),
+        m_callbackFn(callbackFn) {};
   ~HyprlandToplevelMappingHandle() override;
+
+  Q_DISABLE_COPY_MOVE(HyprlandToplevelMappingHandle)
 
 protected:
   void hyprland_toplevel_window_mapping_handle_v1_window_address(
@@ -27,6 +32,7 @@ protected:
   void hyprland_toplevel_window_mapping_handle_v1_failed() override;
 
 private:
-  wayland::wlr::toplevels::ToplevelHandle *m_handle;
+  void             *m_handle;
+  ManagerCallbackFn m_callbackFn = nullptr;
 };
 } // namespace ns::hyprland::toplevels

@@ -12,11 +12,14 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+add_subdirectory(wlr_screencopy)
+add_subdirectory(image_copy_capture)
+
 target_link_libraries(
   nightshell_wayland_screencopy
   PRIVATE Qt6::Core Qt6::Quick
-  PUBLIC nightshell_wayland_buffer
+  PUBLIC
+    nightshell_wayland_buffer
+    nightshell_wayland_toplevels
+    nightshell_wayland_screencopy_icc
 )
-
-add_subdirectory(wlr_screencopy)
-add_subdirectory(image_copy_capture)

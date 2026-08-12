@@ -78,6 +78,7 @@ target_link_libraries(
     wlp-ext-foreign-toplevel
     wlp-foreign-toplevel
     wlp-hyprland-toplevel-mapping
+    nightshell_wayland_toplevels
     nightshell_wayland_wlr
 )
 
