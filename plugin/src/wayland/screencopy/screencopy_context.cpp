@@ -1,3 +1,3 @@
 #include "screencopy_context.h"
 
-namespace ns::wayland::screencopy {}
+#include "moc_screencopy_context.cpp"

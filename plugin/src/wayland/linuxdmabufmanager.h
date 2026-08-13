@@ -79,6 +79,8 @@ public:
                                        uint32_t                    width,
                                        uint32_t                    height);
 
+  bool initRenderFormats(QQuickWindow *window);
+
 private:
   std::shared_ptr<GbmDevice> getGbmDevice(dev_t handle);
 

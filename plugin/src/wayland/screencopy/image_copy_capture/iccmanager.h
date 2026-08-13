@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <qscreen.h>
 #include <qtclasshelpermacros.h>
 #include <qwaylandclientextension.h>
@@ -13,14 +11,6 @@
 #include "wl_toplevel_handle.h"
 
 namespace ns::wayland::screencopy::icc {
-class IccCaptureSource : public QtWayland::ext_image_capture_source_v1 {
-public:
-  explicit IccCaptureSource(::ext_image_capture_source_v1 *source);
-  ~IccCaptureSource();
-
-  Q_DISABLE_COPY_MOVE(IccCaptureSource)
-};
-
 class IccManager : public QWaylandClientExtensionTemplate<IccManager>,
                    public QtWayland::ext_image_copy_capture_manager_v1 {
 public:
@@ -38,7 +28,7 @@ class IccOutputSourceManager
 public:
   static IccOutputSourceManager *instance();
 
-  IccCaptureSource *createSource(QScreen *output);
+  ::ext_image_capture_source_v1 *createSource(QScreen *output);
 
 private:
   explicit IccOutputSourceManager();
@@ -50,7 +40,7 @@ class IccForeignToplevelManager
 public:
   static IccForeignToplevelManager *instance();
 
-  std::shared_ptr<IccCaptureSource>
+  ::ext_image_capture_source_v1 *
   createSource(toplevels::WLToplevelHandle *handle);
 
 private:

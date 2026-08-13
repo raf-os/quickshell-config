@@ -18,7 +18,7 @@ class IccScreencopyContext
       public QtWayland::ext_image_copy_capture_session_v1,
       public QtWayland::ext_image_copy_capture_frame_v1 {
 public:
-  IccScreencopyContext(::ext_image_copy_capture_session_v1 *session);
+  explicit IccScreencopyContext(::ext_image_copy_capture_session_v1 *session);
   ~IccScreencopyContext() override;
   Q_DISABLE_COPY_MOVE(IccScreencopyContext)
 

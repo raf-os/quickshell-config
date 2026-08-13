@@ -198,6 +198,17 @@ LinuxDmabufManager::LinuxDmabufManager(WlBufferManagerPrivate *manager)
   }
 }
 
+bool LinuxDmabufManager::initRenderFormats(QQuickWindow *window) {
+  auto *ri = window->rendererInterface();
+  if (ri->graphicsApi() == QSGRendererInterface::Vulkan) {
+    return this->initRenderFormatsVk(window);
+  } else if (ri->graphicsApi() == QSGRendererInterface::OpenGL) {
+    return this->initRenderFormatsGl(window);
+  } else {
+    return false;
+  }
+}
+
 bool LinuxDmabufManager::initRenderFormatsVk(QQuickWindow *window) {
   auto *ri     = window->rendererInterface();
   auto *vkInst = window->vulkanInstance();

@@ -2,7 +2,9 @@
 
 #include <qjsengine.h>
 #include <qloggingcategory.h>
+#include <qobject.h>
 #include <qqmlengine.h>
+#include <qquickwindow.h>
 #include <qtenvironmentvariables.h>
 
 #include "dmabuf.h"
@@ -21,6 +23,46 @@ WlBufferManager::~WlBufferManager() { delete this->p; }
 WlBufferManager *WlBufferManager::instance() {
   static auto *s_instance = new WlBufferManager();
   return s_instance;
+}
+
+void WlBufferManager::initWindow(QQuickWindow *window) {
+  if (this->p->renderFormatsReady) return;
+
+  static bool initWaiting = false;
+
+  if (!window || !window->isSceneGraphInitialized()) {
+    if (initWaiting) return;
+    initWaiting = true;
+
+    if (window) {
+      // WARNING:
+      // Quickshell queues these lambdas through their custom QsQuickWindowBase
+      // - when one of them emits the scene graph initialization signal, it will
+      // go through all queued functions and execute them one by one, then clear
+      // the queue.
+      //
+      // Without it, maybe there COULD be some sort of issue with function call
+      // orders, possible race conditions, or maybe it's completely fine, and it
+      // was done for a different internal reason. Testing and further
+      // investigation is needed.
+      QObject::connect(window,
+                       &QQuickWindow::sceneGraphInitialized,
+                       this,
+                       [this](QQuickWindow *w) { this->initWindow(w); });
+    }
+    return;
+  }
+
+  auto succ = this->p->dmabuf.initRenderFormats(window);
+
+  if (!succ) {
+    qCWarning(logNSDmabuf) << "Dmabuf render format initialization failed. "
+                              "Falling back to SHM. Expect poor performance.";
+    this->p->renderFormatsFailed = true;
+  }
+
+  this->p->renderFormatsReady = true;
+  if (this->p->dmabufFormatsReady) emit ready();
 }
 
 bool WlBufferManager::isReady() const {

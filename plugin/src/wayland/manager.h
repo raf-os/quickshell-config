@@ -3,6 +3,7 @@
 #include <qjsengine.h>
 #include <qobject.h>
 #include <qqmlengine.h>
+#include <qquickwindow.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
 
@@ -22,6 +23,7 @@ public:
 
   static WlBufferManager *instance();
 
+  void                    initWindow(QQuickWindow *window);
   [[nodiscard]] bool      isReady() const;
   [[nodiscard]] WlBuffer *createBuffer(const WlBufferRequest &request);
 
