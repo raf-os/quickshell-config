@@ -16,6 +16,10 @@ class IccManager : public QWaylandClientExtensionTemplate<IccManager>,
 public:
   ScreencopyContext *createSession(::ext_image_capture_source_v1 *source);
 
+  ScreencopyContext *
+  createContextFromToplevel(toplevels::WLToplevelHandle *toplevel);
+  ScreencopyContext *createContextFromScreen(QScreen *screen);
+
   static IccManager *instance();
 
 private:
@@ -28,7 +32,7 @@ class IccOutputSourceManager
 public:
   static IccOutputSourceManager *instance();
 
-  ::ext_image_capture_source_v1 *createSource(QScreen *output);
+  ::ext_image_capture_source_v1 *createSource(QScreen *screen);
 
 private:
   explicit IccOutputSourceManager();

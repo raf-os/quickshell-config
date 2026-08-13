@@ -29,6 +29,29 @@ IccManager::createSession(::ext_image_capture_source_v1 *source) {
   return new IccScreencopyContext(session);
 }
 
+ScreencopyContext *
+IccManager::createContextFromToplevel(toplevels::WLToplevelHandle *toplevel) {
+  auto inst = IccForeignToplevelManager::instance();
+  if (!inst->isActive()) {
+    qCWarning(logNSICCScreencopy)
+        << "Unable to create context from toplevel: manager is not active.";
+    return nullptr;
+  }
+  auto source = inst->createSource(toplevel);
+  return this->createSession(source);
+}
+
+ScreencopyContext *IccManager::createContextFromScreen(QScreen *screen) {
+  auto inst = IccOutputSourceManager::instance();
+  if (!inst->isActive()) {
+    qCWarning(logNSICCScreencopy)
+        << "Unable to create context from screen: manager is not active.";
+    return nullptr;
+  }
+  auto source = inst->createSource(screen);
+  return this->createSession(source);
+}
+
 IccOutputSourceManager::IccOutputSourceManager()
     : QWaylandClientExtensionTemplate(1) {
   this->initialize();
@@ -40,9 +63,9 @@ IccOutputSourceManager *IccOutputSourceManager::instance() {
 }
 
 ::ext_image_capture_source_v1 *
-IccOutputSourceManager::createSource(QScreen *output) {
+IccOutputSourceManager::createSource(QScreen *screen) {
   auto wlOutput =
-      dynamic_cast<QtWaylandClient::QWaylandScreen *>(output->handle());
+      dynamic_cast<QtWaylandClient::QWaylandScreen *>(screen->handle());
   if (!wlOutput) return nullptr;
 
   return this->create_source(wlOutput->output());

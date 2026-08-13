@@ -1,9 +1,11 @@
 #include "screencopy_qml_view.h"
 
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qquickitem.h>
 #include <qsgnode.h>
 #include <qsgtexture.h>
+#include <qsize.h>
 
 #include "manager.h"
 #include "qsg.h"
@@ -11,7 +13,22 @@
 #include "screencopy_manager.h"
 
 namespace ns::wayland::screencopy {
-ScreencopyQMLView::ScreencopyQMLView(QQuickItem *parent) : QQuickItem(parent) {}
+ScreencopyQMLView::ScreencopyQMLView(QQuickItem *parent) : QQuickItem(parent) {
+  _implicitSize.setBinding([this] {
+    auto constraint = b_constraints.value();
+    auto size       = b_sourceSize.value().toSizeF();
+
+    if (constraint.width() != 0 && constraint.height() != 0) {
+      size.scale(constraint.width(), constraint.height(), Qt::KeepAspectRatio);
+    } else if (constraint.width() != 0) {
+      size = QSizeF(constraint.width(), size.height() / constraint.width());
+    } else if (constraint.height() != 0) {
+      size = QSizeF(size.width() / constraint.height(), constraint.height());
+    }
+
+    return size;
+  });
+}
 
 void ScreencopyQMLView::componentComplete() {
   QQuickItem::componentComplete(); //
@@ -33,12 +50,22 @@ bool ScreencopyQMLView::isLive() const { return m_isLive; }
 void ScreencopyQMLView::setIsLive(bool value) {
   if (m_isLive == value) return;
 
-  if (value && !m_isLive && m_context) {
-    captureFrameUnsafe();
+  if (value && !m_isLive) {
+    if (m_context) {
+      captureFrameUnsafe();
+    } else {
+      m_queuedContextCapture = true;
+    }
   }
 
   m_isLive = value;
   emit isLiveChanged();
+}
+
+void ScreencopyQMLView::captureSingleFrame() {
+  if (m_isLive) return;
+
+  this->captureFrame();
 }
 
 QObject *ScreencopyQMLView::captureSource() const { return m_captureSource; }
@@ -85,11 +112,18 @@ void ScreencopyQMLView::createContext() {
                    &ScreencopyContext::frameCaptured,
                    this,
                    &ScreencopyQMLView::onFrameCaptured);
+
+  if (m_queuedContextCapture) {
+    m_queuedContextCapture = false;
+    captureFrameUnsafe();
+  }
 }
 
 void ScreencopyQMLView::captureFrame() {
   if (m_context) {
     captureFrameUnsafe();
+  } else {
+    m_queuedContextCapture = true;
   }
 }
 
@@ -104,6 +138,7 @@ void ScreencopyQMLView::onFrameCaptured() {
   auto size = frontBuffer->size();
   if (frontBuffer->transform.flipSize()) size.transpose();
 
+  b_sourceSize = size;
   b_hasContent = true;
 }
 
@@ -125,6 +160,7 @@ void ScreencopyQMLView::deleteContext(bool shouldUpdate) {
 
   m_context    = nullptr;
   b_hasContent = false;
+  b_sourceSize = QSize();
 
   if (previousContext && shouldUpdate) {
     this->update();
@@ -155,5 +191,10 @@ QSGNode *ScreencopyQMLView::updatePaintNode(QSGNode *oldNode,
   }
 
   return node;
+}
+
+void ScreencopyQMLView::_onImplicitSizeChanged() {
+  auto size = _implicitSize.value();
+  this->setImplicitSize(size.width(), size.height());
 }
 } // namespace ns::wayland::screencopy

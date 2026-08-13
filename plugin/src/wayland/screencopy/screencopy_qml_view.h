@@ -22,6 +22,8 @@ class ScreencopyQMLView : public QQuickItem {
                  bindableHasContent)
   Q_PROPERTY(QSize sourceSize READ default NOTIFY sourceSizeChanged BINDABLE
                  bindableSourceSize)
+  Q_PROPERTY(QSizeF constraints READ default NOTIFY constraintsChanged BINDABLE
+                 bindableConstraints)
 
 public:
   explicit ScreencopyQMLView(QQuickItem *parent = nullptr);
@@ -34,8 +36,13 @@ public:
   [[nodiscard]] QObject *captureSource() const;
   void                   setCaptureSource(QObject *source);
 
-  [[nodiscard]] QBindable<bool>  bindableHasContent() { return &b_hasContent; }
-  [[nodiscard]] QBindable<QSize> bindableSourceSize() { return &b_sourceSize; }
+  [[nodiscard]] QBindable<bool>   bindableHasContent() { return &b_hasContent; }
+  [[nodiscard]] QBindable<QSize>  bindableSourceSize() { return &b_sourceSize; }
+  [[nodiscard]] QBindable<QSizeF> bindableConstraints() {
+    return &b_constraints;
+  }
+
+  Q_INVOKABLE void captureSingleFrame();
 
 signals:
   void stopped();
@@ -44,6 +51,7 @@ signals:
   void isLiveChanged();
   void hasContentChanged();
   void sourceSizeChanged();
+  void constraintsChanged();
 
 protected:
   QSGNode *updatePaintNode(QSGNode             *oldNode,
@@ -54,6 +62,8 @@ private slots:
   void onFrameCaptured();
   void onCaptureSourceDestroyed();
   void onBuffersReady();
+
+  void _onImplicitSizeChanged();
 
 private:
   void createContext();
@@ -72,9 +82,18 @@ private:
                              QSize,
                              b_sourceSize,
                              &ScreencopyQMLView::sourceSizeChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(ns::wayland::screencopy::ScreencopyQMLView,
+                             QSizeF,
+                             b_constraints,
+                             &ScreencopyQMLView::constraintsChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(ns::wayland::screencopy::ScreencopyQMLView,
+                             QSizeF,
+                             _implicitSize,
+                             &ScreencopyQMLView::_onImplicitSizeChanged)
 
-  bool m_isLive      = false;
-  bool m_isCompleted = false;
+  bool m_isLive               = false;
+  bool m_isCompleted          = false;
+  bool m_queuedContextCapture = false;
 
   QObject           *m_captureSource = nullptr;
   ScreencopyContext *m_context       = nullptr;
