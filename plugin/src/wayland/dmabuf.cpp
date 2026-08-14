@@ -14,6 +14,7 @@
 #include <private/qquickwindow_p.h>
 #include <private/qrhivulkan_p.h>
 #include <qdebug.h>
+#include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qopenglcontext.h>
 #include <qopenglcontext_platform.h>
@@ -35,7 +36,8 @@
 
 namespace ns::wayland::buffer::dmabuf {
 Q_LOGGING_CATEGORY(logNSDmabuf,
-                   "nightshell.wayland.buffer.dmabuf")
+                   "nightshell.wayland.buffer.dmabuf",
+                   QtWarningMsg)
 
 namespace {}
 

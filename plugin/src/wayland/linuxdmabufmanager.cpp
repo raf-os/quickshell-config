@@ -191,6 +191,7 @@ void LinuxDmabufFeedback::zwp_linux_dmabuf_feedback_v1_done() {
 LinuxDmabufManager::LinuxDmabufManager(WlBufferManagerPrivate *manager)
     : QWaylandClientExtensionTemplate(5),
       manager(manager) {
+  MANAGER = this;
   this->initialize();
 
   if (this->isActive()) {
@@ -210,6 +211,8 @@ bool LinuxDmabufManager::initRenderFormats(QQuickWindow *window) {
 }
 
 bool LinuxDmabufManager::initRenderFormatsVk(QQuickWindow *window) {
+  qCDebug(logNSDmabuf) << "Initializing Vulkan render formats...";
+
   auto *ri     = window->rendererInterface();
   auto *vkInst = window->vulkanInstance();
 
@@ -351,6 +354,7 @@ bool LinuxDmabufManager::initRenderFormatsVk(QQuickWindow *window) {
 }
 
 bool LinuxDmabufManager::initRenderFormatsGl(QQuickWindow *window) {
+  qCDebug(logNSDmabuf) << "Initializing OpenGL render formats...";
   auto *ri      = window->rendererInterface();
   auto *context = static_cast<QOpenGLContext *>(
       ri->getResource(window, QSGRendererInterface::OpenGLContextResource));
@@ -453,7 +457,7 @@ bool LinuxDmabufManager::initRenderFormatsGl(QQuickWindow *window) {
     }
 
     LinuxDmabufModifiers mods;
-    for (size_t i = 0; i != modifiers.size(); ++i) {
+    for (size_t i = 0; i != modifiers.size(); i++) {
       // NOTE: No support for importing external-only modifiers, required for
       // some MGPU cases. Will fall back to SHM.
       // TODO: Look into this
@@ -470,7 +474,7 @@ bool LinuxDmabufManager::initRenderFormatsGl(QQuickWindow *window) {
     }
 
     mods.implicit = true;
-    this->renderFormats.formats.push_back(qMakePair(format, mods));
+    this->renderFormats.formats.push_back(qMakePair(format, std::move(mods)));
   }
 
   return true;

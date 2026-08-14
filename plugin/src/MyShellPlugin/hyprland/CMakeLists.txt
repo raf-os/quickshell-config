@@ -43,7 +43,10 @@ target_link_libraries(
     rapidfuzz::rapidfuzz
     myshell_utils
     myshell_include
-  PUBLIC myshell_hyprland_toplevels nightshell_hyprland_common
+  PUBLIC
+    myshell_hyprland_toplevels
+    nightshell_hyprland_common
+    nightshell_wayland_toplevels
 )
 
 install_qml_module(myshell_hyprland)

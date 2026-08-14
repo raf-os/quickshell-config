@@ -14,6 +14,7 @@
 #include <qvariant.h>
 
 #include "toplevelhandle.h"
+#include "wl_toplevel_handle.h"
 
 namespace ns::hyprland {
 class ToplevelInstance : public QObject {
@@ -25,6 +26,8 @@ class ToplevelInstance : public QObject {
   Q_PROPERTY(QString title READ title NOTIFY titleChanged)
   Q_PROPERTY(quint64 address READ address NOTIFY addressChanged)
   Q_PROPERTY(int workspaceId READ workspaceId NOTIFY workspaceIdChanged)
+  Q_PROPERTY(wayland::toplevels::WLToplevelHandle *waylandHandle READ
+                 waylandHandle NOTIFY waylandHandleChanged)
 
 public:
   explicit ToplevelInstance(wayland::wlr::toplevels::ToplevelHandle *handle,
@@ -37,6 +40,7 @@ public:
   [[nodiscard]] quint64 address() const;
   void                  setAddress(const quint64 &address);
   [[nodiscard]] wayland::wlr::toplevels::ToplevelHandle *handle() const;
+  [[nodiscard]] wayland::toplevels::WLToplevelHandle    *waylandHandle();
 
   [[nodiscard]] int workspaceId() const;
   void              setWorkspaceId(int value);
@@ -57,10 +61,11 @@ signals:
   void appIdChanged();
   void titleChanged();
   void addressChanged();
+  void waylandHandleChanged();
   void workspaceIdChanged();
 
 private:
-  wayland::wlr::toplevels::ToplevelHandle *m_waylandHandle = nullptr;
+  wayland::wlr::toplevels::ToplevelHandle *m_wlrHandle = nullptr;
   quint64                                  m_address;
   int                                      m_workspaceId = -1;
   bool                                     m_isValid     = false;

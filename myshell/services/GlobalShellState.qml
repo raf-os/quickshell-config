@@ -12,12 +12,16 @@ Singleton {
 	property alias launcherScreen: props.launcherScreen
 	readonly property bool isLauncherOpen: props.launcherScreen !== null
 
+	property alias commandCenterScreen: props.commandCenterScreen
+	readonly property bool isCommandCenterOpen: props.commandCenterScreen !== null
+
 	property string desiredLauncherTab: ""
 
 	PersistentProperties {
 		id: props
 
 		property ShellScreen launcherScreen: null
+		property ShellScreen commandCenterScreen: null
 	}
 
 	onAllScreensChanged: {
@@ -25,6 +29,19 @@ Singleton {
 		if (!allScreens.includes(props.launcherScreen)) {
 			props.launcherScreen = null;
 		}
+	}
+
+	function toggleCommandCenter(screen: ShellScreen): bool {
+		if (!isCommandCenterOpen) {
+			props.commandCenterScreen = screen;
+			closeLauncher();
+		} else {
+			closeCommandCenter();
+		}
+	}
+
+	function closeCommandCenter(): void {
+		props.commandCenterScreen = null;
 	}
 
 	function closeLauncher(): void {
@@ -35,11 +52,13 @@ Singleton {
 		// if (!root.allScreens.includes(screen))
 		// 	return false;
 		desiredLauncherTab = "";
+		closeCommandCenter();
 		props.launcherScreen = screen;
 	}
 
 	function openLauncherWithArgs(screen: ShellScreen, arg: string) {
 		desiredLauncherTab = arg;
+		closeCommandCenter();
 		props.launcherScreen = screen;
 	}
 

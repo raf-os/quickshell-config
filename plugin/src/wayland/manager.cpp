@@ -14,7 +14,8 @@
 #include "wlbufferrequest.h"
 
 namespace ns::wayland::buffer {
-Q_DECLARE_LOGGING_CATEGORY(logNSDmabuf)
+Q_LOGGING_CATEGORY(logNSDmabuf,
+                   "ns.wl.dmbf2")
 
 WlBufferManager::WlBufferManager() : p(new WlBufferManagerPrivate(this)) {}
 
@@ -48,7 +49,7 @@ void WlBufferManager::initWindow(QQuickWindow *window) {
       QObject::connect(window,
                        &QQuickWindow::sceneGraphInitialized,
                        this,
-                       [this](QQuickWindow *w) { this->initWindow(w); });
+                       [this, window]() { this->initWindow(window); });
     }
     return;
   }

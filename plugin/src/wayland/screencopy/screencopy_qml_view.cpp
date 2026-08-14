@@ -1,5 +1,6 @@
 #include "screencopy_qml_view.h"
 
+#include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qquickitem.h>
@@ -31,7 +32,7 @@ ScreencopyQMLView::ScreencopyQMLView(QQuickItem *parent) : QQuickItem(parent) {
 }
 
 void ScreencopyQMLView::componentComplete() {
-  QQuickItem::componentComplete(); //
+  QQuickItem::componentComplete();
 
   auto *bufManager = buffer::WlBufferManager::instance();
   if (!bufManager->isReady()) {
@@ -88,14 +89,14 @@ void     ScreencopyQMLView::setCaptureSource(QObject *source) {
     }
   }
 
-  m_captureSource = source;
+  if (!m_context && previousContext) this->update();
   emit captureSourceChanged();
 }
 
 void ScreencopyQMLView::createContext() {
   this->deleteContext(false);
 
-  m_context = ScreencopyManager::createContext(this->m_captureSource);
+  m_context = ScreencopyManager::createContext(m_captureSource);
 
   if (!m_context) {
     return;

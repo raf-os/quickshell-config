@@ -25,6 +25,7 @@
 #include "rapidfuzz/fuzz.hpp"
 #include "toplevelhandle.h"
 #include "toplevelmanager.h"
+#include "wl_toplevel_handle.h"
 
 namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland) // from hyprland.cpp
@@ -33,14 +34,14 @@ ToplevelInstance::ToplevelInstance(
     wayland::wlr::toplevels::ToplevelHandle *handle,
     QObject                                 *parent)
     : QObject(parent),
-      m_waylandHandle(handle) {
+      m_wlrHandle(handle) {
   this->setupToplevelConnections();
 
   const auto hyprMapManager =
       toplevels::HyprlandToplevelMappingManager::instance();
-  if (hyprMapManager->hasAddress(m_waylandHandle)) {
-    this->onHyprAddress(m_waylandHandle,
-                        hyprMapManager->getToplevelAddress(m_waylandHandle));
+  if (hyprMapManager->hasAddress(m_wlrHandle)) {
+    this->onHyprAddress(m_wlrHandle,
+                        hyprMapManager->getToplevelAddress(m_wlrHandle));
   } else {
     QObject::connect(
         hyprMapManager,
@@ -56,22 +57,21 @@ ToplevelInstance::ToplevelInstance(quint64  address,
       m_address(address) {}
 
 void ToplevelInstance::setupToplevelConnections() {
-  if (!m_waylandHandle) return;
+  if (!m_wlrHandle) return;
 
-  QObject::connect(m_waylandHandle,
+  QObject::connect(m_wlrHandle,
                    &wayland::wlr::toplevels::ToplevelHandle::closed,
                    this,
                    [this] {
-                     if (m_waylandHandle) {
-                       QObject::disconnect(
-                           m_waylandHandle, nullptr, this, nullptr);
+                     if (m_wlrHandle) {
+                       QObject::disconnect(m_wlrHandle, nullptr, this, nullptr);
                      }
                    });
-  QObject::connect(m_waylandHandle,
+  QObject::connect(m_wlrHandle,
                    &wayland::wlr::toplevels::ToplevelHandle::appIdChanged,
                    this,
                    &ToplevelInstance::appIdChanged);
-  QObject::connect(m_waylandHandle,
+  QObject::connect(m_wlrHandle,
                    &wayland::wlr::toplevels::ToplevelHandle::titleChanged,
                    this,
                    &ToplevelInstance::titleChanged);
@@ -80,16 +80,20 @@ void ToplevelInstance::setupToplevelConnections() {
 bool ToplevelInstance::isValid() const { return m_isValid; }
 
 QString ToplevelInstance::appId() const {
-  if (m_waylandHandle) return m_waylandHandle->appId();
+  if (m_wlrHandle) return m_wlrHandle->appId();
   else return QString();
 }
 QString ToplevelInstance::title() const {
-  if (m_waylandHandle) return m_waylandHandle->title();
+  if (m_wlrHandle) return m_wlrHandle->title();
   else return QString();
 }
 quint64 ToplevelInstance::address() const { return m_address; }
 wayland::wlr::toplevels::ToplevelHandle *ToplevelInstance::handle() const {
-  return m_waylandHandle;
+  return m_wlrHandle;
+}
+wayland::toplevels::WLToplevelHandle *ToplevelInstance::waylandHandle() {
+  if (!m_wlrHandle) return nullptr;
+  return m_wlrHandle->getWaylandExtHandle();
 }
 void ToplevelInstance::setAddress(const quint64 &address) {
   if (m_address == address) return;
@@ -102,7 +106,7 @@ void ToplevelInstance::setAddress(const quint64 &address) {
   m_address = address;
   emit addressChanged();
 
-  if (m_waylandHandle) {
+  if (m_wlrHandle) {
     m_isValid = true;
     emit ready();
   }
@@ -116,15 +120,15 @@ void ToplevelInstance::setWorkspaceId(int value) {
 }
 
 void ToplevelInstance::activate() {
-  if (!m_waylandHandle) return;
-  m_waylandHandle->activate();
+  if (!m_wlrHandle) return;
+  m_wlrHandle->activate();
 }
 
 void ToplevelInstance::onHyprAddress(
     wayland::wlr::toplevels::ToplevelHandle *handle,
     quint64                                  address) {
   if (address == m_address || address == 0) return;
-  if (!m_waylandHandle || m_waylandHandle != handle) return;
+  if (!m_wlrHandle || m_wlrHandle != handle) return;
 
   QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
                       nullptr,
@@ -140,19 +144,26 @@ void ToplevelInstance::onHyprAddress(
 
 void ToplevelInstance::onToplevelMap(
     wayland::wlr::toplevels::ToplevelHandle *handle) {
-  if (m_address == 0 || m_waylandHandle) return;
+  if (m_address == 0 || m_wlrHandle) return;
 
   QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
                       nullptr,
                       this,
                       nullptr);
 
-  m_waylandHandle = handle;
+  m_wlrHandle = handle;
 
   this->setupToplevelConnections();
 
+  QObject::connect(
+      m_wlrHandle,
+      &wayland::wlr::toplevels::ToplevelHandle::waylandExtHandleChanged,
+      this,
+      &ToplevelInstance::waylandHandleChanged);
+
   m_isValid = true;
   emit ready();
+  emit waylandHandleChanged();
 }
 
 ToplevelModel::ToplevelModel(QObject *parent) : QObject(parent) {

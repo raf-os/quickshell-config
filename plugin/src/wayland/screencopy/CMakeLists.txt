@@ -4,7 +4,7 @@ qt6_add_library(nightshell_wayland_screencopy STATIC)
 
 target_sources(
   nightshell_wayland_screencopy
-  PRIVATE screencopy_context.cpp screencopy_manager.cpp screencopy_qml_view.cpp
+  PRIVATE screencopy_context.cpp screencopy_manager.cpp
 )
 
 target_include_directories(
@@ -15,6 +15,11 @@ target_include_directories(
 
 add_subdirectory(wlr_screencopy)
 add_subdirectory(image_copy_capture)
+
+set_target_properties(
+  nightshell_wayland_screencopy
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
 
 qt6_add_qml_module(
   nightshell_wayland_screencopy

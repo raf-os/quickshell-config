@@ -38,6 +38,13 @@ gen_wayland_protocol(
   "${WAYLAND_PROTOCOLS}/stable/linux-dmabuf"
 )
 
+set_target_properties(wlp-linux-dmabuf PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+set_target_properties(
+  nightshell_wayland_buffer
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+
 target_link_libraries(
   nightshell_wayland_buffer
   PRIVATE
@@ -57,3 +64,39 @@ target_link_libraries(
 add_subdirectory(wlr)
 add_subdirectory(toplevels)
 add_subdirectory(screencopy)
+
+qt6_add_library(nightshell_wayland SHARED)
+
+target_sources(nightshell_wayland PRIVATE screencopy/screencopy_qml_view.cpp)
+
+target_include_directories(
+  nightshell_wayland
+  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/screencopy"
+)
+
+qt6_add_qml_module(
+  nightshell_wayland
+  URI "${ORG_URI_PREFIX}.Wayland"
+  VERSION 0.1
+  DEPENDENCIES QtQml
+)
+
+target_link_libraries(
+  nightshell_wayland
+  PRIVATE
+    Qt6::Core
+    Qt6::Qml
+    Qt6::Quick
+    Qt6::QuickPrivate
+    Qt6::GuiPrivate
+    Qt6::WaylandClient
+    Qt6::WaylandClientPrivate
+  PUBLIC nightshell_wayland_screencopy nightshell_wayland_buffer
+)
+
+set_target_properties(
+  nightshell_wayland
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+
+install_qml_module(nightshell_wayland)

@@ -22,8 +22,8 @@ class ScreencopyQMLView : public QQuickItem {
                  bindableHasContent)
   Q_PROPERTY(QSize sourceSize READ default NOTIFY sourceSizeChanged BINDABLE
                  bindableSourceSize)
-  Q_PROPERTY(QSizeF constraints READ default NOTIFY constraintsChanged BINDABLE
-                 bindableConstraints)
+  Q_PROPERTY(QSizeF constraints READ default WRITE default NOTIFY
+                 constraintsChanged BINDABLE bindableConstraints)
 
 public:
   explicit ScreencopyQMLView(QQuickItem *parent = nullptr);

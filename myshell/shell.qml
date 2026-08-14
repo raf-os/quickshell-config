@@ -1,5 +1,6 @@
 import qs.modules
 import qs.modules.background as WLRBG
+import qs.modules.toplevelview
 import qs.modules.lock
 import qs.services
 import org.nightshell.IpcServer
@@ -17,6 +18,7 @@ ShellRoot {
 
 	WLRBG.Background {}
 	Drawers {}
+	CommandCenterWrapper {}
 	HyprShortcuts {}
 	Lock {}
 

@@ -51,6 +51,18 @@ Scope {
 		}
 	}
 
+	CustomShortcut {
+		name: "command-center"
+		description: "Open command center"
+
+		onReleased: {
+			const screen = root.getActiveScreen();
+			if (screen) {
+				GlobalShellState.toggleCommandCenter(screen);
+			}
+		}
+	}
+
 	// CustomShortcut {
 	// 	//TODO: this
 	// 	name: "startmenuCommand"
