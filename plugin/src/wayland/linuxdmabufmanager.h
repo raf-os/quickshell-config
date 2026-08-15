@@ -72,14 +72,16 @@ public:
   explicit LinuxDmabufManager(
       ns::wayland::buffer::WlBufferManagerPrivate *manager);
 
-  [[nodiscard]] WlBuffer *createDmabuf(const WlBufferRequest &request);
+  [[nodiscard]] WlBuffer *
+  createDmabufFromRequest(const WlBufferRequest &request);
   [[nodiscard]] WlBuffer *createDmabuf(const std::shared_ptr<GbmDevice> &device,
                                        uint32_t                          format,
                                        const LinuxDmabufModifiers &modifiers,
                                        uint32_t                    width,
                                        uint32_t                    height);
 
-  bool initRenderFormats(QQuickWindow *window);
+  bool                       initRenderFormats(QQuickWindow *window);
+  static LinuxDmabufManager *getManager();
 
 private:
   std::shared_ptr<GbmDevice> getGbmDevice(dev_t handle);

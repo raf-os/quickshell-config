@@ -10,10 +10,11 @@
 
 #include "qwayland-ext-foreign-toplevel-list-v1.h"
 #include "wayland-ext-foreign-toplevel-list-v1-client-protocol.h"
+#include "wayland_shared_global.h"
 #include "wl_toplevel_handle.h"
 
 namespace ns::wayland::toplevels {
-class WLToplevelManager
+class NSWAYLAND_EXPORT WLToplevelManager
     : public QWaylandClientExtensionTemplate<WLToplevelManager>,
       public QtWayland::ext_foreign_toplevel_list_v1 {
   Q_OBJECT

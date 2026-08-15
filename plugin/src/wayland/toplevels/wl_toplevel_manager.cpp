@@ -64,9 +64,6 @@ void WLToplevelManager::onToplevelClosed() {
 
 void WLToplevelManager::onToplevelReady() {
   auto *handle = qobject_cast<WLToplevelHandle *>(this->sender());
-  qDebug() << "Toplevel mapping";
-  qDebug() << "app_id:" << handle->appId() << "title:" << handle->title()
-           << "identifier:" << handle->identifier();
   m_readyToplevels.append(handle);
   emit toplevelsChanged();
   emit toplevelReady(handle);

@@ -1,6 +1,7 @@
 #include "manager.h"
 
 #include <qjsengine.h>
+#include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qqmlengine.h>
@@ -15,7 +16,8 @@
 
 namespace ns::wayland::buffer {
 Q_LOGGING_CATEGORY(logNSDmabuf,
-                   "ns.wl.dmbf2")
+                   "ns.wl.dmbf2",
+                   QtWarningMsg)
 
 WlBufferManager::WlBufferManager() : p(new WlBufferManagerPrivate(this)) {}
 
@@ -86,9 +88,9 @@ WlBuffer *WlBufferManager::createBuffer(const WlBufferRequest &request) {
       qCDebug(logNSDmabuf) << "\t\tImplicit Modifier";
     }
 
-    for (const auto &modifier : format.modifiers) {
-      qCDebug(logNSDmabuf) << "\t\tExplicit Modifier"
-                           << dmabuf::FourCCModStr(modifier);
+    for (auto modifier : format.modifiers) {
+      qCDebug(logNSDmabuf) << "\t\tExplicit Modifier" << modifier;
+      // << dmabuf::FourCCModStr(modifier);
     }
   }
 
@@ -104,7 +106,9 @@ WlBuffer *WlBufferManager::createBuffer(const WlBufferRequest &request) {
   }
 
   if (!this->p->renderFormatsFailed) {
-    if (auto *buf = this->p->dmabuf.createDmabuf(request)) return buf;
+    auto buf = this->p->dmabuf.createDmabufFromRequest(request);
+    if (buf) return buf;
+
     qCWarning(logNSDmabuf)
         << "DMA buffer creation failed, falling back to SHM.";
   }

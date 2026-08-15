@@ -59,6 +59,7 @@ list(
   "${INSTALL_QMLDIR}/org/nightshell/DesktopEntries"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland/Toplevels"
+  "/usr/local/lib"
 )
 
 find_package(Qt6 REQUIRED COMPONENTS Core)

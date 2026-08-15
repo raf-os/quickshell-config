@@ -1,6 +1,7 @@
 #pragma once
 
 #include <qobject.h>
+#include <qobjectdefs.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qquickitem.h>
@@ -97,5 +98,8 @@ private:
 
   QObject           *m_captureSource = nullptr;
   ScreencopyContext *m_context       = nullptr;
+
+  QMetaObject::Connection m_sourceChangeConnection;
+  QMetaObject::Connection m_sourceCleanupConnection;
 };
 } // namespace ns::wayland::screencopy

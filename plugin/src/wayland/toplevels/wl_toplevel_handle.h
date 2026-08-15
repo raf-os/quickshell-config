@@ -4,10 +4,12 @@
 
 #include "qwayland-ext-foreign-toplevel-list-v1.h"
 #include "wayland-ext-foreign-toplevel-list-v1-client-protocol.h"
+#include "wayland_shared_global.h"
 
 namespace ns::wayland::toplevels {
-class WLToplevelHandle : public QObject,
-                         public QtWayland::ext_foreign_toplevel_handle_v1 {
+class NSWAYLAND_EXPORT WLToplevelHandle
+    : public QObject,
+      public QtWayland::ext_foreign_toplevel_handle_v1 {
   Q_OBJECT
 
 public:

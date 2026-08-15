@@ -199,6 +199,8 @@ LinuxDmabufManager::LinuxDmabufManager(WlBufferManagerPrivate *manager)
   }
 }
 
+LinuxDmabufManager *LinuxDmabufManager::getManager() { return MANAGER; }
+
 bool LinuxDmabufManager::initRenderFormats(QQuickWindow *window) {
   auto *ri = window->rendererInterface();
   if (ri->graphicsApi() == QSGRendererInterface::Vulkan) {
@@ -541,7 +543,8 @@ std::shared_ptr<GbmDevice> LinuxDmabufManager::getGbmDevice(dev_t handle) {
   return shared;
 }
 
-WlBuffer *LinuxDmabufManager::createDmabuf(const WlBufferRequest &request) {
+WlBuffer *
+LinuxDmabufManager::createDmabufFromRequest(const WlBufferRequest &request) {
   for (auto &tranche : this->tranches) {
     if (request.dmabuf.device != 0 && tranche.device != request.dmabuf.device) {
       continue;
@@ -609,7 +612,12 @@ WlBuffer *LinuxDmabufManager::createDmabuf(const WlBufferRequest &request) {
       continue;
     }
 
-    for (const auto &[format, modifiers] : formats.formats) {}
+    for (const auto &[format, modifiers] : formats.formats) {
+      if (auto *buf = this->createDmabuf(
+              gbmDevice, format, modifiers, request.width, request.height)) {
+        return buf;
+      }
+    }
   }
 
   qCWarning(logNSDmabuf) << "Unable to create dmabuf - no matching formats.";

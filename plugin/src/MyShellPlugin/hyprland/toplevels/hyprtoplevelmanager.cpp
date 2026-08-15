@@ -10,6 +10,7 @@
 #include "toplevelhandle.h"
 #include "toplevelmanager.h"
 #include "wl_toplevel_handle.h"
+#include "wl_toplevel_manager.h"
 
 namespace ns::hyprland::toplevels {
 HyprlandToplevelMappingManager::HyprlandToplevelMappingManager()
@@ -25,9 +26,19 @@ HyprlandToplevelMappingManager::HyprlandToplevelMappingManager()
                    this,
                    &HyprlandToplevelMappingManager::onToplevelReady);
 
+  QObject::connect(wayland::toplevels::WLToplevelManager::instance(),
+                   &wayland::toplevels::WLToplevelManager::toplevelReady,
+                   this,
+                   &HyprlandToplevelMappingManager::onWlExtToplevelReady);
+
   for (auto *toplevel :
        wayland::wlr::toplevels::ToplevelManager::instance()->readyToplevels()) {
     this->onToplevelReady(toplevel);
+  }
+
+  for (auto *wlToplevel :
+       wayland::toplevels::WLToplevelManager::instance()->toplevels()) {
+    this->onWlExtToplevelReady(wlToplevel);
   }
 }
 

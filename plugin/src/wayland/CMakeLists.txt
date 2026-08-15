@@ -81,6 +81,8 @@ qt6_add_qml_module(
   DEPENDENCIES QtQml
 )
 
+target_compile_definitions(nightshell_wayland PRIVATE NS_WAYLAND_SHARED_LIB)
+
 target_link_libraries(
   nightshell_wayland
   PRIVATE
@@ -91,7 +93,12 @@ target_link_libraries(
     Qt6::GuiPrivate
     Qt6::WaylandClient
     Qt6::WaylandClientPrivate
-  PUBLIC nightshell_wayland_screencopy nightshell_wayland_buffer
+  PUBLIC
+    nightshell_wayland_screencopy
+    nightshell_wayland_buffer
+    nightshell_wayland_toplevels
+    nightshell_wayland_wlr
+    myshell_hyprland
 )
 
 set_target_properties(

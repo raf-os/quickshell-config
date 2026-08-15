@@ -12,7 +12,7 @@ WlBuffer *WlBufferSwapchain::createBackBuffer(const WlBufferRequest &request,
   auto &buffer = this->presentSecondBuffer ? this->buffer1 : this->buffer2;
 
   if (!buffer || !buffer->isCompatible(request) || noReuse) {
-    // buffer.reset(WlBufferManager::instance()->createBuffer(request));
+    buffer.reset(WlBufferManager::instance()->createBuffer(request));
     if (newBuffer) *newBuffer = true;
   }
 

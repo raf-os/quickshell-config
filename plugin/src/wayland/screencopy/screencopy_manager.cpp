@@ -20,7 +20,8 @@ static const std::string_view SC_ICC_INACTIVE_MANAGER_ERROR =
     "ext-image-capture-source-v1 and/or ext-image-copy-capture-v1.";
 
 ScreencopyContext *ScreencopyManager::createContext(QObject *object) {
-  if (auto *toplevel = qobject_cast<toplevels::WLToplevelHandle *>(object)) {
+  if (auto toplevel =
+          qobject_cast<wayland::toplevels::WLToplevelHandle *>(object)) {
     auto *manager = icc::IccManager::instance();
     if (!manager->isActive()) {
       qCWarning(logNSScreencopy) << SC_ICC_INACTIVE_MANAGER_ERROR;
@@ -28,7 +29,7 @@ ScreencopyContext *ScreencopyManager::createContext(QObject *object) {
     }
     auto ctx = manager->createContextFromToplevel(toplevel);
     return ctx;
-  } else if (auto *screen = qobject_cast<QScreen *>(object)) {
+  } else if (auto screen = qobject_cast<QScreen *>(object)) {
     auto *manager = icc::IccManager::instance();
     if (!manager->isActive()) {
       qCWarning(logNSScreencopy) << SC_ICC_INACTIVE_MANAGER_ERROR;

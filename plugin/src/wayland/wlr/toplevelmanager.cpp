@@ -1,6 +1,7 @@
 #include "toplevelmanager.h"
 
 #include <qjsengine.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qqmlengine.h>
 
@@ -8,6 +9,9 @@
 #include "wayland-wlr-foreign-toplevel-management-unstable-v1-client-protocol.h"
 
 namespace ns::wayland::wlr::toplevels {
+Q_LOGGING_CATEGORY(logNSWlr,
+                   "ns.wayland.wlr.toplevels")
+
 ToplevelManager::ToplevelManager() : QWaylandClientExtensionTemplate(3) {
   this->initialize();
 }

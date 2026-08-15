@@ -135,11 +135,18 @@ void ToplevelInstance::onHyprAddress(
                       this,
                       nullptr);
 
+  QObject::connect(
+      m_wlrHandle,
+      &wayland::wlr::toplevels::ToplevelHandle::waylandExtHandleChanged,
+      this,
+      &ToplevelInstance::waylandHandleChanged);
+
   m_address = address;
   emit addressChanged();
   m_isValid = true;
 
   emit ready();
+  emit waylandHandleChanged();
 }
 
 void ToplevelInstance::onToplevelMap(

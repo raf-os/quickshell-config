@@ -18,14 +18,49 @@ MouseArea {
 	anchors.fill: parent
 	focus: isCurrent
 
+	signal moveSelectionForward
+	signal moveSelectionBackward
+	signal moveSelectionUp
+	signal moveSelectionDown
+	signal selectCurrentItem
+
+	Connections {
+		target: GlobalShellState
+
+		function onCommandCenterForward() {
+			root.moveSelectionForward();
+		}
+	}
+
 	Keys.onEscapePressed: ev => {
 		ev.accepted = true;
 		GlobalShellState.closeCommandCenter();
 	}
 
 	Keys.onReleased: ev => {
-		if (ev.key === Qt.Key_Meta) {
-			// todo
+		switch (ev.key) {
+		case Qt.Key_Meta:
+			root.selectCurrentItem();
+			return;
+		default:
+			ev.accepted = false;
+			return;
+		}
+	}
+
+	Keys.onPressed: ev => {
+		switch (ev.key) {
+		case Qt.Key_Tab:
+		case Qt.Key_Right:
+			root.moveSelectionForward();
+			return;
+		case Qt.Key_Backtab:
+		case Qt.Key_Left:
+			root.moveSelectionBackward();
+			return;
+		default:
+			ev.accepted = false;
+			return;
 		}
 	}
 
@@ -59,7 +94,7 @@ MouseArea {
 				acceptedButtons: Qt.NoButton
 
 				cellWidth: 240
-				cellHeight: 200
+				cellHeight: 160
 
 				readonly property int maxCol: Math.floor(parent.width / cellWidth)
 				readonly property int rowNum: Math.max(Math.ceil(count / maxCol), 1)
@@ -76,17 +111,56 @@ MouseArea {
 
 				clip: true
 				focus: true
+				keyNavigationWraps: true
 
 				model: NSHypr.Hyprland.toplevelModel.items
+
+				Component.onCompleted: {
+					if (count > 1) {
+						currentIndex = 1;
+					}
+				}
 
 				delegate: ToplevelItem {
 					implicitWidth: winGrid.cellWidth
 					implicitHeight: winGrid.cellHeight
+
+					onCloseRequested: {
+						GlobalShellState.closeCommandCenter();
+					}
 				}
 
+				highlightMoveDuration: 100
 				highlight: Rectangle {
 					color: Colors.colors.primary
 					radius: Config.appearance.rounding.sm
+				}
+
+				Connections {
+					target: root
+
+					function onMoveSelectionForward() {
+						winGrid.moveCurrentIndexRight();
+					}
+
+					function onMoveSelectionBackward() {
+						winGrid.moveCurrentIndexLeft();
+					}
+
+					function onMoveSelectionUp() {
+						winGrid.moveCurrentIndexUp();
+					}
+
+					function onMoveSelectionDown() {
+						winGrid.moveCurrentIndexDown();
+					}
+
+					function onSelectCurrentItem() {
+						const item = (winGrid.currentItem as ToplevelItem);
+						if (item) {
+							item.select();
+						}
+					}
 				}
 			}
 		}

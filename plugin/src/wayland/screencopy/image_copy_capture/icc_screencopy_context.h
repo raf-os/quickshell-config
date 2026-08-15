@@ -53,7 +53,7 @@ private:
   buffer::WlBufferRequest m_request;
 
   bool m_capturePending = false;
-  bool m_statePending   = false;
+  bool m_statePending   = true;
 
   QRect m_damage;
   QRect m_lastDamage;

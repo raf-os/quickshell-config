@@ -17,6 +17,9 @@ Singleton {
 
 	property string desiredLauncherTab: ""
 
+	signal commandCenterForward
+	signal commandCenterBackward
+
 	PersistentProperties {
 		id: props
 
@@ -28,6 +31,15 @@ Singleton {
 		// Re-evaluate validity of properties
 		if (!allScreens.includes(props.launcherScreen)) {
 			props.launcherScreen = null;
+		}
+	}
+
+	function openCommandCenter(screen: ShellScreen): bool {
+		if (isCommandCenterOpen) {
+			root.commandCenterForward();
+		} else {
+			props.commandCenterScreen = screen;
+			closeLauncher();
 		}
 	}
 

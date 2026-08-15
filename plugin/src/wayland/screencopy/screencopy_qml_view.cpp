@@ -1,8 +1,11 @@
 #include "screencopy_qml_view.h"
 
+#include <functional>
+
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qqmlinfo.h>
 #include <qquickitem.h>
 #include <qsgnode.h>
 #include <qsgtexture.h>
@@ -12,6 +15,7 @@
 #include "qsg.h"
 #include "screencopy_context.h"
 #include "screencopy_manager.h"
+#include "toplevelmodel.h"
 
 namespace ns::wayland::screencopy {
 ScreencopyQMLView::ScreencopyQMLView(QQuickItem *parent) : QQuickItem(parent) {
@@ -71,18 +75,56 @@ void ScreencopyQMLView::captureSingleFrame() {
 
 QObject *ScreencopyQMLView::captureSource() const { return m_captureSource; }
 void     ScreencopyQMLView::setCaptureSource(QObject *source) {
-  if (source == m_captureSource) return;
+  QObject *resolvedSource = nullptr;
+
+  auto validateAndConnect =
+      [this, &resolvedSource](QObject              *resolved,
+                              std::function<void()> ifNewFn) -> bool {
+    if (resolved == m_captureSource) return false;
+    else {
+      resolvedSource = resolved;
+
+      QObject::disconnect(m_sourceCleanupConnection);
+      QObject::disconnect(m_sourceChangeConnection);
+
+      ifNewFn();
+      return true;
+    }
+  };
+
+  if (auto *wlrsource = qobject_cast<hyprland::ToplevelInstance *>(source)) {
+    auto wlh = wlrsource->waylandHandle();
+    if (!validateAndConnect(wlh, [this, wlrsource] {
+          m_sourceChangeConnection = QObject::connect(
+              wlrsource,
+              &hyprland::ToplevelInstance::waylandHandleChanged,
+              this,
+              [this, wlrsource] { this->setCaptureSource(wlrsource); });
+        })) {
+      QObject::connect(
+          wlrsource,
+          &hyprland::ToplevelInstance::waylandHandleChanged,
+          this,
+          [this, wlrsource] { this->setCaptureSource(wlrsource); },
+          Qt::SingleShotConnection);
+      return;
+    }
+  } else {
+    resolvedSource = source;
+    if (resolvedSource == m_captureSource) return;
+  }
 
   auto previousContext = m_context != nullptr;
   this->deleteContext(false);
 
-  m_captureSource = source;
+  m_captureSource = resolvedSource;
 
-  if (source) {
-    QObject::connect(source,
-                     &QObject::destroyed,
-                     this,
-                     &ScreencopyQMLView::onCaptureSourceDestroyed);
+  if (resolvedSource) {
+    m_sourceCleanupConnection =
+        QObject::connect(resolvedSource,
+                         &QObject::destroyed,
+                         this,
+                         &ScreencopyQMLView::onCaptureSourceDestroyed);
 
     if (m_isCompleted) {
       this->createContext();
@@ -99,6 +141,7 @@ void ScreencopyQMLView::createContext() {
   m_context = ScreencopyManager::createContext(m_captureSource);
 
   if (!m_context) {
+    qmlWarning(this) << "Unable to create context for capturing.";
     return;
   }
 

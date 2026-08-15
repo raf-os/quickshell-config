@@ -207,7 +207,7 @@ WlDmaBuffer::createQsgTextureGl(QQuickWindow *window) const {
     attribs.emplace_back(names.fd);
     attribs.emplace_back(plane.fd);
     attribs.emplace_back(names.offset);
-    attribs.emplace_back(plane.fd);
+    attribs.emplace_back(plane.offset);
     attribs.emplace_back(names.pitch);
     attribs.emplace_back(plane.stride);
 

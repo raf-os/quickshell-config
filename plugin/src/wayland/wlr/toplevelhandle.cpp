@@ -6,6 +6,7 @@
 #include <private/qwaylandinputdevice_p.h>
 #include <private/qwaylandintegration_p.h>
 #include <private/qwaylandwindow_p.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qwaylandclientextension.h>
 #include <wayland-util.h>
@@ -16,6 +17,8 @@
 #include "wl_toplevel_handle.h"
 
 namespace ns::wayland::wlr::toplevels {
+Q_DECLARE_LOGGING_CATEGORY(logNSWlr)
+
 QString         ToplevelHandle::appId() const { return m_appId; }
 QString         ToplevelHandle::title() const { return m_title; }
 ToplevelHandle *ToplevelHandle::parent() const { return m_parent; }

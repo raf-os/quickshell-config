@@ -58,7 +58,7 @@ Scope {
 		onReleased: {
 			const screen = root.getActiveScreen();
 			if (screen) {
-				GlobalShellState.toggleCommandCenter(screen);
+				GlobalShellState.openCommandCenter(screen);
 			}
 		}
 	}
