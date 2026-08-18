@@ -15,6 +15,9 @@ MouseArea {
 
 	required property bool isCurrent
 
+	readonly property int paddingH: 200
+	readonly property int paddingV: 200
+
 	anchors.fill: parent
 	focus: isCurrent
 
@@ -40,6 +43,10 @@ MouseArea {
 	Keys.onReleased: ev => {
 		switch (ev.key) {
 		case Qt.Key_Meta:
+			// root.selectCurrentItem();
+			return;
+		case Qt.Key_Space:
+		case Qt.Key_Return:
 			root.selectCurrentItem();
 			return;
 		default:
@@ -57,6 +64,12 @@ MouseArea {
 		case Qt.Key_Backtab:
 		case Qt.Key_Left:
 			root.moveSelectionBackward();
+			return;
+		case Qt.Key_Up:
+			root.moveSelectionUp();
+			return;
+		case Qt.Key_Down:
+			root.moveSelectionDown();
 			return;
 		default:
 			ev.accepted = false;
@@ -76,16 +89,25 @@ MouseArea {
 	}
 
 	Loader {
-		anchors.fill: parent
+		anchors.centerIn: parent
 		active: root.isCurrent
 
 		sourceComponent: Item {
-			anchors.fill: parent
+			readonly property int padding: Config.appearance.padding.lg * 2
+
+			implicitWidth: Math.min(root.width - root.paddingH * 2 + padding, winGrid.implicitWidth + padding)
+			implicitHeight: winGrid.implicitHeight + padding
+
+			anchors.centerIn: parent
 			anchors.margins: 200
 
 			Rectangle {
 				anchors.fill: parent
 				color: Colors.colors.base
+				radius: Config.appearance.rounding.md
+
+				border.width: 2
+				border.color: Colors.colors.baseContent
 			}
 
 			GridView {
@@ -96,13 +118,11 @@ MouseArea {
 				cellWidth: 240
 				cellHeight: 160
 
-				readonly property int maxCol: Math.floor(parent.width / cellWidth)
+				readonly property int maxCol: Math.floor((root.width - root.paddingH * 2) / cellWidth)
 				readonly property int rowNum: Math.max(Math.ceil(count / maxCol), 1)
 
 				implicitWidth: Math.min(count * cellWidth, maxCol * cellWidth)
-				implicitHeight: Math.min(rowNum * cellHeight, parent.width)
-
-				readonly property bool isClipped: contentHeight > parent.height
+				implicitHeight: Math.min(rowNum * cellHeight, root.height - root.paddingV * 2)
 
 				anchors {
 					horizontalCenter: parent.horizontalCenter

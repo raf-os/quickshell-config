@@ -1,13 +1,13 @@
 #pragma once
 
-#include "wallpapermanager.h"
-
 #include <qjsengine.h>
 #include <qobject.h>
 #include <qpointer.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
+
+#include "wallpapermanager.h"
 
 namespace ns::ipc::server {
 class IPCServer : public QObject {
@@ -24,8 +24,7 @@ public:
   static IPCServer *create(QQmlEngine *qmlEngine,
                            QJSEngine * /* unused */) {
     auto i = instance();
-    if (qmlEngine)
-      qmlEngine->setObjectOwnership(i, QQmlEngine::CppOwnership);
+    if (qmlEngine) qmlEngine->setObjectOwnership(i, QQmlEngine::CppOwnership);
     return i;
   }
 
@@ -41,6 +40,8 @@ public slots:
   bool ChangeWallpaper(const QString &path,
                        const QString &fillMode);
   bool NextWallpaper();
+  bool ToggleLauncher();
+  bool OpenLauncher();
 
 private slots:
   void setupWallpaperManagerConnections();
@@ -51,6 +52,9 @@ signals:
   void WallpaperChanged(QString path);
   // DBUS Signals
   void WallpaperAppendDialogRequested(const QString &path);
+
+  void launcherToggleRequested();
+  void launcherOpenRequested();
 
 private:
   explicit IPCServer(QObject *parent = nullptr);

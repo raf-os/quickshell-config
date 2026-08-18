@@ -7,7 +7,8 @@ const std::string_view USAGE =
 R"#(usage: nsctl [flags] <command> [args...|--help]
 
 commands:
-    wp (...)    Issue a wallpaper command
+    wp (...)        Issue a wallpaper command
+    launcher (...)  Issue a launcher command
 
 flags:
     --quiet, -q   Supress output messages
@@ -39,4 +40,18 @@ commands:
               Same as above, but opens up a GUI window
               on the shell to properly configure settings.
 )#";
+
+const std::string_view LCHELP =
+R"#(usage: nsctl [flags] launcher [args...]
+
+Allows the user to invoke the launcher.
+
+commands:
+    launcher        Toggles the launcher
+    launcher toggle Same as above
+    launcher open   Opens the launcher)#";
+
+const std::string_view INVALID_USAGE_HELP =
+R"#(Invalid command provided. Type "nsctl -h" or "nsctl --help"
+for usage instructions.)#";
 // clang-format on

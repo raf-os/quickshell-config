@@ -1,10 +1,11 @@
 #include "dbusserver.h"
-#include "ns_ipc_server.h"
-#include "wallpapermanager.h"
 
 #include <qdbusconnection.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
+
+#include "ns_ipc_server.h"
+#include "wallpapermanager.h"
 
 namespace ns::ipc::server {
 Q_LOGGING_CATEGORY(logNSIpc,
@@ -36,8 +37,7 @@ IPCServer::IPCServer(QObject *parent)
 }
 
 void IPCServer::setupWallpaperManagerConnections() {
-  if (!m_wallpaperManager)
-    return;
+  if (!m_wallpaperManager) return;
 
   QObject::connect(m_wallpaperManager,
                    &wallpaper::WallpaperManager::currentChanged,
@@ -46,8 +46,7 @@ void IPCServer::setupWallpaperManagerConnections() {
 }
 
 void IPCServer::onWallpaperChanged() {
-  if (!m_wallpaperManager)
-    return;
+  if (!m_wallpaperManager) return;
 
   auto meta = m_wallpaperManager->current();
 
@@ -76,23 +75,29 @@ bool IPCServer::AppendWallpaperDialog(const QString &path) {
 
 bool IPCServer::ChangeWallpaper(const QString &path,
                                 const QString &fillMode) {
-  if (!m_wallpaperManager)
-    return false;
+  if (!m_wallpaperManager) return false;
 
   m_wallpaperManager->forceSingleWallpaper(path, fillMode);
   return true;
 }
 
 bool IPCServer::NextWallpaper() {
-  if (!m_wallpaperManager)
-    return false;
+  if (!m_wallpaperManager) return false;
 
   const auto next = m_wallpaperManager->moveForward();
 
-  if (next)
-    return true;
-  else
-    return false;
+  if (next) return true;
+  else return false;
+}
+
+bool IPCServer::ToggleLauncher() {
+  emit launcherToggleRequested();
+  return true;
+}
+
+bool IPCServer::OpenLauncher() {
+  emit launcherOpenRequested();
+  return true;
 }
 // DBUS SLOTS
 } // namespace ns::ipc::server

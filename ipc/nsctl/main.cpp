@@ -1,13 +1,15 @@
-#include "globals.h"
-#include "strings.h"
-#include "wallpaper.h"
-
 #include <filesystem>
+
 #include <print>
 #include <qcommandlineoption.h>
 #include <qcommandlineparser.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
+
+#include "globals.h"
+#include "misc.h"
+#include "strings.h"
+#include "wallpaper.h"
 
 int usage(const QString &arg = "") {
   if (arg.isEmpty()) {
@@ -17,6 +19,9 @@ int usage(const QString &arg = "") {
 
   if (arg == "wp") {
     std::println("{}", WPHELP);
+    return 0;
+  } else if (arg == "launcher") {
+    std::println("{}", LCHELP);
     return 0;
   } else {
     std::println("Invalid help option.\n{}", USAGE);
@@ -56,16 +61,18 @@ int main(int   argc,
 
   auto positionalArguments = parser.positionalArguments();
 
-  if (positionalArguments.size() < 2) {
-    std::println("Invalid command provided.");
-    return 1;
+  if (positionalArguments.size() < 1) {
+    return usage("");
   }
 
   const auto cmd = positionalArguments.takeFirst();
 
   if (cmd == "wp") {
     return wpp::parse_wallpaper_command(positionalArguments);
+  } else if (cmd == "launcher") {
+    return misc::parse_launcher_command(positionalArguments);
   } else {
-    return 0;
+    std::println("{}", INVALID_USAGE_HELP);
+    return 1;
   }
 }

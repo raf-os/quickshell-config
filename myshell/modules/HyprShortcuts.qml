@@ -6,6 +6,9 @@ import Quickshell
 
 // Makes use of hyprland's "global shortcuts" so you can reroute hotkeys
 // to this shell through quickshell's IPC
+//
+// TODO: not this
+// just do this through regular IPC for more compositor compatibility
 
 Scope {
 	id: root
@@ -62,29 +65,6 @@ Scope {
 			}
 		}
 	}
-
-	// CustomShortcut {
-	// 	//TODO: this
-	// 	name: "startmenuCommand"
-	// 	description: "Toggle start menu in command mode"
-	//
-	// 	onPressed: {
-	// 		root.startMenuInterrupted = true;
-	// 	}
-	// 	onReleased: {
-	// 		const openPanels = PanelService.getForActive();
-	// 		if (openPanels.startmenu === true)
-	// 			return;
-	// 		openPanels.startmenu = true;
-	// 		openPanels.desiredStartMenuTab = "command";
-	// 	}
-	// }
-	//
-	// CustomShortcut {
-	// 	name: "startMenuInterrupt"
-	// 	description: "Interrupt start menu keybind"
-	// 	onPressed: root.startMenuInterrupted = true
-	// }
 
 	CustomShortcut {
 		name: "toggleGamemode"

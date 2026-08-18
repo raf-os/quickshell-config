@@ -19,6 +19,12 @@
     <method name="NextWallpaper">
       <arg name="success" type="b" direction="out" />
     </method>
+    <method name="ToggleLauncher">
+      <arg name="success" type="b" direction="out" />
+    </method>
+    <method name="OpenLauncher">
+      <arg name="success" type="b" direction="out" />
+    </method>
     <signal name="WallpaperChanged">
       <arg name="path" type="s" direction="out" />
     </signal>

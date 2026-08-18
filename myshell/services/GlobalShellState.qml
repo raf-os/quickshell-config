@@ -1,5 +1,6 @@
 pragma Singleton
 
+import org.nightshell.IpcServer
 import Quickshell
 import QtQuick
 
@@ -20,6 +21,33 @@ Singleton {
 	signal commandCenterForward
 	signal commandCenterBackward
 
+	function getCurrentScreen(): ShellScreen {
+		return Quickshell.screens.find(s => s.name === Hypr.focusedMonitor.name);
+	}
+
+	Connections {
+		target: IPCServer
+
+		function onLauncherToggleRequested() {
+			if (root.isLauncherOpen) {
+				root.closeLauncher();
+				return;
+			}
+
+			const screen = root.getCurrentScreen();
+			if (screen) {
+				root.openLauncher(screen);
+			}
+		}
+
+		function onLauncherOpenRequested() {
+			const screen = root.getCurrentScreen();
+			if (screen) {
+				root.openLauncher(screen);
+			}
+		}
+	}
+
 	PersistentProperties {
 		id: props
 
@@ -31,6 +59,9 @@ Singleton {
 		// Re-evaluate validity of properties
 		if (!allScreens.includes(props.launcherScreen)) {
 			props.launcherScreen = null;
+		}
+		if (!allScreens.includes(props.commandCenterScreen)) {
+			props.commandCenterScreen = null;
 		}
 	}
 
@@ -61,8 +92,6 @@ Singleton {
 	}
 
 	function openLauncher(screen: ShellScreen): bool {
-		// if (!root.allScreens.includes(screen))
-		// 	return false;
 		desiredLauncherTab = "";
 		closeCommandCenter();
 		props.launcherScreen = screen;

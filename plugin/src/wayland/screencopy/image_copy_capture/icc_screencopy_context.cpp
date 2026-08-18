@@ -170,7 +170,7 @@ void IccScreencopyContext::ext_image_copy_capture_frame_v1_failed(
     uint32_t reason) {
   switch (static_cast<CCAPTURE_FRAME::failure_reason>(reason)) {
   case CCAPTURE_FRAME::failure_reason_buffer_constraints:
-    qCFatal(logNSICCScreencopy)
+    qCWarning(logNSICCScreencopy)
         << "Frame copy failed: buffer constraints mismatched!";
     break;
   case CCAPTURE_FRAME::failure_reason_stopped:

@@ -27,6 +27,7 @@ set_target_properties(
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 
+# This is being done for the hack described below
 target_compile_definitions(
   nightshell_wayland_toplevels
   PRIVATE NS_WAYLAND_SHARED_LIB
@@ -38,6 +39,7 @@ target_link_libraries(
   PUBLIC wlp-ext-foreign-toplevel
 )
 
+# HACK: this is being installed as a regular library, the static / shared barriers between libraries was causing qobject_cast to fail during runtime
 include(GNUInstallDirs)
 install(
   TARGETS nightshell_wayland_toplevels
