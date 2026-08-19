@@ -99,5 +99,10 @@ bool IPCServer::OpenLauncher() {
   emit launcherOpenRequested();
   return true;
 }
+
+bool IPCServer::ToggleTaskSwitcher() {
+  emit taskSwitcherToggleRequested();
+  return true;
+}
 // DBUS SLOTS
 } // namespace ns::ipc::server

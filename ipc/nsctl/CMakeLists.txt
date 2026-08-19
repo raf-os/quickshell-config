@@ -2,7 +2,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core DBus)
 
 qt_add_executable(nightshell_ctl main.cpp)
 
-target_sources(nightshell_ctl PRIVATE wallpaper.cpp misc.cpp dbus.cpp)
+target_sources(
+  nightshell_ctl
+  PRIVATE wallpaper.cpp task_switcher.cpp misc.cpp dbus.cpp
+)
 
 target_include_directories(nightshell_ctl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 

@@ -49,16 +49,20 @@ else()
   )
 endif()
 
+set(NIGHTSHELL_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}/nightshell")
+
 # This is simply a hack, there has to be a better way of doing this
 list(
   APPEND CMAKE_INSTALL_RPATH
   "${MYSHELL_QML_TARGET_PATH}"
   "${INSTALL_QMLDIR}/MyShellPlugin/Configs"
   "${INSTALL_QMLDIR}/MyShellPlugin/Utils"
+  "${INSTALL_QMLDIR}/org/nightshell"
   "${INSTALL_QMLDIR}/org/nightshell/Wallpaper"
   "${INSTALL_QMLDIR}/org/nightshell/DesktopEntries"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland/Toplevels"
+  "${CMAKE_INSTALL_PREFIX}/${NIGHTSHELL_INSTALL_LIBDIR}"
   "/usr/local/lib"
 )
 

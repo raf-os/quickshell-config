@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.services
+import org.nightshell.Wayland.InputInhibit
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -22,6 +23,10 @@ Variants {
 
 			readonly property bool isActive: GlobalShellState.isCommandCenterOpen
 			readonly property bool isCurrent: GlobalShellState.commandCenterScreen === screen
+
+			// InputInhibit {
+			// 	inhibit: win.isActive
+			// }
 
 			anchors {
 				right: true

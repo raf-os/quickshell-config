@@ -36,3 +36,5 @@ target_link_libraries(
     nightshell_wayland_toplevels
     nightshell_wayland_screencopy_icc
 )
+
+install_qml_module(nightshell_wayland_screencopy)

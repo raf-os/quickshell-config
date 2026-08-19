@@ -64,6 +64,7 @@ target_link_libraries(
 add_subdirectory(wlr)
 add_subdirectory(toplevels)
 add_subdirectory(screencopy)
+add_subdirectory(input-inhibit)
 
 qt6_add_library(nightshell_wayland SHARED)
 

@@ -42,6 +42,7 @@ public slots:
   bool NextWallpaper();
   bool ToggleLauncher();
   bool OpenLauncher();
+  bool ToggleTaskSwitcher();
 
 private slots:
   void setupWallpaperManagerConnections();
@@ -55,6 +56,7 @@ signals:
 
   void launcherToggleRequested();
   void launcherOpenRequested();
+  void taskSwitcherToggleRequested();
 
 private:
   explicit IPCServer(QObject *parent = nullptr);
