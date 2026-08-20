@@ -685,7 +685,6 @@ LinuxDmabufManager::createDmabuf(const std::shared_ptr<GbmDevice> &device,
       qCritical(logNSDmabuf) << "Failed to get gbm_bo fd for plane" << i
                              << qt_error_string(plane.fd);
       params.destroy();
-      gbm_bo_destroy(bo);
       return nullptr;
     }
 

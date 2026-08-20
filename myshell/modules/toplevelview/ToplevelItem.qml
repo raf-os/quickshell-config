@@ -43,7 +43,7 @@ MouseArea {
 		anchors.margins: 16
 
 		Loader {
-			active: GlobalStateManager.isGameMode
+			active: !windowViewerLoader.active
 			anchors.centerIn: parent
 
 			sourceComponent: Rectangle {
@@ -63,6 +63,8 @@ MouseArea {
 		}
 
 		Loader {
+			id: windowViewerLoader
+
 			active: !GlobalStateManager.isGameMode
 			anchors.centerIn: parent
 

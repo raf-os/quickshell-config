@@ -1,10 +1,13 @@
 #pragma once
 
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
 #include <qhash.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qpointer.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
@@ -109,9 +112,18 @@ public slots:
                              int            workspaceId);
 
 private:
+  struct PendingToplevel {
+    int     workspaceId;
+    int     assignmentAttempts = 0;
+    quint64 address;
+  };
+
   QList<ToplevelInstance *> m_allTopLevels;
   QList<ToplevelInstance *> m_readyToplevels;
   QList<ToplevelInstance *> m_filteredToplevels;
+
+  std::unordered_map<quint64, std::unique_ptr<PendingToplevel>>
+      m_pendingAssignments;
 
   QString m_searchQuery;
 
@@ -122,6 +134,8 @@ private:
   void insertAtEnd(ToplevelInstance *instance);
   void removeAtIndex(int index);
   void removeInstance(ToplevelInstance *instance);
+
+  void handlePendingAssignments();
 
   void applyFilters(QList<ToplevelInstance *> *target);
 };

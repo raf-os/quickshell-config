@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <qhash.h>
 #include <qjsonarray.h>
@@ -193,6 +195,13 @@ ToplevelModel::ToplevelModel(QObject *parent) : QObject(parent) {
                    &wayland::wlr::toplevels::ToplevelManager::toplevelClosed,
                    this,
                    &ToplevelModel::onWaylandToplevelDestroyed);
+
+  QObject::connect(
+      toplevels::HyprlandToplevelMappingManager::instance(),
+      &toplevels::HyprlandToplevelMappingManager::toplevelAddressed,
+      this,
+      [this](wayland::wlr::toplevels::ToplevelHandle * /*unused*/,
+             quint64 /*unused*/) { this->handlePendingAssignments(); });
 }
 
 QQmlListProperty<ToplevelInstance> ToplevelModel::items() {
@@ -389,6 +398,8 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
     ToplevelInstance *toplevel = it == tlist.end() ? nullptr : *it;
     bool              exists   = toplevel != nullptr;
 
+    auto workspaceObj = jObj.value("workspace").toObject();
+
     // if (!exists) toplevel = createNewInstance(address);
 
     if (!exists) {
@@ -396,8 +407,13 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
                       ->getHandleForAddress(address);
 
       if (addr == nullptr) {
-        qCWarning(logNSHyprland) << "Could not match address" << address
-                                 << "to any wayland toplevels.";
+        qCDebug(logNSHyprland)
+            << "Could not match address" << address
+            << "to any wayland toplevels. Adding to pending list.";
+        const auto contains = m_pendingAssignments.contains(address);
+        if (!contains)
+          m_pendingAssignments.insert(std::make_pair(
+              address, std::make_unique<PendingToplevel>(0, 0, address)));
         continue;
       }
 
@@ -412,13 +428,41 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
       toplevel->setAddress(address);
     }
 
-    auto workspaceObj = jObj.value("workspace").toObject();
     if (!workspaceObj.isEmpty()) {
       toplevel->setWorkspaceId(workspaceObj.value("id").toInt(0));
     }
   }
 
   emit readyToplevelsChanged(m_readyToplevels);
+}
+
+void ToplevelModel::handlePendingAssignments() {
+  if (m_pendingAssignments.empty()) return;
+
+  std::erase_if(m_pendingAssignments, [this](auto &item) {
+    auto &[key, value] = item;
+    auto p             = static_cast<PendingToplevel *>(value.get());
+    auto handle        = toplevels::HyprlandToplevelMappingManager::instance()
+                             ->getHandleForAddress(p->address);
+    if (handle == nullptr) {
+      p->assignmentAttempts++;
+      if (p->assignmentAttempts < 2) return false;
+    } else {
+      auto it = std::find_if(m_allTopLevels.begin(),
+                             m_allTopLevels.end(),
+                             [this, handle](ToplevelInstance *inst) {
+                               return inst->handle() == handle;
+                             });
+      if (it == m_allTopLevels.end()) {
+        p->assignmentAttempts++;
+        if (p->assignmentAttempts < 2) return false;
+      }
+      (*it)->setAddress(p->address);
+      qCDebug(logNSHyprland)
+          << "Found pending address" << p->address << "for toplevel" << *it;
+    }
+    return true;
+  });
 }
 
 void ToplevelModel::onWindowMoveWorkspace(const quint64 &address,

@@ -42,11 +42,9 @@ MouseArea {
 
 	Keys.onReleased: ev => {
 		switch (ev.key) {
-		case Qt.Key_Meta:
-			// root.selectCurrentItem();
-			return;
 		case Qt.Key_Space:
 		case Qt.Key_Return:
+		case Qt.Key_Meta:
 			root.selectCurrentItem();
 			return;
 		default:
@@ -91,6 +89,7 @@ MouseArea {
 	Loader {
 		anchors.centerIn: parent
 		active: root.isCurrent
+		asynchronous: true
 
 		sourceComponent: Item {
 			readonly property int padding: Config.appearance.padding.lg * 2
