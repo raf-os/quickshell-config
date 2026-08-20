@@ -122,6 +122,8 @@ private:
   QList<ToplevelInstance *> m_readyToplevels;
   QList<ToplevelInstance *> m_filteredToplevels;
 
+  // QHash doesn't allow a non-const argument for its removeIf function, so
+  // std::unordered_map it is.
   std::unordered_map<quint64, std::unique_ptr<PendingToplevel>>
       m_pendingAssignments;
 

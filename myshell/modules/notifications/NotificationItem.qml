@@ -198,6 +198,25 @@ MouseArea {
 					}
 				}
 			}
+
+			Loader {
+				active: root.imageUrl !== ""
+				anchors.fill: parent
+
+				sourceComponent: Item {
+					anchors.fill: parent
+
+					Image {
+						anchors.centerIn: parent
+						asynchronous: true
+
+						width: parent.width
+						height: parent.height
+
+						source: root.imageUrl
+					}
+				}
+			}
 		}
 
 		ColumnLayout {

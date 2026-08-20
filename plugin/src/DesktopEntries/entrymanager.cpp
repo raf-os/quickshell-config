@@ -1,13 +1,7 @@
 #include "entrymanager.h"
-#include "config.h"
-#include "desktopentry.h"
-#include "entryaction.h"
-#include "entrycacher.h"
-#include "entrymonitor.h"
-#include "entryscanner.h"
-#include "paths.h"
 
 #include <algorithm>
+
 #include <qbuffer.h>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
@@ -16,6 +10,7 @@
 #include <qfileinfo.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
@@ -32,9 +27,18 @@
 #include <qtypes.h>
 #include <quuid.h>
 
+#include "config.h"
+#include "desktopentry.h"
+#include "entryaction.h"
+#include "entrycacher.h"
+#include "entrymonitor.h"
+#include "entryscanner.h"
+#include "paths.h"
+
 namespace ns::desktop::entries {
 Q_LOGGING_CATEGORY(logNSDesktopEntries,
-                   "nightshell.desktop.entries")
+                   "nightshell.desktop.entries",
+                   QtWarningMsg)
 
 EntryManager::EntryManager(QObject *parent)
     : QObject(parent),
@@ -101,15 +105,13 @@ QSqlError EntryManager::initDb() {
   auto      succ = query.exec("CREATE TABLE IF NOT EXISTS \
       frequencies (id TEXT PRIMARY KEY, frequency INTEGER)");
 
-  if (!succ)
-    return db.lastError();
+  if (!succ) return db.lastError();
 
   return QSqlError();
 }
 
 quint32 EntryManager::getFrequencyForApp(const QString &id) const {
-  if (m_dbSuccess == false)
-    return 0;
+  if (m_dbSuccess == false) return 0;
 
   auto      db = QSqlDatabase::database(m_uuid);
   QSqlQuery query(db);
@@ -125,8 +127,7 @@ quint32 EntryManager::getFrequencyForApp(const QString &id) const {
 }
 
 void EntryManager::incrementFrequencyFor(DesktopEntry *target) {
-  if (!m_dbSuccess && !target)
-    return;
+  if (!m_dbSuccess && !target) return;
 
   auto      db = QSqlDatabase::database(m_uuid);
   QSqlQuery query(db);
@@ -145,8 +146,7 @@ void EntryManager::incrementFrequencyFor(DesktopEntry *target) {
 void EntryManager::executeGeneric(const QStringList &cmd,
                                   const QString     &workingDirectory,
                                   DesktopEntry      *reference) {
-  if (cmd.size() < 1)
-    return;
+  if (cmd.size() < 1) return;
 
   this->incrementFrequencyFor(reference);
   const bool isTerminal = reference->bindableRunInTerminal().value();
@@ -212,8 +212,7 @@ void EntryManager::processEntryList(const QList<EntryData> &results) {
 
   for (const auto &data : results) {
     if (data.hidden) {
-      if (auto *target = newEntries.take(data.id))
-        target->deleteLater();
+      if (auto *target = newEntries.take(data.id)) target->deleteLater();
 
       if (auto it = oldEntries.find(data.id); it != oldEntries.end()) {
         it.value()->deleteLater();
@@ -246,8 +245,7 @@ void EntryManager::processEntryList(const QList<EntryData> &results) {
     auto conflictingId = newEntries.contains(data.id);
 
     if (conflictingId) {
-      if (auto target = newEntries.take(data.id))
-        target->deleteLater();
+      if (auto target = newEntries.take(data.id)) target->deleteLater();
     }
 
     newEntries.insert(data.id, entry);
@@ -269,37 +267,31 @@ void EntryManager::onScanCompleted(const QList<EntryData> &results) {
 }
 
 DesktopEntry *EntryManager::findEntryById(const QString &id) {
-  if (auto entry = m_desktopEntries.value(id))
-    return entry;
-  else
-    return nullptr;
+  if (auto entry = m_desktopEntries.value(id)) return entry;
+  else return nullptr;
 }
 
 DesktopEntry *EntryManager::findEntry(const QString &name) {
   // TODO: if QString's toLower() brings performance issues somehow, cache the
   // lowered versions beforehand
-  if (auto entry = this->findEntryById(name))
-    return entry;
+  if (auto entry = this->findEntryById(name)) return entry;
 
   auto entryList = m_desktopEntries.values();
 
   auto it = std::ranges::find_if(entryList, [&](DesktopEntry *entry) {
     return name.toLower() == entry->bindableName().value().toLower();
   });
-  if (it != entryList.end())
-    return *it;
+  if (it != entryList.end()) return *it;
 
   it = std::ranges::find_if(entryList, [&](DesktopEntry *entry) {
     return name == entry->bindableStartupClass().value();
   });
-  if (it != entryList.end())
-    return *it;
+  if (it != entryList.end()) return *it;
 
   it = std::ranges::find_if(entryList, [&](DesktopEntry *entry) {
     return name.toLower() == entry->bindableStartupClass().value().toLower();
   });
-  if (it != entryList.end())
-    return *it;
+  if (it != entryList.end()) return *it;
   return nullptr;
 }
 

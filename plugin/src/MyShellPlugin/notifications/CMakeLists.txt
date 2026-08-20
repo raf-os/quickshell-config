@@ -10,6 +10,21 @@ qt_add_dbus_adaptor(
   DBusNotificationServer
 )
 
+qt6_add_dbus_interface(
+  NOTIFICATION_DBUS_INTERFACE
+  org.freedesktop.Notifications.xml
+  nightshell_notification_client
+)
+
+qt6_add_library(ns_notification_client STATIC ${NOTIFICATION_DBUS_INTERFACE})
+
+target_include_directories(
+  ns_notification_client
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(ns_notification_client PRIVATE Qt6::Core Qt6::DBus)
+
 qt_add_library(
   myshell_notifications
   SHARED
@@ -49,3 +64,5 @@ target_link_libraries(
 )
 
 install_qml_module(myshell_notifications)
+
+add_subdirectory(manualtest)

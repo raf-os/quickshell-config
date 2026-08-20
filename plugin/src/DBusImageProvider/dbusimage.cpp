@@ -1,4 +1,5 @@
 #include "dbusimage.h"
+
 #include <QtDBus/qdbusargument.h>
 #include <qimage.h>
 #include <qloggingcategory.h>
@@ -10,18 +11,20 @@
 #include <qtypes.h>
 
 namespace ns::dbusprovider {
-Q_LOGGING_CATEGORY(logNSDBusProvider, "nightshell.dbus.imageprovider")
+Q_LOGGING_CATEGORY(logNSDBusProvider,
+                   "nightshell.dbus.imageprovider")
 
 namespace {
 QMap<QString, DBusImageHandler *> activeHandlers;
-quint32 handleIndex = 0;
+quint32                           handleIndex = 0;
 
-void parseRequest(const QString &request, QString &outTarget,
-                  QString &outParam) {
+void parseRequest(const QString &request,
+                  QString       &outTarget,
+                  QString       &outParam) {
   auto idx = request.indexOf("/");
   if (idx != -1) {
     outTarget = request.sliced(0, idx);
-    outParam = request.sliced(idx + 1);
+    outParam  = request.sliced(idx + 1);
   } else {
     outTarget = request;
   }
@@ -36,13 +39,15 @@ void DBusAsyncImageRunnable::run() {
   auto handler = activeHandlers.value(target);
   if (handler != nullptr) {
     // Handler is valid
-    auto img = handler->imageData();
+    auto         img = handler->imageData();
     QMutexLocker locker(&img->mutex);
 
     auto format =
         img->hasAlpha ? QImage::Format_RGBA8888 : QImage::Format_RGB888;
     auto image = QImage(reinterpret_cast<const uchar *>(img->data.data()),
-                        img->width, img->height, format);
+                        img->width,
+                        img->height,
+                        format);
 
     if (m_requestedSize.isValid()) {
       image = image.scaled(m_requestedSize);
@@ -58,7 +63,7 @@ void DBusAsyncImageRunnable::run() {
   }
 }
 
-const QDBusArgument &operator>>(const QDBusArgument &argument,
+const QDBusArgument &operator>>(const QDBusArgument   &argument,
                                 DBusNotificationImage &pixmap) {
   QMutexLocker locker(&pixmap.mutex);
   argument.beginStructure();
@@ -67,14 +72,14 @@ const QDBusArgument &operator>>(const QDBusArgument &argument,
   auto rowstride = qdbus_cast<qint32>(argument);
   argument >> pixmap.hasAlpha;
   auto sampleBits = qdbus_cast<qint32>(argument);
-  auto channels = qdbus_cast<qint32>(argument);
+  auto channels   = qdbus_cast<qint32>(argument);
   argument >> pixmap.data;
   argument.endStructure();
 
   return argument;
 }
 
-const QDBusArgument &operator<<(QDBusArgument &argument,
+const QDBusArgument &operator<<(QDBusArgument               &argument,
                                 const DBusNotificationImage &pixmap) {
   argument.beginStructure();
   argument << pixmap.width;
@@ -90,7 +95,7 @@ const QDBusArgument &operator<<(QDBusArgument &argument,
 
 QQuickImageResponse *
 DBusImageProvider::requestImageResponse(const QString &id,
-                                        const QSize &requestedSize) {
+                                        const QSize   &requestedSize) {
   auto response = new DBusImageResponse(id, requestedSize, &pool);
   return response;
 }

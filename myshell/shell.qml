@@ -35,7 +35,7 @@ ShellRoot {
 	}
 
 	Component.onCompleted: {
-		UserCommandService.setup();
+		// UserCommandService.setup();
 		SystemSoundsService.setup();
 		IPCServer.setup();
 		NDE.EntryManager.init();

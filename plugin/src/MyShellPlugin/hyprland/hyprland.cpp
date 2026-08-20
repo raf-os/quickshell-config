@@ -15,6 +15,7 @@
 #include <qjsonvalue.h>
 #include <qlist.h>
 #include <qlocalsocket.h>
+#include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qprocess.h>
@@ -31,7 +32,8 @@
 
 namespace ns::hyprland {
 Q_LOGGING_CATEGORY(logNSHyprland,
-                   "nightshell.hyprland")
+                   "nightshell.hyprland",
+                   QtWarningMsg)
 
 Hyprland::Hyprland(QObject *parent)
     : QObject(parent),

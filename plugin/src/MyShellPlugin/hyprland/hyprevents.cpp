@@ -1,13 +1,15 @@
 #include "hyprevents.h"
 
-#include <qdebug.h>
 #include <qlocalsocket.h>
 #include <qlogging.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qstring.h>
 #include <qtenvironmentvariables.h>
 
 namespace ns::hyprland {
+Q_DECLARE_LOGGING_CATEGORY(logNSHyprland)
+
 HyprEvents::HyprEvents(QObject *parent) : QObject(parent) {
   m_socket = new QLocalSocket(this);
 
@@ -45,13 +47,13 @@ HyprEvents::~HyprEvents() {
 bool HyprEvents::isConnected() const { return m_isConnected; }
 
 void HyprEvents::connectSocket() {
-  qDebug() << "Connecting to hyprland's socket2...";
+  qCDebug(logNSHyprland) << "Connecting to hyprland's socket2...";
   m_socket->connectToServer(socketPath(), QLocalSocket::ReadOnly);
 }
 
 void HyprEvents::disconnectSocket() {
   if (m_socket->state() != QLocalSocket::UnconnectedState) {
-    qDebug() << "Disconnecting from hyprland's socket2...";
+    qCDebug(logNSHyprland) << "Disconnecting from hyprland's socket2...";
     m_socket->disconnectFromServer();
   }
 }
