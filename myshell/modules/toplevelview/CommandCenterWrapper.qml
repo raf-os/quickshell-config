@@ -24,9 +24,9 @@ Variants {
 			readonly property bool isActive: GlobalShellState.isCommandCenterOpen
 			readonly property bool isCurrent: GlobalShellState.commandCenterScreen === screen
 
-			// InputInhibit {
-			// 	inhibit: win.isActive
-			// }
+			InputInhibit {
+				inhibit: win.isActive
+			}
 
 			anchors {
 				right: true

@@ -21,13 +21,12 @@ void InputInhibitAttached::componentComplete() {
   auto win = this->window();
   if (win) {
     this->initWindow();
-  } else {
-    QObject::connect(this,
-                     &QQuickItem::windowChanged,
-                     this,
-                     &InputInhibitAttached::initWindow,
-                     Qt::SingleShotConnection);
   }
+
+  QObject::connect(this,
+                   &QQuickItem::windowChanged,
+                   this,
+                   &InputInhibitAttached::initWindow);
 }
 
 void InputInhibitAttached::initWindow() {
