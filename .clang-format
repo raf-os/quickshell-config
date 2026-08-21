@@ -1,6 +1,6 @@
 ---
 Language:        Cpp
-AlignAfterOpenBracket: true
+AlignAfterOpenBracket: BlockIndent
 AccessModifierOffset: -2
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments:
@@ -91,13 +91,13 @@ AttributeMacros:
   - __capability
 BinPackArguments: false
 BinPackLongBracedList: true
-BinPackParameters: AlwaysOnePerLine
+BinPackParameters: false
 BitFieldColonSpacing: Both
 BracedInitializerIndentWidth: -1
 BraceWrapping:
   AfterCaseLabel:  false
   AfterClass:      false
-  AfterControlStatement: Never
+  AfterControlStatement: MultiLine
   AfterEnum:       false
   AfterExternBlock: false
   AfterFunction:   false
@@ -130,7 +130,7 @@ BreakBeforeCloseBracketIf: false
 BreakBeforeCloseBracketLoop: false
 BreakBeforeCloseBracketSwitch: false
 BreakBeforeConceptDeclarations: Always
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Custom
 BreakBeforeInlineASMColon: OnlyMultiline
 BreakBeforeTemplateCloser: false
 BreakBeforeTernaryOperators: true
