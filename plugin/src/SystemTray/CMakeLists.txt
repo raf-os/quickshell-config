@@ -19,7 +19,7 @@ qt6_add_dbus_interface(DBUS_INTERFACES org.kde.StatusNotifierItem.xml dbus_item)
 
 set_source_files_properties(
   org.kde.StatusNotifierWatcher.xml
-  PROPERTIES CLASSNAME QDbusStatusNotifierWatcher
+  PROPERTIES CLASSNAME QDBusStatusNotifierWatcher
 )
 
 qt6_add_dbus_interface(DBUS_INTERFACES
@@ -47,5 +47,5 @@ target_include_directories(
 
 target_link_libraries(
   nightshell_systemtray
-  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::DBus
+  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::DBus nightshell_dbus
 )

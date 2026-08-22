@@ -1,10 +1,12 @@
 #pragma once
 
 #include <qdbusservicewatcher.h>
+#include <qhash.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
 
 #include "dbus_watcher_interface.h"
+#include "statusnotifieritem.h"
 
 namespace ns::systemtray {
 // On the Dbus side, this will only register a unique service
@@ -24,8 +26,9 @@ private slots:
   void onItemReady();
 
 private:
-  QString                     m_hostId;
-  QDBusServiceWatcher         m_serviceWatcher;
-  QDbusStatusNotifierWatcher *m_watcher = nullptr;
+  QString                              m_hostId;
+  QDBusServiceWatcher                  m_serviceWatcher;
+  QDBusStatusNotifierWatcher          *m_watcher = nullptr;
+  QHash<QString, StatusNotifierItem *> m_items;
 };
 } // namespace ns::systemtray

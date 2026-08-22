@@ -9,6 +9,7 @@
 #include <qdbuspendingcall.h>
 #include <qdbuspendingreply.h>
 #include <qobject.h>
+
 namespace ns::dbus {
 template <typename T>
 void asyncReadProperty(QDBusAbstractInterface            &interface,

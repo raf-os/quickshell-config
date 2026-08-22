@@ -12,7 +12,7 @@
 #include "statusnotifierwatcher.h"
 
 namespace ns::systemtray {
-Q_LOGGING_CATEGORY(logNSStatusNotifier, "ns.systemtray")
+Q_LOGGING_CATEGORY(logNSStatusNotifierHost, "ns.systemtray.StatusNotifierHost")
 
 StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
   StatusNotifierWatcher::instance();
@@ -20,7 +20,7 @@ StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
   auto bus = QDBusConnection::sessionBus();
 
   if (!bus.isConnected()) {
-    qCWarning(logNSStatusNotifier) << "Unable to connect do DBus.";
+    qCWarning(logNSStatusNotifierHost) << "Unable to connect do DBus.";
     return;
   }
 
@@ -30,7 +30,7 @@ StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
   auto succ = bus.registerService(m_hostId);
 
   if (!succ) {
-    qCWarning(logNSStatusNotifier)
+    qCWarning(logNSStatusNotifierHost)
         << "Unable to register StatusNotifierHost with DBus.";
     return;
   }
@@ -48,21 +48,21 @@ StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
   m_serviceWatcher.addWatchedService("org.kde.StatusNotifierWatcher");
   m_serviceWatcher.setConnection(bus);
 
-  m_watcher = new QDbusStatusNotifierWatcher(
+  m_watcher = new QDBusStatusNotifierWatcher(
       "org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher", bus, this);
 
   QObject::connect(m_watcher,
-                   &QDbusStatusNotifierWatcher::StatusNotifierItemRegistered,
+                   &QDBusStatusNotifierWatcher::StatusNotifierItemRegistered,
                    this,
                    &StatusNotifierHost::onItemRegistered);
 
   QObject::connect(m_watcher,
-                   &QDbusStatusNotifierWatcher::StatusNotifierItemUnregistered,
+                   &QDBusStatusNotifierWatcher::StatusNotifierItemUnregistered,
                    this,
                    &StatusNotifierHost::onItemUnregistered);
 
   if (!m_watcher->isValid()) {
-    qCWarning(logNSStatusNotifier)
+    qCWarning(logNSStatusNotifierHost)
         << "Unable to find active StatusNotifierWatcher.";
     return;
   }
@@ -78,13 +78,13 @@ void StatusNotifierHost::connectToWatcher() {
       "RegisteredStatusNotifierItems",
       [this](QStringList value, QDBusError error) {
         if (error.isValid()) {
-          qCWarning(logNSStatusNotifier).noquote()
+          qCWarning(logNSStatusNotifierHost).noquote()
               << "Error reading \"RegisteredStatusNotifierItems\" property of "
                  "wacher"
               << m_watcher->service();
-          qCWarning(logNSStatusNotifier) << error;
+          qCWarning(logNSStatusNotifierHost) << error;
         } else {
-          qCDebug(logNSStatusNotifier)
+          qCDebug(logNSStatusNotifierHost)
               << "Registering pre-existing status notifier items from watcher:"
               << value;
 
