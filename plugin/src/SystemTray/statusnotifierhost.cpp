@@ -3,12 +3,14 @@
 #include <qcontainerfwd.h>
 #include <qdbusconnection.h>
 #include <qdbuserror.h>
+#include <qlist.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <unistd.h>
 
 #include "dbus_watcher_interface.h"
 #include "dbusutils.h"
+#include "statusnotifieritem.h"
 #include "statusnotifierwatcher.h"
 
 namespace ns::systemtray {
@@ -70,6 +72,11 @@ StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
   this->connectToWatcher();
 }
 
+StatusNotifierHost *StatusNotifierHost::instance() {
+  static auto s_instance = new StatusNotifierHost();
+  return s_instance;
+}
+
 void StatusNotifierHost::connectToWatcher() {
   m_watcher->RegisterStatusNotifierHost(m_hostId);
 
@@ -93,5 +100,66 @@ void StatusNotifierHost::connectToWatcher() {
           }
         }
       });
+}
+
+void StatusNotifierHost::onWatcherRegistered() { connectToWatcher(); }
+void StatusNotifierHost::onWatcherUnregistered() {
+  for (auto [service, item] : m_items.asKeyValueRange()) {
+    emit itemUnregistered(item);
+    item->deleteLater();
+  }
+
+  m_items.clear();
+}
+
+void StatusNotifierHost::onItemRegistered(const QString &item) {
+  if (m_items.contains(item)) {
+    qCDebug(logNSStatusNotifierHost)
+        << "Skipping duplicate StatusNotifierItem" << item;
+    return;
+  }
+
+  qCDebug(logNSStatusNotifierHost)
+      << "Received new StatusNotifierItem:" << item;
+  auto *nItem = new StatusNotifierItem(item, this);
+  if (!nItem->isValid()) {
+    qCWarning(logNSStatusNotifierHost)
+        << "Unable to connect to StatusNotifierItem at" << nItem;
+    nItem->deleteLater();
+    return;
+  }
+
+  m_items.insert(item, nItem);
+  QObject::connect(nItem,
+                   &StatusNotifierItem::ready,
+                   this,
+                   &StatusNotifierHost::onItemReady);
+  emit itemRegistered(nItem);
+}
+
+void StatusNotifierHost::onItemUnregistered(const QString &item) {
+  if (auto *nItem = m_items.value(item)) {
+    m_items.remove(item);
+    emit itemUnregistered(nItem);
+    nItem->deleteLater();
+    qCDebug(logNSStatusNotifierHost)
+        << "Unregistered StatusNotifierItem" << item << "from host.";
+  } else {
+    qCWarning(logNSStatusNotifierHost)
+        << "Received signal to unregister StatusNotifierItem" << item
+        << ", yet said item was not being tracked.";
+  }
+}
+
+void StatusNotifierHost::onItemReady() {
+  if (auto *item = qobject_cast<StatusNotifierItem *>(sender())) {
+    emit itemReady(item);
+  }
+}
+
+QList<StatusNotifierItem *> StatusNotifierHost::items() const {
+  auto items = m_items.values();
+  items.removeIf([](StatusNotifierItem *item) { return !item->isReady(); });
+  return items;
 }
 } // namespace ns::systemtray

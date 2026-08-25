@@ -6,6 +6,7 @@ import qs.services
 import org.nightshell.IpcServer
 import org.nightshell.DBusImageProvider
 import org.nightshell.IconProvider
+import org.nightshell.SystemTray
 import org.nightshell.Notifications
 import org.nightshell.DesktopEntries as NDE
 import MyShellPlugin
@@ -41,6 +42,8 @@ ShellRoot {
 		NDE.EntryManager.init();
 
 		root.evalNotificationConfig();
+
+		const tray = SystemTrayQML;
 
 		// Config.earlyLoad();
 		// Colors.earlyLoad();

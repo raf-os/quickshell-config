@@ -1,10 +1,6 @@
-#pragma once
-
-#include <functional>
+#include "dbusutils.h"
 
 #include <qcontainerfwd.h>
-#include <qdbusabstractinterface.h>
-#include <qdbusargument.h>
 #include <qdbuserror.h>
 #include <qdbusmessage.h>
 #include <qdbuspendingcall.h>
@@ -12,17 +8,13 @@
 #include <qobject.h>
 
 namespace ns::dbus {
-template <typename T>
-void asyncReadProperty(QDBusAbstractInterface            &interface,
-                       const QString                     &property,
-                       std::function<void(T, QDBusError)> callback) {
+void asyncGetAll(QDBusAbstractInterface                      &interface,
+                 std::function<void(QVariantMap, QDBusError)> callback) {
   auto callMessage =
       QDBusMessage::createMethodCall(interface.service(),
                                      interface.path(),
                                      "org.freedesktop.DBus.Properties",
-                                     "Get");
-
-  callMessage << interface.interface() << property;
+                                     "GetAll");
 
   auto pendingCall = interface.connection().asyncCall(callMessage);
   auto callWatcher = new QDBusPendingCallWatcher(pendingCall, &interface);
@@ -33,15 +25,15 @@ void asyncReadProperty(QDBusAbstractInterface            &interface,
                      QDBusPendingReply<QDBusVariant> reply = *w;
                      QDBusError                      error =
                          reply.isError() ? reply.error() : QDBusError();
-                     T value{};
+                     QVariantMap value;
                      if (!error.isValid()) {
-                       value = qdbus_cast<T>(reply.value().variant());
+                       auto variant = reply.value().variant();
+                       if (variant.canConvert<QVariantMap>()) {
+                         value = variant.toMap();
+                       }
                      }
                      callback(value, error);
                      w->deleteLater();
                    });
 }
-
-void asyncGetAll(QDBusAbstractInterface                      &interface,
-                 std::function<void(QVariantMap, QDBusError)> callback);
 } // namespace ns::dbus

@@ -2,6 +2,7 @@
 
 #include <qdbusservicewatcher.h>
 #include <qhash.h>
+#include <qlist.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
 
@@ -14,9 +15,16 @@ class StatusNotifierHost : public QObject {
   Q_OBJECT
 
 public:
-  explicit StatusNotifierHost(QObject *parent = nullptr);
+  static StatusNotifierHost *instance();
 
   void connectToWatcher();
+
+  [[nodiscard]] QList<StatusNotifierItem *> items() const;
+
+signals:
+  void itemRegistered(StatusNotifierItem *item);
+  void itemReady(StatusNotifierItem *item);
+  void itemUnregistered(StatusNotifierItem *item);
 
 private slots:
   void onWatcherRegistered();
@@ -30,5 +38,7 @@ private:
   QDBusServiceWatcher                  m_serviceWatcher;
   QDBusStatusNotifierWatcher          *m_watcher = nullptr;
   QHash<QString, StatusNotifierItem *> m_items;
+
+  explicit StatusNotifierHost(QObject *parent = nullptr);
 };
 } // namespace ns::systemtray

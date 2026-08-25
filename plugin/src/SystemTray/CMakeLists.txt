@@ -1,5 +1,7 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml DBus)
 
+set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
+
 qt6_add_dbus_adaptor(DBUS_INTERFACES
   org.kde.StatusNotifierWatcher.xml
   statusnotifierwatcher.h
@@ -36,6 +38,7 @@ target_sources(
     statusnotifierhost.cpp
     statusnotifierwatcher.cpp
     statusnotifieritem.cpp
+    systemtrayqml.cpp
     ${DBUS_INTERFACES}
 )
 
@@ -45,7 +48,15 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+qt6_add_qml_module(
+  nightshell_systemtray
+  URI "${ORG_URI_PREFIX}.SystemTray"
+  VERSION 0.1
+)
+
 target_link_libraries(
   nightshell_systemtray
-  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::DBus nightshell_dbus
+  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::DBus nightshell_dbus myshell_include
 )
+
+install_qml_module(nightshell_systemtray)
