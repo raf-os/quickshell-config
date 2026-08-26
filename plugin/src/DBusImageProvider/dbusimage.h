@@ -4,6 +4,7 @@
 #include <qimage.h>
 #include <qmutex.h>
 #include <qobject.h>
+#include <qpixmap.h>
 #include <qqmlengine.h>
 #include <qqmlextensioninterface.h>
 #include <qqmlextensionplugin.h>
@@ -19,6 +20,22 @@
 #include <qurl.h>
 
 namespace ns::dbusprovider {
+
+namespace ProviderType {
+Q_NAMESPACE
+
+enum Enum : quint8 { Auto = 0, Async = 1 };
+
+Q_ENUM_NS(Enum)
+}; // namespace ProviderType
+
+struct ImageHandleAdapter {
+  bool        hasAlpha = 0;
+  QByteArray *data;
+  QMutex     *mutex  = nullptr;
+  qint32      width  = 0;
+  qint32      height = 0;
+};
 
 struct DBusNotificationImage {
   qint32     width    = 0;
@@ -40,10 +57,8 @@ signals:
   void done(QImage image);
 
 public:
-  explicit DBusAsyncImageRunnable(const QString &id,
-                                  const QSize   &requestedSize)
-      : m_id(id),
-        m_requestedSize(requestedSize) {}
+  explicit DBusAsyncImageRunnable(const QString &id, const QSize &requestedSize)
+      : m_id(id), m_requestedSize(requestedSize) {}
 
   void run() override;
 
@@ -77,27 +92,60 @@ public:
   QImage m_image;
 };
 
+class DBusPixmapImageProvider : public QQuickImageProvider {
+public:
+  explicit DBusPixmapImageProvider()
+      : QQuickImageProvider(QQuickImageProvider::Pixmap) {}
+
+  QPixmap
+  requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
+
+private:
+  QPixmap placeholderPixmap(const QSize &resolvedSize);
+  QPixmap placeholderPixmap(QSize *size, const QSize &resolvedSize);
+};
+
 class DBusImageProvider : public QQuickAsyncImageProvider {
 public:
   QQuickImageResponse *
-  requestImageResponse(const QString &id,
-                       const QSize   &requestedSize) override;
+  requestImageResponse(const QString &id, const QSize &requestedSize) override;
 
 private:
   QThreadPool pool;
 };
 
-class DBusImageHandler {
+class BaseImageHandle {
+public:
+  explicit BaseImageHandle(ProviderType::Enum type = ProviderType::Auto);
+  virtual ~BaseImageHandle();
+  Q_DISABLE_COPY_MOVE(BaseImageHandle)
+
+  [[nodiscard]] virtual QString            urlFor() const;
+  [[nodiscard]] virtual ImageHandleAdapter imageData()     = 0;
+  [[nodiscard]] virtual bool               hasData() const = 0;
+
+  virtual QPixmap
+  requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
+  virtual QImage
+  requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+
+private:
+  const ProviderType::Enum m_type;
+  QString                  m_id;
+};
+
+class DBusImageHandler : public BaseImageHandle {
 public:
   explicit DBusImageHandler();
-  virtual ~DBusImageHandler();
   Q_DISABLE_COPY_MOVE(DBusImageHandler)
 
-  DBusNotificationImage *imageData() { return &image; }
-  [[nodiscard]] bool     hasData() const { return !this->image.data.isEmpty(); }
-  void                   clear() { this->image.data.clear(); }
+  ImageHandleAdapter imageData() override;
+  [[nodiscard]] bool hasData() const override {
+    return !this->image.data.isEmpty();
+  }
+  void clear() { this->image.data.clear(); }
 
-  [[nodiscard]] QString urlFor() const;
+  [[nodiscard]] QString urlFor() const override;
   void                  imageChanged();
 
   [[nodiscard]] DBusNotificationImage &writeImage() {
@@ -116,10 +164,10 @@ class DBusImageProviderPlugin : public QQmlEngineExtensionPlugin {
   Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
 
 public:
-  void initializeEngine(QQmlEngine *engine,
-                        const char *uri) override {
+  void initializeEngine(QQmlEngine *engine, const char *uri) override {
     Q_UNUSED(uri)
     engine->addImageProvider("dbusimg", new DBusImageProvider);
+    engine->addImageProvider("dbuspix", new DBusPixmapImageProvider);
   }
 };
 } // namespace ns::dbusprovider
