@@ -20,15 +20,6 @@
 #include <qurl.h>
 
 namespace ns::dbusprovider {
-
-namespace ProviderType {
-Q_NAMESPACE
-
-enum Enum : quint8 { Auto = 0, Async = 1 };
-
-Q_ENUM_NS(Enum)
-}; // namespace ProviderType
-
 struct ImageHandleAdapter {
   bool        hasAlpha = 0;
   QByteArray *data;
@@ -100,9 +91,8 @@ public:
   QPixmap
   requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
 
-private:
-  QPixmap placeholderPixmap(const QSize &resolvedSize);
-  QPixmap placeholderPixmap(QSize *size, const QSize &resolvedSize);
+  static QPixmap placeholderPixmap(const QSize &resolvedSize);
+  static QPixmap placeholderPixmap(QSize *size, const QSize &resolvedSize);
 };
 
 class DBusImageProvider : public QQuickAsyncImageProvider {
@@ -116,25 +106,36 @@ private:
 
 class BaseImageHandle {
 public:
-  explicit BaseImageHandle(ProviderType::Enum type = ProviderType::Auto);
+  explicit BaseImageHandle();
   virtual ~BaseImageHandle();
   Q_DISABLE_COPY_MOVE(BaseImageHandle)
-
-  [[nodiscard]] virtual QString            urlFor() const;
-  [[nodiscard]] virtual ImageHandleAdapter imageData()     = 0;
-  [[nodiscard]] virtual bool               hasData() const = 0;
 
   virtual QPixmap
   requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
   virtual QImage
   requestImage(const QString &id, QSize *size, const QSize &requestedSize);
 
+  [[nodiscard]] QString urlFor() const;
+
 private:
-  const ProviderType::Enum m_type;
-  QString                  m_id;
+  QString m_id;
 };
 
-class DBusImageHandler : public BaseImageHandle {
+class BaseAsyncImageHandle {
+public:
+  explicit BaseAsyncImageHandle();
+  virtual ~BaseAsyncImageHandle();
+  Q_DISABLE_COPY_MOVE(BaseAsyncImageHandle)
+
+  [[nodiscard]] virtual QString            urlFor() const;
+  [[nodiscard]] virtual ImageHandleAdapter imageData()     = 0;
+  [[nodiscard]] virtual bool               hasData() const = 0;
+
+private:
+  QString m_id;
+};
+
+class DBusImageHandler : public BaseAsyncImageHandle {
 public:
   explicit DBusImageHandler();
   Q_DISABLE_COPY_MOVE(DBusImageHandler)
@@ -166,7 +167,7 @@ class DBusImageProviderPlugin : public QQmlEngineExtensionPlugin {
 public:
   void initializeEngine(QQmlEngine *engine, const char *uri) override {
     Q_UNUSED(uri)
-    engine->addImageProvider("dbusimg", new DBusImageProvider);
+    engine->addImageProvider("dbusimgasync", new DBusImageProvider);
     engine->addImageProvider("dbuspix", new DBusPixmapImageProvider);
   }
 };

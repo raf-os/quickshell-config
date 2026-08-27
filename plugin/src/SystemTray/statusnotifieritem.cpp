@@ -1,17 +1,24 @@
 #include "statusnotifieritem.h"
 
+#include <memory>
+
+#include <QtCore>
 #include <qdbusconnection.h>
 #include <qdbuserror.h>
 #include <qdbusmetatype.h>
 #include <qicon.h>
 #include <qloggingcategory.h>
+#include <qnamespace.h>
 #include <qobject.h>
+#include <qpainter.h>
+#include <qpixmap.h>
 #include <qproperty.h>
 #include <qsize.h>
 
 #include "dbus_item.h"
-#include "dbusimage.h"
 #include "dbustypes.h"
+#include "iconprovider.h"
+#include "trayimagehandle.h"
 
 namespace ns::systemtray {
 Q_LOGGING_CATEGORY(logNSStatusNotifierItem, "ns.systemtray.StatusNotifierItem")
@@ -42,7 +49,8 @@ Category::Enum fromString(const QString &value) {
 } // namespace Category
 
 StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
-    : QObject(parent), m_watcherId(address) {
+    : QObject(parent), m_watcherId(address),
+      m_imageHandle(std::make_unique<TrayImageHandle>(this)) {
   qDBusRegisterMetaType<DBusTrayIconPixmap>();
   qDBusRegisterMetaType<DBusTrayIconPixmapList>();
   qDBusRegisterMetaType<DBusTrayTooltip>();
@@ -75,17 +83,69 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
                    this,
                    [this]() { this->readTooltip(); });
 
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewIcon, this, [this]() {
+    this->readIconData();
+  });
+  QObject::connect(m_item,
+                   &QDBusStatusNotifierItem::NewAttentionIcon,
+                   this,
+                   [this]() { this->readIconData(); });
+  QObject::connect(m_item,
+                   &QDBusStatusNotifierItem::NewOverlayIcon,
+                   this,
+                   [this]() { this->readIconData(); });
+
   b_hasMenu.setBinding([this]() {
     // Apparently this is a KDE specific thing
     return !b_menuPath.value().path().isEmpty() &&
            b_menuPath.value().path() != "/NO_DBUSMENU";
   });
 
+  b_iconUrl.setBinding([this]() -> QString {
+    // The image handle has cache busting behavior, so this early return
+    // re-routes the pixmap creation logic to the regular icon image provider
+    if (b_status.value() == Status::NeedsAttention) {
+      auto name = b_attentionIconName.value();
+      if (!name.isEmpty())
+        return iconprovider::IconImageProvider::getSystemIconRequestString(
+            name, b_iconThemePath.value(), {});
+    } else {
+      auto name = b_iconName.value();
+      if (!name.isEmpty() && b_overlayIconName.value().isEmpty()) {
+        return iconprovider::IconImageProvider::getSystemIconRequestString(
+            name, b_iconThemePath.value(), {});
+      }
+    }
+
+    if (m_imageHandle) {
+      if (!b_iconName.value().isEmpty() && !b_overlayIconName.value().isEmpty())
+      {
+        // Hopefully this makes better use of qt's image caching behavior so
+        // regular icon pixmaps are re-used if their icon/overlay combination is
+        // the same as a previous one
+        return m_imageHandle->urlFor() % "/?icon=" % b_iconName.value() %
+               "&overlay=" % b_overlayIconName.value();
+      }
+
+      // Cache busting behavior - will force the generation of a new pixmap.
+      // Even if images are not being cached, the url change that's passed to a
+      // QML Image component will cause the engine to fetch a new QPixmap.
+      return m_imageHandle->urlFor() % "/" %
+             QString::number(b_pixmapIndex.value());
+    } else return QString();
+  });
+
   readAllParameters();
+
+  b_pixmapList.onValueChanged([this] { this->refreshPixmap(); });
+  b_attentionPixmapList.onValueChanged([this] { this->refreshPixmap(); });
+  b_overlayPixmapList.onValueChanged([this] { this->refreshPixmap(); });
 
   m_isReady = true;
   emit ready();
 }
+
+StatusNotifierItem::~StatusNotifierItem() = default;
 
 void StatusNotifierItem::readAllParameters() {
   if (m_item == nullptr) return;
@@ -120,22 +180,26 @@ void StatusNotifierItem::readIconData() {
   if (!m_item) return;
 
   QScopedPropertyUpdateGroup scope;
-  m_pixmapList          = m_item->iconPixmap();
-  m_attentionPixmapList = m_item->attentionIconPixmap();
-  m_overlayPixmapList   = m_item->overlayIconPixmap();
+  b_iconName          = m_item->iconName();
+  b_attentionIconName = m_item->attentionIconName();
+  b_overlayIconName   = m_item->overlayIconName();
+
+  b_pixmapList          = m_item->iconPixmap();
+  b_attentionPixmapList = m_item->attentionIconPixmap();
+  b_overlayPixmapList   = m_item->overlayIconPixmap();
 }
 
 bool StatusNotifierItem::isValid() const { return m_item->isValid(); }
 bool StatusNotifierItem::isReady() const { return m_isReady; }
 
-void StatusNotifierItem::createPixmap(const QSize &size) {
+QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
   auto needsAttention = b_status.value() == Status::NeedsAttention;
 
-  auto getClosestPixmap = [](const QSize            &size,
-                             DBusTrayIconPixmapList &pixmaps) {
-    DBusTrayIconPixmap *ret = nullptr;
+  auto getClosestPixmap = [](const QSize                  &size,
+                             const DBusTrayIconPixmapList &pixmaps) {
+    const DBusTrayIconPixmap *ret = nullptr;
 
-    for (auto &pixmap : pixmaps) {
+    for (const auto &pixmap : pixmaps) {
       if (ret == nullptr) {
         ret = &pixmap;
         continue;
@@ -158,38 +222,67 @@ void StatusNotifierItem::createPixmap(const QSize &size) {
     return ret;
   };
 
-  dbusprovider::ImageHandleAdapter imageAdapter;
+  auto getPixmapFromTheme =
+      [](const QSize &size, const QString &iconName, QPixmap *destination) {
+        auto icon    = QIcon::fromTheme(iconName);
+        *destination = icon.pixmap(size.width(), size.height());
+      };
+
+  auto assignPixmap = [](const QSize              &size,
+                         const DBusTrayIconPixmap *source,
+                         QPixmap                  *destination) {
+    if (source != nullptr) {
+      const auto image = source->createImage().scaled(
+          size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+      *destination = QPixmap::fromImage(image);
+    }
+  };
+
+  QPixmap pixmap;
 
   if (needsAttention) {
     if (!b_attentionIconName.value().isEmpty()) {
-      b_iconUrl = "image://qicons/qt/" + b_attentionIconName.value();
-      return;
+      getPixmapFromTheme(size, b_attentionIconName.value(), &pixmap);
     } else {
-      auto *icon = getClosestPixmap(size, m_attentionPixmapList);
+      auto *icon = getClosestPixmap(size, b_attentionPixmapList.value());
 
       if (icon == nullptr) {
         // Fall back to regular icon if it fails to get an attention icon
-        icon = getClosestPixmap(size, m_pixmapList);
+        icon = getClosestPixmap(size, b_pixmapList.value());
       }
 
-      if (icon != nullptr) {
-        imageAdapter.data   = &icon->data;
-        imageAdapter.width  = icon->width;
-        imageAdapter.height = icon->height;
-      }
+      assignPixmap(size, icon, &pixmap);
     }
   } else {
     if (!b_iconName.value().isEmpty()) {
-      b_iconUrl = "image://qicons/qt/" + b_iconName.value();
+      getPixmapFromTheme(size, b_iconName.value(), &pixmap);
     } else {
-      auto *icon = getClosestPixmap(size, m_pixmapList);
+      auto *icon = getClosestPixmap(size, b_pixmapList.value());
 
-      if (icon != nullptr) {
-        imageAdapter.data   = &icon->data;
-        imageAdapter.width  = icon->width;
-        imageAdapter.height = icon->height;
-      }
+      assignPixmap(size, icon, &pixmap);
+    }
+
+    QPixmap overlayPixmap;
+    if (!b_overlayIconName.value().isEmpty()) {
+      getPixmapFromTheme(size, b_overlayIconName.value(), &overlayPixmap);
+    } else {
+      auto *icon = getClosestPixmap(size, b_pixmapList.value());
+
+      assignPixmap(size, icon, &overlayPixmap);
+    }
+
+    if (!overlayPixmap.isNull()) {
+      auto painter = QPainter(&pixmap);
+      painter.drawPixmap(QRect(0, 0, pixmap.width(), pixmap.height()),
+                         overlayPixmap);
+      painter.end();
     }
   }
+
+  return pixmap;
+}
+
+void StatusNotifierItem::refreshPixmap() {
+  b_pixmapIndex = b_pixmapIndex.value() + 1;
 }
 } // namespace ns::systemtray

@@ -9,6 +9,13 @@
 #include <qtypes.h>
 
 // Single system tray icon
+// The createImage() method is synchronous and will block the calling thread.
+//
+// TODO: If this somehow becomes an issue, move the processing to a separate
+// thread. Considering this will need to be converted to a QPixmap later, which
+// is not guaranteed to support multi-threading, and additional logic will be
+// required. Likely by adding a mutex below + a QRunnable to notify when it's
+// done
 struct DBusTrayIconPixmap {
   qint32     width  = 0;
   qint32     height = 0;

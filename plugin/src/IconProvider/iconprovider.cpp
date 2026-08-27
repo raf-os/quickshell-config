@@ -1,9 +1,7 @@
 #include "iconprovider.h"
 
-#include <qbuffer.h>
 #include <qdir.h>
 #include <qicon.h>
-#include <qimage.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
@@ -14,7 +12,6 @@
 #include <qsize.h>
 #include <qstringview.h>
 #include <qsvgrenderer.h>
-#include <qthreadpool.h>
 
 namespace ns::iconprovider {
 namespace {
@@ -24,86 +21,6 @@ QImage PLACEHOLDER_ICON(const QSize &size) {
   return placeholder;
 }
 } // namespace
-AsyncIconResponseRunnable::AsyncIconResponseRunnable(const QString &id,
-                                                     const QSize &requestedSize)
-    : m_id(id),
-      m_requestedSize(requestedSize) {}
-
-void AsyncIconResponseRunnable::run() {
-  QSize resolvedSize =
-      m_requestedSize.isValid() ? m_requestedSize : QSize(24, 24);
-  auto idx = m_id.indexOf("/");
-
-  if (idx < 0 || idx + 1 > m_id.size()) {
-    auto qm = handleQtIcon(m_id, resolvedSize);
-    emit done(qm);
-  } else if (m_id.first(idx) == "qt") {
-    auto qm = handleQtIcon(m_id.sliced(idx + 1), resolvedSize);
-    emit done(qm);
-  } else if (m_id.first(idx) == "shell") {
-    auto qm = handleShellIcon(m_id.sliced(idx + 1), resolvedSize);
-    emit done(qm);
-  } else {
-    auto placeholder = PLACEHOLDER_ICON(resolvedSize);
-    emit done(placeholder);
-  }
-}
-
-QImage AsyncIconResponseRunnable::handleQtIcon(const QString &id,
-                                               const QSize   &resolvedSize) {
-  auto requestedIcon = QIcon::fromTheme(id);
-  if (requestedIcon.isNull()) {
-    return PLACEHOLDER_ICON(resolvedSize);
-  }
-
-  auto pmap = requestedIcon.pixmap(resolvedSize, QIcon::Normal).toImage();
-  return pmap;
-}
-
-QImage AsyncIconResponseRunnable::handleShellIcon(const QString &id,
-                                                  const QSize   &resolvedSize) {
-  QFile iconFile(QString::fromUtf8(ICON_DEFAULT_PATH) + "/icons/" + id +
-                 ".svg");
-
-  if (!iconFile.exists()) return PLACEHOLDER_ICON(resolvedSize);
-
-  if (!iconFile.open(QIODevice::ReadOnly)) {
-    return PLACEHOLDER_ICON(resolvedSize);
-  }
-
-  QByteArray buffer(iconFile.size(), Qt::Uninitialized);
-  iconFile.read(buffer.data(), buffer.size());
-  iconFile.close();
-
-  QSvgRenderer renderer(buffer);
-  QPixmap      pixmap(resolvedSize);
-  pixmap.fill(Qt::transparent);
-
-  if (!renderer.isValid()) {
-    return PLACEHOLDER_ICON(resolvedSize);
-  }
-
-  QPainter painter(&pixmap);
-  renderer.render(&painter);
-  return pixmap.toImage();
-}
-
-AsyncIconImageResponse::AsyncIconImageResponse(const QString &id,
-                                               const QSize   &requestedSize,
-                                               QThreadPool   *pool) {
-  auto runnable = new AsyncIconResponseRunnable(id, requestedSize);
-  connect(runnable,
-          &AsyncIconResponseRunnable::done,
-          this,
-          &AsyncIconImageResponse::handleDone);
-  pool->start(runnable);
-}
-
-void AsyncIconImageResponse::handleDone(QImage image) {
-  m_image = image;
-  emit finished();
-}
-
 IconImageProvider::IconImageProvider()
     : QQuickImageProvider(
           QQuickImageProvider::Pixmap,
@@ -137,15 +54,18 @@ QPixmap IconImageProvider::handleQtIcon(const QString &name,
   auto    queryIdx = name.indexOf("?");
   QString iconName;
   QString fallbackIcon;
+  QString path;
 
   if (queryIdx != -1) {
     const auto fullQuery = name.sliced(queryIdx + 1);
     iconName             = name.sliced(0, queryIdx);
 
-    auto args = fullQuery.split(";");
+    auto args = fullQuery.split("&");
     for (auto &arg : args) {
       if (arg.startsWith("fallback=")) {
         fallbackIcon = arg.sliced(9);
+      } else if (arg.startsWith("path=")) {
+        path = arg.sliced(5);
       }
     }
   } else {
@@ -154,9 +74,9 @@ QPixmap IconImageProvider::handleQtIcon(const QString &name,
 
   auto requestedIcon = QIcon::fromTheme(iconName);
 
-  if (requestedIcon.isNull() && !fallbackIcon.isEmpty()) {
+  if (requestedIcon.isNull() && !fallbackIcon.isEmpty())
     requestedIcon = QIcon::fromTheme(fallbackIcon);
-  }
+  if (requestedIcon.isNull() && !path.isEmpty()) requestedIcon = QPixmap(path);
 
   if (requestedIcon.isNull()) {
     return placeholderIcon(resolvedSize);
@@ -215,6 +135,19 @@ QPixmap IconImageProvider::placeholderIcon(const QSize &resolvedSize) {
   QPixmap placeholder(resolvedSize);
   placeholder.fill(Qt::transparent);
   return placeholder;
+}
+
+QString IconImageProvider::getSystemIconRequestString(const QString &icon,
+                                                      const QString &path,
+                                                      const QString &fallback) {
+  QString reqStr = "image://qicons/qt/" + icon;
+  if (!path.isEmpty()) {
+    reqStr += "?path=" + path;
+  }
+  if (!fallback.isEmpty()) {
+    reqStr += "?fallback=" + fallback;
+  }
+  return reqStr;
 }
 
 void IconImageProviderExtensionPlugin::initializeEngine(QQmlEngine *engine,

@@ -1,65 +1,37 @@
-find_package(Qt6 REQUIRED COMPONENTS
-  Core
-  Qml
-  Gui
-  Quick
-  Svg
+find_package(
+  Qt6
+  REQUIRED
+  COMPONENTS Core Qml Gui Quick Svg
 )
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 
-function(qml_plugin arg_TARGET)
-  cmake_parse_arguments(PARSE_ARGV 1 arg "" "URI" "SOURCES;LIBRARIES")
+qt6_add_library(nightshell_icon_provider_plugin SHARED iconprovider.cpp)
 
-  qt_add_qml_module(${arg_TARGET}
-    URI ${arg_URI}
-    VERSION 1.0
-    PLUGIN_TARGET ${arg_TARGET}
-    NO_PLUGIN_OPTIONAL
-    NO_GENERATE_PLUGIN_SOURCE
-  )
+target_include_directories(
+  nightshell_icon_provider_plugin
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-  target_sources(${arg_TARGET} PRIVATE
-    ${arg_SOURCES})
+target_compile_definitions(
+  nightshell_icon_provider_plugin
+  PUBLIC ICON_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
+  PRIVATE NS_ICONPROVIDER_SHARED_LIB
+)
 
-  qt_query_qml_module(${arg_TARGET}
-    URI module_uri
-    VERSION module_version
-    PLUGIN_TARGET module_plugin_target
-    TARGET_PATH module_target_path
-    QMLDIR module_qmldir
-    TYPEINFO module_typeinfo
-  )
-
-  set(module_dir "${INSTALL_QMLDIR}/${module_target_path}")
-  install(TARGETS ${arg_TARGET}
-    LIBRARY DESTINATION "${module_dir}"
-    RUNTIME DESTINATION "${module_dir}"
-  )
-  install(TARGETS ${module_plugin_target}
-    LIBRARY DESTINATION "${module_dir}"
-    RUNTIME DESTINATION "${module_dir}"
-  )
-  install(FILES "${module_qmldir}" DESTINATION "${module_dir}")
-  install(FILES "${module_typeinfo}" DESTINATION "${module_dir}")
-
-  target_link_libraries(${arg_TARGET}
-    PRIVATE
-      Qt::Core
-      Qt::Qml
-      Qt::Quick
-      ${arg_LIBRARIES}
-  )
-endfunction()
-
-qml_plugin(icon_provider_plugin
+qt6_add_qml_module(
+  nightshell_icon_provider_plugin
   URI "${ORG_URI_PREFIX}.IconProvider"
-  SOURCES
-    iconprovider.h iconprovider.cpp
-  LIBRARIES
-    Qt::Svg
+  VERSION 0.1
+  PLUGIN_TARGET nightshell_icon_provider_plugin
+  NO_PLUGIN_OPTIONAL
+  NO_GENERATE_PLUGIN_SOURCE
+  CLASS_NAME IconImageProviderExtensionPlugin
 )
 
-target_compile_definitions(icon_provider_plugin PRIVATE
-  ICON_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
+target_link_libraries(
+  nightshell_icon_provider_plugin
+  PRIVATE Qt6::Core Qt6::Qml Qt6::Gui Qt6::Quick Qt6::Svg
 )
+
+install_qml_module(nightshell_icon_provider_plugin)

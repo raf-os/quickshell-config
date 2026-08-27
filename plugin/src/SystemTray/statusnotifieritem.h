@@ -1,7 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <qdbusextratypes.h>
 #include <qobject.h>
+#include <qpixmap.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qsize.h>
@@ -39,8 +42,12 @@ Q_ENUM_NS(Enum)
 Category::Enum fromString(const QString &value);
 } // namespace Category
 
+class TrayImageHandle;
+
 class StatusNotifierItem : public QObject {
   Q_OBJECT
+  QML_ELEMENT
+  QML_UNCREATABLE()
 
   Q_PROPERTY(QString id READ default NOTIFY idChanged BINDABLE bindableId)
   Q_PROPERTY(ns::systemtray::Category::Enum category
@@ -75,11 +82,15 @@ class StatusNotifierItem : public QObject {
 public:
   explicit StatusNotifierItem(const QString &address,
                               QObject       *parent = nullptr);
+  // This explicit destructor will hopefully avoid unique_ptr 'invalid
+  // application of "sizeof" to incomplete type (...)' because of forward
+  // declaration
+  ~StatusNotifierItem() override;
 
   [[nodiscard]] bool isValid() const;
   [[nodiscard]] bool isReady() const;
 
-  void createPixmap(const QSize &size);
+  QPixmap createPixmap(const QSize &size);
 
   [[nodiscard]] QBindable<QString>        bindableId() const { return &b_id; }
   [[nodiscard]] QBindable<Category::Enum> bindableCategory() const {
@@ -147,13 +158,28 @@ private slots:
 
 private:
   bool                     m_isReady = false;
-  QDBusStatusNotifierItem *m_item    = nullptr;
   QString                  m_watcherId;
+  QDBusStatusNotifierItem *m_item = nullptr;
+  std::unique_ptr<TrayImageHandle>
+      m_imageHandle; // Using unique_ptr to avoid circular dependency in
+                     // headers. Both require each other but because of the
+                     // parent->child relationship, this sounded more
+                     // appropriate
 
-  DBusTrayIconPixmapList m_pixmapList;
-  DBusTrayIconPixmapList m_attentionPixmapList;
-  DBusTrayIconPixmapList m_overlayPixmapList;
+  void refreshPixmap();
 
+  // PIXMAP LISTS
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
+                             DBusTrayIconPixmapList,
+                             b_pixmapList)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
+                             DBusTrayIconPixmapList,
+                             b_attentionPixmapList)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
+                             DBusTrayIconPixmapList,
+                             b_overlayPixmapList)
+
+  // OTHER PROPERTIES
   Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
                              QString,
                              b_id,
@@ -214,5 +240,7 @@ private:
                              bool,
                              b_isMenuOnly,
                              &StatusNotifierItem::isMenuOnlyChanged)
+
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, quint32, b_pixmapIndex)
 };
 } // namespace ns::systemtray

@@ -16,8 +16,10 @@ namespace ns::dbusprovider {
 Q_LOGGING_CATEGORY(logNSDBusProvider, "nightshell.dbus.imageprovider")
 
 namespace {
-QMap<QString, BaseImageHandle *> activeHandles;
-quint32                          handleIndex = 0;
+QMap<QString, BaseAsyncImageHandle *> activeAsyncImageHandles;
+QMap<QString, BaseImageHandle *>      activeImageHandles;
+quint32                               asyncHandleIndex = 0;
+quint32                               imageHandleIndex = 0;
 
 void parseRequest(const QString &request,
                   QString       &outTarget,
@@ -37,9 +39,9 @@ void DBusAsyncImageRunnable::run() {
   QString param;
   parseRequest(m_id, target, param);
 
-  auto handler = activeHandles.value(target);
+  auto handler = activeAsyncImageHandles.value(target);
   if (handler != nullptr) {
-    // Handler is valid
+    // Handler exists
     auto         img = handler->imageData();
     QMutexLocker locker(img.mutex);
 
@@ -104,19 +106,21 @@ DBusImageProvider::requestImageResponse(const QString &id,
 QPixmap DBusPixmapImageProvider::requestPixmap(const QString &id,
                                                QSize         *size,
                                                const QSize   &requestedSize) {
+  QString target;
+  QString param;
+  parseRequest(id, target, param);
   QSize resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
-  QPixmap pmap;
 
-  auto handler = activeHandles.value(id);
+  auto handler = activeImageHandles.value(target);
   if (handler) {
+    return handler->requestPixmap(param, size, requestedSize);
   } else {
     return this->placeholderPixmap(size, resolvedSize);
   }
-  return pmap;
 }
 
 QPixmap DBusPixmapImageProvider::placeholderPixmap(const QSize &resolvedSize) {
-  return this->placeholderPixmap(nullptr, resolvedSize);
+  return placeholderPixmap(nullptr, resolvedSize);
 }
 
 QPixmap DBusPixmapImageProvider::placeholderPixmap(QSize       *size,
@@ -129,12 +133,20 @@ QPixmap DBusPixmapImageProvider::placeholderPixmap(QSize       *size,
   return pmap;
 }
 
-BaseImageHandle::BaseImageHandle(ProviderType::Enum type)
-    : m_id(QString::number(++handleIndex)), m_type(type) {
-  activeHandles.insert(m_id, this);
+BaseAsyncImageHandle::BaseAsyncImageHandle()
+    : m_id(QString::number(++asyncHandleIndex)) {
+  activeAsyncImageHandles.insert(m_id, this);
 }
 
-BaseImageHandle::~BaseImageHandle() { activeHandles.remove(m_id); }
+BaseAsyncImageHandle::~BaseAsyncImageHandle() {
+  activeAsyncImageHandles.remove(m_id);
+}
+
+BaseImageHandle::BaseImageHandle() : m_id(QString::number(++imageHandleIndex)) {
+  activeImageHandles.insert(m_id, this);
+}
+
+BaseImageHandle::~BaseImageHandle() { activeImageHandles.remove(m_id); }
 
 QPixmap BaseImageHandle::requestPixmap(const QString & /*unused*/,
                                        QSize * /*unused*/,
@@ -152,7 +164,11 @@ QImage BaseImageHandle::requestImage(const QString & /*unused*/,
   return QImage();
 }
 
-DBusImageHandler::DBusImageHandler() : BaseImageHandle(ProviderType::Async) {}
+QString BaseImageHandle::urlFor() const {
+  return QString("image://dbuspix/" + m_id);
+}
+
+DBusImageHandler::DBusImageHandler() : BaseAsyncImageHandle() {}
 
 ImageHandleAdapter DBusImageHandler::imageData() {
   ImageHandleAdapter adapter;
@@ -164,9 +180,13 @@ ImageHandleAdapter DBusImageHandler::imageData() {
   return std::move(adapter);
 }
 
+QString BaseAsyncImageHandle::urlFor() const {
+  return QString("image://dbusimgasync/" + m_id);
+}
+
 QString DBusImageHandler::urlFor() const {
   QString url =
-      "image://dbusimg/" + m_id + "/" + QString::number(m_changeIndex);
+      "image://dbusimgasync/" + m_id + "/" + QString::number(m_changeIndex);
   return url;
 }
 

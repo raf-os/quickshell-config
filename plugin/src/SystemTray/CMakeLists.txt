@@ -42,6 +42,7 @@ target_sources(
     statusnotifierhost.cpp
     statusnotifierwatcher.cpp
     statusnotifieritem.cpp
+    trayimagehandle.cpp
     systemtrayqml.cpp
     ${DBUS_INTERFACES}
 )
@@ -68,6 +69,7 @@ target_link_libraries(
     Qt6::DBus
     nightshell_dbus
     nightshell_dbus_imageprovider
+    nightshell_icon_provider_plugin
     myshell_include
 )
 
