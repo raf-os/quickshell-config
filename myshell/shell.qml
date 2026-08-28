@@ -43,7 +43,7 @@ ShellRoot {
 
 		root.evalNotificationConfig();
 
-		const tray = SystemTrayQML;
+		// const tray = SystemTrayQML;
 
 		// Config.earlyLoad();
 		// Colors.earlyLoad();

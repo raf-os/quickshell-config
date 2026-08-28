@@ -54,8 +54,7 @@ const QDBusArgument &operator<<(QDBusArgument               &argument,
   return argument;
 }
 
-int main(int   argc,
-         char *argv[]) {
+int main(int argc, char *argv[]) {
   qDBusRegisterMetaType<DBusNotificationImage>();
 
   auto dbus_connection = QDBusConnection::sessionBus();
@@ -131,13 +130,13 @@ int main(int   argc,
 
   DBusNotificationHints notificationHints{};
 
-  DBusNotification notificationData{.app_name    = "Notification test",
-                                    .replaces_id = 0,
-                                    .app_icon    = "",
-                                    .summary     = "Test",
-                                    .body        = "Body",
-                                    .actions     = {},
-                                    .hints       = std::move(hints)};
+  // DBusNotification notificationData{.app_name    = "Notification test",
+  //                                   .replaces_id = 0,
+  //                                   .app_icon    = "",
+  //                                   .summary     = "Test",
+  //                                   .body        = "Body",
+  //                                   .actions     = {},
+  //                                   .hints       = std::move(hints)};
 
   auto notif = DBUS_INTERFACE->Notify("Notification test",
                                       0,

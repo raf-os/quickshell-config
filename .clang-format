@@ -1,6 +1,6 @@
 ---
 Language:        Cpp
-AlignAfterOpenBracket: BlockIndent
+AlignAfterOpenBracket: false
 AccessModifierOffset: -2
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments:
@@ -89,9 +89,9 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AttributeMacros:
   - __capability
-BinPackArguments: false
+BinPackArguments: true
 BinPackLongBracedList: true
-BinPackParameters: false
+BinPackParameters: BinPack
 BitFieldColonSpacing: Both
 BracedInitializerIndentWidth: -1
 BraceWrapping:

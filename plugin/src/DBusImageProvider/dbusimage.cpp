@@ -16,10 +16,10 @@ namespace ns::dbusprovider {
 Q_LOGGING_CATEGORY(logNSDBusProvider, "nightshell.dbus.imageprovider")
 
 namespace {
-QMap<QString, BaseAsyncImageHandle *> activeAsyncImageHandles;
-QMap<QString, BaseImageHandle *>      activeImageHandles;
-quint32                               asyncHandleIndex = 0;
-quint32                               imageHandleIndex = 0;
+QMap<QString, DBusImageHandler *> activeAsyncImageHandles;
+QMap<QString, BaseImageHandle *>  activeImageHandles;
+quint32                           asyncHandleIndex = 0;
+quint32                           imageHandleIndex = 0;
 
 void parseRequest(const QString &request,
                   QString       &outTarget,
@@ -43,13 +43,13 @@ void DBusAsyncImageRunnable::run() {
   if (handler != nullptr) {
     // Handler exists
     auto         img = handler->imageData();
-    QMutexLocker locker(img.mutex);
+    QMutexLocker locker(&img->mutex);
 
     auto format =
-        img.hasAlpha ? QImage::Format_RGBA8888 : QImage::Format_RGB888;
-    auto image = QImage(reinterpret_cast<const uchar *>(img.data->constData()),
-                        img.width,
-                        img.height,
+        img->hasAlpha ? QImage::Format_RGBA8888 : QImage::Format_RGB888;
+    auto image = QImage(reinterpret_cast<const uchar *>(img->data.constData()),
+                        img->width,
+                        img->height,
                         format);
 
     if (m_requestedSize.isValid()) {
@@ -133,14 +133,12 @@ QPixmap DBusPixmapImageProvider::placeholderPixmap(QSize       *size,
   return pmap;
 }
 
-BaseAsyncImageHandle::BaseAsyncImageHandle()
+DBusImageHandler::DBusImageHandler()
     : m_id(QString::number(++asyncHandleIndex)) {
   activeAsyncImageHandles.insert(m_id, this);
 }
 
-BaseAsyncImageHandle::~BaseAsyncImageHandle() {
-  activeAsyncImageHandles.remove(m_id);
-}
+DBusImageHandler::~DBusImageHandler() { activeAsyncImageHandles.remove(m_id); }
 
 BaseImageHandle::BaseImageHandle() : m_id(QString::number(++imageHandleIndex)) {
   activeImageHandles.insert(m_id, this);
@@ -168,21 +166,7 @@ QString BaseImageHandle::urlFor() const {
   return QString("image://dbuspix/" + m_id);
 }
 
-DBusImageHandler::DBusImageHandler() : BaseAsyncImageHandle() {}
-
-ImageHandleAdapter DBusImageHandler::imageData() {
-  ImageHandleAdapter adapter;
-  adapter.data   = &this->image.data;
-  adapter.width  = this->image.width;
-  adapter.height = this->image.height;
-  adapter.mutex  = &this->image.mutex;
-
-  return std::move(adapter);
-}
-
-QString BaseAsyncImageHandle::urlFor() const {
-  return QString("image://dbusimgasync/" + m_id);
-}
+DBusNotificationImage *DBusImageHandler::imageData() { return &this->image; }
 
 QString DBusImageHandler::urlFor() const {
   QString url =

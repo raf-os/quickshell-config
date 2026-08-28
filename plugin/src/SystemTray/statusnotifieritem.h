@@ -47,7 +47,7 @@ class TrayImageHandle;
 class StatusNotifierItem : public QObject {
   Q_OBJECT
   QML_ELEMENT
-  QML_UNCREATABLE()
+  QML_UNCREATABLE("")
 
   Q_PROPERTY(QString id READ default NOTIFY idChanged BINDABLE bindableId)
   Q_PROPERTY(ns::systemtray::Category::Enum category

@@ -20,13 +20,13 @@
 #include <qurl.h>
 
 namespace ns::dbusprovider {
-struct ImageHandleAdapter {
-  bool        hasAlpha = 0;
-  QByteArray *data;
-  QMutex     *mutex  = nullptr;
-  qint32      width  = 0;
-  qint32      height = 0;
-};
+// struct ImageHandleAdapter {
+//   bool        hasAlpha = 0;
+//   QByteArray *data;
+//   QMutex     *mutex  = nullptr;
+//   qint32      width  = 0;
+//   qint32      height = 0;
+// };
 
 struct DBusNotificationImage {
   qint32     width    = 0;
@@ -121,32 +121,31 @@ private:
   QString m_id;
 };
 
-class BaseAsyncImageHandle {
-public:
-  explicit BaseAsyncImageHandle();
-  virtual ~BaseAsyncImageHandle();
-  Q_DISABLE_COPY_MOVE(BaseAsyncImageHandle)
+// class BaseAsyncImageHandle {
+// public:
+//   explicit BaseAsyncImageHandle();
+//   virtual ~BaseAsyncImageHandle();
+//   Q_DISABLE_COPY_MOVE(BaseAsyncImageHandle)
+//
+//   [[nodiscard]] virtual QString            urlFor() const;
+//   [[nodiscard]] virtual ImageHandleAdapter imageData()     = 0;
+//   [[nodiscard]] virtual bool               hasData() const = 0;
+//
+// protected:
+//   QString m_id;
+// };
 
-  [[nodiscard]] virtual QString            urlFor() const;
-  [[nodiscard]] virtual ImageHandleAdapter imageData()     = 0;
-  [[nodiscard]] virtual bool               hasData() const = 0;
-
-private:
-  QString m_id;
-};
-
-class DBusImageHandler : public BaseAsyncImageHandle {
+class DBusImageHandler {
 public:
   explicit DBusImageHandler();
+  ~DBusImageHandler();
   Q_DISABLE_COPY_MOVE(DBusImageHandler)
 
-  ImageHandleAdapter imageData() override;
-  [[nodiscard]] bool hasData() const override {
-    return !this->image.data.isEmpty();
-  }
-  void clear() { this->image.data.clear(); }
+  DBusNotificationImage *imageData();
+  [[nodiscard]] bool     hasData() const { return !this->image.data.isEmpty(); }
+  void                   clear() { this->image.data.clear(); }
 
-  [[nodiscard]] QString urlFor() const override;
+  [[nodiscard]] QString urlFor() const;
   void                  imageChanged();
 
   [[nodiscard]] DBusNotificationImage &writeImage() {
@@ -155,8 +154,8 @@ public:
   }
 
 private:
-  QString               m_id;
   quint32               m_changeIndex = 0;
+  QString               m_id;
   DBusNotificationImage image;
 };
 

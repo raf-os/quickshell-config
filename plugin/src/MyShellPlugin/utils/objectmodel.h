@@ -14,7 +14,7 @@ namespace ns::utils {
 class UntypedObjectModel : public QAbstractListModel {
   Q_OBJECT
   QML_NAMED_ELEMENT(ObjectListModel)
-  QML_UNCREATABLE()
+  QML_UNCREATABLE("")
 
   Q_PROPERTY(QList<QObject *> values READ values NOTIFY valuesChanged)
 

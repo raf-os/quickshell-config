@@ -1,5 +1,4 @@
 #include "notification.h"
-#include "notificationserver.h"
 
 #include <qcontainerfwd.h>
 #include <qdbusargument.h>
@@ -13,14 +12,14 @@
 #include <qtypes.h>
 #include <qvariant.h>
 
+#include "notificationserver.h"
+
 namespace ns {
 namespace notifications {
 Q_DECLARE_LOGGING_CATEGORY(logNSNotifications)
 
-Notification::Notification(quint32  id,
-                           QObject *parent)
-    : QObject(parent),
-      m_id(id) {}
+Notification::Notification(quint32 id, QObject *parent)
+    : QObject(parent), m_id(id) {}
 
 QQmlListProperty<NotificationAction> Notification::actions() {
   return QQmlListProperty<NotificationAction>(this,
@@ -64,12 +63,9 @@ void Notification::updateProperties(const QString     &appName,
   m_appIcon = appIcon;
 
   QString imageDataKey;
-  if (hints.contains("image-data"))
-    imageDataKey = "image-data";
-  else if (hints.contains("image_data"))
-    imageDataKey = "image_data";
-  else if (hints.contains("icon_data"))
-    imageDataKey = "icon_data";
+  if (hints.contains("image-data")) imageDataKey = "image-data";
+  else if (hints.contains("image_data")) imageDataKey = "image_data";
+  else if (hints.contains("icon_data")) imageDataKey = "icon_data";
 
   QString imagePath;
 
@@ -87,10 +83,8 @@ void Notification::updateProperties(const QString     &appName,
 
   if (!m_imageHandler.hasData()) {
     QString imagePathName;
-    if (hints.contains("image-path"))
-      imagePathName = "image-path";
-    else if (hints.contains("image_path"))
-      imagePathName = "image_path";
+    if (hints.contains("image-path")) imagePathName = "image-path";
+    else if (hints.contains("image_path")) imagePathName = "image_path";
 
     if (!imagePathName.isEmpty()) {
       imagePath = hints.value(imagePathName).value<QString>();
@@ -147,8 +141,7 @@ void Notification::updateProperties(const QString     &appName,
 
   Qt::endPropertyUpdateGroup();
 
-  if (actionsChangedFlag)
-    emit actionsChanged();
+  if (actionsChangedFlag) emit actionsChanged();
 
   for (auto *action : deletedActions) {
     action->deleteLater();
@@ -163,8 +156,7 @@ NotificationCloseReason::Enum Notification::closeReason() const {
 QString NotificationAction::identifier() const { return m_identifier; }
 QString NotificationAction::text() const { return m_text; }
 void    NotificationAction::setText(const QString &text) {
-  if (m_text == text)
-    return;
+  if (m_text == text) return;
 
   m_text = text;
   emit textChanged();
