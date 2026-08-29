@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <qhash.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
@@ -18,6 +20,7 @@ class DBusMenu : public QObject {
 public:
   explicit DBusMenu(
       const QString &service, const QString &path, QObject *parent = nullptr);
+  ~DBusMenu() override;
 
   void updateLayout(qint32 parent, qint32 depth);
 
@@ -28,6 +31,7 @@ private slots:
 
 private:
   DBusMenuInterface            *m_interface = nullptr;
+  std::unique_ptr<DBusMenuItem> m_rootItem;
   QHash<qint32, DBusMenuItem *> m_items;
 
   void updateLayoutRecursively(

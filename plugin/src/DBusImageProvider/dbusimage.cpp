@@ -21,9 +21,8 @@ QMap<QString, BaseImageHandle *>  activeImageHandles;
 quint32                           asyncHandleIndex = 0;
 quint32                           imageHandleIndex = 0;
 
-void parseRequest(const QString &request,
-                  QString       &outTarget,
-                  QString       &outParam) {
+void parseRequest(
+    const QString &request, QString &outTarget, QString &outParam) {
   auto idx = request.indexOf("/");
   if (idx != -1) {
     outTarget = request.sliced(0, idx);
@@ -48,9 +47,7 @@ void DBusAsyncImageRunnable::run() {
     auto format =
         img->hasAlpha ? QImage::Format_RGBA8888 : QImage::Format_RGB888;
     auto image = QImage(reinterpret_cast<const uchar *>(img->data.constData()),
-                        img->width,
-                        img->height,
-                        format);
+        img->width, img->height, format);
 
     if (m_requestedSize.isValid()) {
       image = image.scaled(m_requestedSize);
@@ -66,8 +63,8 @@ void DBusAsyncImageRunnable::run() {
   }
 }
 
-const QDBusArgument &operator>>(const QDBusArgument   &argument,
-                                DBusNotificationImage &pixmap) {
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusNotificationImage &pixmap) {
   QMutexLocker locker(&pixmap.mutex);
   argument.beginStructure();
   argument >> pixmap.width;
@@ -82,8 +79,8 @@ const QDBusArgument &operator>>(const QDBusArgument   &argument,
   return argument;
 }
 
-const QDBusArgument &operator<<(QDBusArgument               &argument,
-                                const DBusNotificationImage &pixmap) {
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusNotificationImage &pixmap) {
   argument.beginStructure();
   argument << pixmap.width;
   argument << pixmap.height;
@@ -96,16 +93,14 @@ const QDBusArgument &operator<<(QDBusArgument               &argument,
   return argument;
 }
 
-QQuickImageResponse *
-DBusImageProvider::requestImageResponse(const QString &id,
-                                        const QSize   &requestedSize) {
+QQuickImageResponse *DBusImageProvider::requestImageResponse(
+    const QString &id, const QSize &requestedSize) {
   auto response = new DBusImageResponse(id, requestedSize, &pool);
   return response;
 }
 
-QPixmap DBusPixmapImageProvider::requestPixmap(const QString &id,
-                                               QSize         *size,
-                                               const QSize   &requestedSize) {
+QPixmap DBusPixmapImageProvider::requestPixmap(
+    const QString &id, QSize *size, const QSize &requestedSize) {
   QString target;
   QString param;
   parseRequest(id, target, param);
@@ -123,8 +118,8 @@ QPixmap DBusPixmapImageProvider::placeholderPixmap(const QSize &resolvedSize) {
   return placeholderPixmap(nullptr, resolvedSize);
 }
 
-QPixmap DBusPixmapImageProvider::placeholderPixmap(QSize       *size,
-                                                   const QSize &resolvedSize) {
+QPixmap DBusPixmapImageProvider::placeholderPixmap(
+    QSize *size, const QSize &resolvedSize) {
   QPixmap pmap(resolvedSize);
   pmap.fill(Qt::magenta);
   if (size) {
@@ -146,17 +141,15 @@ BaseImageHandle::BaseImageHandle() : m_id(QString::number(++imageHandleIndex)) {
 
 BaseImageHandle::~BaseImageHandle() { activeImageHandles.remove(m_id); }
 
-QPixmap BaseImageHandle::requestPixmap(const QString & /*unused*/,
-                                       QSize * /*unused*/,
-                                       const QSize & /*unused*/) {
+QPixmap BaseImageHandle::requestPixmap(
+    const QString & /*unused*/, QSize * /*unused*/, const QSize & /*unused*/) {
   qCWarning(logNSDBusProvider) << "Received request for a pixmap, but" << this
                                << "has not implemented this functionality.";
   return QPixmap();
 }
 
-QImage BaseImageHandle::requestImage(const QString & /*unused*/,
-                                     QSize * /*unused*/,
-                                     const QSize & /*unused*/) {
+QImage BaseImageHandle::requestImage(
+    const QString & /*unused*/, QSize * /*unused*/, const QSize & /*unused*/) {
   qCWarning(logNSDBusProvider) << "Received request for an image, but" << this
                                << "has not implemented this functionality.";
   return QImage();
@@ -165,6 +158,12 @@ QImage BaseImageHandle::requestImage(const QString & /*unused*/,
 QString BaseImageHandle::urlFor() const {
   return QString("image://dbuspix/" + m_id);
 }
+
+QString BaseIndexedImageHandle::urlFor() const {
+  return BaseImageHandle::urlFor() % "/" % QString::number(m_changeIndex);
+}
+
+void BaseIndexedImageHandle::imageChanged() { ++m_changeIndex; }
 
 DBusNotificationImage *DBusImageHandler::imageData() { return &this->image; }
 

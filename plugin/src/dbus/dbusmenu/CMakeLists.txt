@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick DBus)
 
 set_source_files_properties(
   com.canonical.dbusmenu.xml
@@ -29,5 +29,11 @@ set_target_properties(
 
 target_link_libraries(
   nightshell_dbusmenu
-  PRIVATE Qt6::Core Qt6::DBus nightshell_dbus
+  PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Quick
+    Qt6::DBus
+    nightshell_dbus
+    nightshell_dbus_imageprovider
 )

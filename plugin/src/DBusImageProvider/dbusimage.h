@@ -36,10 +36,10 @@ struct DBusNotificationImage {
   QMutex     mutex;
 };
 
-const QDBusArgument &operator>>(const QDBusArgument   &argument,
-                                DBusNotificationImage &pixmap);
-const QDBusArgument &operator<<(QDBusArgument               &argument,
-                                const DBusNotificationImage &pixmap);
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusNotificationImage &pixmap);
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusNotificationImage &pixmap);
 
 class DBusAsyncImageRunnable : public QObject, public QRunnable {
   Q_OBJECT
@@ -60,14 +60,11 @@ private:
 
 class DBusImageResponse : public QQuickImageResponse {
 public:
-  DBusImageResponse(const QString &id,
-                    const QSize   &requestedSize,
-                    QThreadPool   *pool) {
+  DBusImageResponse(
+      const QString &id, const QSize &requestedSize, QThreadPool *pool) {
     auto runnable = new DBusAsyncImageRunnable(id, requestedSize);
-    connect(runnable,
-            &DBusAsyncImageRunnable::done,
-            this,
-            &DBusImageResponse::handleDone);
+    connect(runnable, &DBusAsyncImageRunnable::done, this,
+        &DBusImageResponse::handleDone);
     pool->start(runnable);
   }
 
@@ -88,8 +85,8 @@ public:
   explicit DBusPixmapImageProvider()
       : QQuickImageProvider(QQuickImageProvider::Pixmap) {}
 
-  QPixmap
-  requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
+  QPixmap requestPixmap(
+      const QString &id, QSize *size, const QSize &requestedSize);
 
   static QPixmap placeholderPixmap(const QSize &resolvedSize);
   static QPixmap placeholderPixmap(QSize *size, const QSize &resolvedSize);
@@ -97,8 +94,8 @@ public:
 
 class DBusImageProvider : public QQuickAsyncImageProvider {
 public:
-  QQuickImageResponse *
-  requestImageResponse(const QString &id, const QSize &requestedSize) override;
+  QQuickImageResponse *requestImageResponse(
+      const QString &id, const QSize &requestedSize) override;
 
 private:
   QThreadPool pool;
@@ -110,15 +107,26 @@ public:
   virtual ~BaseImageHandle();
   Q_DISABLE_COPY_MOVE(BaseImageHandle)
 
-  virtual QPixmap
-  requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
-  virtual QImage
-  requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+  virtual QPixmap requestPixmap(
+      const QString &id, QSize *size, const QSize &requestedSize);
+  virtual QImage requestImage(
+      const QString &id, QSize *size, const QSize &requestedSize);
 
-  [[nodiscard]] QString urlFor() const;
+  [[nodiscard]] virtual QString urlFor() const;
 
 private:
   QString m_id;
+};
+
+class BaseIndexedImageHandle : public BaseImageHandle {
+public:
+  explicit BaseIndexedImageHandle();
+
+  [[nodiscard]] QString urlFor() const override;
+  void                  imageChanged();
+
+private:
+  quint32 m_changeIndex = 0;
 };
 
 // class BaseAsyncImageHandle {

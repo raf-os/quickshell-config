@@ -1,6 +1,7 @@
 #include "dbusmenu.h"
 
 #include <algorithm>
+#include <memory>
 
 #include <qcontainerfwd.h>
 #include <qdbusconnection.h>
@@ -9,6 +10,7 @@
 #include <qdbuspendingreply.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
+#include <qpair.h>
 #include <qtypes.h>
 
 #include "dbus_menu.h"
@@ -19,13 +21,16 @@ namespace ns::dbusmenu {
 Q_LOGGING_CATEGORY(logNSDBusMenu, "ns.dbusmenu")
 
 DBusMenu::DBusMenu(const QString &service, const QString &path, QObject *parent)
-    : QObject(parent) {
+    : QObject(parent),
+      m_rootItem(std::make_unique<DBusMenuItem>(0, this, nullptr)) {
   qDBusRegisterMetaType<DBusMenuLayout>();
   qDBusRegisterMetaType<DBusMenuIdList>();
   qDBusRegisterMetaType<DBusMenuItemProperties>();
   qDBusRegisterMetaType<DBusMenuItemPropertiesList>();
   qDBusRegisterMetaType<DBusMenuItemPropertyNames>();
   qDBusRegisterMetaType<DBusMenuItemPropertyNamesList>();
+
+  m_items.insert(0, m_rootItem.get());
 
   m_interface =
       new DBusMenuInterface(service, path, QDBusConnection::sessionBus(), this);
@@ -46,6 +51,9 @@ DBusMenu::DBusMenu(const QString &service, const QString &path, QObject *parent)
 void DBusMenu::onLayoutUpdated(quint32 revision, qint32 parent) {
   updateLayout(parent, -1);
 }
+
+// required for unique_ptr
+DBusMenu::~DBusMenu() {}
 
 void DBusMenu::onItemsPropertiesUpdated(
     const DBusMenuItemPropertiesList    &updatedProps,

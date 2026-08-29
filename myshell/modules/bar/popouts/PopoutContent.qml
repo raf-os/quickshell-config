@@ -8,151 +8,143 @@ import Quickshell.Services.SystemTray
 import QtQuick
 
 FocusScope {
-    id: root
+	id: root
 
-    required property Item wrapper
-    required property bool hasCurrent
-    required property string currentName
+	required property Item wrapper
+	required property bool hasCurrent
+	required property string currentName
 
-    readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive) ?? null
-    readonly property Item current: currentPopout?.item ?? null
+	readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive) ?? null
+	readonly property Item current: currentPopout?.item ?? null
 
-    focus: true
+	focus: true
 
-    anchors.centerIn: parent
+	anchors.centerIn: parent
 
-    implicitWidth: (currentPopout?.implicitWidth ?? 0) + Config.appearance.padding.sm * 2
-    implicitHeight: (currentPopout?.implicitHeight ?? 0) + Config.appearance.padding.xs * 2
+	implicitWidth: (currentPopout?.implicitWidth ?? 0) + Config.appearance.padding.sm * 2
+	implicitHeight: (currentPopout?.implicitHeight ?? 0) + Config.appearance.padding.xs * 2
 
-    function dumpFocusChain(item, depth) {
-        if (!item)
-            return;
-        console.log(" ".repeat(depth * 2) + item + " focus=" + item.focus + " activeFocus=" + item.activeFocus);
-        for (var i = 0; i < item.children.length; i++)
-            dumpFocusChain(item.children[i], depth + 1);
-    }
+	Item {
+		id: content
 
-    Item {
-        id: content
+		anchors.fill: parent
+		anchors.margins: Config.appearance.padding.sm
+		anchors.topMargin: Config.appearance.padding.xs
+		anchors.bottomMargin: Config.appearance.padding.xs
 
-        anchors.fill: parent
-        anchors.margins: Config.appearance.padding.sm
-        anchors.topMargin: Config.appearance.padding.xs
-        anchors.bottomMargin: Config.appearance.padding.xs
+		Popout {
+			name: "language"
+			sourceComponent: LanguagePopout {
+				wrapper: root.wrapper
+			}
+		}
 
-        Popout {
-            name: "language"
-            sourceComponent: LanguagePopout {
-                wrapper: root.wrapper
-            }
-        }
+		Popout {
+			name: "audio"
+			sourceComponent: AudioPopout {
+				wrapper: root.wrapper
+			}
+		}
 
-        Popout {
-            name: "audio"
-            sourceComponent: AudioPopout {
-                wrapper: root.wrapper
-            }
-        }
+		Repeater {
+			model: ScriptModel {
+				values: [...SystemTray.items.values]
+			}
 
-        Repeater {
-            model: ScriptModel {
-                values: [...SystemTray.items.values]
-            }
+			Popout {
+				id: trayMenu
 
-            Popout {
-                id: trayMenu
+				required property SystemTrayItem modelData
+				required property int index
 
-                required property SystemTrayItem modelData
-                required property int index
+				name: `traymenu${index}`
+				sourceComponent: trayMenuComp
 
-                name: `traymenu${index}`
-                sourceComponent: trayMenuComp
+				Connections {
+					target: root.wrapper
 
-                Connections {
-                    target: root.wrapper
+					function onHasCurrentChanged(): void {
+						if (root.hasCurrent && trayMenu.shouldBeActive) {
+							trayMenu.sourceComponent = null;
+							trayMenu.sourceComponent = trayMenuComp;
+						}
+					}
+				}
 
-                    function onHasCurrentChanged(): void {
-                        if (root.hasCurrent && trayMenu.shouldBeActive) {
-                            trayMenu.sourceComponent = null;
-                            trayMenu.sourceComponent = trayMenuComp;
-                        }
-                    }
-                }
+				Component {
+					id: trayMenuComp
 
-                Component {
-                    id: trayMenuComp
+					Loader {
+						active: trayMenu.modelData !== null
+						sourceComponent: TrayMenu {
+							popouts: root.wrapper
+							trayItem: trayMenu.modelData.menu
+						}
+					}
+				}
+			}
+		}
+	}
 
-                    Loader {
-                        active: trayMenu.modelData !== null
-                        sourceComponent: TrayMenu {
-                            popouts: root.wrapper
-                            trayItem: trayMenu.modelData.menu
-                        }
-                    }
-                }
-            }
-        }
-    }
+	component Popout: Loader {
+		id: popout
 
-    component Popout: Loader {
-        id: popout
+		required property string name
+		readonly property bool shouldBeActive: root.currentName === name
 
-        required property string name
-        readonly property bool shouldBeActive: root.currentName === name
+		anchors.horizontalCenter: parent.horizontalCenter
+		anchors.bottom: parent.bottom
 
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
+		opacity: 0
+		active: false
 
-        opacity: 0
-        active: false
+		onLoaded: {
+			item.forceActiveFocus?.();
+		}
 
-        onLoaded: {
-            item.forceActiveFocus?.();
-        }
+		states: State {
+			name: "activated"
+			when: popout.shouldBeActive
 
-        states: State {
-            name: "activated"
-            when: popout.shouldBeActive
+			PropertyChanges {
+				popout.active: true
+				popout.opacity: 1
+			}
+		}
 
-            PropertyChanges {
-                popout.active: true
-                popout.opacity: 1
-            }
-        }
+		transitions: [
+			Transition {
+				from: "activated"
+				to: ""
 
-        transitions: [
-            Transition {
-                from: "activated"
-                to: ""
+				SequentialAnimation {
+					NAnim {
+						property: "opacity"
+						duration: 400
+					}
+					PropertyAction {
+						target: popout
+						property: "active"
+						value: false
+					}
+				}
+			},
+			Transition {
+				from: ""
+				to: "activated"
 
-                SequentialAnimation {
-                    NAnim {
-                        property: "opacity"
-                        duration: 400
-                    }
-                    PropertyAction {
-                        target: popout
-                        property: "active"
-                        value: false
-                    }
-                }
-            },
-            Transition {
-                from: ""
-                to: "activated"
-
-                SequentialAnimation {
-                    PropertyAction {
-                        target: popout
-                        property: "active"
-                        value: true
-                    }
-                    NAnim {
-                        property: "opacity"
-                        duration: 400
-                    }
-                }
-            }
-        ]
-    }
+				SequentialAnimation {
+					PropertyAction {
+						target: popout
+						property: "active"
+						value: true
+					}
+					NAnim {
+						property: "opacity"
+						duration: 400
+					}
+				}
+			}
+		]
+	}
 }
