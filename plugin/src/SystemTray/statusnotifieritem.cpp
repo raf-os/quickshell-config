@@ -16,6 +16,7 @@
 #include <qsize.h>
 
 #include "dbus_item.h"
+#include "dbusmenuhandle.h"
 #include "dbustypes.h"
 #include "iconprovider.h"
 #include "trayimagehandle.h"
@@ -68,32 +69,21 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
     return;
   }
 
-  QObject::connect(m_item, &QDBusStatusNotifierItem::NewTitle, this, [this]() {
-    b_title = m_item->title();
-  });
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewTitle, this,
+      [this]() { b_title = m_item->title(); });
 
-  QObject::connect(
-      m_item,
-      &QDBusStatusNotifierItem::NewStatus,
-      this,
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewStatus, this,
       [this](const QString &status) { b_status = Status::fromString(status); });
 
-  QObject::connect(m_item,
-                   &QDBusStatusNotifierItem::NewToolTip,
-                   this,
-                   [this]() { this->readTooltip(); });
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewToolTip, this,
+      [this]() { this->readTooltip(); });
 
-  QObject::connect(m_item, &QDBusStatusNotifierItem::NewIcon, this, [this]() {
-    this->readIconData();
-  });
-  QObject::connect(m_item,
-                   &QDBusStatusNotifierItem::NewAttentionIcon,
-                   this,
-                   [this]() { this->readIconData(); });
-  QObject::connect(m_item,
-                   &QDBusStatusNotifierItem::NewOverlayIcon,
-                   this,
-                   [this]() { this->readIconData(); });
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewIcon, this,
+      [this]() { this->readIconData(); });
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewAttentionIcon, this,
+      [this]() { this->readIconData(); });
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewOverlayIcon, this,
+      [this]() { this->readIconData(); });
 
   b_hasMenu.setBinding([this]() {
     // Apparently this is a KDE specific thing
@@ -141,11 +131,22 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
   b_attentionPixmapList.onValueChanged([this] { this->refreshPixmap(); });
   b_overlayPixmapList.onValueChanged([this] { this->refreshPixmap(); });
 
+  b_menuPath.onValueChanged([this] {
+    QString path = b_menuPath.value().path();
+    if (!b_hasMenu) path = "";
+    m_menuHandle.setAddress(m_item->service(), path);
+  });
+
   m_isReady = true;
-  emit ready();
+
+  emit readied();
 }
 
 StatusNotifierItem::~StatusNotifierItem() = default;
+
+dbusmenu::DBusMenuHandle *StatusNotifierItem::menuHandle() {
+  return &m_menuHandle;
+}
 
 void StatusNotifierItem::readAllParameters() {
   if (m_item == nullptr) return;
@@ -195,8 +196,8 @@ bool StatusNotifierItem::isReady() const { return m_isReady; }
 QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
   auto needsAttention = b_status.value() == Status::NeedsAttention;
 
-  auto getClosestPixmap = [](const QSize                  &size,
-                             const DBusTrayIconPixmapList &pixmaps) {
+  auto getClosestPixmap = [](const QSize                   &size,
+                              const DBusTrayIconPixmapList &pixmaps) {
     const DBusTrayIconPixmap *ret = nullptr;
 
     for (const auto &pixmap : pixmaps) {
@@ -222,15 +223,14 @@ QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
     return ret;
   };
 
-  auto getPixmapFromTheme =
-      [](const QSize &size, const QString &iconName, QPixmap *destination) {
-        auto icon    = QIcon::fromTheme(iconName);
-        *destination = icon.pixmap(size.width(), size.height());
-      };
+  auto getPixmapFromTheme = [](const QSize &size, const QString &iconName,
+                                QPixmap *destination) {
+    auto icon    = QIcon::fromTheme(iconName);
+    *destination = icon.pixmap(size.width(), size.height());
+  };
 
-  auto assignPixmap = [](const QSize              &size,
-                         const DBusTrayIconPixmap *source,
-                         QPixmap                  *destination) {
+  auto assignPixmap = [](const QSize &size, const DBusTrayIconPixmap *source,
+                          QPixmap *destination) {
     if (source != nullptr) {
       const auto image = source->createImage().scaled(
           size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
@@ -273,8 +273,8 @@ QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
 
     if (!overlayPixmap.isNull()) {
       auto painter = QPainter(&pixmap);
-      painter.drawPixmap(QRect(0, 0, pixmap.width(), pixmap.height()),
-                         overlayPixmap);
+      painter.drawPixmap(
+          QRect(0, 0, pixmap.width(), pixmap.height()), overlayPixmap);
       painter.end();
     }
   }

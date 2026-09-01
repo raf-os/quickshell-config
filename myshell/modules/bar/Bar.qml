@@ -4,7 +4,7 @@ import "components"
 import "components/workspaces"
 import "popouts"
 import qs.utils
-import qs.services
+// import qs.modules.systemtray
 import Quickshell
 import Quickshell.Hyprland
 import MyShellPlugin.Configs
@@ -131,6 +131,7 @@ Item {
 		spacing: root.spacing
 
 		Spacing {}
+		// SystemTray {}
 		StatusIcons {
 			popoutHandler: popoutHandler
 			popoutWrapper: root.popouts

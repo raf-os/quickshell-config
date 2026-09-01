@@ -13,7 +13,12 @@ qt6_add_library(nightshell_dbusmenu SHARED)
 
 target_sources(
   nightshell_dbusmenu
-  PRIVATE dbusmenu_types.cpp dbusmenu.cpp dbusmenuitem.cpp ${DBUS_INTERFACES}
+  PRIVATE
+    dbusmenu_types.cpp
+    dbusmenu.cpp
+    dbusmenuitem.cpp
+    dbusmenuhandle.cpp
+    ${DBUS_INTERFACES}
 )
 
 target_include_directories(
@@ -27,6 +32,12 @@ set_target_properties(
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 
+qt6_add_qml_module(
+  nightshell_dbusmenu
+  URI "${ORG_URI_PREFIX}.DBusMenu"
+  VERSION 0.1
+)
+
 target_link_libraries(
   nightshell_dbusmenu
   PRIVATE
@@ -36,4 +47,8 @@ target_link_libraries(
     Qt6::DBus
     nightshell_dbus
     nightshell_dbus_imageprovider
+    nightshell_icon_provider_plugin
+    myshell_utils
 )
+
+install_qml_module(nightshell_dbusmenu)

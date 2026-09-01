@@ -39,9 +39,11 @@ void asyncReadProperty(QDBusAbstractInterface &interface,
 void asyncGetAll(QDBusAbstractInterface         &interface,
     std::function<void(QVariantMap, QDBusError)> callback);
 
+// not working correctly
 template <typename... Types>
-void asyncCall(QDBusPendingReply<Types...>          &pending,
-    std::function<void(QDBusPendingReply<Types...>)> callback, QObject *owner) {
+void asyncCall(QDBusPendingReply<Types...>            &pending,
+    std::function<void(QDBusPendingReply<Types...> &)> callback,
+    QObject                                           *owner) {
   auto *call = new QDBusPendingCallWatcher(pending, owner);
 
   auto cb = [callback](QDBusPendingCallWatcher *call) {

@@ -11,9 +11,12 @@
 #include <qtypes.h>
 
 #include "dbusimage.h"
-#include "dbusmenu.h"
+// #include "dbusmenu.h"
+#include "objectmodel.h"
 
 namespace ns::dbusmenu {
+class DBusMenu;
+
 namespace ItemDisposition {
 Q_NAMESPACE
 
@@ -79,6 +82,7 @@ class DBusMenuItem : public QObject {
       bool enabled READ default NOTIFY enabledChanged BINDABLE bindableEnabled)
   Q_PROPERTY(
       bool visible READ default NOTIFY visibleChanged BINDABLE bindableVisible)
+  Q_PROPERTY(UntypedObjectModel *children READ children CONSTANT)
   Q_PROPERTY(bool hasChildren READ default NOTIFY hasChildrenChanged BINDABLE
           bindableHasChildren)
   Q_PROPERTY(
@@ -93,8 +97,15 @@ class DBusMenuItem : public QObject {
 public:
   explicit DBusMenuItem(qint32 id, DBusMenu *menuHandler, DBusMenuItem *parent);
 
+  Q_INVOKABLE void trigger();
+  Q_INVOKABLE void forceUpdateLayout();
+
   void updateProperties(
       const QVariantMap &properties, const QStringList &removedItems = {});
+  ObjectModel<DBusMenuItem> *children();
+
+  void               setShowChildrenRecursive(bool showChildren);
+  [[nodiscard]] bool isShowingChildren();
 
   [[nodiscard]] QBindable<bool> bindableIsSeparator() const {
     return &b_isSeparator;
@@ -131,7 +142,11 @@ signals:
   void checkStateChanged();
 
 private slots:
-  void onChildrenUpdated();
+  void refreshChildren();
+
+  void sendOpened();
+  void sendClosed();
+  void sendTriggered();
 
 private:
   bool          m_showChildren;
@@ -141,8 +156,9 @@ private:
   DBusMenuItem *m_parentMenu  = nullptr;
   QString       m_rawLabel;
 
-  DBusMenuPngImage m_image;
-  QList<qint32>    m_children;
+  DBusMenuPngImage          m_image;
+  QList<qint32>             m_children;
+  ObjectModel<DBusMenuItem> m_childrenModel{this};
 
   Q_OBJECT_BINDABLE_PROPERTY(
       DBusMenuItem, bool, b_isSeparator, &DBusMenuItem::isSeparatorChanged)
@@ -150,6 +166,7 @@ private:
       DBusMenuItem, bool, b_enabled, &DBusMenuItem::enabledChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
       DBusMenuItem, bool, b_visible, &DBusMenuItem::visibleChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(DBusMenuItem, bool, b_childrenDisplay)
   Q_OBJECT_BINDABLE_PROPERTY(
       DBusMenuItem, bool, b_hasChildren, &DBusMenuItem::hasChildrenChanged)
   Q_OBJECT_BINDABLE_PROPERTY(DBusMenuItem, QString, b_text)

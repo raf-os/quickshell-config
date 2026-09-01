@@ -3,6 +3,7 @@
 #include <functional>
 
 #include <qcontainerfwd.h>
+#include <qlist.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qpixmap.h>
@@ -11,6 +12,8 @@
 #include <qtypes.h>
 
 #include "dbusmenu.h"
+#include "iconprovider.h"
+#include "objectmodel.h"
 
 namespace ns::dbusmenu {
 Q_LOGGING_CATEGORY(logNSDbusmenuItem, "ns.dbusmenu.MenuItem")
@@ -35,7 +38,9 @@ template <typename BindablePtr>
 void simplePropertyExtract(const QVariantMap &propMap, const QString &propName,
     BindablePtr *bindable, std::function<bool(const QString &)> removeCompare,
     typename BindableType<BindablePtr>::Type defaultValue = {}) {
-  using Bindable     = BindableType<BindablePtr>;
+  using Bindable = BindableType<BindablePtr>;
+  // Extracts the actual type of the bindable, so it doesn't need to be passed
+  // onto the template
   using BindableType = Bindable::Type;
 
   auto p = propMap.value(propName);
@@ -85,6 +90,34 @@ DBusMenuItem::DBusMenuItem(
     cleanLabel.replace("_", "");
     return std::move(cleanLabel);
   });
+
+  b_hasChildren.setBinding([this] { return m_id == 0 || b_childrenDisplay; });
+}
+
+ObjectModel<DBusMenuItem> *DBusMenuItem::children() { return &m_childrenModel; }
+
+void DBusMenuItem::setShowChildrenRecursive(bool showChildren) {
+  if (showChildren == m_showChildren) return;
+
+  m_showChildren   = showChildren;
+  m_childrenLoaded = false;
+
+  if (showChildren) {
+    m_menuHandler->prepareToShow(m_id, -1);
+  } else {
+    if (!m_children.isEmpty()) {
+      for (auto child : m_children) {
+        m_menuHandler->removeRecursively(child);
+      }
+
+      m_children.clear();
+      refreshChildren();
+    }
+  }
+}
+
+bool DBusMenuItem::isShowingChildren() {
+  return m_showChildren && m_childrenLoaded;
 }
 
 void DBusMenuItem::updateProperties(
@@ -121,31 +154,9 @@ void DBusMenuItem::updateProperties(
     b_text = "";
   }
 
-  // auto enabled = properties.value("enabled");
-  // if (enabled.canConvert<bool>()) {
-  //   b_enabled = enabled.toBool();
-  // } else if (shouldRemove("enabled")) {
-  //   b_enabled = true;
-  // }
-
   simplePropertyExtract(properties, "enabled", &b_enabled, shouldRemove, false);
   simplePropertyExtract(properties, "visible", &b_visible, shouldRemove, true);
   simplePropertyExtract(properties, "icon-name", &b_iconName, shouldRemove, {});
-
-  // auto visible = properties.value("visible");
-  // if (visible.canConvert<bool>()) {
-  //   b_visible = visible.toBool();
-  // } else if (shouldRemove("visible")) {
-  //   b_visible = true;
-  // }
-  //
-  // auto iconName = properties.value("icon-name");
-  // if (iconName.canConvert<QString>()) {
-  //   b_iconName = iconName.toString();
-  // } else if (shouldRemove("icon-name")) {
-  //   b_iconName = "";
-  // }
-  //
 
   auto iconData = properties.value("icon-data");
   if (iconData.canConvert<QByteArray>()) {
@@ -192,11 +203,11 @@ void DBusMenuItem::updateProperties(
   if (childrenDisplay.canConvert<QString>()) {
     auto dstr = childrenDisplay.toString();
 
-    if (dstr == "") b_hasChildren = false;
-    else if (dstr == "submenu") b_hasChildren = true;
-    else b_hasChildren = false;
+    if (dstr == "") b_childrenDisplay = false;
+    else if (dstr == "submenu") b_childrenDisplay = true;
+    else b_childrenDisplay = false;
   } else if (shouldRemove("children-display")) {
-    b_hasChildren = false;
+    b_childrenDisplay = false;
   }
 
   auto disposition = properties.value("disposition");
@@ -210,11 +221,37 @@ void DBusMenuItem::updateProperties(
   if (m_image.hasData()) {
     b_icon = m_image.urlFor();
   } else if (!b_iconName.value().isEmpty()) {
-    b_icon = "image://qicons/qt/" + b_iconName.value();
+    auto iconPath =
+        iconprovider::IconImageProvider::getSystemIconRequestString(b_iconName,
+            m_menuHandler->bindableIconThemePath().value().join(':'), {});
+    b_icon = iconPath;
   } else {
     b_icon = "";
   }
 }
 
-void DBusMenuItem::onChildrenUpdated() {}
+void DBusMenuItem::trigger() { sendTriggered(); }
+
+void DBusMenuItem::forceUpdateLayout() {
+  if (!isShowingChildren()) return;
+  m_menuHandler->updateLayout(m_id, -1);
+}
+
+void DBusMenuItem::refreshChildren() {
+  QList<DBusMenuItem *> newChildren;
+  for (auto child : m_children) {
+    auto *item = m_menuHandler->getChildItem(child);
+    if (item && item->bindableVisible().value()) {
+      newChildren.append(item);
+    }
+  }
+
+  m_childrenModel.diffUpdate(newChildren);
+}
+
+void DBusMenuItem::sendOpened() { m_menuHandler->sendEvent(m_id, "opened"); }
+void DBusMenuItem::sendClosed() { m_menuHandler->sendEvent(m_id, "closed"); }
+void DBusMenuItem::sendTriggered() {
+  m_menuHandler->sendEvent(m_id, "clicked");
+}
 } // namespace ns::dbusmenu

@@ -10,6 +10,7 @@ target_sources(
     cserializable.cpp
     soundthemes.cpp
     kbdlayouts.cpp
+    objectmodel.cpp
 )
 
 # set_target_properties(myshell_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)

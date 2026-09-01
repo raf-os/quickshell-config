@@ -37,15 +37,11 @@ StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
     return;
   }
 
-  QObject::connect(&m_serviceWatcher,
-                   &QDBusServiceWatcher::serviceRegistered,
-                   this,
-                   &StatusNotifierHost::onWatcherRegistered);
+  QObject::connect(&m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered,
+      this, &StatusNotifierHost::onWatcherRegistered);
 
-  QObject::connect(&m_serviceWatcher,
-                   &QDBusServiceWatcher::serviceUnregistered,
-                   this,
-                   &StatusNotifierHost::onWatcherUnregistered);
+  QObject::connect(&m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered,
+      this, &StatusNotifierHost::onWatcherUnregistered);
 
   m_serviceWatcher.addWatchedService("org.kde.StatusNotifierWatcher");
   m_serviceWatcher.setConnection(bus);
@@ -54,14 +50,12 @@ StatusNotifierHost::StatusNotifierHost(QObject *parent) : QObject(parent) {
       "org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher", bus, this);
 
   QObject::connect(m_watcher,
-                   &QDBusStatusNotifierWatcher::StatusNotifierItemRegistered,
-                   this,
-                   &StatusNotifierHost::onItemRegistered);
+      &QDBusStatusNotifierWatcher::StatusNotifierItemRegistered, this,
+      &StatusNotifierHost::onItemRegistered);
 
   QObject::connect(m_watcher,
-                   &QDBusStatusNotifierWatcher::StatusNotifierItemUnregistered,
-                   this,
-                   &StatusNotifierHost::onItemUnregistered);
+      &QDBusStatusNotifierWatcher::StatusNotifierItemUnregistered, this,
+      &StatusNotifierHost::onItemUnregistered);
 
   if (!m_watcher->isValid()) {
     qCWarning(logNSStatusNotifierHost)
@@ -80,8 +74,7 @@ StatusNotifierHost *StatusNotifierHost::instance() {
 void StatusNotifierHost::connectToWatcher() {
   m_watcher->RegisterStatusNotifierHost(m_hostId);
 
-  dbus::asyncReadProperty<QStringList>(
-      *m_watcher,
+  dbus::asyncReadProperty<QStringList>(*m_watcher,
       "RegisteredStatusNotifierItems",
       [this](QStringList value, QDBusError error) {
         if (error.isValid()) {
@@ -130,10 +123,12 @@ void StatusNotifierHost::onItemRegistered(const QString &item) {
   }
 
   m_items.insert(item, nItem);
-  QObject::connect(nItem,
-                   &StatusNotifierItem::ready,
-                   this,
-                   &StatusNotifierHost::onItemReady);
+  if (!nItem->isReady()) {
+    auto conn = QObject::connect(nItem, &StatusNotifierItem::readied, this,
+        &StatusNotifierHost::onItemReady);
+  } else {
+    emit itemReady(nItem);
+  }
   emit itemRegistered(nItem);
 }
 

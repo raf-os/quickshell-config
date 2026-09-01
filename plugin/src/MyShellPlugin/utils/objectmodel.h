@@ -13,7 +13,7 @@
 #include <qtmetamacros.h>
 #include <qtypes.h>
 #include <qvariant.h>
-namespace ns::utils {
+
 class UntypedObjectModel : public QAbstractListModel {
   Q_OBJECT
   QML_NAMED_ELEMENT(ObjectListModel)
@@ -60,7 +60,7 @@ public:
     return *reinterpret_cast<QList<QObject *> *>(&m_values);
   }
 
-  void insertObject(T *object, qsizetype index) {
+  void insertObjectAt(T *object, qsizetype index) {
     const auto intIdx = static_cast<qint32>(index);
 
     beginInsertRows(QModelIndex(), intIdx, intIdx);
@@ -71,7 +71,7 @@ public:
   }
 
   void insertObject(T *object) {
-    return insertObject(object, m_values.length());
+    return insertObjectAt(object, m_values.length());
   }
 
   void insertObjectSorted(
@@ -83,7 +83,7 @@ public:
     }
 
     auto idx = std::distance(m_values.begin(), it);
-    insertObject(object, idx);
+    insertObjectAt(object, idx);
   }
 
   void removeAt(qsizetype index) {
@@ -103,7 +103,7 @@ public:
     return true;
   }
 
-  bool diffUpdate(const QList<T *> &newValues) {
+  void diffUpdate(const QList<T *> &newValues) {
     // First, remove elements that are not present
     auto it = m_values.begin();
     while (it != m_values.end()) {
@@ -122,14 +122,9 @@ public:
         auto old = m_values.indexOf(object, i);
         if (old != -1) {
           // This means this object already exists further down the line
-          beginMoveRows({}, old, i);
-          m_values.move(old, i);
-          endMoveRows();
-          emit valuesChanged();
-        } else {
-          // It's a new object
-          insertObject(object, i);
+          this->removeAt(old);
         }
+        insertObjectAt(object, i);
       }
 
       i++;
@@ -139,4 +134,3 @@ public:
 private:
   QList<T *> m_values;
 };
-} // namespace ns::utils

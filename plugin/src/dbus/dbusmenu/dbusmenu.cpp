@@ -4,7 +4,9 @@
 #include <memory>
 
 #include <qcontainerfwd.h>
+#include <qdatetime.h>
 #include <qdbusconnection.h>
+#include <qdbusextratypes.h>
 #include <qdbusmetatype.h>
 #include <qdbuspendingcall.h>
 #include <qdbuspendingreply.h>
@@ -143,7 +145,7 @@ void DBusMenu::updateLayoutRecursively(
         item->m_children.append(child.id);
       }
 
-      item->onChildrenUpdated();
+      item->refreshChildren();
     }
   }
 
@@ -168,5 +170,47 @@ void DBusMenu::removeRecursively(qint32 id) {
   if (item) {
     item->deleteLater();
   }
+}
+
+DBusMenuItem *DBusMenu::getChildItem(qint32 childId) {
+  auto it = m_items.find(childId);
+  if (it == m_items.end()) return nullptr;
+  else return it.value();
+}
+
+DBusMenuItem *DBusMenu::menu() { return m_rootItem.get(); }
+
+void DBusMenu::sendEvent(qint32 item, const QString &event) {
+  auto pending = m_interface->Event(
+      item, event, QDBusVariant(0), QDateTime::currentSecsSinceEpoch());
+  auto *call = new QDBusPendingCallWatcher(pending, this);
+  QObject::connect(call, &QDBusPendingCallWatcher::finished, this,
+      [this, item, event](QDBusPendingCallWatcher *call) {
+        const QDBusPendingReply<> reply = *call;
+        if (reply.isError()) {
+          qCWarning(logNSDBusMenu) << "Error sending event" << event << "to"
+                                   << item << "of" << this << "\n"
+                                   << reply.error();
+        }
+        delete call;
+      });
+}
+
+void DBusMenu::prepareToShow(qint32 item, qint32 depth) {
+  auto  pending = m_interface->AboutToShow(item);
+  auto *call    = new QDBusPendingCallWatcher(pending, this);
+
+  QObject::connect(call, &QDBusPendingCallWatcher::finished, this,
+      [this, item, depth](QDBusPendingCallWatcher *call) {
+        const QDBusPendingReply<bool> reply = *call;
+        if (reply.isError()) {
+          qCDebug(logNSDBusMenu)
+              << "Error in AboutToShow method for" << item << "of" << this
+              << "(ignored):" << reply.error();
+        }
+
+        this->updateLayout(item, depth);
+        delete call;
+      });
 }
 } // namespace ns::dbusmenu

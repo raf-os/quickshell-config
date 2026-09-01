@@ -12,6 +12,7 @@
 #include <qtypes.h>
 
 #include "dbus_item.h"
+#include "dbusmenuhandle.h"
 #include "dbustypes.h"
 
 namespace ns::systemtray {
@@ -51,37 +52,41 @@ class StatusNotifierItem : public QObject {
 
   Q_PROPERTY(QString id READ default NOTIFY idChanged BINDABLE bindableId)
   Q_PROPERTY(ns::systemtray::Category::Enum category
-                 READ default NOTIFY categoryChanged BINDABLE bindableCategory)
+          READ default NOTIFY categoryChanged BINDABLE bindableCategory)
   Q_PROPERTY(
       QString title READ default NOTIFY titleChanged BINDABLE bindableTitle)
   Q_PROPERTY(ns::systemtray::Status::Enum status
-                 READ default NOTIFY statusChanged BINDABLE bindableStatus)
+          READ default NOTIFY statusChanged BINDABLE bindableStatus)
   Q_PROPERTY(QDBusObjectPath menuPath READ default NOTIFY menuPathChanged
-                 BINDABLE bindableMenuPath)
+          BINDABLE bindableMenuPath)
   Q_PROPERTY(quint32 windowId READ default NOTIFY windowIdChanged BINDABLE
-                 bindableWindowId)
+          bindableWindowId)
   Q_PROPERTY(QString iconThemePath READ default NOTIFY iconThemePathChanged
-                 BINDABLE bindableIconThemePath)
+          BINDABLE bindableIconThemePath)
   Q_PROPERTY(QString iconUrl READ default NOTIFY iconUrlChanged BINDABLE
-                 bindableIconUrl)
+          bindableIconUrl)
   Q_PROPERTY(QString iconName READ default NOTIFY iconNameChanged BINDABLE
-                 bindableIconName)
-  Q_PROPERTY(QString attentionIconName READ default NOTIFY
-                 attentionIconNameChanged BINDABLE bindableAttentionIconName)
+          bindableIconName)
+  Q_PROPERTY(
+      QString attentionIconName READ default NOTIFY attentionIconNameChanged
+          BINDABLE bindableAttentionIconName)
   Q_PROPERTY(QString overlayIconName READ default NOTIFY overlayIconNameChanged
-                 BINDABLE bindableOverlayIconName)
+          BINDABLE bindableOverlayIconName)
   Q_PROPERTY(QString tooltipTitle READ default NOTIFY tooltipTitleChanged
-                 BINDABLE bindableTooltipTitle)
-  Q_PROPERTY(QString tooltipDescription READ default NOTIFY
-                 tooltipDescriptionChanged BINDABLE bindableTooltipDescription)
+          BINDABLE bindableTooltipTitle)
+  Q_PROPERTY(
+      QString tooltipDescription READ default NOTIFY tooltipDescriptionChanged
+          BINDABLE bindableTooltipDescription)
   Q_PROPERTY(
       bool hasMenu READ default NOTIFY hasMenuChanged BINDABLE bindableHasMenu)
   Q_PROPERTY(bool isMenuOnly READ default NOTIFY isMenuOnlyChanged BINDABLE
-                 bindableIsMenuOnly)
+          bindableIsMenuOnly)
+
+  Q_PROPERTY(ns::dbusmenu::DBusMenuHandle *menuHandle READ menuHandle CONSTANT)
 
 public:
-  explicit StatusNotifierItem(const QString &address,
-                              QObject       *parent = nullptr);
+  explicit StatusNotifierItem(
+      const QString &address, QObject *parent = nullptr);
   // This explicit destructor will hopefully avoid unique_ptr 'invalid
   // application of "sizeof" to incomplete type (...)' because of forward
   // declaration
@@ -90,7 +95,8 @@ public:
   [[nodiscard]] bool isValid() const;
   [[nodiscard]] bool isReady() const;
 
-  QPixmap createPixmap(const QSize &size);
+  QPixmap                   createPixmap(const QSize &size);
+  dbusmenu::DBusMenuHandle *menuHandle();
 
   [[nodiscard]] QBindable<QString>        bindableId() const { return &b_id; }
   [[nodiscard]] QBindable<Category::Enum> bindableCategory() const {
@@ -133,7 +139,7 @@ public:
   }
 
 signals:
-  void ready();
+  void readied();
 
   void idChanged();
   void categoryChanged();
@@ -165,81 +171,49 @@ private:
                      // headers. Both require each other but because of the
                      // parent->child relationship, this sounded more
                      // appropriate
+  dbusmenu::DBusMenuHandle m_menuHandle{this};
 
   void refreshPixmap();
 
   // PIXMAP LISTS
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             DBusTrayIconPixmapList,
-                             b_pixmapList)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             DBusTrayIconPixmapList,
-                             b_attentionPixmapList)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             DBusTrayIconPixmapList,
-                             b_overlayPixmapList)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      StatusNotifierItem, DBusTrayIconPixmapList, b_pixmapList)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      StatusNotifierItem, DBusTrayIconPixmapList, b_attentionPixmapList)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      StatusNotifierItem, DBusTrayIconPixmapList, b_overlayPixmapList)
 
   // OTHER PROPERTIES
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_id,
-                             &StatusNotifierItem::idChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             Category::Enum,
-                             b_category,
-                             &StatusNotifierItem::categoryChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_title,
-                             &StatusNotifierItem::titleChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             Status::Enum,
-                             b_status,
-                             &StatusNotifierItem::statusChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QDBusObjectPath,
-                             b_menuPath,
-                             &StatusNotifierItem::menuPathChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             quint32,
-                             b_windowId,
-                             &StatusNotifierItem::windowIdChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_iconThemePath,
-                             &StatusNotifierItem::iconThemePathChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_iconUrl,
-                             &StatusNotifierItem::iconUrlChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_iconName,
-                             &StatusNotifierItem::iconNameChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_attentionIconName,
-                             &StatusNotifierItem::attentionIconNameChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_overlayIconName,
-                             &StatusNotifierItem::overlayIconNameChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_tooltipTitle,
-                             &StatusNotifierItem::tooltipTitleChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             QString,
-                             b_tooltipDescription,
-                             &StatusNotifierItem::tooltipDescriptionChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             bool,
-                             b_hasMenu,
-                             &StatusNotifierItem::hasMenuChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem,
-                             bool,
-                             b_isMenuOnly,
-                             &StatusNotifierItem::isMenuOnlyChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      StatusNotifierItem, QString, b_id, &StatusNotifierItem::idChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, Category::Enum, b_category,
+      &StatusNotifierItem::categoryChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      StatusNotifierItem, QString, b_title, &StatusNotifierItem::titleChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, Status::Enum, b_status,
+      &StatusNotifierItem::statusChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QDBusObjectPath, b_menuPath,
+      &StatusNotifierItem::menuPathChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, quint32, b_windowId,
+      &StatusNotifierItem::windowIdChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_iconThemePath,
+      &StatusNotifierItem::iconThemePathChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_iconUrl,
+      &StatusNotifierItem::iconUrlChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_iconName,
+      &StatusNotifierItem::iconNameChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_attentionIconName,
+      &StatusNotifierItem::attentionIconNameChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_overlayIconName,
+      &StatusNotifierItem::overlayIconNameChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_tooltipTitle,
+      &StatusNotifierItem::tooltipTitleChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, QString, b_tooltipDescription,
+      &StatusNotifierItem::tooltipDescriptionChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      StatusNotifierItem, bool, b_hasMenu, &StatusNotifierItem::hasMenuChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, bool, b_isMenuOnly,
+      &StatusNotifierItem::isMenuOnlyChanged)
 
   Q_OBJECT_BINDABLE_PROPERTY(StatusNotifierItem, quint32, b_pixmapIndex)
 };

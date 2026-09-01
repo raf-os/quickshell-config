@@ -58,6 +58,7 @@ list(
   "${INSTALL_QMLDIR}/MyShellPlugin/Configs"
   "${INSTALL_QMLDIR}/MyShellPlugin/Utils"
   "${INSTALL_QMLDIR}/org/nightshell"
+  "${INSTALL_QMLDIR}/org/nightshell/DBusMenu"
   "${INSTALL_QMLDIR}/org/nightshell/Wallpaper"
   "${INSTALL_QMLDIR}/org/nightshell/DesktopEntries"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland"

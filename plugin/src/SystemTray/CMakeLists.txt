@@ -57,6 +57,7 @@ qt6_add_qml_module(
   nightshell_systemtray
   URI "${ORG_URI_PREFIX}.SystemTray"
   VERSION 0.1
+  DEPENDENCIES "MyShellPlugin.Utils" # fix for qmlls
 )
 
 target_link_libraries(
@@ -69,8 +70,10 @@ target_link_libraries(
     Qt6::DBus
     nightshell_dbus
     nightshell_dbus_imageprovider
+    nightshell_dbusmenu
     nightshell_icon_provider_plugin
     myshell_include
+    myshell_utils
 )
 
 install_qml_module(nightshell_systemtray)
