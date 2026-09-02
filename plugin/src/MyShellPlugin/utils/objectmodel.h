@@ -16,7 +16,7 @@
 
 class UntypedObjectModel : public QAbstractListModel {
   Q_OBJECT
-  QML_NAMED_ELEMENT(ObjectListModel)
+  QML_ELEMENT
   QML_UNCREATABLE("")
 
   Q_PROPERTY(QList<QObject *> values READ values NOTIFY valuesChanged)
@@ -60,18 +60,15 @@ public:
     return *reinterpret_cast<QList<QObject *> *>(&m_values);
   }
 
-  void insertObjectAt(T *object, qsizetype index) {
-    const auto intIdx = static_cast<qint32>(index);
+  void insertObject(T *object, qsizetype index = -1) {
+    auto iindex = index == -1 ? m_values.length() : index;
+    auto intIdx = static_cast<qint32>(index);
 
-    beginInsertRows(QModelIndex(), intIdx, intIdx);
+    beginInsertRows({}, intIdx, intIdx);
     m_values.insert(index, object);
     endInsertRows();
 
     emit valuesChanged();
-  }
-
-  void insertObject(T *object) {
-    return insertObjectAt(object, m_values.length());
   }
 
   void insertObjectSorted(
@@ -83,12 +80,13 @@ public:
     }
 
     auto idx = std::distance(m_values.begin(), it);
-    insertObjectAt(object, idx);
+    insertObject(object, idx);
   }
 
   void removeAt(qsizetype index) {
     auto intIdx = static_cast<qint32>(index);
-    beginRemoveRows(QModelIndex(), intIdx, intIdx);
+
+    beginRemoveRows({}, intIdx, intIdx);
     m_values.removeAt(index);
     endRemoveRows();
 
@@ -105,14 +103,9 @@ public:
 
   void diffUpdate(const QList<T *> &newValues) {
     // First, remove elements that are not present
-    auto it = m_values.begin();
-    while (it != m_values.end()) {
-      if (newValues.contains(*it)) {
-        it++;
-      } else {
-        const auto idx = std::distance(m_values.begin(), it);
-        removeAt(idx);
-      }
+    for (qsizetype i = 0; i < m_values.length();) {
+      if (newValues.contains(m_values.at(i))) i++;
+      else this->removeAt(i);
     }
 
     // Then, add new objects and reorganize existing ones if necessary
@@ -120,11 +113,8 @@ public:
     for (auto *object : newValues) {
       if (m_values.length() == i || m_values.at(i) != object) {
         auto old = m_values.indexOf(object, i);
-        if (old != -1) {
-          // This means this object already exists further down the line
-          this->removeAt(old);
-        }
-        insertObjectAt(object, i);
+        if (old != -1) removeAt(old);
+        insertObject(object, i);
       }
 
       i++;

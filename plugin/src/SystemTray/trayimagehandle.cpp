@@ -9,9 +9,8 @@ namespace ns::systemtray {
 TrayImageHandle::TrayImageHandle(StatusNotifierItem *item)
     : dbusprovider::BaseImageHandle(), m_item(item) {}
 
-QPixmap TrayImageHandle::requestPixmap(const QString & /*unused*/,
-                                       QSize       *size,
-                                       const QSize &requestedSize) {
+QPixmap TrayImageHandle::requestPixmap(
+    const QString &id, QSize *size, const QSize &requestedSize) {
   auto resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
 
   QPixmap pixmap = m_item->createPixmap(resolvedSize);

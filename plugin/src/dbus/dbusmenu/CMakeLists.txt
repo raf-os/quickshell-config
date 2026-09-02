@@ -36,6 +36,7 @@ qt6_add_qml_module(
   nightshell_dbusmenu
   URI "${ORG_URI_PREFIX}.DBusMenu"
   VERSION 0.1
+  DEPENDENCIES "${ORG_URI_PREFIX}.DBusImageProvider" "MyShellPlugin.Utils"
 )
 
 target_link_libraries(

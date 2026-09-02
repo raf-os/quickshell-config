@@ -29,18 +29,18 @@ struct DBusMenuItemPropertyNames {
 
 using DBusMenuItemPropertyNamesList = QList<DBusMenuItemPropertyNames>;
 
-const QDBusArgument &operator>>(const QDBusArgument &argument,
-                                DBusMenuLayout      &layout);
-const QDBusArgument &operator<<(QDBusArgument        &argument,
-                                const DBusMenuLayout &layout);
-const QDBusArgument &operator>>(const QDBusArgument    &argument,
-                                DBusMenuItemProperties &item);
-const QDBusArgument &operator<<(QDBusArgument                &argument,
-                                const DBusMenuItemProperties &item);
-const QDBusArgument &operator>>(const QDBusArgument       &argument,
-                                DBusMenuItemPropertyNames &names);
-const QDBusArgument &operator<<(QDBusArgument                   &argument,
-                                const DBusMenuItemPropertyNames &names);
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusMenuLayout &layout);
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusMenuLayout &layout);
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusMenuItemProperties &item);
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusMenuItemProperties &item);
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusMenuItemPropertyNames &names);
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusMenuItemPropertyNames &names);
 
 QDebug operator<<(QDebug debug, const DBusMenuLayout &layout);
 QDebug operator<<(QDebug debug, const DBusMenuItemProperties &item);

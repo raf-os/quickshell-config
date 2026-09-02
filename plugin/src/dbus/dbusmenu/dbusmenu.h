@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include <qcontainerfwd.h>
@@ -41,6 +42,9 @@ public:
   }
 
   void removeRecursively(qint32 id);
+
+  // Drops the entire tree except for children of the root item
+  void collapseToRoot();
 
 signals:
   void iconThemePathChanged();

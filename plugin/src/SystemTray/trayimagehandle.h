@@ -11,9 +11,8 @@ class TrayImageHandle : public dbusprovider::BaseImageHandle {
 public:
   explicit TrayImageHandle(StatusNotifierItem *item);
 
-  QPixmap requestPixmap(const QString &id,
-                        QSize         *size,
-                        const QSize   &requestedSize) override;
+  QPixmap requestPixmap(
+      const QString &id, QSize *size, const QSize &requestedSize) override;
 
 private:
   StatusNotifierItem *m_item;

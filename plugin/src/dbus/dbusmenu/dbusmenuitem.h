@@ -5,6 +5,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
+#include <qqmlintegration.h>
 #include <qsize.h>
 #include <qstringview.h>
 #include <qtmetamacros.h>
@@ -75,6 +76,8 @@ public:
 
 class DBusMenuItem : public QObject {
   Q_OBJECT
+  QML_ELEMENT
+  QML_UNCREATABLE("")
 
   Q_PROPERTY(bool isSeparator READ default NOTIFY isSeparatorChanged BINDABLE
           bindableIsSeparator)
@@ -95,14 +98,24 @@ class DBusMenuItem : public QObject {
   Q_PROPERTY(ns::dbusmenu::ItemCheckState::Enum checkState
           READ default NOTIFY checkStateChanged BINDABLE bindableCheckState)
 public:
-  explicit DBusMenuItem(qint32 id, DBusMenu *menuHandler, DBusMenuItem *parent);
+  explicit DBusMenuItem(
+      qint32 id, DBusMenu *menuHandler, DBusMenuItem *parentItem);
+  ~DBusMenuItem() override;
 
   Q_INVOKABLE void trigger();
-  Q_INVOKABLE void forceUpdateLayout();
+  Q_INVOKABLE void forceUpdateLayout(bool recursive = false);
 
   void updateProperties(
       const QVariantMap &properties, const QStringList &removedItems = {});
   ObjectModel<DBusMenuItem> *children();
+
+  DBusMenuItem *getParentItem();
+  void          setParentItem(DBusMenuItem *parent);
+
+  qint32 getDepth() const;
+  void   setDepth(qint32 depth);
+
+  qint32 getId() const { return m_id; }
 
   void               setShowChildrenRecursive(bool showChildren);
   [[nodiscard]] bool isShowingChildren();
@@ -115,7 +128,6 @@ public:
   [[nodiscard]] QBindable<bool> bindableHasChildren() const {
     return &b_hasChildren;
   }
-  [[nodiscard]] QBindable<QString> bindableText() const { return &b_text; }
   [[nodiscard]] QBindable<QString> bindableLabel() const { return &b_label; }
   [[nodiscard]] QBindable<QString> bindableIcon() const { return &b_icon; }
   [[nodiscard]] QBindable<ItemToggleType::Enum> bindableToggleType() const {
@@ -152,6 +164,7 @@ private:
   bool          m_showChildren;
   bool          m_childrenLoaded;
   qint32        m_id;
+  qint32        m_depth;
   DBusMenu     *m_menuHandler = nullptr;
   DBusMenuItem *m_parentMenu  = nullptr;
   QString       m_rawLabel;

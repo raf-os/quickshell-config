@@ -19,6 +19,8 @@
 #include <qtypes.h>
 #include <qurl.h>
 
+#include "dbusimage_export.h"
+
 namespace ns::dbusprovider {
 // struct ImageHandleAdapter {
 //   bool        hasAlpha = 0;
@@ -28,7 +30,7 @@ namespace ns::dbusprovider {
 //   qint32      height = 0;
 // };
 
-struct DBusNotificationImage {
+struct DBUSPROVIDER_EXPORT DBusNotificationImage {
   qint32     width    = 0;
   qint32     height   = 0;
   bool       hasAlpha = false;
@@ -80,7 +82,7 @@ public:
   QImage m_image;
 };
 
-class DBusPixmapImageProvider : public QQuickImageProvider {
+class DBUSPROVIDER_EXPORT DBusPixmapImageProvider : public QQuickImageProvider {
 public:
   explicit DBusPixmapImageProvider()
       : QQuickImageProvider(QQuickImageProvider::Pixmap) {}
@@ -101,7 +103,7 @@ private:
   QThreadPool pool;
 };
 
-class BaseImageHandle {
+class DBUSPROVIDER_EXPORT BaseImageHandle {
 public:
   explicit BaseImageHandle();
   virtual ~BaseImageHandle();
@@ -118,10 +120,8 @@ private:
   QString m_id;
 };
 
-class BaseIndexedImageHandle : public BaseImageHandle {
+class DBUSPROVIDER_EXPORT BaseIndexedImageHandle : public BaseImageHandle {
 public:
-  explicit BaseIndexedImageHandle();
-
   [[nodiscard]] QString urlFor() const override;
   void                  imageChanged();
 
@@ -143,7 +143,7 @@ private:
 //   QString m_id;
 // };
 
-class DBusImageHandler {
+class DBUSPROVIDER_EXPORT DBusImageHandler {
 public:
   explicit DBusImageHandler();
   ~DBusImageHandler();

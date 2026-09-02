@@ -131,7 +131,9 @@ Item {
 		spacing: root.spacing
 
 		Spacing {}
+
 		// SystemTray {}
+
 		StatusIcons {
 			popoutHandler: popoutHandler
 			popoutWrapper: root.popouts

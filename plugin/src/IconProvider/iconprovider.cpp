@@ -22,13 +22,11 @@ QImage PLACEHOLDER_ICON(const QSize &size) {
 }
 } // namespace
 IconImageProvider::IconImageProvider()
-    : QQuickImageProvider(
-          QQuickImageProvider::Pixmap,
+    : QQuickImageProvider(QQuickImageProvider::Pixmap,
           QQmlImageProviderBase::ForceAsynchronousImageLoading) {}
 
-QPixmap IconImageProvider::requestPixmap(const QString &id,
-                                         QSize         *size,
-                                         const QSize   &requestedSize) {
+QPixmap IconImageProvider::requestPixmap(
+    const QString &id, QSize *size, const QSize &requestedSize) {
   QSize resolvedSize = requestedSize.isValid() ? requestedSize : QSize(24, 24);
 
   if (id.isEmpty()) return placeholderIcon(resolvedSize);
@@ -48,9 +46,8 @@ QPixmap IconImageProvider::requestPixmap(const QString &id,
   }
 }
 
-QPixmap IconImageProvider::handleQtIcon(const QString &name,
-                                        QSize         *size,
-                                        const QSize   &resolvedSize) {
+QPixmap IconImageProvider::handleQtIcon(
+    const QString &name, QSize *size, const QSize &resolvedSize) {
   auto    queryIdx = name.indexOf("?");
   QString iconName;
   QString fallbackIcon;
@@ -66,6 +63,8 @@ QPixmap IconImageProvider::handleQtIcon(const QString &name,
         fallbackIcon = arg.sliced(9);
       } else if (arg.startsWith("path=")) {
         path = arg.sliced(5);
+        path = QString("/%1/%2").arg(
+            path, iconName.sliced(iconName.lastIndexOf('/') + 1));
       }
     }
   } else {
@@ -90,9 +89,8 @@ QPixmap IconImageProvider::handleQtIcon(const QString &name,
   return pixmap;
 }
 
-QPixmap IconImageProvider::handleShellIcon(const QString &name,
-                                           QSize         *size,
-                                           const QSize   &resolvedSize) {
+QPixmap IconImageProvider::handleShellIcon(
+    const QString &name, QSize *size, const QSize &resolvedSize) {
   QFile iconFile(m_shellIconPath + "/" + name + ".svg");
 
   if (!iconFile.exists()) {
@@ -137,9 +135,8 @@ QPixmap IconImageProvider::placeholderIcon(const QSize &resolvedSize) {
   return placeholder;
 }
 
-QString IconImageProvider::getSystemIconRequestString(const QString &icon,
-                                                      const QString &path,
-                                                      const QString &fallback) {
+QString IconImageProvider::getSystemIconRequestString(
+    const QString &icon, const QString &path, const QString &fallback) {
   QString reqStr = "image://qicons/qt/" + icon;
   if (!path.isEmpty()) {
     reqStr += "?path=" + path;
@@ -150,8 +147,8 @@ QString IconImageProvider::getSystemIconRequestString(const QString &icon,
   return reqStr;
 }
 
-void IconImageProviderExtensionPlugin::initializeEngine(QQmlEngine *engine,
-                                                        const char *uri) {
+void IconImageProviderExtensionPlugin::initializeEngine(
+    QQmlEngine *engine, const char *uri) {
   Q_UNUSED(uri);
   QIcon::setThemeName("breeze-dark");
   engine->addImageProvider("qicons", new IconImageProvider);

@@ -131,11 +131,14 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
   b_attentionPixmapList.onValueChanged([this] { this->refreshPixmap(); });
   b_overlayPixmapList.onValueChanged([this] { this->refreshPixmap(); });
 
-  b_menuPath.onValueChanged([this] {
+  auto onMenuPathChanged = [this]() {
     QString path = b_menuPath.value().path();
-    if (!b_hasMenu) path = "";
+    if (!b_hasMenu.value()) path = "";
     m_menuHandle.setAddress(m_item->service(), path);
-  });
+  };
+
+  b_menuPath.onValueChanged(onMenuPathChanged);
+  onMenuPathChanged();
 
   m_isReady = true;
 
@@ -152,16 +155,13 @@ void StatusNotifierItem::readAllParameters() {
   if (m_item == nullptr) return;
 
   QScopedPropertyUpdateGroup scopeGuard;
-  b_id                = m_item->id();
-  b_title             = m_item->title();
-  b_status            = Status::fromString(m_item->status());
-  b_category          = Category::fromString(m_item->category());
-  b_windowId          = m_item->windowId();
-  b_iconThemePath     = m_item->iconThemePath();
-  b_iconName          = m_item->iconName();
-  b_attentionIconName = m_item->attentionIconName();
-  b_overlayIconName   = m_item->overlayIconName();
-  b_isMenuOnly        = m_item->itemIsMenu();
+  b_id            = m_item->id();
+  b_title         = m_item->title();
+  b_status        = Status::fromString(m_item->status());
+  b_category      = Category::fromString(m_item->category());
+  b_windowId      = m_item->windowId();
+  b_iconThemePath = m_item->iconThemePath();
+  b_isMenuOnly    = m_item->itemIsMenu();
 
   this->readTooltip();
   this->readIconData();

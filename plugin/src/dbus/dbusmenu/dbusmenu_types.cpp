@@ -8,9 +8,8 @@
 // Copy-pasted as-is from
 // https://git.outfoxxed.me/quickshell/quickshell/src/branch/master/src/dbus/dbusmenu/dbus_menu_types.cpp
 
-namespace ns::dbusmenu {
-const QDBusArgument &operator>>(const QDBusArgument &argument,
-                                DBusMenuLayout      &layout) {
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusMenuLayout &layout) {
   layout.children.clear();
 
   argument.beginStructure();
@@ -30,8 +29,8 @@ const QDBusArgument &operator>>(const QDBusArgument &argument,
   return argument;
 }
 
-const QDBusArgument &operator<<(QDBusArgument        &argument,
-                                const DBusMenuLayout &layout) {
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusMenuLayout &layout) {
   argument.beginStructure();
   argument << layout.id;
   argument << layout.properties;
@@ -46,8 +45,8 @@ const QDBusArgument &operator<<(QDBusArgument        &argument,
   return argument;
 }
 
-const QDBusArgument &operator>>(const QDBusArgument    &argument,
-                                DBusMenuItemProperties &item) {
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusMenuItemProperties &item) {
   argument.beginStructure();
   argument >> item.id;
   argument >> item.properties;
@@ -55,8 +54,8 @@ const QDBusArgument &operator>>(const QDBusArgument    &argument,
   return argument;
 }
 
-const QDBusArgument &operator<<(QDBusArgument                &argument,
-                                const DBusMenuItemProperties &item) {
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusMenuItemProperties &item) {
   argument.beginStructure();
   argument << item.id;
   argument << item.properties;
@@ -64,8 +63,8 @@ const QDBusArgument &operator<<(QDBusArgument                &argument,
   return argument;
 }
 
-const QDBusArgument &operator>>(const QDBusArgument       &argument,
-                                DBusMenuItemPropertyNames &names) {
+const QDBusArgument &operator>>(
+    const QDBusArgument &argument, DBusMenuItemPropertyNames &names) {
   argument.beginStructure();
   argument >> names.id;
   argument >> names.properties;
@@ -73,8 +72,8 @@ const QDBusArgument &operator>>(const QDBusArgument       &argument,
   return argument;
 }
 
-const QDBusArgument &operator<<(QDBusArgument                   &argument,
-                                const DBusMenuItemPropertyNames &names) {
+const QDBusArgument &operator<<(
+    QDBusArgument &argument, const DBusMenuItemPropertyNames &names) {
   argument.beginStructure();
   argument << names.id;
   argument << names.properties;
@@ -101,4 +100,3 @@ QDebug operator<<(QDebug debug, const DBusMenuItemPropertyNames &names) {
                   << ", properties=" << names.properties << ")";
   return debug;
 }
-} // namespace ns::dbusmenu

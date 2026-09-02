@@ -94,6 +94,8 @@ DBusMenuItem::DBusMenuItem(
   b_hasChildren.setBinding([this] { return m_id == 0 || b_childrenDisplay; });
 }
 
+DBusMenuItem::~DBusMenuItem() = default;
+
 ObjectModel<DBusMenuItem> *DBusMenuItem::children() { return &m_childrenModel; }
 
 void DBusMenuItem::setShowChildrenRecursive(bool showChildren) {
@@ -221,9 +223,9 @@ void DBusMenuItem::updateProperties(
   if (m_image.hasData()) {
     b_icon = m_image.urlFor();
   } else if (!b_iconName.value().isEmpty()) {
-    auto iconPath =
-        iconprovider::IconImageProvider::getSystemIconRequestString(b_iconName,
-            m_menuHandler->bindableIconThemePath().value().join(':'), {});
+    auto iconPath = iconprovider::IconImageProvider::getSystemIconRequestString(
+        b_iconName.value(),
+        m_menuHandler->bindableIconThemePath().value().join(':'), {});
     b_icon = iconPath;
   } else {
     b_icon = "";
@@ -232,15 +234,28 @@ void DBusMenuItem::updateProperties(
 
 void DBusMenuItem::trigger() { sendTriggered(); }
 
-void DBusMenuItem::forceUpdateLayout() {
+void DBusMenuItem::forceUpdateLayout(bool recursive) {
   if (!isShowingChildren()) return;
-  m_menuHandler->updateLayout(m_id, -1);
+  m_menuHandler->updateLayout(m_id, recursive ? -1 : 1);
 }
+
+DBusMenuItem *DBusMenuItem::getParentItem() { return m_parentMenu; }
+void          DBusMenuItem::setParentItem(DBusMenuItem *parent) {
+  QObject::setParent(parent);
+  m_parentMenu = parent;
+}
+
+qint32 DBusMenuItem::getDepth() const { return m_depth; }
+void   DBusMenuItem::setDepth(qint32 depth) { m_depth = depth; }
 
 void DBusMenuItem::refreshChildren() {
   QList<DBusMenuItem *> newChildren;
   for (auto child : m_children) {
     auto *item = m_menuHandler->getChildItem(child);
+    // if (item) {
+    //   item->setParentItem(this);
+    //   item->setDepth(m_depth + 1);
+    // }
     if (item && item->bindableVisible().value()) {
       newChildren.append(item);
     }

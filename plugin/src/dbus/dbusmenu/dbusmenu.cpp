@@ -110,8 +110,8 @@ void DBusMenu::updateLayoutRecursively(
     }
   }
 
-  qCDebug(logNSDBusMenu).nospace() << "Recursively updating layout item "
-                                   << layout.id << " (" << this << ")";
+  // qCDebug(logNSDBusMenu).nospace() << "Recursively updating layout item "
+  //                                  << layout.id << " (" << this << ")";
   item->updateProperties(layout.properties);
 
   if (depth != 0) {
@@ -169,6 +169,18 @@ void DBusMenu::removeRecursively(qint32 id) {
 
   if (item) {
     item->deleteLater();
+  }
+}
+
+void DBusMenu::collapseToRoot() {
+  for (auto childId : m_rootItem->m_children) {
+    auto child = m_items.value(childId);
+
+    if (child) {
+      for (auto victim : child->m_children) {
+        this->removeRecursively(victim);
+      }
+    }
   }
 }
 
