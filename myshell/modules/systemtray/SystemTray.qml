@@ -84,6 +84,8 @@ Item {
 	Item {
 		id: popoutMenu
 
+		readonly property int padding: Config.appearance.padding.sm
+
 		anchors {
 			top: parent.bottom
 		}
@@ -108,8 +110,12 @@ Item {
 				horizontalCenter: parent.horizontalCenter
 			}
 
-			implicitWidth: popoutCurrent.implicitWidth
-			implicitHeight: root.currentActive ? popoutCurrent.implicitHeight : 0
+			implicitWidth: 240
+			implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
+
+			Behavior on implicitHeight {
+				NumberAnimation {}
+			}
 
 			Rectangle {
 				anchors.fill: parent
@@ -119,13 +125,7 @@ Item {
 			StackView {
 				id: popoutCurrent
 
-				anchors {
-					top: parent.top
-					horizontalCenter: parent.horizontalCenter
-				}
-
-				implicitWidth: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitWidth : 0
-				implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
+				anchors.fill: parent
 
 				Connections {
 					target: root
@@ -153,8 +153,8 @@ Item {
 			required property StatusNotifierItem statusItem
 			required property int parentId
 
-			implicitWidth: submenuLayout.implicitWidth
-			implicitHeight: submenuLayout.implicitHeight
+			implicitWidth: StackView.view ? StackView.view.width : 0
+			implicitHeight: submenuLayout.implicitHeight + popoutMenu.padding * 2
 
 			DBusMenuOpener {
 				id: menuOpener
@@ -167,13 +167,17 @@ Item {
 
 				anchors {
 					top: parent.top
-					horizontalCenter: parent.horizontalCenter
+					left: parent.left
+					right: parent.right
+					margins: popoutMenu.padding
 				}
 
 				Repeater {
 					model: menuOpener.item.children
 					delegate: Text {
 						required property DBusMenuItem modelData
+
+						Layout.fillWidth: true
 
 						text: modelData.label
 					}

@@ -50,6 +50,19 @@ void simplePropertyExtract(const QVariantMap &propMap, const QString &propName,
     *bindable = defaultValue;
   }
 }
+
+template <typename T>
+void complexPropertyExtract(const QVariantMap &propMap, const QString &propName,
+    std::function<bool(const QString &)> removeCompare,
+    std::function<void(T)> onSuccess, std::function<void()> onRemove) {
+
+  auto p = propMap.value(propName);
+  if (p.canConvert<T>()) {
+    onSuccess(p.value<T>());
+  } else if (removeCompare(propName)) {
+    onRemove();
+  }
+}
 } // namespace
 
 namespace ItemDisposition {
@@ -91,7 +104,8 @@ DBusMenuItem::DBusMenuItem(
     return std::move(cleanLabel);
   });
 
-  b_hasChildren.setBinding([this] { return m_id == 0 || b_childrenDisplay; });
+  b_hasChildren.setBinding(
+      [this] { return m_id == 0 || b_childrenDisplay.value(); });
 }
 
 DBusMenuItem::~DBusMenuItem() = default;

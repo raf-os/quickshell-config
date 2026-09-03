@@ -18,6 +18,7 @@ target_sources(
     dbusmenu.cpp
     dbusmenuitem.cpp
     dbusmenuhandle.cpp
+    dbusmenumodel.cpp
     ${DBUS_INTERFACES}
 )
 

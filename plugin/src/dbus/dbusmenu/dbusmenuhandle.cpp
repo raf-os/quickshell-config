@@ -77,6 +77,7 @@ void DBusMenuHandle::addRef() {
 
   if (m_refcount == 1) {
     // onMenuPathChanged();
+    m_menu->menu()->forceUpdateLayout();
   } else {
     // m_menu->menu()->forceUpdateLayout();
   }
