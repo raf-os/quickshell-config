@@ -16,7 +16,7 @@
 #include <qsize.h>
 
 #include "dbus_item.h"
-#include "dbusmenuhandle.h"
+#include "dbusmenumodel.h"
 #include "dbustypes.h"
 #include "iconprovider.h"
 #include "trayimagehandle.h"
@@ -132,9 +132,19 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
   b_overlayPixmapList.onValueChanged([this] { this->refreshPixmap(); });
 
   auto onMenuPathChanged = [this]() {
+    if (m_menuHandle) {
+      m_menuHandle->deleteLater();
+      m_menuHandle = nullptr;
+      emit menuHandleChanged();
+    }
+
     QString path = b_menuPath.value().path();
-    if (!b_hasMenu.value()) path = "";
-    m_menuHandle.setAddress(m_item->service(), path);
+    if (!b_hasMenu.value()) return;
+
+    m_menuHandle = new dbusmenu::DBusMenuModel(m_item->service(), path, this);
+    emit menuHandleChanged();
+
+    // m_menuHandle.setAddress(m_item->service(), path);
   };
 
   b_menuPath.onValueChanged(onMenuPathChanged);
@@ -147,8 +157,9 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
 
 StatusNotifierItem::~StatusNotifierItem() = default;
 
-dbusmenu::DBusMenuHandle *StatusNotifierItem::menuHandle() {
-  return &m_menuHandle;
+dbusmenu::DBusMenuModel *StatusNotifierItem::menuHandle() {
+  if (!b_hasMenu.value()) return nullptr;
+  return m_menuHandle;
 }
 
 void StatusNotifierItem::readAllParameters() {

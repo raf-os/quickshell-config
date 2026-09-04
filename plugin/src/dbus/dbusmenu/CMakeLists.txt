@@ -15,10 +15,10 @@ target_sources(
   nightshell_dbusmenu
   PRIVATE
     dbusmenu_types.cpp
-    dbusmenu.cpp
-    dbusmenuitem.cpp
-    dbusmenuhandle.cpp
+    dbusmenu_enums.cpp
+    dbusmenupngimage.cpp
     dbusmenumodel.cpp
+    scopeddbusmenuview.cpp
     ${DBUS_INTERFACES}
 )
 

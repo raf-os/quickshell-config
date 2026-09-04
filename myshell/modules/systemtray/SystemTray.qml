@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import qs.components
 import MyShellPlugin
 import MyShellPlugin.Configs
 import org.nightshell.SystemTray
@@ -88,6 +89,7 @@ Item {
 
 		anchors {
 			top: parent.bottom
+			topMargin: 12
 		}
 
 		Connections {
@@ -114,7 +116,9 @@ Item {
 			implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
 
 			Behavior on implicitHeight {
-				NumberAnimation {}
+				NAnim {
+					duration: 200
+				}
 			}
 
 			Rectangle {
@@ -126,15 +130,15 @@ Item {
 				id: popoutCurrent
 
 				anchors.fill: parent
+				clip: true
 
 				Connections {
 					target: root
 
 					function onCurrentChanged() {
 						if (root.current) {
-							popoutCurrent.replace(traySubmenuComponent, {
-								statusItem: root.current,
-								parentId: 0
+							popoutCurrent.replace(rootSubmenuComponent, {
+								statusItem: root.current
 							});
 						} else {
 							popoutCurrent.clear(StackView.PopTransition);
@@ -146,43 +150,22 @@ Item {
 	}
 
 	Component {
+		id: rootSubmenuComponent
+		RootSubmenu {
+			implicitWidth: StackView.view ? StackView.view.width : 0
+		}
+	}
+
+	Component {
 		id: traySubmenuComponent
 
 		Item {
 			id: traySubmenuItem
 			required property StatusNotifierItem statusItem
-			required property int parentId
 
-			implicitWidth: StackView.view ? StackView.view.width : 0
-			implicitHeight: submenuLayout.implicitHeight + popoutMenu.padding * 2
+			// implicitWidth: StackView.view ? StackView.view.width : 0
+			// implicitHeight: submenuLayout.implicitHeight + popoutMenu.padding * 2
 
-			DBusMenuOpener {
-				id: menuOpener
-				menu: traySubmenuItem.statusItem.menuHandle
-				parent: traySubmenuItem.parentId
-			}
-
-			ColumnLayout {
-				id: submenuLayout
-
-				anchors {
-					top: parent.top
-					left: parent.left
-					right: parent.right
-					margins: popoutMenu.padding
-				}
-
-				Repeater {
-					model: menuOpener.item.children
-					delegate: Text {
-						required property DBusMenuItem modelData
-
-						Layout.fillWidth: true
-
-						text: modelData.label
-					}
-				}
-			}
 		}
 	}
 }

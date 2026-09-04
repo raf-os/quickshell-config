@@ -1,6 +1,7 @@
 #include "dbusmenumodel.h"
 
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <utility>
@@ -20,13 +21,13 @@
 #include <qtypes.h>
 #include <qvariant.h>
 
-#include "dbusmenu.h"
+#include "dbus_menu.h"
+#include "dbusmenu_enums.h"
 #include "dbusmenu_types.h"
-#include "dbusmenuitem.h"
 #include "iconprovider.h"
 
 namespace ns::dbusmenu {
-Q_DECLARE_LOGGING_CATEGORY(logNSDBusMenu) // from dbusmenu.cpp
+Q_LOGGING_CATEGORY(logNSDBusMenu, "ns.dbusmenu")
 
 namespace {
 template <typename T> struct BindableParams;
@@ -101,6 +102,8 @@ DBusMenuModel::DBusMenuModel(
 
   QObject::connect(m_interface, &DBusMenuInterface::ItemsPropertiesUpdated,
       this, &DBusMenuModel::onItemsPropertiesUpdated);
+
+  this->updateLayout(0, 1);
 }
 
 // required for unique_ptr
@@ -138,7 +141,7 @@ QModelIndex DBusMenuModel::index(
   auto childId = parentItem->childAt(row);
   if (childId == -1) return {};
 
-  auto childItem = m_items.value(static_cast<qint32>(childId), nullptr);
+  auto childItem = m_items.value(childId, nullptr);
   return childItem ? createIndex(row, column, childItem) : QModelIndex();
 }
 
@@ -153,12 +156,17 @@ QModelIndex DBusMenuModel::parent(const QModelIndex &index) const {
 }
 
 QVariant DBusMenuModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid()) return {};
-
-  auto *item = static_cast<DBusMenuModelItem *>(index.internalPointer());
-
   switch (role) {
-  case Roles::ModelDataRole: return QVariant::fromValue(item);
+  case Roles::ModelDataRole: {
+    DBusMenuModelItem *item = nullptr;
+
+    if (index.isValid()) {
+      item = static_cast<DBusMenuModelItem *>(index.internalPointer());
+    } else {
+      item = m_rootItem.get();
+    }
+    return QVariant::fromValue<DBusMenuModelItem *>(item);
+  }
 
   case Roles::SelfIndexRole: return index;
 
@@ -189,6 +197,10 @@ void DBusMenuModel::updateLayout(qint32 parent, qint32 depth) {
         } else {
           auto layout = reply.argumentAt<1>();
           this->updateLayoutRecursively(layout, m_items.value(parent), depth);
+
+          // for (auto it = m_items.begin(); it != m_items.end(); it++) {
+          //   qCDebug(logNSDBusMenu) << it.key() << ":" << it.value();
+          // }
         }
 
         delete call;
@@ -203,9 +215,12 @@ void DBusMenuModel::updateLayoutRecursively(
     // key might exist in the hash table with a null value
     if (m_items.contains(layout.id)) {
       // it does, so a new item must be created
-      item = new DBusMenuModelItem(layout.id, this, parent);
+      item          = new DBusMenuModelItem(layout.id, this, parent);
+      item->m_depth = parent->m_depth + 1;
 
-      this->addItem(item, parent);
+      // this->addItem(item, parent);
+      auto rowIdx = parent->childCount();
+      m_items.insert(item->id(), item);
     } else {
       // TODO: debug log
       return;
@@ -214,6 +229,9 @@ void DBusMenuModel::updateLayoutRecursively(
 
   // pass the new properties onto the child so it can parse it
   item->handleUpdatePayload(layout.properties, {});
+  if (item->m_depth > m_maxDepth) {
+    m_maxDepth = item->m_depth;
+  }
 
   // negative depth = keep recursion going
   if (depth != 0) {
@@ -247,6 +265,7 @@ void DBusMenuModel::updateLayoutRecursively(
         // new one, must be inserted
         // do not update model while the item is still nullptr
         m_items.insert(child.id, nullptr);
+        item->m_childIds.append(child.id);
         childrenChangedFlag = true;
       }
 
@@ -255,12 +274,13 @@ void DBusMenuModel::updateLayoutRecursively(
       updateLayoutRecursively(child, item, depth - 1);
     }
 
-    if (childrenChangedFlag) {
-      item->m_childIds.clear();
-      for (const auto &child : layout.children) {
-        item->m_childIds.append(child.id);
-      }
-    }
+    // is this redundant?
+    // if (childrenChangedFlag) {
+    //   item->m_childIds.clear();
+    //   for (const auto &child : layout.children) {
+    //     item->m_childIds.append(child.id);
+    //   }
+    // }
   }
 }
 
@@ -287,6 +307,8 @@ DBusMenuModelItem *DBusMenuModel::getChildById(qint32 id) {
   if (it == m_items.end()) return nullptr;
   else return it.value();
 }
+
+DBusMenuModelItem *DBusMenuModel::rootItem() { return m_rootItem.get(); }
 
 QModelIndex DBusMenuModel::getModelIndexForItem(DBusMenuModelItem *item) {
   if (!item || item == m_rootItem.get()) return QModelIndex();
@@ -350,7 +372,38 @@ void DBusMenuModel::prepareToShow(qint32 item, qint32 depth) {
       });
 }
 
+void DBusMenuModel::prepareToShowWithCallback(
+    qint32 item, QObject *handler, std::function<void(bool)> callback) {
+  auto  pending = m_interface->AboutToShow(item);
+  auto *call    = new QDBusPendingCallWatcher(pending, handler);
+
+  QObject::connect(call, &QDBusPendingCallWatcher::finished, handler,
+      [this, item, callback](QDBusPendingCallWatcher *call) {
+        const QDBusPendingReply<bool> reply = *call;
+
+        bool shouldUpdate = true;
+        if (!reply.isError()) {
+          shouldUpdate = reply.value();
+        }
+
+        updateLayout(item, 1);
+        callback(shouldUpdate);
+
+        if (shouldUpdate) {
+          auto maxDepth = m_maxDepth;
+          if (auto i = m_items.value(item, nullptr)) {
+            if (i->m_depth + 1 > maxDepth) {
+              maxDepth = i->m_depth + 1;
+            }
+          }
+          updateLayout(0, maxDepth);
+        }
+        delete call;
+      });
+}
+
 void DBusMenuModel::collapseToRoot() {
+  m_maxDepth = 1;
   for (auto childId : m_rootItem->m_childIds) {
     auto child = m_items.value(childId);
 
@@ -359,6 +412,22 @@ void DBusMenuModel::collapseToRoot() {
         this->removeRecursively(victim);
       }
     }
+  }
+}
+
+void DBusMenuModel::addRef() {
+  m_refcount++;
+
+  if (m_refcount == 1) {
+    this->updateLayout(0, 1);
+  }
+}
+
+void DBusMenuModel::removeRef() {
+  m_refcount--;
+
+  if (m_refcount == 0) {
+    this->collapseToRoot();
   }
 }
 
@@ -387,6 +456,7 @@ int DBusMenuModelItem::childAt(int row) const {
 }
 
 DBusMenuModelItem *DBusMenuModelItem::parentMenu() { return m_parentMenu; }
+DBusMenuModel     *DBusMenuModelItem::rootModel() { return m_rootModel; }
 
 void DBusMenuModelItem::handleUpdatePayload(
     const QVariantMap &properties, const QStringList &removedItems) {
@@ -438,7 +508,13 @@ void DBusMenuModelItem::handleUpdatePayload(
 
   complexPropertyExtract<QString>(
       properties, "type", shouldRemove,
-      [this](auto type) { b_isSeparator = type == "separator"; },
+      [this](QString type) {
+        if (type == "separator") {
+          b_isSeparator = true;
+        } else {
+          b_isSeparator = false;
+        }
+      },
       [this] { b_isSeparator = false; });
 
   complexPropertyExtract<QString>(
@@ -446,7 +522,7 @@ void DBusMenuModelItem::handleUpdatePayload(
       [this](auto toggleType) {
         b_toggleType = ItemToggleType::fromString(toggleType);
       },
-      [this] { b_isSeparator = false; });
+      [this] { b_toggleType = ItemToggleType::None; });
 
   complexPropertyExtract<qint32>(
       properties, "toggle-state", shouldRemove,
@@ -484,6 +560,9 @@ void DBusMenuModelItem::handleUpdatePayload(
   } else {
     b_iconUrl = "";
   }
+
+  // qCDebug(logNSDBusMenu) << "ITEM:" << b_text.value()
+  //                        << "\nIS SEPARATOR:" << b_isSeparator.value();
 }
 
 void DBusMenuModelItem::sendTriggered() {

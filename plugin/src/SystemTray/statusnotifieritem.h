@@ -12,7 +12,7 @@
 #include <qtypes.h>
 
 #include "dbus_item.h"
-#include "dbusmenuhandle.h"
+#include "dbusmenumodel.h"
 #include "dbustypes.h"
 
 namespace ns::systemtray {
@@ -82,7 +82,8 @@ class StatusNotifierItem : public QObject {
   Q_PROPERTY(bool isMenuOnly READ default NOTIFY isMenuOnlyChanged BINDABLE
           bindableIsMenuOnly)
 
-  Q_PROPERTY(ns::dbusmenu::DBusMenuHandle *menuHandle READ menuHandle CONSTANT)
+  Q_PROPERTY(ns::dbusmenu::DBusMenuModel *menuHandle READ menuHandle NOTIFY
+          menuHandleChanged)
 
 public:
   explicit StatusNotifierItem(
@@ -95,8 +96,8 @@ public:
   [[nodiscard]] bool isValid() const;
   [[nodiscard]] bool isReady() const;
 
-  QPixmap                   createPixmap(const QSize &size);
-  dbusmenu::DBusMenuHandle *menuHandle();
+  QPixmap                  createPixmap(const QSize &size);
+  dbusmenu::DBusMenuModel *menuHandle();
 
   [[nodiscard]] QBindable<QString>        bindableId() const { return &b_id; }
   [[nodiscard]] QBindable<Category::Enum> bindableCategory() const {
@@ -157,6 +158,8 @@ signals:
   void hasMenuChanged();
   void isMenuOnlyChanged();
 
+  void menuHandleChanged();
+
 private slots:
   void readAllParameters();
   void readTooltip();
@@ -171,7 +174,7 @@ private:
                      // headers. Both require each other but because of the
                      // parent->child relationship, this sounded more
                      // appropriate
-  dbusmenu::DBusMenuHandle m_menuHandle{this};
+  dbusmenu::DBusMenuModel *m_menuHandle = nullptr;
 
   void refreshPixmap();
 

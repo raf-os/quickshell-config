@@ -1,11 +1,13 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -15,9 +17,9 @@
 #include <qtypes.h>
 #include <qvariant.h>
 
-#include "dbus_menu.h"
+#include "dbusmenu_enums.h"
 #include "dbusmenu_types.h"
-#include "dbusmenuitem.h"
+#include "dbusmenupngimage.h"
 
 #define READONLY_BINDABLE_PROP(ClassName, Type, Name)                          \
   Q_PROPERTY(                                                                  \
@@ -33,7 +35,12 @@ private:                                                                       \
 #define MODELITEM_READONLY_PROPERTY(Type, Name)                                \
   READONLY_BINDABLE_PROP(DBusMenuModelItem, Type, Name)
 
+// not forward declaring this will break includes for other libraries
+class DBusMenuInterface;
+
 namespace ns::dbusmenu {
+Q_DECLARE_LOGGING_CATEGORY(logNSDBusMenu) // from dbusmenumodel.cpp
+
 class DBusMenuModelItem;
 
 class DBusMenuModel : public QAbstractItemModel {
@@ -41,16 +48,25 @@ class DBusMenuModel : public QAbstractItemModel {
   QML_ELEMENT
   QML_UNCREATABLE("")
 
+  Q_PROPERTY(QVariant rootIndex READ rootIndex CONSTANT)
+
 public:
   explicit DBusMenuModel(
       const QString &service, const QString &path, QObject *parent = nullptr);
   ~DBusMenuModel() override;
 
-  enum Roles { ModelDataRole = Qt::UserRole, SelfIndexRole = Qt::UserRole + 1 };
+  enum Roles {
+    ModelDataRole = Qt::UserRole + 1,
+    SelfIndexRole = Qt::UserRole + 2
+  };
 
   // may be null
   DBusMenuModelItem *getChildById(qint32 id);
+  DBusMenuModelItem *rootItem();
   QModelIndex        getModelIndexForItem(DBusMenuModelItem *item);
+
+  // QModelIndex is not a QML type, so this is simply a helper
+  [[nodiscard]] QVariant rootIndex() const { return QVariant(QModelIndex()); }
 
   QHash<int, QByteArray> roleNames() const override;
   int                    rowCount(const QModelIndex &parent) const override;
@@ -64,7 +80,18 @@ public:
   void sendEvent(qint32 item, const QString &event);
   void prepareToShow(qint32 item, qint32 depth);
 
+  /* item: unique item ID
+   * handler: object tasked with cleanup, usually "this" for whoever's calling
+   * callback: first argument indicates whether item is ready or if it needs to
+   * be re-fetched
+   */
+  void prepareToShowWithCallback(
+      qint32 item, QObject *handler, std::function<void(bool)> callback);
+
   void collapseToRoot();
+
+  void addRef();
+  void removeRef();
 
 private slots:
   void onLayoutUpdated(quint32 revision, qint32 parent);
@@ -72,6 +99,8 @@ private slots:
       const DBusMenuItemPropertyNamesList                        &removedProps);
 
 private:
+  quint32                            m_refcount  = 0;
+  quint32                            m_maxDepth  = 1;
   DBusMenuInterface                 *m_interface = nullptr;
   std::unique_ptr<DBusMenuModelItem> m_rootItem;
   QHash<qint32, DBusMenuModelItem *> m_items;
@@ -111,14 +140,17 @@ public:
   [[nodiscard]] qint32 id() const;
 
   [[nodiscard]] DBusMenuModelItem *parentMenu();
+  [[nodiscard]] DBusMenuModel     *rootModel();
 
 signals:
   void childrenLoaded();
+  void layoutUpdated();
 
 private:
   const qint32       m_id;
   bool               m_childrenLoaded = false;
   int                m_row;
+  quint32            m_depth      = 0;
   DBusMenuModel     *m_rootModel  = nullptr;
   DBusMenuModelItem *m_parentMenu = nullptr;
 
