@@ -58,7 +58,7 @@ void ScopedDBusMenuView::setModelIndex(const QVariant &index) {
 }
 
 void ScopedDBusMenuView::tryAttach() {
-  if (!m_isValid || !m_model || !m_isPending) return;
+  if (!m_isValid || !m_model || m_isPending) return;
   if (b_loaded.value()) return;
 
   if (!m_menu) {
@@ -73,6 +73,7 @@ void ScopedDBusMenuView::tryAttach() {
   m_isPending = true;
   m_model->prepareToShowWithCallback(
       m_menu->id(), this, [this](bool shouldUpdate) {
+        m_isPending = false;
         if (!shouldUpdate) {
           this->onLoadedComplete();
           return;
@@ -87,12 +88,7 @@ void ScopedDBusMenuView::tryAttach() {
 }
 
 void ScopedDBusMenuView::onLoadedComplete() {
-  if (m_isPending) {
-    tryAttach();
-  } else if (m_menu) {
-    b_loaded = true;
-  }
-
+  b_loaded    = true;
   m_isPending = false;
 }
 
@@ -104,15 +100,14 @@ void ScopedDBusMenuView::onModelDestroyed() {
 }
 
 void ScopedDBusMenuView::onItemDestroyed() {
-  if (m_model) {
-    QObject::disconnect(m_model, nullptr, this, nullptr);
-    m_model->removeRef();
+  if (m_menu) {
+    QObject::disconnect(m_menu, nullptr, this, nullptr);
   }
+  m_menu = nullptr;
 
-  // force detach everything
-  m_menu   = nullptr;
-  m_model  = nullptr;
-  b_loaded = false;
-  emit modelChanged();
+  if (b_loaded) {
+    m_model  = nullptr;
+    b_loaded = false;
+  }
 }
 } // namespace ns::dbusmenu

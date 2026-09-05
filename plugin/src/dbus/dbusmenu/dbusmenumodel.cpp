@@ -16,6 +16,7 @@
 #include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qproperty.h>
 #include <qstringview.h>
 #include <qtpreprocessorsupport.h>
 #include <qtypes.h>
@@ -103,7 +104,7 @@ DBusMenuModel::DBusMenuModel(
   QObject::connect(m_interface, &DBusMenuInterface::ItemsPropertiesUpdated,
       this, &DBusMenuModel::onItemsPropertiesUpdated);
 
-  this->updateLayout(0, 1);
+  this->updateLayout(0, -1);
 }
 
 // required for unique_ptr
@@ -180,7 +181,19 @@ void DBusMenuModel::onLayoutUpdated(quint32 revision, qint32 parent) {
 
 void DBusMenuModel::onItemsPropertiesUpdated(
     const DBusMenuItemPropertiesList    &updatedProps,
-    const DBusMenuItemPropertyNamesList &removedProps) {}
+    const DBusMenuItemPropertyNamesList &removedProps) {
+  for (const auto &propset : updatedProps) {
+    if (auto item = m_items.value(propset.id)) {
+      item->handleUpdatePayload(propset.properties, {});
+    }
+  }
+
+  for (const auto &propset : removedProps) {
+    if (auto item = m_items.value(propset.id)) {
+      item->handleUpdatePayload({}, propset.properties);
+    }
+  }
+}
 
 void DBusMenuModel::updateLayout(qint32 parent, qint32 depth) {
   auto pending     = m_interface->GetLayout(parent, depth, {});
@@ -199,7 +212,10 @@ void DBusMenuModel::updateLayout(qint32 parent, qint32 depth) {
           this->updateLayoutRecursively(layout, m_items.value(parent), depth);
 
           // for (auto it = m_items.begin(); it != m_items.end(); it++) {
-          //   qCDebug(logNSDBusMenu) << it.key() << ":" << it.value();
+          //   const auto item = it.value();
+          //   qCDebug(logNSDBusMenu) << "[ ITEM" << it.key() << "]";
+          //   qCDebug(logNSDBusMenu) << "text:" << item->b_text.value()
+          //                          << ", children:" << item->m_childIds;
           // }
         }
 
@@ -386,18 +402,16 @@ void DBusMenuModel::prepareToShowWithCallback(
           shouldUpdate = reply.value();
         }
 
-        updateLayout(item, 1);
         callback(shouldUpdate);
 
-        if (shouldUpdate) {
-          auto maxDepth = m_maxDepth;
-          if (auto i = m_items.value(item, nullptr)) {
-            if (i->m_depth + 1 > maxDepth) {
-              maxDepth = i->m_depth + 1;
-            }
-          }
-          updateLayout(0, maxDepth);
-        }
+        // auto maxDepth = m_maxDepth;
+        // if (auto i = m_items.value(item, nullptr)) {
+        //   if (i->m_depth + 1 > maxDepth) {
+        //     maxDepth = i->m_depth + 1;
+        //   }
+        // }
+        // updateLayout(0, maxDepth);
+
         delete call;
       });
 }
@@ -419,7 +433,7 @@ void DBusMenuModel::addRef() {
   m_refcount++;
 
   if (m_refcount == 1) {
-    this->updateLayout(0, 1);
+    this->updateLayout(0, -1);
   }
 }
 
@@ -466,6 +480,8 @@ void DBusMenuModelItem::handleUpdatePayload(
     return;
   }
 
+  QScopedPropertyUpdateGroup scope;
+
   auto shouldRemove = [&removedItems](const QString &name) {
     return removedItems.isEmpty() || removedItems.contains(name);
   };
@@ -489,7 +505,7 @@ void DBusMenuModelItem::handleUpdatePayload(
       [this] { b_rawText = ""; });
 
   simplePropertyExtract(
-      properties, "enabled", &b_isEnabled, shouldRemove, false);
+      properties, "enabled", &b_isEnabled, shouldRemove, true);
   simplePropertyExtract(
       properties, "visible", &b_isVisible, shouldRemove, true);
   simplePropertyExtract(properties, "icon-name", &b_iconName, shouldRemove, {});
@@ -562,8 +578,11 @@ void DBusMenuModelItem::handleUpdatePayload(
   }
 
   // qCDebug(logNSDBusMenu) << "ITEM:" << b_text.value()
-  //                        << "\nIS SEPARATOR:" << b_isSeparator.value();
+  //                        << "\nIS SEPARATOR:" << b_isSeparator.value()
+  //                        << "\nIS ENABLED:" << b_isEnabled.value();
 }
+
+void DBusMenuModelItem::trigger() { this->sendTriggered(); }
 
 void DBusMenuModelItem::sendTriggered() {
   m_rootModel->sendEvent(m_id, "clicked");

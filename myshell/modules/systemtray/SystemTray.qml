@@ -1,16 +1,21 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.modules.bar
 import MyShellPlugin
 import MyShellPlugin.Configs
 import org.nightshell.SystemTray
 import org.nightshell.DBusMenu
+import Quickshell
+import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
 Item {
 	id: root
+
+	required property Bar bar
 
 	readonly property bool hasItems: SystemTrayQML.items.values.length > 0
 	readonly property int padding: 4
@@ -30,6 +35,10 @@ Item {
 		}
 
 		root.currentActive = null;
+	}
+
+	function closePopup(): void {
+		root.current = null;
 	}
 
 	onCurrentChanged: evalCurrentActive()
@@ -82,90 +91,97 @@ Item {
 		}
 	}
 
-	Item {
-		id: popoutMenu
-
-		readonly property int padding: Config.appearance.padding.sm
-
-		anchors {
-			top: parent.bottom
-			topMargin: 12
-		}
-
-		Connections {
-			target: root
-
-			function onCurrentActiveChanged() {
-				if (!root.currentActive) {
-					return;
-				}
-				const mapPos = root.currentActive.mapToItem(root, Qt.point(root.currentActive.width / 2, 0));
-				popoutMenu.x = mapPos.x;
-			}
-		}
-
-		Item {
-			id: popoutMenuContent
-
-			anchors {
-				top: parent.bottom
-				horizontalCenter: parent.horizontalCenter
-			}
-
-			implicitWidth: 240
-			implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
-
-			Behavior on implicitHeight {
-				NAnim {
-					duration: 200
-				}
-			}
-
-			Rectangle {
-				anchors.fill: parent
-				color: Colors.colors.base0
-			}
-
-			StackView {
-				id: popoutCurrent
-
-				anchors.fill: parent
-				clip: true
-
-				Connections {
-					target: root
-
-					function onCurrentChanged() {
-						if (root.current) {
-							popoutCurrent.replace(rootSubmenuComponent, {
-								statusItem: root.current
-							});
-						} else {
-							popoutCurrent.clear(StackView.PopTransition);
-						}
-					}
-				}
-			}
-		}
-	}
+	// Item {
+	// 	id: popoutMenu
+	//
+	// 	readonly property int padding: Config.appearance.padding.sm
+	// 	readonly property int animDuration: 300
+	//
+	// 	anchors {
+	// 		top: parent.bottom
+	// 		topMargin: root.current ? 12 : 20
+	// 	}
+	//
+	// 	Behavior on anchors.topMargin {
+	// 		NAnim {
+	// 			duration: popoutMenu.animDuration
+	// 		}
+	// 	}
+	//
+	// 	Connections {
+	// 		target: root
+	//
+	// 		function onCurrentChanged() {
+	// 			popoutRegion.updateDimensions();
+	// 		}
+	//
+	// 		function onCurrentActiveChanged() {
+	// 			if (!root.currentActive) {
+	// 				return;
+	// 			}
+	// 			const mapPos = root.currentActive.mapToItem(root, Qt.point(root.currentActive.width / 2, 0));
+	// 			popoutMenu.x = mapPos.x;
+	// 		}
+	// 	}
+	//
+	// 	Item {
+	// 		id: popoutMenuContent
+	//
+	// 		anchors {
+	// 			top: parent.bottom
+	// 			horizontalCenter: parent.horizontalCenter
+	// 		}
+	//
+	// 		implicitWidth: 240
+	// 		implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
+	//
+	// 		opacity: root.current ? 1 : 0
+	//
+	// 		Behavior on implicitHeight {
+	// 			NAnim {
+	// 				duration: popoutMenu.animDuration
+	// 			}
+	// 		}
+	//
+	// 		Behavior on opacity {
+	// 			NAnim {
+	// 				duration: popoutMenu.animDuration
+	// 			}
+	// 		}
+	//
+	// 		Rectangle {
+	// 			anchors.fill: parent
+	// 			color: Colors.colors.base0
+	// 		}
+	//
+	// 		StackView {
+	// 			id: popoutCurrent
+	//
+	// 			anchors.fill: parent
+	// 			clip: true
+	//
+	// 			Connections {
+	// 				target: root
+	//
+	// 				function onCurrentChanged() {
+	// 					if (root.current) {
+	// 						popoutCurrent.replace(rootSubmenuComponent, {
+	// 							statusItem: root.current,
+	// 							depth: 0
+	// 						});
+	// 					} else {
+	// 						popoutCurrent.clear(StackView.PopTransition);
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	Component {
 		id: rootSubmenuComponent
 		RootSubmenu {
 			implicitWidth: StackView.view ? StackView.view.width : 0
-		}
-	}
-
-	Component {
-		id: traySubmenuComponent
-
-		Item {
-			id: traySubmenuItem
-			required property StatusNotifierItem statusItem
-
-			// implicitWidth: StackView.view ? StackView.view.width : 0
-			// implicitHeight: submenuLayout.implicitHeight + popoutMenu.padding * 2
-
 		}
 	}
 }

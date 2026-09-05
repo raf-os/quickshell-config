@@ -8,6 +8,9 @@ import QtQuick
 Item {
 	id: root
 
+	property alias content: content
+
+	required property PanelWindow rootPanel
 	required property ShellScreen screen
 	required property PersistentProperties openPanels
 	required property PopoutWrapper popouts
@@ -19,32 +22,34 @@ Item {
 	readonly property int contentHeight: Config.bar.sizes.innerHeight + paddingV * 2
 	readonly property int exclusiveZone: contentHeight
 
-	readonly property Item mediaInfo: content.item ? content.item?.mediaInfo : null
+	readonly property int barRelativeX: content.x
+	readonly property int barRelativeY: content.y
+
+	readonly property int systemTrayRelativeX: content.systemTrayX
+
+	readonly property Item mediaInfo: content.mediaInfo
 	implicitHeight: contentHeight
 
 	function handleMouseWheel(x: real, y: real, angleDelta: point) {
-		content.item?.handleMouseWheel(x, y, angleDelta);
+		content.handleMouseWheel(x, y, angleDelta);
 	}
 
-	Loader {
+	Bar {
 		id: content
 
 		anchors.fill: parent
 
-		sourceComponent: Bar {
-			anchors.fill: parent
+		anchors.topMargin: root.paddingV
+		anchors.bottomMargin: root.paddingV
+		anchors.leftMargin: root.paddingH
+		anchors.rightMargin: root.paddingH
 
-			anchors.topMargin: root.paddingV
-			anchors.bottomMargin: root.paddingV
-			anchors.leftMargin: root.paddingH
-			anchors.rightMargin: root.paddingH
+		// implicitHeight: Config.bar.sizes.innerHeight
+		screen: root.screen
 
-			// implicitHeight: Config.bar.sizes.innerHeight
-			screen: root.screen
-
-			openPanels: root.openPanels
-			popouts: root.popouts
-			panels: root.panels
-		}
+		openPanels: root.openPanels
+		popouts: root.popouts
+		panels: root.panels
+		rootPanel: root.rootPanel
 	}
 }

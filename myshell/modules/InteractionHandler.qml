@@ -7,90 +7,91 @@ import Quickshell
 import QtQuick
 
 MouseArea {
-    id: root
+	id: root
 
-    required property ShellScreen screen
-    required property PersistentProperties openPanels
-    required property PopoutWrapper popouts
-    required property BarWrapper bar
-    required property Panels panels
+	required property ShellScreen screen
+	required property PersistentProperties openPanels
+	required property PopoutWrapper popouts
+	required property BarWrapper bar
+	required property Panels panels
 
-    readonly property Item mediaIndicator: bar.mediaInfo ?? null
+	readonly property Item mediaIndicator: bar.mediaInfo ?? null
 
-    propagateComposedEvents: true
+	propagateComposedEvents: true
 
-    // acceptedButtons: Qt.LeftButton | Qt.RightButton
-    anchors.fill: parent
+	// acceptedButtons: Qt.LeftButton | Qt.RightButton
+	anchors.fill: parent
 
-    onClicked: event => {
-        if (event.y < Config.border.thickness * 2 + Config.bar.sizes.innerHeight) {
-            popouts.close();
-            panels.forceClosePanels();
-        }
-    }
+	onClicked: event => {
+		if (event.y < Config.border.thickness * 2 + Config.bar.sizes.innerHeight) {
+			popouts.close();
+			panels.forceClosePanels();
+			bar.content.systemTray.closePopup();
+		}
+	}
 
-    onWheel: event => {
-        bar.handleMouseWheel(event.x, event.y, event.angleDelta);
-    }
+	onWheel: event => {
+		bar.handleMouseWheel(event.x, event.y, event.angleDelta);
+	}
 
-    Loader {
-        id: customTest
+	Loader {
+		id: customTest
 
-        active: root.mediaIndicator !== null && root.mediaIndicator.active === true
+		active: root.mediaIndicator !== null && root.mediaIndicator.active === true
 
-        sourceComponent: Item {
-            id: rootAreaInteract
+		sourceComponent: Item {
+			id: rootAreaInteract
 
-            readonly property point mediaIndicatorPos: {
-                root.mediaIndicator.x;
-                root.mediaIndicator.y;
-                return root.mediaIndicator.mapToItem(root, 0, 0);
-            }
+			readonly property point mediaIndicatorPos: {
+				root.mediaIndicator.x;
+				root.mediaIndicator.y;
+				return root.mediaIndicator.mapToItem(root, 0, 0);
+			}
 
-            readonly property point mprisPopupPos: {
-                root.panels.mprisViewer.x;
-                root.panels.mprisViewer.y;
-                return root.panels.mprisViewer.mapToItem(root, 0, 0);
-            }
+			readonly property point mprisPopupPos: {
+				root.panels.mprisViewer.x;
+				root.panels.mprisViewer.y;
+				return root.panels.mprisViewer.mapToItem(root, 0, 0);
+			}
 
-            x: Math.min(mediaIndicatorPos.x, mprisPopupPos.x) ?? 0
-            y: 0
+			x: Math.min(mediaIndicatorPos.x, mprisPopupPos.x) ?? 0
+			y: 0
 
-            property bool isMouseWithin: mediaBarArea.containsMouse || mediaPopoutArea.containsMouse
+			property bool isMouseWithin: mediaBarArea.containsMouse || mediaPopoutArea.containsMouse
 
-            onIsMouseWithinChanged: {
-                if (isMouseWithin) {
-                    root.panels.openHoverExclusivePanel("mprisViewer");
-                } else {
-                    root.openPanels.mprisViewer = false;
-                }
-            }
+			onIsMouseWithinChanged: {
+				if (isMouseWithin) {
+					root.panels.openHoverExclusivePanel("mprisViewer");
+				} else {
+					root.openPanels.mprisViewer = false;
+				}
+			}
 
-            MouseArea {
-                id: mediaBarArea
-                x: rootAreaInteract.mediaIndicatorPos.x - parent.x
-                y: 0
+			MouseArea {
+				id: mediaBarArea
+				x: rootAreaInteract.mediaIndicatorPos.x - parent.x
+				y: 0
 
-                implicitWidth: root.mediaIndicator.width
-                implicitHeight: root.bar.implicitHeight
+				implicitWidth: root.mediaIndicator.width
+				implicitHeight: root.bar.implicitHeight
 
-                hoverEnabled: true
+				hoverEnabled: true
 
-                cursorShape: Qt.PointingHandCursor
+				cursorShape: Qt.PointingHandCursor
 
-                onClicked: root.panels.openExclusivePanel("mprisViewer")
-            }
+				onClicked: root.panels.openExclusivePanel("mprisViewer")
+			}
 
-            MouseArea {
-                id: mediaPopoutArea
-                x: rootAreaInteract.mprisPopupPos.x - parent.x
-                y: rootAreaInteract.mprisPopupPos.y - parent.y
+			MouseArea {
+				id: mediaPopoutArea
+				x: rootAreaInteract.mprisPopupPos.x - parent.x
+				y: rootAreaInteract.mprisPopupPos.y - parent.y
 
-                implicitWidth: root.panels.mprisViewer.implicitWidth
-                implicitHeight: root.panels.mprisViewer.implicitHeight
+				implicitWidth: root.panels.mprisViewer.implicitWidth
+				implicitHeight: root.panels.mprisViewer.implicitHeight
 
-                hoverEnabled: true
-            }
-        }
-    }
+				hoverEnabled: true
+			}
+		}
+	}
 }

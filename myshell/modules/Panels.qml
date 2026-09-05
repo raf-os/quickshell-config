@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import qs.modules.session as Session
+import qs.modules.systemtray as SystemTray
 import qs.modules.mprisviewer as MprisViewer
+import qs.modules.bar
 import qs.modules.bar.popouts as BarPopouts
 import qs.modules.notifications as NotifWrapper
 import qs.modules.commandcapture
@@ -16,7 +18,7 @@ Item {
 
 	required property ShellScreen screen
 	required property OpenPanels openPanels
-	required property Item bar
+	required property BarWrapper bar
 
 	readonly property alias session: session
 	readonly property alias popouts: popouts
@@ -25,6 +27,7 @@ Item {
 	readonly property alias notifications: notificationWrapper
 	readonly property alias notificationOverlay: notificationOverlay
 	readonly property alias commandCapture: commandcapture
+	readonly property alias trayItemPopout: trayItemPopout
 
 	readonly property list<string> validPanelProps: ["session", "mprisViewer"]
 
@@ -94,6 +97,16 @@ Item {
 			bottom: parent.bottom
 			right: parent.right
 		}
+	}
+
+	SystemTray.TrayItemPopout {
+		id: trayItemPopout
+		systemTray: root.bar.content.systemTray // qmllint disable incompatible-type
+
+		anchors.top: parent.top
+
+		systemTrayRelativePosition: root.bar.systemTrayRelativeX
+		x: systemTrayRelativePosition + xOffset
 	}
 
 	NotifWrapper.Overlay {

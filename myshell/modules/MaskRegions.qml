@@ -38,6 +38,10 @@ Region {
 	}
 
 	RR {
+		region: root.panels.trayItemPopout.exclusionRegion
+	}
+
+	RR {
 		region: root.panels.launcher.region
 	}
 

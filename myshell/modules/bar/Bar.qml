@@ -4,7 +4,7 @@ import "components"
 import "components/workspaces"
 import "popouts"
 import qs.utils
-// import qs.modules.systemtray
+import qs.modules.systemtray
 import Quickshell
 import Quickshell.Hyprland
 import MyShellPlugin.Configs
@@ -14,6 +14,7 @@ import QtQuick.Layouts
 Item {
 	id: root
 
+	required property PanelWindow rootPanel
 	required property ShellScreen screen
 	required property OpenPanels openPanels
 	required property PopoutWrapper popouts
@@ -22,6 +23,9 @@ Item {
 	readonly property int contentSpacing: Config.appearance.spacing.md
 
 	property alias mediaInfo: mediaInfo
+	property alias systemTray: systemTray
+
+	property int systemTrayX: rightContent.x + systemTray.x
 
 	property int middleSize: 560
 
@@ -132,16 +136,19 @@ Item {
 
 		Spacing {}
 
-		// SystemTray {}
+		SystemTray {
+			id: systemTray
+			bar: root
+		}
 
 		StatusIcons {
 			popoutHandler: popoutHandler
 			popoutWrapper: root.popouts
 			openPanels: root.openPanels
 		}
-		Tray {
-			popoutHandler: popoutHandler
-		}
+		// Tray {
+		// 	popoutHandler: popoutHandler
+		// }
 		ClockWidget {}
 		Power {
 			id: powerWidgetButton

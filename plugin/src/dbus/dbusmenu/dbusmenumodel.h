@@ -142,6 +142,8 @@ public:
   [[nodiscard]] DBusMenuModelItem *parentMenu();
   [[nodiscard]] DBusMenuModel     *rootModel();
 
+  Q_INVOKABLE void trigger();
+
 signals:
   void childrenLoaded();
   void layoutUpdated();

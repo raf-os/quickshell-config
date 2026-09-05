@@ -161,6 +161,7 @@ Variants {
 				openPanels: openPanels
 				popouts: panels.popouts // qmllint disable incompatible-type
 				panels: panels
+				rootPanel: win
 
 				Component.onCompleted: PanelService.bars.set(scope.modelData, this)
 			}
