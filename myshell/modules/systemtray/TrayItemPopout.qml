@@ -18,10 +18,13 @@ Item {
 
 	readonly property int padding: Config.appearance.padding.sm
 	readonly property int animDuration: 300
+	readonly property int popoutWidth: 240
 
 	property alias exclusionRegion: exclusionRegion
+	property alias isStackViewBusy: popoutCurrent.busy
 
 	property int xOffset
+	property bool enablePostInitialAnim: false
 
 	function pushIndex(index: var, depth: int, statusItem: StatusNotifierItem) {
 		popoutCurrent.push(rootSubmenuComponent, {
@@ -36,6 +39,13 @@ Item {
 	}
 
 	Behavior on anchors.topMargin {
+		NAnim {
+			duration: root.animDuration
+		}
+	}
+
+	Behavior on x {
+		enabled: root.enablePostInitialAnim
 		NAnim {
 			duration: root.animDuration
 		}
@@ -67,6 +77,14 @@ Item {
 			const item = root.systemTray.currentActive;
 			root.xOffset = item.x + item.width / 2;
 		}
+
+		function onCurrentChanged() {
+			if (root.systemTray.current) {
+				root.enablePostInitialAnim = true;
+			} else {
+				root.enablePostInitialAnim = false;
+			}
+		}
 	}
 
 	Item {
@@ -77,12 +95,13 @@ Item {
 			horizontalCenter: parent.horizontalCenter
 		}
 
-		implicitWidth: 240
+		implicitWidth: root.popoutWidth
 		implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
 
 		opacity: root.systemTray.current ? 1 : 0
 
 		Behavior on implicitHeight {
+			enabled: root.enablePostInitialAnim
 			NAnim {
 				duration: root.animDuration
 			}
@@ -97,10 +116,13 @@ Item {
 		Rectangle {
 			anchors.fill: parent
 			color: Colors.colors.base0
+			radius: Config.appearance.rounding.sm
 		}
 
 		StackView {
 			id: popoutCurrent
+
+			readonly property int animDuration: 300
 
 			anchors.fill: parent
 			clip: true
@@ -117,6 +139,59 @@ Item {
 						});
 					} else {
 						popoutCurrent.clear(StackView.PopTransition);
+					}
+				}
+			}
+
+			popExit: Transition {
+				ParallelAnimation {
+					NAnim {
+						property: "opacity"
+						from: 1
+						to: 0
+						duration: popoutCurrent.animDuration
+					}
+
+					NAnim {
+						property: "y"
+						from: 0
+						to: 16
+						duration: popoutCurrent.animDuration
+					}
+				}
+			}
+
+			replaceEnter: Transition {
+				ParallelAnimation {
+					NAnim {
+						property: "opacity"
+						from: 0
+						to: 1
+						duration: popoutCurrent.animDuration
+					}
+					XAnimator {
+						from: 64
+						to: 0
+						duration: popoutCurrent.animDuration
+						easing.type: Easing.BezierSpline
+						easing.bezierCurve: Config.appearance.animCurves.defaultEase
+					}
+				}
+			}
+
+			replaceExit: Transition {
+				ParallelAnimation {
+					NAnim {
+						property: "opacity"
+						to: 0
+						duration: popoutCurrent.animDuration
+					}
+					XAnimator {
+						from: 0
+						to: -64
+						duration: popoutCurrent.animDuration
+						easing.type: Easing.BezierSpline
+						easing.bezierCurve: Config.appearance.animCurves.defaultEase
 					}
 				}
 			}

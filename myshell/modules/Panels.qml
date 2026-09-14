@@ -26,13 +26,10 @@ Item {
 	readonly property alias mprisViewer: mprisViewer
 	readonly property alias notifications: notificationWrapper
 	readonly property alias notificationOverlay: notificationOverlay
-	readonly property alias commandCapture: commandcapture
+	// readonly property alias commandCapture: commandcapture
 	readonly property alias trayItemPopout: trayItemPopout
 
 	readonly property list<string> validPanelProps: ["session", "mprisViewer"]
-
-	// readonly property list<Item> exclusions: [commandcapture, mprisViewer, notificationWrapper, notificationOverlay, startmenu, session, popouts]
-	// readonly property list<QtObject> exclusionsRegions: [launcher.region].filter(r => r != null)
 
 	anchors.fill: parent
 	anchors.margins: Config.border.thickness
@@ -63,17 +60,17 @@ Item {
 		return openExclusivePanel(prop);
 	}
 
-	CommandCaptureWrapper {
-		id: commandcapture
-		openPanels: root.openPanels
-		panels: root
-
-		anchors.right: parent.right
-		anchors.bottom: parent.bottom
-		// anchors.verticalCenter: parent.verticalCenter
-		// anchors.top: parent.top
-		// anchors.bottom: parent.bottom
-	}
+	// CommandCaptureWrapper {
+	// 	id: commandcapture
+	// 	openPanels: root.openPanels
+	// 	panels: root
+	//
+	// 	anchors.right: parent.right
+	// 	anchors.bottom: parent.bottom
+	// 	// anchors.verticalCenter: parent.verticalCenter
+	// 	// anchors.top: parent.top
+	// 	// anchors.bottom: parent.bottom
+	// }
 
 	MprisViewer.MprisWrapper {
 		id: mprisViewer
@@ -103,10 +100,13 @@ Item {
 		id: trayItemPopout
 		systemTray: root.bar.content.systemTray // qmllint disable incompatible-type
 
+		readonly property int minXPos: popoutWidth / 2
+		readonly property int maxXPos: root.width - (popoutWidth / 2)
+
 		anchors.top: parent.top
 
-		systemTrayRelativePosition: root.bar.systemTrayRelativeX
-		x: systemTrayRelativePosition + xOffset
+		systemTrayRelativePosition: root.bar.systemTrayRelativeX + root.x
+		x: Math.max(Math.min(systemTrayRelativePosition + xOffset, maxXPos), minXPos)
 	}
 
 	NotifWrapper.Overlay {

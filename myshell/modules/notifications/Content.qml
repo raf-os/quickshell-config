@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.utils
+import qs.services
 import qs.components
 import org.nightshell.Notifications
 import MyShellPlugin
@@ -334,7 +335,7 @@ MouseArea {
 			border.color: Qt.darker(headerBtn.color, 2)
 
 			Behavior on color {
-				enabled: GlobalStateManager.isGameMode === false
+				enabled: GameModeService.isGamemode
 				CAnim {
 					duration: 100
 				}

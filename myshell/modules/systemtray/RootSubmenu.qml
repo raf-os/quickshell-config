@@ -60,10 +60,12 @@ Item {
 					right: parent.right
 				}
 				sourceComponent: MouseArea {
-					implicitHeight: labelText.height
+					id: menuItem
+					implicitHeight: labelText.height > 0 ? (labelText.height + Config.appearance.padding.xxs * 2) : 0
 
 					enabled: itemDelegate.modelData.isEnabled
 					cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+					hoverEnabled: true
 
 					onClicked: {
 						if (root.isLoading)
@@ -77,11 +79,52 @@ Item {
 						}
 					}
 
+					Rectangle {
+						id: interactionRect
+						anchors.fill: parent
+						opacity: 0
+						scale: 0.9
+						color: Colors.colors.primary
+						radius: Config.appearance.rounding.sm
+
+						states: [
+							State {
+								name: "hovered"
+								when: menuItem.containsMouse
+								PropertyChanges {
+									interactionRect.opacity: 1
+									interactionRect.scale: 1
+								}
+							},
+							State {
+								name: ""
+								PropertyChanges {
+									interactionRect.opacity: 0
+									interactionRect.scale: 0.9
+								}
+							}
+						]
+
+						Behavior on scale {
+							SpringAnimation {
+								spring: 10
+								damping: 0.3
+							}
+						}
+
+						Behavior on opacity {
+							NAnim {
+								duration: 200
+							}
+						}
+					}
+
 					Loader {
 						id: itemIconLoader
 						active: itemDelegate.modelData.iconUrl !== ""
 						anchors {
 							left: parent.left
+							leftMargin: Config.appearance.padding.xxs
 							top: parent.top
 							bottom: parent.bottom
 							margins: 1
@@ -120,6 +163,7 @@ Item {
 						active: itemDelegate.modelData.hasChildren
 						anchors {
 							right: parent.right
+							rightMargin: Config.appearance.padding.xxs
 							verticalCenter: parent.verticalCenter
 						}
 						sourceComponent: StyledText {
@@ -135,9 +179,18 @@ Item {
 					left: parent.left
 					right: parent.right
 				}
-				sourceComponent: Rectangle {
-					implicitHeight: 1
-					color: Colors.colors.base3
+				sourceComponent: Item {
+					implicitHeight: 13
+
+					Rectangle {
+						anchors {
+							left: parent.left
+							right: parent.right
+							verticalCenter: parent.verticalCenter
+						}
+						implicitHeight: 1
+						color: Colors.colors.base3
+					}
 				}
 			}
 		}
@@ -194,6 +247,7 @@ Item {
 
 		model: itemModel
 
-		spacing: Config.appearance.spacing.xs
+		// spacing: Config.appearance.spacing.xs
+		spacing: 0
 	}
 }

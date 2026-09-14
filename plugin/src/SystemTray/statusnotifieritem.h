@@ -96,6 +96,9 @@ public:
   [[nodiscard]] bool isValid() const;
   [[nodiscard]] bool isReady() const;
 
+  Q_INVOKABLE void activate();
+  Q_INVOKABLE void secondaryActivate();
+
   QPixmap                  createPixmap(const QSize &size);
   dbusmenu::DBusMenuModel *menuHandle();
 

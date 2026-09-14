@@ -69,6 +69,6 @@ Scope {
 	CustomShortcut {
 		name: "toggleGamemode"
 		description: "Toggles game mode on/off"
-		onPressed: GlobalStateManager.toggleGamemodeState()
+		onPressed: GameModeService.toggleGamemode()
 	}
 }

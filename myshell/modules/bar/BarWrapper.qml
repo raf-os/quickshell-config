@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import "popouts"
+import qs.utils
 import MyShellPlugin.Configs
 import Quickshell
 import QtQuick
@@ -12,7 +13,7 @@ Item {
 
 	required property PanelWindow rootPanel
 	required property ShellScreen screen
-	required property PersistentProperties openPanels
+	required property OpenPanels openPanels
 	required property PopoutWrapper popouts
 	required property Item panels
 

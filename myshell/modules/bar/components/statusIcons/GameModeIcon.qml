@@ -1,75 +1,72 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
-import qs.utils
+import qs.services
+// import qs.utils
 import MyShellPlugin
 import MyShellPlugin.Configs
 import QtQuick
 
 Item {
-    id: root
+	id: root
 
-    property bool isActive: GlobalStateManager.isGameMode
-    readonly property int animDuration: 200
+	property bool isActive: GameModeService.isGamemode
+	readonly property int animDuration: 200
 
-    implicitWidth: Config.appearance.fontSize.xl
-    // implicitHeight: Config.bar.sizes.innerHeight
+	implicitWidth: Config.appearance.fontSize.xl
+	// implicitHeight: Config.bar.sizes.innerHeight
 
-    anchors.top: parent.top
-    anchors.bottom: parent.bottom
+	anchors.top: parent.top
+	anchors.bottom: parent.bottom
 
-    function checkGamemodeState(callback: var): void {
-        GlobalStateManager.checkGamemodeState(callback);
-    }
+	MouseArea {
+		anchors.fill: parent
+		cursorShape: Qt.PointingHandCursor
+		acceptedButtons: Qt.LeftButton
 
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        acceptedButtons: Qt.LeftButton
+		onClicked: event => {
+			if (event.button === Qt.LeftButton) {
+				GameModeService.toggleGamemode();
+			}
+		}
+	}
 
-        onClicked: event => {
-            if (event.button === Qt.LeftButton) {
-                GlobalStateManager.toggleGamemodeState();
-            }
-        }
-    }
+	Rectangle {
+		anchors.centerIn: parent
 
-    Rectangle {
-        anchors.centerIn: parent
+		readonly property int size: Config.appearance.fontSize.xl
 
-        readonly property int size: Config.appearance.fontSize.xl
+		implicitWidth: size
+		implicitHeight: size
 
-        implicitWidth: size
-        implicitHeight: size
+		color: Colors.colors.primary
+		radius: Config.appearance.rounding.xs
 
-        color: Colors.colors.primary
-        radius: Config.appearance.rounding.xs
+		opacity: root.isActive ? 1 : 0
 
-        opacity: root.isActive ? 1 : 0
+		Behavior on opacity {
+			NAnim {
+				duration: 300
+			}
+		}
+	}
 
-        Behavior on opacity {
-            NAnim {
-                duration: 300
-            }
-        }
-    }
+	StyledText {
+		id: icon
+		anchors.fill: parent
+		text: root.isActive ? "󰖺" : "󰖻"
+		color: root.isActive ? Colors.colors.baseContent : Colors.colors.baseContentMuted
 
-    StyledText {
-        id: icon
-        anchors.fill: parent
-        text: root.isActive ? "󰖺" : "󰖻"
-        color: root.isActive ? Colors.colors.baseContent : Colors.colors.baseContentMuted
+		font.pixelSize: Config.appearance.fontSize.xxl
+		font.family: Config.appearance.fontFamily.monoIcon
 
-        font.pixelSize: Config.appearance.fontSize.xxl
-        font.family: Config.appearance.fontFamily.monoIcon
+		horizontalAlignment: Qt.AlignHCenter
+		verticalAlignment: Qt.AlignVCenter
 
-        horizontalAlignment: Qt.AlignHCenter
-        verticalAlignment: Qt.AlignVCenter
-
-        Behavior on color {
-            CAnim {
-                duration: root.animDuration
-            }
-        }
-    }
+		Behavior on color {
+			CAnim {
+				duration: root.animDuration
+			}
+		}
+	}
 }

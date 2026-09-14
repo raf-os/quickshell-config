@@ -85,9 +85,9 @@ Variants {
 
 			Item {
 				anchors.fill: parent
-				layer.enabled: !GlobalStateManager.isGameMode
+				layer.enabled: !GameModeService.isGamemode
 				layer.effect: MultiEffect {
-					visible: !GlobalStateManager.isGameMode
+					visible: !GameModeService.isGamemode
 					autoPaddingEnabled: false
 					shadowEnabled: true
 

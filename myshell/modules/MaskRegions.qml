@@ -21,9 +21,9 @@ Region {
 
 	intersection: Intersection.Xor
 
-	R {
-		panel: root.panels.commandCapture
-	}
+	// R {
+	// 	panel: root.panels.commandCapture
+	// }
 
 	R {
 		panel: root.panels.mprisViewer

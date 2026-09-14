@@ -204,6 +204,12 @@ void StatusNotifierItem::readIconData() {
 bool StatusNotifierItem::isValid() const { return m_item->isValid(); }
 bool StatusNotifierItem::isReady() const { return m_isReady; }
 
+void StatusNotifierItem::activate() { m_item->Activate(0, 0); }
+
+void StatusNotifierItem::secondaryActivate() {
+  m_item->SecondaryActivate(0, 0);
+}
+
 QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
   auto needsAttention = b_status.value() == Status::NeedsAttention;
 

@@ -1,6 +1,6 @@
 pragma ComponentBehavior: Bound
 
-import qs.utils
+import qs.services
 import qs.components
 import MyShellPlugin
 import MyShellPlugin.Configs
@@ -65,7 +65,7 @@ MouseArea {
 		Loader {
 			id: windowViewerLoader
 
-			active: !GlobalStateManager.isGameMode
+			active: !GameModeService.isGamemode
 			anchors.centerIn: parent
 
 			sourceComponent: RoundedClipRect {

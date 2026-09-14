@@ -94,9 +94,9 @@ Item {
 	}
 
 	Connections {
-		target: GlobalStateManager
+		target: GameModeService
 
-		function onIsGameModeChanged() {
+		function onIsGamemodeChanged() {
 			root.triggerOSD("gamemode");
 		}
 	}

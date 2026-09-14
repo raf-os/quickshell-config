@@ -44,6 +44,7 @@ Item {
 	onCurrentChanged: evalCurrentActive()
 
 	function toggleItem(item: StatusNotifierItem): void {
+		activationCooldown.running = true;
 		if (root.current == item)
 			root.current = null;
 		else
@@ -54,6 +55,11 @@ Item {
 
 	implicitWidth: mainLayout.width + (hasItems ? padding * 2 : 0)
 	visible: width > 0
+
+	Timer {
+		id: activationCooldown
+		interval: 300
+	}
 
 	Rectangle {
 		anchors.fill: parent
@@ -81,7 +87,9 @@ Item {
 				Layout.bottomMargin: root.padding
 				Layout.fillHeight: true
 
-				onClicked: {
+				onOpenMenu: {
+					if (activationCooldown.running)
+						return;
 					root.toggleItem(modelData);
 				}
 			}

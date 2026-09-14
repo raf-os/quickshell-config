@@ -99,8 +99,8 @@ private slots:
       const DBusMenuItemPropertyNamesList                        &removedProps);
 
 private:
-  quint32                            m_refcount  = 0;
-  quint32                            m_maxDepth  = 1;
+  quint32 m_refcount = 0;
+  // quint32                            m_maxDepth  = 1;
   DBusMenuInterface                 *m_interface = nullptr;
   std::unique_ptr<DBusMenuModelItem> m_rootItem;
   QHash<qint32, DBusMenuModelItem *> m_items;

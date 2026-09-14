@@ -13,8 +13,8 @@
 #include "dbus_watcher.h"
 
 namespace ns::systemtray {
-Q_LOGGING_CATEGORY(logNSStatusNotifierWatcher,
-                   "ns.systemtray.StatusNotifierWatcher")
+Q_LOGGING_CATEGORY(
+    logNSStatusNotifierWatcher, "ns.systemtray.StatusNotifierWatcher")
 
 StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     : QObject(parent) {
@@ -34,10 +34,8 @@ StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     return;
   }
 
-  QObject::connect(&m_serviceWatcher,
-                   &QDBusServiceWatcher::serviceUnregistered,
-                   this,
-                   &StatusNotifierWatcher::onServiceUnregistered);
+  QObject::connect(&m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered,
+      this, &StatusNotifierWatcher::onServiceUnregistered);
 
   m_serviceWatcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
   m_serviceWatcher.addWatchedService("org.kde.StatusNotifierWatcher");
@@ -52,6 +50,7 @@ StatusNotifierWatcher *StatusNotifierWatcher::instance() {
 }
 
 bool StatusNotifierWatcher::isRegistered() const { return m_isRegistered; }
+bool StatusNotifierWatcher::isHostRegistered() const { return true; }
 
 void StatusNotifierWatcher::tryRegister() {
   auto bus  = QDBusConnection::sessionBus();
@@ -139,9 +138,9 @@ void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &item) {
   auto service = normalizedItem.split("/").at(0);
 
   if (!QDBusConnection::sessionBus()
-           .interface()
-           ->serviceOwner(service)
-           .isValid())
+          .interface()
+          ->serviceOwner(service)
+          .isValid())
   {
     qCWarning(logNSStatusNotifierWatcher)
         << "Attempted registering invalid StatusNotifierItem" << normalizedItem

@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import qs.components
 import qs.services
-import qs.utils
 import MyShellPlugin
 import MyShellPlugin.Configs
 import Quickshell.Hyprland
@@ -11,145 +10,145 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 Item {
-    id: root
+	id: root
 
-    required property int index
-    required property int activeWsId
-    required property int modelData
-    required property var occupied
-    required property var urgent
+	required property int index
+	required property int activeWsId
+	required property int modelData
+	required property var occupied
+	required property var urgent
 
-    readonly property bool isActive: modelData === activeWsId
-    readonly property bool isOccupied: occupied[modelData] ?? false
-    readonly property bool isUrgent: urgent[modelData] ?? false
-    readonly property int iconActiveSize: 16
-    readonly property int iconInactiveSize: 8
+	readonly property bool isActive: modelData === activeWsId
+	readonly property bool isOccupied: occupied[modelData] ?? false
+	readonly property bool isUrgent: urgent[modelData] ?? false
+	readonly property int iconActiveSize: 16
+	readonly property int iconInactiveSize: 8
 
-    Layout.alignment: Qt.AlignVCenter
+	Layout.alignment: Qt.AlignVCenter
 
-    implicitWidth: iconActiveSize
-    implicitHeight: iconActiveSize
+	implicitWidth: iconActiveSize
+	implicitHeight: iconActiveSize
 
-    MouseArea {
-        id: mouseArea
+	MouseArea {
+		id: mouseArea
 
-        hoverEnabled: true
+		hoverEnabled: true
 
-        anchors.fill: parent
+		anchors.fill: parent
 
-        cursorShape: Qt.PointingHandCursor
+		cursorShape: Qt.PointingHandCursor
 
-        onClicked: event => {
-            Hyprland.dispatch(`hl.dsp.focus({ workspace = ${root.modelData} })`);
-        }
-    }
+		onClicked: event => {
+			Hyprland.dispatch(`hl.dsp.focus({ workspace = ${root.modelData} })`);
+		}
+	}
 
-    Loader {
-        anchors.fill: parent
-        active: !GlobalStateManager.isGameMode
-        sourceComponent: RectangularShadow {
-            id: glowLayer
-            property real shadowOpacity: 0
-            anchors.fill: parent
-            radius: root.iconActiveSize / 2
-            color: root.isUrgent ? Colors.colors.destructive : Colors.colors.primary
-            blur: 12
-            spread: 6
-            opacity: shadowOpacity
+	Loader {
+		anchors.fill: parent
+		active: !GameModeService.isGamemode
+		sourceComponent: RectangularShadow {
+			id: glowLayer
+			property real shadowOpacity: 0
+			anchors.fill: parent
+			radius: root.iconActiveSize / 2
+			color: root.isUrgent ? Colors.colors.destructive : Colors.colors.primary
+			blur: 12
+			spread: 6
+			opacity: shadowOpacity
 
-            states: [
-                State {
-                    name: "active"
-                    when: root.isActive && !root.isUrgent
-                },
-                State {
-                    name: "urgent"
-                    when: root.isUrgent
-                }
-            ]
+			states: [
+				State {
+					name: "active"
+					when: root.isActive && !root.isUrgent
+				},
+				State {
+					name: "urgent"
+					when: root.isUrgent
+				}
+			]
 
-            transitions: [
-                Transition {
-                    from: ""
-                    to: "active"
+			transitions: [
+				Transition {
+					from: ""
+					to: "active"
 
-                    NAnim {
-                        target: glowLayer
-                        property: "shadowOpacity"
-                        easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                        duration: 300
-                        to: 1
-                    }
-                },
-                Transition {
-                    // from: "active"
-                    to: ""
+					NAnim {
+						target: glowLayer
+						property: "shadowOpacity"
+						easing.bezierCurve: Config.appearance.animCurves.defaultEase
+						duration: 300
+						to: 1
+					}
+				},
+				Transition {
+					// from: "active"
+					to: ""
 
-                    NAnim {
-                        target: glowLayer
-                        property: "shadowOpacity"
-                        easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                        duration: 300
-                        to: 0
-                    }
-                },
-                Transition {
-                    to: "urgent"
+					NAnim {
+						target: glowLayer
+						property: "shadowOpacity"
+						easing.bezierCurve: Config.appearance.animCurves.defaultEase
+						duration: 300
+						to: 0
+					}
+				},
+				Transition {
+					to: "urgent"
 
-                    SequentialAnimation {
-                        loops: Animation.Infinite
+					SequentialAnimation {
+						loops: Animation.Infinite
 
-                        NumberAnimation {
-                            target: glowLayer
-                            property: "shadowOpacity"
-                            to: 1
-                            duration: 100
-                        }
-                        NumberAnimation {
-                            target: glowLayer
-                            property: "shadowOpacity"
-                            to: 0
-                            duration: 2000
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                        }
-                    }
-                }
-            ]
-        }
-    }
+						NumberAnimation {
+							target: glowLayer
+							property: "shadowOpacity"
+							to: 1
+							duration: 100
+						}
+						NumberAnimation {
+							target: glowLayer
+							property: "shadowOpacity"
+							to: 0
+							duration: 2000
+							easing.type: Easing.BezierSpline
+							easing.bezierCurve: Config.appearance.animCurves.defaultEase
+						}
+					}
+				}
+			]
+		}
+	}
 
-    Rectangle {
-        id: indicator
+	Rectangle {
+		id: indicator
 
-        property real shadowOpacity: 0
+		property real shadowOpacity: 0
 
-        anchors.centerIn: parent
+		anchors.centerIn: parent
 
-        implicitWidth: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
-        implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
+		implicitWidth: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
+		implicitHeight: root.isActive || mouseArea.containsMouse ? root.iconActiveSize : root.iconInactiveSize
 
-        color: root.isUrgent ? Colors.colors.destructiveHover : root.isActive ? Colors.colors.primary5 : root.isOccupied ? Colors.colors.primary : Colors.colors.base3
-        radius: 1000
+		color: root.isUrgent ? Colors.colors.destructiveHover : root.isActive ? Colors.colors.primary5 : root.isOccupied ? Colors.colors.primary : Colors.colors.base3
+		radius: 1000
 
-        Behavior on color {
-            CAnim {
-                duration: 300
-            }
-        }
+		Behavior on color {
+			CAnim {
+				duration: 300
+			}
+		}
 
-        Behavior on implicitWidth {
-            NAnim {
-                easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                duration: 300
-            }
-        }
+		Behavior on implicitWidth {
+			NAnim {
+				easing.bezierCurve: Config.appearance.animCurves.defaultEase
+				duration: 300
+			}
+		}
 
-        Behavior on implicitHeight {
-            NAnim {
-                easing.bezierCurve: Config.appearance.animCurves.defaultEase
-                duration: 300
-            }
-        }
-    }
+		Behavior on implicitHeight {
+			NAnim {
+				easing.bezierCurve: Config.appearance.animCurves.defaultEase
+				duration: 300
+			}
+		}
+	}
 }

@@ -104,7 +104,7 @@ DBusMenuModel::DBusMenuModel(
   QObject::connect(m_interface, &DBusMenuInterface::ItemsPropertiesUpdated,
       this, &DBusMenuModel::onItemsPropertiesUpdated);
 
-  this->updateLayout(0, -1);
+  this->updateLayout(0, 1);
 }
 
 // required for unique_ptr
@@ -236,7 +236,11 @@ void DBusMenuModel::updateLayoutRecursively(
 
       // this->addItem(item, parent);
       auto rowIdx = parent->childCount();
+      item->m_row = rowIdx;
+      auto idx    = getModelIndexForItem(item);
+      beginInsertRows(idx, rowIdx, rowIdx);
       m_items.insert(item->id(), item);
+      endInsertRows();
     } else {
       // TODO: debug log
       return;
@@ -245,9 +249,9 @@ void DBusMenuModel::updateLayoutRecursively(
 
   // pass the new properties onto the child so it can parse it
   item->handleUpdatePayload(layout.properties, {});
-  if (item->m_depth > m_maxDepth) {
-    m_maxDepth = item->m_depth;
-  }
+  // if (item->m_depth > m_maxDepth) {
+  //   m_maxDepth = item->m_depth;
+  // }
 
   // negative depth = keep recursion going
   if (depth != 0) {
@@ -402,22 +406,16 @@ void DBusMenuModel::prepareToShowWithCallback(
           shouldUpdate = reply.value();
         }
 
-        callback(shouldUpdate);
+        this->updateLayout(item, -1);
 
-        // auto maxDepth = m_maxDepth;
-        // if (auto i = m_items.value(item, nullptr)) {
-        //   if (i->m_depth + 1 > maxDepth) {
-        //     maxDepth = i->m_depth + 1;
-        //   }
-        // }
-        // updateLayout(0, maxDepth);
+        callback(shouldUpdate);
 
         delete call;
       });
 }
 
 void DBusMenuModel::collapseToRoot() {
-  m_maxDepth = 1;
+  // m_maxDepth = 1;
   for (auto childId : m_rootItem->m_childIds) {
     auto child = m_items.value(childId);
 
@@ -425,6 +423,7 @@ void DBusMenuModel::collapseToRoot() {
       for (auto victim : child->m_childIds) {
         this->removeRecursively(victim);
       }
+      child->m_childIds.clear();
     }
   }
 }
@@ -433,7 +432,8 @@ void DBusMenuModel::addRef() {
   m_refcount++;
 
   if (m_refcount == 1) {
-    this->updateLayout(0, -1);
+    // this->updateLayout(0, -1);
+    this->prepareToShow(0, 1);
   }
 }
 

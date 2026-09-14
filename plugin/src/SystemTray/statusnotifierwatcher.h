@@ -11,10 +11,15 @@ namespace ns::systemtray {
 class StatusNotifierWatcher : public QObject, protected QDBusContext {
   Q_OBJECT
 
+  Q_PROPERTY(qint32 ProtocolVersion READ protocolVersion)
+  Q_PROPERTY(bool IsStatusNotifierHostRegistered READ isRegistered)
+  Q_PROPERTY(QStringList RegisteredStatusNotifierItems READ registeredItems)
+
 public:
   static StatusNotifierWatcher *instance();
 
   [[nodiscard]] bool        isRegistered() const;
+  [[nodiscard]] bool        isHostRegistered() const;
   [[nodiscard]] qint32      protocolVersion() const { return 0; }
   [[nodiscard]] QStringList registeredItems() const;
 

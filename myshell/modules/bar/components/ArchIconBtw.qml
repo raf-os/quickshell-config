@@ -65,7 +65,7 @@ Item {
 			brightness: osImage.brightness
 			colorization: 1
 			colorizationColor: Colors.colors.baseContent
-			shadowEnabled: !GlobalStateManager.isGameMode
+			shadowEnabled: !GameModeService.isGamemode
 			shadowColor: Colors.colors.baseContent
 			shadowOpacity: root.isMenuActive ? 1 : 0
 			shadowScale: 1
