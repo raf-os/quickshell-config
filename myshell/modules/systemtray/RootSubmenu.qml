@@ -23,6 +23,8 @@ Item {
 	signal navigateToIndex(index: var, statusItem: StatusNotifierItem)
 	signal navigateBackwards
 
+	focus: true
+
 	ScopedDBusMenuView {
 		id: scope
 		model: root.statusItem.menuHandle

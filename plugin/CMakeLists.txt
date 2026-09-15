@@ -7,3 +7,5 @@ add_subdirectory(src/DesktopEntries)
 add_subdirectory(src/wayland)
 add_subdirectory(src/dbus)
 add_subdirectory(src/SystemTray)
+
+add_subdirectory(src/NightShell)

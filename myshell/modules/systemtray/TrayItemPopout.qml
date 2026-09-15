@@ -26,6 +26,8 @@ Item {
 	property int xOffset
 	property bool enablePostInitialAnim: false
 
+	focus: true
+
 	function pushIndex(index: var, depth: int, statusItem: StatusNotifierItem) {
 		popoutCurrent.push(rootSubmenuComponent, {
 			statusItem: statusItem,
