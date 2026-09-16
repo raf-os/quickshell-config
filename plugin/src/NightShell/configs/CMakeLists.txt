@@ -1,0 +1,29 @@
+find_package(Qt6 REQUIRED COMPONENTS Core Qml)
+
+qt6_add_library(nightshell_configs SHARED)
+
+target_sources(nightshell_configs PRIVATE colors.cpp)
+
+set_target_properties(
+  nightshell_configs
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+target_compile_definitions(nightshell_configs PRIVATE NS_CONFIGS_SHARED_LIB)
+
+target_include_directories(
+  nightshell_configs
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+qt6_add_qml_module(
+  nightshell_configs
+  URI "${ORG_URI_PREFIX}.Configs"
+  VERSION 0.1
+)
+
+target_link_libraries(
+  nightshell_configs
+  PRIVATE Qt6::Core Qt6::Qml nightshell_includes
+)
+
+install_qml_module(nightshell_configs)

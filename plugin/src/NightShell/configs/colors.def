@@ -1,0 +1,8 @@
+  C(neutral, "#000000")
+  C(neutralContent, "#ffffff")
+
+  C(base, "#000000")
+  C(baseContent, "#ffffff")
+
+  C(primary, "#000000")
+  C(primaryContent, "#ffffff")
