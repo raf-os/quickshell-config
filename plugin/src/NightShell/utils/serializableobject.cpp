@@ -11,6 +11,9 @@ SerializableObject::SerializableObject(
     const QString &className, QObject *parent)
     : QObject(parent), m_className(className) {}
 
-QObject *SerializableObject::getRoot() { return m_rootObject; }
-QString  SerializableObject::className() const { return m_className; }
+QObject *SerializableObject::getRoot() {
+  if (m_rootObject) return m_rootObject;
+  return this;
+}
+QString SerializableObject::className() const { return m_className; }
 } // namespace ns::utils
