@@ -1,21 +1,32 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# dependencies = ["pydantic"]
-# ///
 # pyright: reportUnusedCallResult=false
 # pyright: reportUnusedVariable=false
 
+
 from __future__ import annotations
 
+import importlib.util
+import os
 import re
-from abc import ABC, ABCMeta, abstractmethod
-from enum import StrEnum
+import subprocess
+import sys
+from abc import ABCMeta, abstractmethod
+from pathlib import Path
 from typing import Any, cast, override
 
-from pydantic import BaseModel, ConfigDict, PrivateAttr
+from pydantic import BaseModel, PrivateAttr
+
+from .schematypes import *
 
 _NAMESPACES: list[str] = ["ns", "configs"]
 _CPP_NAMESPACE = "::".join(_NAMESPACES) + "::"
+
+_cwd = os.getcwd()
+_path = Path(__file__).parent
+_relative_path = _path.relative_to(_cwd)
+_SCHEMAS_LOCATION: list[str] = [
+  part for part in (_relative_path.parent / "schemas").parts
+]
+_GENERATED_LOCATION = _path.parent / "generated"
 
 
 def toLowerCamelCase(s: str) -> str:
@@ -24,66 +35,6 @@ def toLowerCamelCase(s: str) -> str:
 
 def toUpperCamelCase(s: str) -> str:
   return s[:1].upper() + s[1:]
-
-
-class PropertyType(StrEnum):
-  STRING = "QString"
-  COLOR = "QColor"
-  LIST = "QList"
-  FLOAT = "qreal"
-  INT = "int"
-  BOOL = "bool"
-  ERROR = "ERROR"
-
-
-class BaseProperty(BaseModel):
-  name: str
-  type: PropertyType
-
-  def getDefaultValue(self) -> str | None:
-    pass
-
-
-class Property[T](BaseProperty):
-  name: str
-  type: PropertyType
-  defaultValue: T | None = None
-
-
-class IntProperty(Property[int]):
-  type: PropertyType = PropertyType.INT
-
-  @override
-  def getDefaultValue(self) -> str | None:
-    d = self.defaultValue
-    if d is None:
-      return None
-    return f"{str(self.defaultValue)}"
-
-
-class StrProperty(Property[str]):
-  type: PropertyType = PropertyType.STRING
-
-  @override
-  def getDefaultValue(self) -> str | None:
-    return f'"{self.defaultValue}"'
-
-
-class ListProperty[int](Property[list[int]]):
-  type: PropertyType = PropertyType.LIST
-
-  @override
-  def getDefaultValue(self) -> str | None:
-    dl = self.defaultValue
-    if dl is None:
-      return None
-    return f"[{', '.join([str(i) for i in dl])}]"
-
-
-class Node(BaseModel):
-  name: str
-  props: list[BaseProperty] = []
-  children: list[Node] = []
 
 
 rootConfig: list[Node] = [
@@ -131,7 +82,7 @@ class DocumentMeta(BaseModel):
   _name: str = PrivateAttr()
   includes: list[str] = [
     "qobject.h",
-    "qmlintegration.h",
+    "qqmlintegration.h",
     "qtmetamacros.h",
     "qproperty.h",
   ]
@@ -139,7 +90,7 @@ class DocumentMeta(BaseModel):
   bodyDefs: list[str] = []
 
   @override
-  def model_post_init(self, context: Any, /) -> None:  # pyright: ignore[reportExplicitAny, reportAny]
+  def model_post_init(self, context: Any, /) -> None:
     rootNode = self.rootNode
     rootClass = ClassMeta(
       name=rootNode.name, rootNode=None, parent=None, parentDocument=self
@@ -169,7 +120,7 @@ class DocumentMeta(BaseModel):
     for prop in node.props:
       bindable = QBindableProp(
         name=prop.name,
-        type=prop.type.value,
+        type=prop.type,
         parentClass=current,
         defaultValue=prop.getDefaultValue(),
       )
@@ -235,7 +186,7 @@ class ClassMeta(BaseModel):
   body: ClassBodyMeta | None = None
 
   @override
-  def model_post_init(self, context: Any, /) -> None:  # pyright: ignore[reportExplicitAny, reportAny]
+  def model_post_init(self, context: Any, /) -> None:
     super().model_post_init(context)
     self.data = QChildNodeProp(name=self.name, parentClass=self)
     self.header = ClassHeaderMeta(parentClass=self)
@@ -269,6 +220,9 @@ class ClassHeaderMeta(BaseModel):
       parentClass.parentDocument.addImport(prop.type)
       bindableQProps.append(prop.getQProperty())
       bindableGetters.append(prop.getterDeclaration())
+      r = prop.resetterDeclaration()
+      if r is not None:
+        bindableGetters.append(r)
       signals.append(prop.getSignal())
       privateBindables.append(prop.getBindableMacro())
     for child in parentClass.children:
@@ -300,7 +254,7 @@ class ClassHeaderMeta(BaseModel):
       content += toIndentedBlock(privateMembers + privateBindables, 1)
 
     return (
-      f"class {parentClass.name} : public utils::SerializableObject {{\n{content}\n}}"
+      f"class {parentClass.name} : public utils::SerializableObject {{\n{content}\n}};"
     )
 
 
@@ -308,12 +262,15 @@ class ClassBodyMeta(BaseModel):
   parentClass: ClassMeta
 
   def constructor(self, parentClass: ClassMeta):
-    return f"{parentClass.name}::{parentClass.name}(const QString &className, QObject *root, QObject *parent) : utils::SerializableObject(className, root, parent) {{}}"
+    return f"{parentClass.name}::{parentClass.name}(const QString &className, QObject *root, QObject *parent) : SerializableObject(className, root, parent) {{}}"
 
   def getters(self, parentClass: ClassMeta) -> str:
     getterList: list[str] = []
     for bindable in parentClass.properties:
       getterList.append(bindable.getterImplementation())
+      r = bindable.resetterImplementation()
+      if r:
+        getterList.append(r)
     for child in parentClass.children:
       getterList.append(cast(QChildNodeProp, child.data).getterImplementation())
     return "\n".join(getterList)
@@ -360,7 +317,7 @@ class QChildNodeProp(QProp):
       "CONSTANT",
     ]
 
-    return f"Q_PROPERTY({' '.join(qprop)}))"
+    return f"Q_PROPERTY({' '.join(qprop)})"
 
   @override
   def getterDeclaration(self) -> str:
@@ -370,7 +327,7 @@ class QChildNodeProp(QProp):
   def getterImplementation(self) -> str:
     if self.parentClass.parent is None:
       return ""
-    return f"{self.name} *{self.parentClass.parent.name}::{self._reader}() const {{ return {self._member}; }}"
+    return f"{self.name} *{self.parentClass.parent.name}::{self._reader}() {{ return &{self._member}; }}"
 
   def getPrivateMember(self) -> str:
     rootNodeStr: str
@@ -386,6 +343,7 @@ class QBindableProp(QProp):
   type: str
   _member: str = PrivateAttr()
   reader: str = "default"
+  writer: str = "default"
   _notifier: str = PrivateAttr()
   _bindable: str = PrivateAttr()
   defaultValue: str | None
@@ -401,7 +359,12 @@ class QBindableProp(QProp):
   def getQProperty(self) -> str:
     qprop: list[str] = [
       f"{self.type} {self.name}",
-      f"READ {self.reader}",
+    ]
+    if self.reader:
+      qprop.append(f"READ {self.reader}")
+    if self.writer:
+      qprop.append(f"WRITE {self.writer}")
+    qprop += [
       f"NOTIFY {self._notifier}",
       f"BINDABLE {self._bindable}",
     ]
@@ -412,13 +375,21 @@ class QBindableProp(QProp):
 
   @override
   def getterDeclaration(self) -> str:
-    return (
-      f"[[nodiscard]] QBindable<{self.type}> {toLowerCamelCase(self.name)}() const;"
-    )
+    return f"[[nodiscard]] QBindable<{self.type}> {self._bindable}() const;"
 
   @override
   def getterImplementation(self) -> str:
-    return f"QBindable<{self.type}> {self.parentClass.name}::{self._bindable} const {{ return &{self._member}; }}"
+    return f"QBindable<{self.type}> {self.parentClass.name}::{self._bindable}() const {{ return &{self._member}; }}"
+
+  def resetterDeclaration(self) -> str | None:
+    if self.defaultValue is None:
+      return None
+    return f"void reset{toUpperCamelCase(self.name)}();"
+
+  def resetterImplementation(self) -> str | None:
+    if self.defaultValue is None:
+      return None
+    return f"void {self.parentClass.name}::reset{toUpperCamelCase(self.name)}() {{ {self._member} = {self.defaultValue}; }}"
 
   def getSignal(self) -> str:
     return f"void {self._notifier}();"
@@ -430,21 +401,125 @@ class QBindableProp(QProp):
       return f"Q_OBJECT_BINDABLE_PROPERTY({self.parentClass.name}, {self.type}, {self._member}, &{self.parentClass.name}::{self._notifier})"
 
 
-docs: list[DocumentMeta] = [DocumentMeta(rootNode=node) for node in rootConfig]
+def main():
+  directory = Path("./" + "/".join(_SCHEMAS_LOCATION))
+  rootConfig: list[Node] = []
+  genHeadersList: list[str] = ["#pragma once\n"]
 
-genSources: list[str] = []
+  for item in directory.iterdir():
+    if item.full_match("**/*.py"):
+      moduleName = item.name
+      for _ in item.suffixes:
+        moduleName = Path(moduleName).stem
+      module = importlib.import_module(f"{'.'.join(_SCHEMAS_LOCATION)}.{moduleName}")
+      nodeAttr = getattr(module, "__rootnode__")
+      rootConfig.append(nodeAttr)
 
-for doc in docs:
-  p = doc.compile()
-  genSources.append(doc.name())
+  docs: list[DocumentMeta] = [DocumentMeta(rootNode=node) for node in rootConfig]
 
-cmakeLines: list[str] = [
-  "set(GENERATED_SOURCES",
-  toIndentedBlock([f"generated/{s}.cpp" for s in genSources], 1),
-  "\tPARENT_SCOPE",
-  ")",
-]
+  genSources: list[str] = []
 
-macroLines = "\n".join(
-  [f"X({d.className()}, {toLowerCamelCase(d.className())})" for d in docs]
-)
+  def writeIfChanged(path: Path, content: str):
+    if os.path.exists(path):
+      with open(path, "r") as f:
+        prevContent = f.read()
+        if prevContent == content:
+          return False
+
+    with open(path, "w") as f:
+      f.write(content)
+    return True
+
+  for doc in docs:
+    isChanged = False
+    fileName = doc.name()
+    p = doc.compile()
+    genSources.append(doc.name())
+
+    isChanged = isChanged | writeIfChanged(
+      _GENERATED_LOCATION / f"{fileName}.h", p.header
+    )
+    isChanged = isChanged | writeIfChanged(
+      _GENERATED_LOCATION / f"{fileName}.cpp", p.body
+    )
+
+    genHeadersList.append(f'#include "{doc.name()}.h"')
+
+    if isChanged:
+      print(f'Generated files for "{fileName}" successfully. Running clang++')
+      this_dir = Path(__file__)
+      utils_dir = this_dir.parent.parent.parent / "utils"
+
+      result = subprocess.run(
+        [
+          "clang++",
+          "-fsyntax-only",
+          "-std=c++23",
+          "-I/usr/include/qt6",
+          "-I/usr/include/qt6/QtCore",
+          "-I/usr/include/qt6/QtQml",
+          "-I/usr/include/qt6/QtQmlIntegration",
+          f"-I{utils_dir.absolute()}/",
+          f"{(_GENERATED_LOCATION / f'{fileName}.cpp').absolute()}",
+        ]
+      )
+
+      if result.returncode == 1:
+        raise Exception(result.stderr)
+
+      print(f"Clang++ detected no errors for {fileName}.\n")
+    else:
+      print(f"Detected no changes for {fileName}. Skipping.\n")
+
+  print(f"Generation successful! Generating import files...")
+
+  isChanged = False
+
+  genTypes = "\n".join(
+    [f"X({d.className()}, {toLowerCamelCase(d.className())})" for d in docs]
+  )
+  isChanged = isChanged | writeIfChanged(
+    _GENERATED_LOCATION / "gen_types.def", genTypes
+  )
+
+  isChanged = isChanged | writeIfChanged(
+    _GENERATED_LOCATION / "gen_includes.h", "\n".join(genHeadersList)
+  )
+
+  if isChanged:
+    print("Files gen_includes.h and gen_types.def generated successfully.")
+  else:
+    print("No changes detected, skipping.")
+
+  isChanged = False
+
+  sourceFiles = [f"{s}.cpp" for s in genSources]
+
+  cmakeLines: list[str] = [
+    "find_package(Qt6 REQUIRED COMPONENTS Core Qml)",
+    "\nqt6_add_library(nightshell_configs_generated STATIC)",
+    f"\ntarget_sources(nightshell_configs_generated PRIVATE",
+    toIndentedBlock(sourceFiles, 1),
+    ")",
+    "\ntarget_include_directories(nightshell_configs_generated PUBLIC",
+    "\t${CMAKE_CURRENT_SOURCE_DIR})",
+    "\ntarget_link_libraries(nightshell_configs_generated PRIVATE",
+    toIndentedBlock(["Qt6::Core", "Qt6::Qml", "nightshell_utils"], 1),
+    ")",
+    "\nset(GENERATED_SOURCES",
+    toIndentedBlock([f"generated/{s}" for s in sourceFiles], 1),
+    "\tPARENT_SCOPE",
+    ")",
+  ]
+
+  isChanged = writeIfChanged(
+    _GENERATED_LOCATION / "CMakeLists.txt", "\n".join(cmakeLines)
+  )
+  if isChanged:
+    print("CMakeLists.txt successfully generated.")
+
+
+try:
+  main()
+except Exception as e:
+  print(f"Generation failed!\n{e}", file=sys.stderr)

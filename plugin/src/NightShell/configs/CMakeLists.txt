@@ -2,7 +2,9 @@ find_package(Qt6 REQUIRED COMPONENTS Core Qml)
 
 qt6_add_library(nightshell_configs SHARED)
 
-target_sources(nightshell_configs PRIVATE colors.cpp)
+add_subdirectory(generated)
+
+target_sources(nightshell_configs PRIVATE colors.cpp config.cpp)
 
 set_target_properties(
   nightshell_configs
@@ -23,7 +25,12 @@ qt6_add_qml_module(
 
 target_link_libraries(
   nightshell_configs
-  PRIVATE Qt6::Core Qt6::Qml nightshell_includes
+  PRIVATE
+    Qt6::Core
+    Qt6::Qml
+    nightshell_includes
+    nightshell_utils
+    nightshell_configs_generated
 )
 
 install_qml_module(nightshell_configs)

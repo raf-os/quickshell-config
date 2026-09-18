@@ -1,6 +1,7 @@
 #pragma once
 
 #include <qobject.h>
+#include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
 #include "ns_utils_shared_global.h"

@@ -13,7 +13,8 @@ install_manifest.txt
 compile_commands.json
 
 # python related
-pyproject.toml
+# pyproject.toml
 uv.lock
 .python-version
 .venv/
+__pycache__
