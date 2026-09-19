@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.shapes as Shapes
 import qs.modules.bar
 
 import Quickshell
@@ -58,6 +59,13 @@ Variants {
 						left: parent.left
 						right: parent.right
 					}
+				}
+
+				Shapes.Main {
+					id: bgShapes
+
+					screen: scope.modelData
+					bar: bar
 				}
 			}
 		}

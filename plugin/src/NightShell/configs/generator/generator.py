@@ -493,21 +493,21 @@ def main():
 
   isChanged = False
 
-  sourceFiles = [f"{s}.cpp" for s in genSources]
-
   cmakeLines: list[str] = [
     "find_package(Qt6 REQUIRED COMPONENTS Core Qml)",
     "\nqt6_add_library(nightshell_configs_generated STATIC)",
     f"\ntarget_sources(nightshell_configs_generated PRIVATE",
-    toIndentedBlock(sourceFiles, 1),
+    toIndentedBlock([f"{s}.cpp" for s in genSources], 1),
     ")",
     "\ntarget_include_directories(nightshell_configs_generated PUBLIC",
     "\t${CMAKE_CURRENT_SOURCE_DIR})",
+    "\nset_target_properties(nightshell_configs_generated PROPERTIES",
+    "\tPOSITION_INDEPENDENT_CODE ON)",
     "\ntarget_link_libraries(nightshell_configs_generated PRIVATE",
     toIndentedBlock(["Qt6::Core", "Qt6::Qml", "nightshell_utils"], 1),
     ")",
     "\nset(GENERATED_SOURCES",
-    toIndentedBlock([f"generated/{s}" for s in sourceFiles], 1),
+    toIndentedBlock([f"generated/{s}.h" for s in genSources], 1),
     "\tPARENT_SCOPE",
     ")",
   ]

@@ -17,10 +17,14 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+set_source_files_properties(Styles.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
 qt6_add_qml_module(
   nightshell_configs
   URI "${ORG_URI_PREFIX}.Configs"
   VERSION 0.1
+  QML_FILES Styles.qml
+  SOURCES ${GENERATED_SOURCES}
 )
 
 target_link_libraries(

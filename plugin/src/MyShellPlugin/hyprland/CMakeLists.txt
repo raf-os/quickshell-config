@@ -4,12 +4,15 @@ find_package(
   COMPONENTS Core Gui Qml Quick Network
 )
 
-qt6_add_library(myshell_hyprland SHARED)
+qt6_add_library(nightshell_hyprland SHARED)
 
-target_include_directories(myshell_hyprland PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(
+  nightshell_hyprland
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 target_sources(
-  myshell_hyprland
+  nightshell_hyprland
   PRIVATE
     hyprland.cpp
     hyprevents.cpp
@@ -22,19 +25,22 @@ target_sources(
     workspacesmodel.cpp
 )
 
-set_target_properties(myshell_hyprland PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(
+  nightshell_hyprland
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
 
 add_subdirectory(toplevels)
 add_subdirectory(common)
 
 qt6_add_qml_module(
-  myshell_hyprland
+  nightshell_hyprland
   URI "${ORG_URI_PREFIX}.Hyprland"
   VERSION 0.1
 )
 
 target_link_libraries(
-  myshell_hyprland
+  nightshell_hyprland
   PRIVATE
     Qt6::Core
     Qt6::Quick
@@ -44,9 +50,9 @@ target_link_libraries(
     myshell_utils
     myshell_include
   PUBLIC
-    myshell_hyprland_toplevels
+    nightshell_hyprland_toplevels
     nightshell_hyprland_common
     nightshell_wayland_toplevels
 )
 
-install_qml_module(myshell_hyprland)
+install_qml_module(nightshell_hyprland)

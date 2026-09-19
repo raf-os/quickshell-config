@@ -33,50 +33,40 @@ namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland) // from hyprland.cpp
 
 ToplevelInstance::ToplevelInstance(
-    wayland::wlr::toplevels::ToplevelHandle *handle,
-    QObject                                 *parent)
-    : QObject(parent),
-      m_wlrHandle(handle) {
+    wayland::wlr::toplevels::ToplevelHandle *handle, QObject *parent)
+    : QObject(parent), m_wlrHandle(handle) {
   this->setupToplevelConnections();
 
   const auto hyprMapManager =
       toplevels::HyprlandToplevelMappingManager::instance();
   if (hyprMapManager->hasAddress(m_wlrHandle)) {
-    this->onHyprAddress(m_wlrHandle,
-                        hyprMapManager->getToplevelAddress(m_wlrHandle));
+    this->onHyprAddress(
+        m_wlrHandle, hyprMapManager->getToplevelAddress(m_wlrHandle));
   } else {
-    QObject::connect(
-        hyprMapManager,
-        &toplevels::HyprlandToplevelMappingManager::toplevelAddressed,
-        this,
+    QObject::connect(hyprMapManager,
+        &toplevels::HyprlandToplevelMappingManager::toplevelAddressed, this,
         &ToplevelInstance::onHyprAddress);
   }
 }
 
-ToplevelInstance::ToplevelInstance(quint64  address,
-                                   QObject *parent)
-    : QObject(parent),
-      m_address(address) {}
+ToplevelInstance::ToplevelInstance(quint64 address, QObject *parent)
+    : QObject(parent), m_address(address) {}
 
 void ToplevelInstance::setupToplevelConnections() {
   if (!m_wlrHandle) return;
 
   QObject::connect(m_wlrHandle,
-                   &wayland::wlr::toplevels::ToplevelHandle::closed,
-                   this,
-                   [this] {
-                     if (m_wlrHandle) {
-                       QObject::disconnect(m_wlrHandle, nullptr, this, nullptr);
-                     }
-                   });
+      &wayland::wlr::toplevels::ToplevelHandle::closed, this, [this] {
+        if (m_wlrHandle) {
+          QObject::disconnect(m_wlrHandle, nullptr, this, nullptr);
+        }
+      });
   QObject::connect(m_wlrHandle,
-                   &wayland::wlr::toplevels::ToplevelHandle::appIdChanged,
-                   this,
-                   &ToplevelInstance::appIdChanged);
+      &wayland::wlr::toplevels::ToplevelHandle::appIdChanged, this,
+      &ToplevelInstance::appIdChanged);
   QObject::connect(m_wlrHandle,
-                   &wayland::wlr::toplevels::ToplevelHandle::titleChanged,
-                   this,
-                   &ToplevelInstance::titleChanged);
+      &wayland::wlr::toplevels::ToplevelHandle::titleChanged, this,
+      &ToplevelInstance::titleChanged);
 }
 
 bool ToplevelInstance::isValid() const { return m_isValid; }
@@ -101,9 +91,7 @@ void ToplevelInstance::setAddress(const quint64 &address) {
   if (m_address == address) return;
 
   QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
-                      nullptr,
-                      this,
-                      nullptr);
+      nullptr, this, nullptr);
 
   m_address = address;
   emit addressChanged();
@@ -127,20 +115,15 @@ void ToplevelInstance::activate() {
 }
 
 void ToplevelInstance::onHyprAddress(
-    wayland::wlr::toplevels::ToplevelHandle *handle,
-    quint64                                  address) {
+    wayland::wlr::toplevels::ToplevelHandle *handle, quint64 address) {
   if (address == m_address || address == 0) return;
   if (!m_wlrHandle || m_wlrHandle != handle) return;
 
   QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
-                      nullptr,
-                      this,
-                      nullptr);
+      nullptr, this, nullptr);
 
-  QObject::connect(
-      m_wlrHandle,
-      &wayland::wlr::toplevels::ToplevelHandle::waylandExtHandleChanged,
-      this,
+  QObject::connect(m_wlrHandle,
+      &wayland::wlr::toplevels::ToplevelHandle::waylandExtHandleChanged, this,
       &ToplevelInstance::waylandHandleChanged);
 
   m_address = address;
@@ -156,18 +139,14 @@ void ToplevelInstance::onToplevelMap(
   if (m_address == 0 || m_wlrHandle) return;
 
   QObject::disconnect(toplevels::HyprlandToplevelMappingManager::instance(),
-                      nullptr,
-                      this,
-                      nullptr);
+      nullptr, this, nullptr);
 
   m_wlrHandle = handle;
 
   this->setupToplevelConnections();
 
-  QObject::connect(
-      m_wlrHandle,
-      &wayland::wlr::toplevels::ToplevelHandle::waylandExtHandleChanged,
-      this,
+  QObject::connect(m_wlrHandle,
+      &wayland::wlr::toplevels::ToplevelHandle::waylandExtHandleChanged, this,
       &ToplevelInstance::waylandHandleChanged);
 
   m_isValid = true;
@@ -177,31 +156,27 @@ void ToplevelInstance::onToplevelMap(
 
 ToplevelModel::ToplevelModel(QObject *parent) : QObject(parent) {
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
-                   &wayland::wlr::toplevels::ToplevelManager::destroyed,
-                   this,
-                   [this] { this->deleteLater(); });
+      &wayland::wlr::toplevels::ToplevelManager::destroyed, this,
+      [this] { this->deleteLater(); });
 
   for (auto toplevel :
-       wayland::wlr::toplevels::ToplevelManager::instance()->readyToplevels()) {
+      wayland::wlr::toplevels::ToplevelManager::instance()->readyToplevels())
+  {
     this->createNewInstance(toplevel);
   }
 
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
-                   &wayland::wlr::toplevels::ToplevelManager::toplevelReady,
-                   this,
-                   &ToplevelModel::onWaylandToplevelCreated);
+      &wayland::wlr::toplevels::ToplevelManager::toplevelReady, this,
+      &ToplevelModel::onWaylandToplevelCreated);
 
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
-                   &wayland::wlr::toplevels::ToplevelManager::toplevelClosed,
-                   this,
-                   &ToplevelModel::onWaylandToplevelDestroyed);
+      &wayland::wlr::toplevels::ToplevelManager::toplevelClosed, this,
+      &ToplevelModel::onWaylandToplevelDestroyed);
 
-  QObject::connect(
-      toplevels::HyprlandToplevelMappingManager::instance(),
-      &toplevels::HyprlandToplevelMappingManager::toplevelAddressed,
-      this,
+  QObject::connect(toplevels::HyprlandToplevelMappingManager::instance(),
+      &toplevels::HyprlandToplevelMappingManager::toplevelAddressed, this,
       [this](wayland::wlr::toplevels::ToplevelHandle * /*unused*/,
-             quint64 /*unused*/) { this->handlePendingAssignments(); });
+          quint64 /*unused*/) { this->handlePendingAssignments(); });
 }
 
 QQmlListProperty<ToplevelInstance> ToplevelModel::items() {
@@ -236,10 +211,9 @@ void ToplevelModel::onWaylandToplevelCreated(
 void ToplevelModel::onWaylandToplevelDestroyed(
     wayland::wlr::toplevels::ToplevelHandle *toplevel) {
   auto it = std::ranges::find_if(m_readyToplevels.begin(),
-                                 m_readyToplevels.end(),
-                                 [toplevel](ToplevelInstance *instance) {
-                                   return instance->handle() == toplevel;
-                                 });
+      m_readyToplevels.end(), [toplevel](ToplevelInstance *instance) {
+        return instance->handle() == toplevel;
+      });
 
   if (it != m_readyToplevels.end()) {
     auto toplevelInstance = *it;
@@ -296,9 +270,7 @@ ToplevelInstance *ToplevelModel::createNewInstance(const quint64 &address) {
   } else {
     m_allTopLevels.append(inst);
     QObject::connect(
-        inst,
-        &ToplevelInstance::ready,
-        this,
+        inst, &ToplevelInstance::ready, this,
         [this, inst] {
           auto idx = m_allTopLevels.indexOf(inst);
           if (idx == -1) {
@@ -322,9 +294,7 @@ ToplevelInstance *ToplevelModel::createNewInstance(
   } else {
     m_allTopLevels.append(inst);
     QObject::connect(
-        inst,
-        &ToplevelInstance::ready,
-        this,
+        inst, &ToplevelInstance::ready, this,
         [this, inst] {
           auto idx = m_allTopLevels.indexOf(inst);
           if (idx == -1) {
@@ -339,27 +309,48 @@ ToplevelInstance *ToplevelModel::createNewInstance(
   return inst;
 }
 
+void ToplevelModel::onActiveToplevelDestroyed() {
+  m_activeToplevel = nullptr;
+  emit activeToplevelChanged();
+}
+
 void ToplevelModel::onAddressActivated(quint64 address) {
   auto it = std::ranges::find_if(m_readyToplevels.begin(),
-                                 m_readyToplevels.end(),
-                                 [address](ToplevelInstance *instance) {
-                                   return instance->address() == address;
-                                 });
+      m_readyToplevels.end(), [address](ToplevelInstance *instance) {
+        return instance->address() == address;
+      });
 
   if (it != m_readyToplevels.end()) {
+    if (m_activeToplevel != *it) {
+      if (m_activeToplevel) {
+        QObject::disconnect(m_activeToplevel, nullptr, this, nullptr);
+      }
+      m_activeToplevel = *it;
+      if (m_activeToplevel) {
+        QObject::connect(m_activeToplevel, &QObject::destroyed, this,
+            &ToplevelModel::onActiveToplevelDestroyed);
+      }
+      emit activeToplevelChanged();
+    }
+
     auto idx = std::distance(m_readyToplevels.begin(), it);
     if (idx == 0 || idx > m_readyToplevels.size()) return;
     m_readyToplevels.move(idx, 0);
     auto fit = std::ranges::find_if(m_filteredToplevels.begin(),
-                                    m_filteredToplevels.end(),
-                                    [address](ToplevelInstance *inst) {
-                                      return inst->address() == address;
-                                    });
+        m_filteredToplevels.end(), [address](ToplevelInstance *inst) {
+          return inst->address() == address;
+        });
     if (fit != m_filteredToplevels.end()) {
       auto fidx = std::distance(m_filteredToplevels.begin(), fit);
       if (fidx != 0) {
         m_filteredToplevels.move(fidx, 0);
       }
+    }
+  } else {
+    if (m_activeToplevel != nullptr) {
+      QObject::disconnect(m_activeToplevel, nullptr, this, nullptr);
+      m_activeToplevel = nullptr;
+      emit activeToplevelChanged();
     }
   }
 }
@@ -417,10 +408,8 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
         continue;
       }
 
-      auto iit = std::ranges::find_if(
-          tlist.begin(), tlist.end(), [addr](ToplevelInstance *inst) {
-            return inst->handle() == addr;
-          });
+      auto iit = std::ranges::find_if(tlist.begin(), tlist.end(),
+          [addr](ToplevelInstance *inst) { return inst->handle() == addr; });
 
       if (iit == tlist.end()) continue;
 
@@ -448,11 +437,9 @@ void ToplevelModel::handlePendingAssignments() {
       p->assignmentAttempts++;
       if (p->assignmentAttempts < 2) return false;
     } else {
-      auto it = std::find_if(m_allTopLevels.begin(),
-                             m_allTopLevels.end(),
-                             [this, handle](ToplevelInstance *inst) {
-                               return inst->handle() == handle;
-                             });
+      auto it = std::find_if(m_allTopLevels.begin(), m_allTopLevels.end(),
+          [this, handle](
+              ToplevelInstance *inst) { return inst->handle() == handle; });
       if (it == m_allTopLevels.end()) {
         p->assignmentAttempts++;
         if (p->assignmentAttempts < 2) return false;
@@ -465,10 +452,9 @@ void ToplevelModel::handlePendingAssignments() {
   });
 }
 
-void ToplevelModel::onWindowMoveWorkspace(const quint64 &address,
-                                          int            workspaceId) {
-  auto it = std::ranges::find_if(
-      m_readyToplevels.begin(),
+void ToplevelModel::onWindowMoveWorkspace(
+    const quint64 &address, int workspaceId) {
+  auto it = std::ranges::find_if(m_readyToplevels.begin(),
       m_readyToplevels.end(),
       [address](ToplevelInstance *inst) { return inst->address() == address; });
 

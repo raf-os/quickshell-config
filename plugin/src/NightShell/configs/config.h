@@ -41,7 +41,7 @@ signals:
   void saved();
 
 private slots:
-  void onConfigFileChanged(const QStringList & /*unused*/ = QStringList());
+  void onConfigFileChanged(const QString & /*unused*/ = QString());
 
 private:
   explicit Config(QObject *parent = nullptr);

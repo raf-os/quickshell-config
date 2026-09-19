@@ -99,7 +99,7 @@ target_link_libraries(
     nightshell_wayland_buffer
     nightshell_wayland_toplevels
     nightshell_wayland_wlr
-    myshell_hyprland
+    nightshell_hyprland
 )
 
 set_target_properties(

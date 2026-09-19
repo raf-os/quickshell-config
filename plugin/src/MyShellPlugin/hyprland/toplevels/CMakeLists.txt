@@ -13,19 +13,19 @@ find_package(
 # )
 
 qt6_add_library(
-  myshell_hyprland_toplevels
+  nightshell_hyprland_toplevels
   STATIC
   hyprtoplevelmanager.cpp
   hyprtoplevelhandle.cpp
 )
 
 target_include_directories(
-  myshell_hyprland_toplevels
+  nightshell_hyprland_toplevels
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 qt6_add_qml_module(
-  myshell_hyprland_toplevels
+  nightshell_hyprland_toplevels
   URI "${ORG_URI_PREFIX}.Hyprland.Toplevels"
   VERSION 0.1
   DEPENDENCIES QtQml
@@ -62,12 +62,12 @@ set_target_properties(
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 set_target_properties(
-  myshell_hyprland_toplevels
+  nightshell_hyprland_toplevels
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 
 target_link_libraries(
-  myshell_hyprland_toplevels
+  nightshell_hyprland_toplevels
   PRIVATE
     Qt6::Core
     Qt6::Qml
@@ -82,4 +82,4 @@ target_link_libraries(
     nightshell_wayland_wlr
 )
 
-install_qml_module(myshell_hyprland_toplevels)
+install_qml_module(nightshell_hyprland_toplevels)

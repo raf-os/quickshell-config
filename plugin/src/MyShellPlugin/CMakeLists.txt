@@ -62,7 +62,7 @@ target_link_libraries(
     myshell_interfaces
     myshell_include
     myshell_configs
-    myshell_hyprland
+    nightshell_hyprland
 )
 
 install_qml_module(myshell)

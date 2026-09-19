@@ -30,13 +30,12 @@ class ToplevelInstance : public QObject {
   Q_PROPERTY(quint64 address READ address NOTIFY addressChanged)
   Q_PROPERTY(int workspaceId READ workspaceId NOTIFY workspaceIdChanged)
   Q_PROPERTY(wayland::toplevels::WLToplevelHandle *waylandHandle READ
-                 waylandHandle NOTIFY waylandHandleChanged)
+          waylandHandle NOTIFY waylandHandleChanged)
 
 public:
   explicit ToplevelInstance(wayland::wlr::toplevels::ToplevelHandle *handle,
-                            QObject *parent = nullptr);
-  explicit ToplevelInstance(quint64  address,
-                            QObject *parent = nullptr);
+      QObject *parent = nullptr);
+  explicit ToplevelInstance(quint64 address, QObject *parent = nullptr);
 
   [[nodiscard]] QString appId() const;
   [[nodiscard]] QString title() const;
@@ -56,8 +55,8 @@ public slots:
   void onToplevelMap(wayland::wlr::toplevels::ToplevelHandle *handle);
 
 private slots:
-  void onHyprAddress(wayland::wlr::toplevels::ToplevelHandle *handle,
-                     quint64                                  address);
+  void onHyprAddress(
+      wayland::wlr::toplevels::ToplevelHandle *handle, quint64 address);
 
 signals:
   void ready();
@@ -82,9 +81,11 @@ class ToplevelModel : public QObject {
   QML_UNCREATABLE("")
 
   Q_PROPERTY(QString searchQuery READ searchQuery WRITE setSearchQuery NOTIFY
-                 searchQueryChanged)
+          searchQueryChanged)
   Q_PROPERTY(QQmlListProperty<ns::hyprland::ToplevelInstance> items READ items
-                 NOTIFY itemsChanged)
+          NOTIFY itemsChanged)
+  Q_PROPERTY(ns::hyprland::ToplevelInstance *activeToplevel READ activeToplevel
+          NOTIFY activeToplevelChanged)
 
 public:
   explicit ToplevelModel(QObject *parent = nullptr);
@@ -94,22 +95,26 @@ public:
 
   [[nodiscard]] QQmlListProperty<ToplevelInstance> items();
   [[nodiscard]] QList<ToplevelInstance *>          toplevelList() const;
+  [[nodiscard]] ToplevelInstance                  *activeToplevel();
 
 signals:
   void searchQueryChanged();
   void itemsChanged();
   void readyToplevelsChanged(const QList<ToplevelInstance *> &newToplevels);
+  void activeToplevelChanged();
   void windowMoved(ToplevelInstance *toplevel);
 
 public slots:
-  void
-  onWaylandToplevelCreated(wayland::wlr::toplevels::ToplevelHandle *toplevel);
-  void
-  onWaylandToplevelDestroyed(wayland::wlr::toplevels::ToplevelHandle *toplevel);
+  void onWaylandToplevelCreated(
+      wayland::wlr::toplevels::ToplevelHandle *toplevel);
+  void onWaylandToplevelDestroyed(
+      wayland::wlr::toplevels::ToplevelHandle *toplevel);
   void onAddressActivated(quint64 address);
   void handleHyprClientsPayload(const QByteArray &data);
-  void onWindowMoveWorkspace(const quint64 &address,
-                             int            workspaceId);
+  void onWindowMoveWorkspace(const quint64 &address, int workspaceId);
+
+private slots:
+  void onActiveToplevelDestroyed();
 
 private:
   struct PendingToplevel {
@@ -121,6 +126,7 @@ private:
   QList<ToplevelInstance *> m_allTopLevels;
   QList<ToplevelInstance *> m_readyToplevels;
   QList<ToplevelInstance *> m_filteredToplevels;
+  ToplevelInstance         *m_activeToplevel = nullptr;
 
   // QHash doesn't allow a non-const argument for its removeIf function, so
   // std::unordered_map it is.
@@ -130,8 +136,8 @@ private:
   QString m_searchQuery;
 
   ToplevelInstance *createNewInstance(const quint64 &address);
-  ToplevelInstance *
-  createNewInstance(wayland::wlr::toplevels::ToplevelHandle *handle);
+  ToplevelInstance *createNewInstance(
+      wayland::wlr::toplevels::ToplevelHandle *handle);
 
   void insertAtEnd(ToplevelInstance *instance);
   void removeAtIndex(int index);

@@ -228,7 +228,7 @@ void Config::attachFileWatcher() {
   if (!m_fileWatcher.files().contains(path)) m_fileWatcher.addPath(path);
 }
 
-void Config::onConfigFileChanged(const QStringList & /*unused*/) {
+void Config::onConfigFileChanged(const QString & /*unused*/) {
   if (readFromFile()) emit loaded();
 
   attachFileWatcher();
