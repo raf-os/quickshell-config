@@ -31,12 +31,11 @@ private slots:
 signals:
   void configReloaded();
   void bellRang();
-  void keyboardLayoutChanged(QString keyboardName,
-                             QString layoutName);
+  void keyboardLayoutChanged(QString keyboardName, QString layoutName);
   void activeWindowChanged(quint64 address);
   void workspacesChanged();
-  void windowMoved(quint64 address,
-                   int     workspaceId);
+  void userWorkspaceChanged();
+  void windowMoved(quint64 address, int workspaceId);
   void isConnectedChanged();
 
 private:
@@ -44,7 +43,6 @@ private:
   QLocalSocket *m_socket = nullptr;
   QString       m_buffer;
 
-  void dispatchEvent(const QString &event,
-                     const QString &data);
+  void dispatchEvent(const QString &event, const QString &data);
 };
 } // namespace ns::hyprland

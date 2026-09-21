@@ -6,7 +6,7 @@
 #include <qtmetamacros.h>
 
 #define AUTO_BINDABLE_IMPL_DECLARE(Type, Name)                                 \
-  [[nodiscard]] QBindable<Type> bindable_##Name() const;                       \
+  [[nodiscard]] QBindable<Type> bindable_##Name() const { return &b_##Name; }; \
   Q_SIGNAL void                 Name##Changed();
 
 #define AUTO_BINDABLE(Class, Type, Name)                                       \

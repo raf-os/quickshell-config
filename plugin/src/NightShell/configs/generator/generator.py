@@ -494,7 +494,7 @@ def main():
   isChanged = False
 
   cmakeLines: list[str] = [
-    "find_package(Qt6 REQUIRED COMPONENTS Core Qml)",
+    "find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui)",
     "\nqt6_add_library(nightshell_configs_generated STATIC)",
     f"\ntarget_sources(nightshell_configs_generated PRIVATE",
     toIndentedBlock([f"{s}.cpp" for s in genSources], 1),
@@ -504,7 +504,7 @@ def main():
     "\nset_target_properties(nightshell_configs_generated PROPERTIES",
     "\tPOSITION_INDEPENDENT_CODE ON)",
     "\ntarget_link_libraries(nightshell_configs_generated PRIVATE",
-    toIndentedBlock(["Qt6::Core", "Qt6::Qml", "nightshell_utils"], 1),
+    toIndentedBlock(["Qt6::Core", "Qt6::Qml", "Qt6::Gui", "nightshell_utils"], 1),
     ")",
     "\nset(GENERATED_SOURCES",
     toIndentedBlock([f"generated/{s}.h" for s in genSources], 1),

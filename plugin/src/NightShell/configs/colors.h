@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtGui/qcolor.h>
+#include <qcolor.h>
 #include <qjsengine.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -56,25 +56,5 @@ private:
 
   Q_OBJECT_BINDABLE_PROPERTY(
       Colors, bool, b_isPreviewing, &Colors::currentChanged)
-};
-
-class ColorsQML : public QObject {
-  Q_OBJECT
-  QML_NAMED_ELEMENT("Colors")
-  QML_SINGLETON
-
-#define C(Name, Value) AUTO_BINDABLE(ColorsQML, QColor, Name)
-#include "colors.def"
-#undef C
-
-  AUTO_MEYERS_SINGLETON_QML(ColorsQML)
-
-private slots:
-  void onCurrentThemeChanged();
-
-private:
-  explicit ColorsQML(QObject *parent = nullptr);
-
-  void setupConnections();
 };
 } // namespace ns::configs

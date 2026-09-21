@@ -3,6 +3,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qpoint.h>
+#include <qpointer.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
@@ -27,25 +28,27 @@ class HyprMonitor : public QObject {
   Q_PROPERTY(QPoint size READ default NOTIFY sizeChanged BINDABLE bSize)
 
   Q_PROPERTY(QQmlListProperty<HyprWorkspace> workspaces READ workspaces NOTIFY
-                 workspacesChanged)
+          workspacesChanged)
+  Q_PROPERTY(ns::hyprland::HyprWorkspace *activeWorkspace READ activeWorkspace
+          NOTIFY activeWorkspaceChanged)
 
 public:
-  explicit HyprMonitor(int      id,
-                       QObject *parent = nullptr);
+  explicit HyprMonitor(int id, QObject *parent = nullptr);
 
   [[nodiscard]] int                id() const { return m_id; }
-  [[nodiscard]] QBindable<QString> bName() const { return &m_name; }
-  [[nodiscard]] QBindable<QString> bModel() const { return &m_model; }
-  [[nodiscard]] QBindable<bool>    bDisabled() const { return &m_disabled; }
-  [[nodiscard]] QBindable<QPoint>  bPosition() const { return &m_position; }
-  [[nodiscard]] QBindable<QPoint>  bSize() const { return &m_size; }
+  [[nodiscard]] QBindable<QString> bName() const { return &b_name; }
+  [[nodiscard]] QBindable<QString> bModel() const { return &b_model; }
+  [[nodiscard]] QBindable<bool>    bDisabled() const { return &b_disabled; }
+  [[nodiscard]] QBindable<QPoint>  bPosition() const { return &b_position; }
+  [[nodiscard]] QBindable<QPoint>  bSize() const { return &b_size; }
 
   [[nodiscard]] QQmlListProperty<HyprWorkspace> workspaces();
+  [[nodiscard]] HyprWorkspace                  *activeWorkspace();
 
   void processData(common::HyprMonitorData data);
 
 private slots:
-  void onWorkspacesChanged(const QList<HyprWorkspace *> &newWorkspaces);
+  void onWorkspacesChanged(const QList<HyprWorkspace *> & /*unused*/);
 
 signals:
   void nameChanged();
@@ -54,30 +57,29 @@ signals:
   void positionChanged();
   void sizeChanged();
   void workspacesChanged();
+  void activeWorkspaceChanged();
 
 private:
   const int              m_id;
   QList<HyprWorkspace *> m_workspaces;
+  HyprWorkspace         *m_activeWorkspace = nullptr;
 
-  Q_OBJECT_BINDABLE_PROPERTY(HyprMonitor,
-                             QString,
-                             m_name,
-                             &HyprMonitor::nameChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(HyprMonitor,
-                             QString,
-                             m_model,
-                             &HyprMonitor::modelChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(HyprMonitor,
-                             bool,
-                             m_disabled,
-                             &HyprMonitor::disabledChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(HyprMonitor,
-                             QPoint,
-                             m_position,
-                             &HyprMonitor::positionChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(HyprMonitor,
-                             QPoint,
-                             m_size,
-                             &HyprMonitor::sizeChanged)
+  struct {
+    int     id;
+    QString name;
+  } m_activeWorkspaceData;
+
+  void tryAssignActiveWorkspace();
+
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprMonitor, QString, b_name, &HyprMonitor::nameChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprMonitor, QString, b_model, &HyprMonitor::modelChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprMonitor, bool, b_disabled, &HyprMonitor::disabledChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprMonitor, QPoint, b_position, &HyprMonitor::positionChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprMonitor, QPoint, b_size, &HyprMonitor::sizeChanged)
 };
 } // namespace ns::hyprland

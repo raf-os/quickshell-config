@@ -49,6 +49,13 @@ Variants {
 			RootInteractionHandler {
 				anchors.fill: parent
 
+				Shapes.Main {
+					id: bgShapes
+
+					screen: scope.modelData
+					bar: bar
+				}
+
 				Bar {
 					id: bar
 					screen: scope.modelData
@@ -59,13 +66,6 @@ Variants {
 						left: parent.left
 						right: parent.right
 					}
-				}
-
-				Shapes.Main {
-					id: bgShapes
-
-					screen: scope.modelData
-					bar: bar
 				}
 			}
 		}

@@ -7,13 +7,13 @@ ShapePath {
 	id: root
 
 	required property Bar bar
-	readonly property int itemLength: 400
+	readonly property int itemLength: bar.leftLength
 	readonly property int contentLength: 200
 	readonly property int trailingLength: itemLength - contentLength
 	readonly property int itemHeight: bar.height - bar.topLineHeight - 4
 	readonly property int tailHeight: 8
 
-	startX: 32
+	startX: 0
 	startY: bar.topLineHeight + 4
 
 	strokeWidth: 0

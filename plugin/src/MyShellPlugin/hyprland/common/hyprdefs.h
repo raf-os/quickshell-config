@@ -31,5 +31,9 @@ struct HyprMonitorData {
   QString name;
   QString model;
   QString serial;
+  struct {
+    int     id;
+    QString name;
+  } activeWorkspace;
 };
 } // namespace ns::hyprland::common

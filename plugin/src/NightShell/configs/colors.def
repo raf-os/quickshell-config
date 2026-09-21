@@ -1,8 +1,8 @@
   C(neutral, "#000000")
   C(neutralContent, "#ffffff")
 
-  C(base, "#000000")
-  C(baseContent, "#ffffff")
+  C(primary, "#ff0947")
+  C(primaryContent, "#33171b")
 
-  C(primary, "#000000")
-  C(primaryContent, "#ffffff")
+  C(secondary, "#1ee8e4")
+  C(secondaryContent, "#022a29")

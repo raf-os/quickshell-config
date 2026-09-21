@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.modules.bar
+import qs.modules.bar.workspaces
 
 import Quickshell
 import QtQuick
@@ -39,28 +40,24 @@ Item {
 				horizontalCenter: parent.horizontalCenter
 			}
 
-			implicitWidth: 300
+			implicitWidth: root.bar.centerLength
 			implicitHeight: root.bar.height
 
-			RowLayout {
+			WorkspacesGuide {
+				id: workspacesMask
+				monitorName: root.screen.name
+
 				anchors {
 					top: parent.top
 					bottom: parent.bottom
 					horizontalCenter: parent.horizontalCenter
 				}
 
-				spacing: 8
-
-				implicitWidth: parent.implicitWidth
-
-				Repeater {
-					model: 5
-					delegate: Rectangle {
-						implicitWidth: 22
-						implicitHeight: implicitWidth
-						radius: implicitWidth / 2
-						color: "white"
-					}
+				workspaceDelegate: Rectangle {
+					implicitWidth: workspacesMask.workspaceIconSize
+					implicitHeight: implicitWidth
+					radius: implicitWidth / 2
+					color: "white"
 				}
 			}
 		}

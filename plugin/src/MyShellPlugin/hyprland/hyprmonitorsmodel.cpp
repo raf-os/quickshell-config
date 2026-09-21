@@ -53,10 +53,8 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
 
     HyprMonitor *monitor = nullptr;
 
-    auto it = std::ranges::find_if(
-        m_monitors.begin(), m_monitors.end(), [id](HyprMonitor *mon) {
-          return mon->id() == id;
-        });
+    auto it = std::ranges::find_if(m_monitors.begin(), m_monitors.end(),
+        [id](HyprMonitor *mon) { return mon->id() == id; });
 
     if (it != m_monitors.end()) {
       old.erase(it);
@@ -76,14 +74,19 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
     data.y        = jObj.value("y").toInt();
     data.disabled = jObj.value("disabled").toBool();
 
+    if (jObj.value("activeWorkspace").isObject()) {
+      auto aw                   = jObj.value("activeWorkspace").toObject();
+      data.activeWorkspace.id   = aw.value("id").toInt(-1);
+      data.activeWorkspace.name = aw.value("name").toString();
+    }
+
     monitor->processData(std::move(data));
 
     m_monitors.append(monitor);
   }
 
-  std::sort(m_monitors.begin(),
-            m_monitors.end(),
-            [](HyprMonitor *a, HyprMonitor *b) { return a->id() < b->id(); });
+  std::sort(m_monitors.begin(), m_monitors.end(),
+      [](HyprMonitor *a, HyprMonitor *b) { return a->id() < b->id(); });
 
   for (auto *cleanup : old) {
     cleanup->deleteLater();
@@ -92,12 +95,9 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
   emit valuesChanged();
 }
 
-void HyprMonitorsModel::removeMonitorById(int id,
-                                          const QString & /*unused*/) {
-  auto it =
-      std::ranges::find_if(m_monitors.begin(),
-                           m_monitors.end(),
-                           [id](HyprMonitor *mon) { return mon->id() == id; });
+void HyprMonitorsModel::removeMonitorById(int id, const QString & /*unused*/) {
+  auto it = std::ranges::find_if(m_monitors.begin(), m_monitors.end(),
+      [id](HyprMonitor *mon) { return mon->id() == id; });
 
   if (it != m_monitors.end()) {
     m_monitors.erase(it);

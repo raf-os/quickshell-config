@@ -15,22 +15,20 @@ HyprEvents::HyprEvents(QObject *parent) : QObject(parent) {
 
   QObject::connect(
       m_socket, &QLocalSocket::readyRead, this, &HyprEvents::onReadyRead);
-  QObject::connect(m_socket,
-                   &QLocalSocket::stateChanged,
-                   this,
-                   [this](const QLocalSocket::LocalSocketState socketState) {
-                     if (socketState == QLocalSocket::ConnectedState) {
-                       if (m_isConnected == false) {
-                         m_isConnected = true;
-                         emit isConnectedChanged();
-                       }
-                     } else {
-                       if (m_isConnected) {
-                         m_isConnected = false;
-                         emit isConnectedChanged();
-                       }
-                     }
-                   });
+  QObject::connect(m_socket, &QLocalSocket::stateChanged, this,
+      [this](const QLocalSocket::LocalSocketState socketState) {
+        if (socketState == QLocalSocket::ConnectedState) {
+          if (m_isConnected == false) {
+            m_isConnected = true;
+            emit isConnectedChanged();
+          }
+        } else {
+          if (m_isConnected) {
+            m_isConnected = false;
+            emit isConnectedChanged();
+          }
+        }
+      });
   QObject::connect(
       m_socket, &QLocalSocket::errorOccurred, this, &HyprEvents::onError);
 }
@@ -81,8 +79,7 @@ void HyprEvents::onReadyRead() {
   }
 }
 
-void HyprEvents::dispatchEvent(const QString &event,
-                               const QString &data) {
+void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
   if (event == "configreloaded") {
     emit configReloaded();
     return;
@@ -108,8 +105,11 @@ void HyprEvents::dispatchEvent(const QString &event,
       emit activeWindowChanged(addr);
     }
   } else if (event == "createworkspace" || event == "destroyworkspace" ||
-             event == "moveworkspace" || event == "renameworkspace") {
+             event == "moveworkspace" || event == "renameworkspace")
+  {
     emit workspacesChanged();
+  } else if (event == "workspace" || event == "workspacev2") {
+    emit userWorkspaceChanged();
   } else if (event == "movewindowv2") {
     const auto dataParams = data.split(",");
 

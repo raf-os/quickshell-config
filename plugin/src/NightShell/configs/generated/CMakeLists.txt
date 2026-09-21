@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui)
 
 qt6_add_library(nightshell_configs_generated STATIC)
 
@@ -16,6 +16,7 @@ set_target_properties(nightshell_configs_generated PROPERTIES
 target_link_libraries(nightshell_configs_generated PRIVATE
 	Qt6::Core
 	Qt6::Qml
+	Qt6::Gui
 	nightshell_utils
 )
 

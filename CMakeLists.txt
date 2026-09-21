@@ -64,6 +64,8 @@ list(
   "${INSTALL_QMLDIR}/org/nightshell/DesktopEntries"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland"
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland/Toplevels"
+  "${INSTALL_QMLDIR}/org/nightshell/Configs"
+  "${INSTALL_QMLDIR}/org/nightshell/Utils"
   "${CMAKE_INSTALL_PREFIX}/${NIGHTSHELL_INSTALL_LIBDIR}"
   "/usr/local/lib"
 )

@@ -29,6 +29,10 @@ QQmlListProperty<HyprWorkspace> WorkspacesModel::values() {
   return readonlyQmlList<HyprWorkspace>(this, &m_workspacesByMonitor);
 }
 
+QList<HyprWorkspace *> WorkspacesModel::valueList() const {
+  return m_workspacesByMonitor;
+}
+
 void WorkspacesModel::updateFromPayload(const QByteArray &data) {
   QJsonParseError parseError;
   auto            jDoc = QJsonDocument::fromJson(data, &parseError);
@@ -73,7 +77,7 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
     wpdata.name         = name;
     wpdata.isPersistent = obj.value("ispersistent").toBool(false);
     wpdata.monitorId    = obj.value("monitorID").toInt(-1);
-    wpdata.monitorName  = obj.value("monitorName").toString();
+    wpdata.monitorName  = obj.value("monitor").toString();
 
     workspace->updateData(std::move(wpdata));
   }

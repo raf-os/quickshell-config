@@ -31,13 +31,10 @@
 #include "workspacesmodel.h"
 
 namespace ns::hyprland {
-Q_LOGGING_CATEGORY(logNSHyprland,
-                   "nightshell.hyprland",
-                   QtWarningMsg)
+Q_LOGGING_CATEGORY(logNSHyprland, "nightshell.hyprland")
 
 Hyprland::Hyprland(QObject *parent)
-    : QObject(parent),
-      m_eventHandler(new HyprEvents(this)),
+    : QObject(parent), m_eventHandler(new HyprEvents(this)),
       m_toplevelModel(new ToplevelModel(this)),
       m_monitorsModel(new HyprMonitorsModel(this)),
       m_workspacesModel(new WorkspacesModel(this)),
@@ -64,56 +61,39 @@ Hyprland::Hyprland(QObject *parent)
 
   this->queryActiveDevices();
   this->queryHyprInputConfigs();
-  this->queryMonitors(); // explicitly doing this one first so the newly created
-                         // instances can automatically fill up its workspace
-                         // child list
+  this->queryMonitors(); // explicitly doing this one first so the newly
+  // created instances can automatically fill up its workspace child list
   this->queryWorkspaces();
 
-  QObject::connect(m_eventHandler,
-                   &HyprEvents::configReloaded,
-                   this,
-                   &Hyprland::queryActiveDevices);
-  QObject::connect(m_eventHandler,
-                   &HyprEvents::configReloaded,
-                   this,
-                   &Hyprland::queryWorkspaces);
-  QObject::connect(m_eventHandler,
-                   &HyprEvents::keyboardLayoutChanged,
-                   this,
-                   [this](QString /* unused */, QString /* unused */) {
-                     this->queryActiveDevices();
-                   });
-  QObject::connect(m_eventHandler,
-                   &HyprEvents::activeWindowChanged,
-                   m_toplevelModel,
-                   &ToplevelModel::onAddressActivated);
-  QObject::connect(m_eventHandler,
-                   &HyprEvents::windowMoved,
-                   m_toplevelModel,
-                   &ToplevelModel::onWindowMoveWorkspace);
-  QObject::connect(m_eventHandler,
-                   &HyprEvents::workspacesChanged,
-                   this,
-                   &Hyprland::queryWorkspaces);
+  QObject::connect(m_eventHandler, &HyprEvents::configReloaded, this,
+      &Hyprland::queryActiveDevices);
+  QObject::connect(m_eventHandler, &HyprEvents::configReloaded, this,
+      &Hyprland::queryWorkspaces);
+  QObject::connect(m_eventHandler, &HyprEvents::userWorkspaceChanged, this,
+      &Hyprland::queryMonitors);
+  QObject::connect(m_eventHandler, &HyprEvents::keyboardLayoutChanged, this,
+      [this](QString /* unused */, QString /* unused */) {
+        this->queryActiveDevices();
+      });
+  QObject::connect(m_eventHandler, &HyprEvents::activeWindowChanged,
+      m_toplevelModel, &ToplevelModel::onAddressActivated);
+  QObject::connect(m_eventHandler, &HyprEvents::windowMoved, m_toplevelModel,
+      &ToplevelModel::onWindowMoveWorkspace);
+  QObject::connect(m_eventHandler, &HyprEvents::workspacesChanged, this,
+      &Hyprland::queryWorkspaces);
 
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
-                   &wayland::wlr::toplevels::ToplevelManager::toplevelsChanged,
-                   this,
-                   &Hyprland::queryHyprClients);
+      &wayland::wlr::toplevels::ToplevelManager::toplevelsChanged, this,
+      &Hyprland::queryHyprClients);
 
-  QObject::connect(m_toplevelModel,
-                   &ToplevelModel::readyToplevelsChanged,
-                   m_workspacesModel,
-                   &WorkspacesModel::onToplevelsChanged);
-  QObject::connect(m_toplevelModel,
-                   &ToplevelModel::windowMoved,
-                   m_workspacesModel,
-                   &WorkspacesModel::onWindowMoved);
+  QObject::connect(m_toplevelModel, &ToplevelModel::readyToplevelsChanged,
+      m_workspacesModel, &WorkspacesModel::onToplevelsChanged);
+  QObject::connect(m_toplevelModel, &ToplevelModel::windowMoved,
+      m_workspacesModel, &WorkspacesModel::onWindowMoved);
 }
 
-void Hyprland::hyprctl(const QByteArray                      &request,
-                       const std::function<void(bool,
-                                                QByteArray)> &callback) {
+void Hyprland::hyprctl(const QByteArray         &request,
+    const std::function<void(bool, QByteArray)> &callback) {
   if (m_requestSocketPath.isEmpty()) return;
 
   auto requestSocket = new QLocalSocket(this);
@@ -210,8 +190,8 @@ void Hyprland::queryHyprInputConfigs() {
       {"input.kb_options", &payload.kbOptions},
       {"input.kb_rules",   &payload.kbRules  }
   };
-  auto fetchHyprData = [this, payload, requestSocket](QByteArrayView opt,
-                                                      QByteArray    *target) {
+  auto fetchHyprData = [this, payload, requestSocket](
+                           QByteArrayView opt, QByteArray *target) {
     requestSocket->connectToServer(this->m_requestSocketPath);
     requestSocket->waitForConnected(5000);
 

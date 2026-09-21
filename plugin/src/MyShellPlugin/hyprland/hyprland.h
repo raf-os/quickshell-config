@@ -5,7 +5,9 @@
 #include <qhash.h>
 #include <qjsengine.h>
 #include <qlist.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
+#include <qpointer.h>
 #include <qprocess.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
@@ -20,6 +22,8 @@
 #include "workspacesmodel.h"
 
 namespace ns::hyprland {
+Q_DECLARE_LOGGING_CATEGORY(logNSHyprland)
+
 class Hyprland : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -29,11 +33,11 @@ class Hyprland : public QObject {
   Q_PROPERTY(
       ns::hyprland::ToplevelModel *toplevelModel READ toplevelModel CONSTANT)
   Q_PROPERTY(ns::hyprland::WorkspacesModel *workspacesModel READ workspacesModel
-                 CONSTANT)
+          CONSTANT)
   Q_PROPERTY(ns::hyprland::HyprMonitorsModel *monitorsModel READ monitorsModel
-                 CONSTANT)
+          CONSTANT)
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
-                 keyboardLayoutIndexChanged)
+          keyboardLayoutIndexChanged)
 
 public:
   static Hyprland *instance() {
@@ -41,8 +45,7 @@ public:
     return s_instance;
   }
 
-  static Hyprland *create(QQmlEngine *qmlEngine,
-                          QJSEngine  *jsEngine) {
+  static Hyprland *create(QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
     auto inst = instance();
     if (qmlEngine)
       qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
@@ -64,9 +67,8 @@ public:
   [[nodiscard]] int                keyboardLayoutIndex() const;
   void                             setKeyboardLayoutIndex(const int &value);
 
-  void             hyprctl(const QByteArray                      &request,
-                           const std::function<void(bool,
-                                                    QByteArray)> &callback);
+  void             hyprctl(const QByteArray                   &request,
+      const std::function<void(bool, QByteArray)> &callback);
   Q_INVOKABLE void dispatch(const QString &request);
 
 private slots:

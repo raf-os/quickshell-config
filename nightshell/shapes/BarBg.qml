@@ -1,5 +1,6 @@
 import qs.modules.bar
 
+import org.nightshell.Configs as C
 import QtQuick
 import QtQuick.Shapes
 
@@ -16,7 +17,7 @@ ShapePath {
 
 	strokeWidth: 0
 	strokeColor: "transparent"
-	fillColor: "#ff0947"
+	fillColor: C.Colors.primary
 
 	pathHints: ShapePath.PathFillOnRight | ShapePath.PathLinear
 

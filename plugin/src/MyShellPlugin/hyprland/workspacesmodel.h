@@ -18,13 +18,15 @@ class WorkspacesModel : public QObject {
   QML_UNCREATABLE("")
 
   Q_PROPERTY(QQmlListProperty<ns::hyprland::HyprWorkspace> values READ values
-                 NOTIFY workspacesChanged)
+          NOTIFY workspacesChanged)
 
 public:
   explicit WorkspacesModel(QObject *parent = nullptr);
 
   void                            updateFromPayload(const QByteArray &data);
   QQmlListProperty<HyprWorkspace> values();
+
+  [[nodiscard]] QList<HyprWorkspace *> valueList() const;
 
 public slots:
   void onWindowMoved(ToplevelInstance *instance);

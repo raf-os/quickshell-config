@@ -185,6 +185,7 @@ QQmlListProperty<ToplevelInstance> ToplevelModel::items() {
 QList<ToplevelInstance *> ToplevelModel::toplevelList() const {
   return m_readyToplevels;
 }
+ToplevelInstance *ToplevelModel::activeToplevel() { return m_activeToplevel; }
 
 QString ToplevelModel::searchQuery() const { return m_searchQuery; }
 void    ToplevelModel::setSearchQuery(const QString &value) {
