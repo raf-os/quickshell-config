@@ -1,5 +1,5 @@
   C(neutral, "#000000")
-  C(neutralContent, "#ffffff")
+  C(neutralContent, "#eedee0")
 
   C(primary, "#ff0947")
   C(primaryContent, "#33171b")

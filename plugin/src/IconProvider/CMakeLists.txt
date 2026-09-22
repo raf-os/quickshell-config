@@ -1,7 +1,7 @@
 find_package(
   Qt6
   REQUIRED
-  COMPONENTS Core Qml Gui Quick Svg
+  COMPONENTS Core Qml Gui Quick Svg Xml
 )
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
@@ -31,7 +31,7 @@ qt6_add_qml_module(
 
 target_link_libraries(
   nightshell_icon_provider_plugin
-  PRIVATE Qt6::Core Qt6::Qml Qt6::Gui Qt6::Quick Qt6::Svg
+  PRIVATE Qt6::Core Qt6::Qml Qt6::Gui Qt6::Quick Qt6::Svg Qt6::Xml
 )
 
 install_qml_module(nightshell_icon_provider_plugin)

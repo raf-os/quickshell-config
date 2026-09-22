@@ -18,78 +18,41 @@ Item {
 	width: screen.width
 	height: screen.height
 
-	layer.enabled: true
-	layer.effect: MultiEffect {
+	MultiEffect {
+		id: glowEffect
+		source: glowLayer
+		anchors.fill: glowLayer
 		blurEnabled: true
 		blur: 1
-		blurMax: 8
-	}
-
-	Rectangle {
-		id: holes
-		anchors.fill: parent
-		visible: false
-		layer.enabled: true
-		color: "transparent"
-
-		Item {
-			id: barHoles
-
-			anchors {
-				top: parent.top
-				horizontalCenter: parent.horizontalCenter
-			}
-
-			implicitWidth: root.bar.centerLength
-			implicitHeight: root.bar.height
-
-			WorkspacesGuide {
-				id: workspacesMask
-				monitorName: root.screen.name
-
-				anchors {
-					top: parent.top
-					bottom: parent.bottom
-					horizontalCenter: parent.horizontalCenter
-				}
-
-				workspaceDelegate: Rectangle {
-					implicitWidth: workspacesMask.workspaceIconSize
-					implicitHeight: implicitWidth
-					radius: implicitWidth / 2
-					color: "white"
-				}
-			}
-		}
+		blurMax: 12
+		brightness: 0.2
 	}
 
 	RenderPass {
-		id: overlayGlow
+		id: glowLayer
 		isBackground: false
-		visible: false
 
 		BarBg {
 			bar: root.bar
-			centerItem: barHoles
-			maxWidth: root.bar.width
-			maxHeight: root.bar.height
+			width: root.bar.width
+			height: root.bar.height
 		}
 
-		SystemIconBg {
+		BarLeftBg {
 			bar: root.bar
 		}
 	}
 
-	MultiEffect {
-		id: holePass
-		source: overlayGlow
-		anchors.fill: parent
-		maskEnabled: true
-		maskInverted: true
-		maskSource: holes
-		maskThresholdMin: 0.5
-		maskSpreadAtMin: 0.75
-	}
+	// MultiEffect {
+	// 	id: holePass
+	// 	source: overlayGlow
+	// 	anchors.fill: parent
+	// 	maskEnabled: true
+	// 	maskInverted: true
+	// 	maskSource: holes
+	// 	maskThresholdMin: 0.5
+	// 	maskSpreadAtMin: 0.75
+	// }
 
 	component RenderPass: Shape {
 		id: renderPassShape

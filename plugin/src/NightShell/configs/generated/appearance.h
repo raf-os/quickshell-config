@@ -29,11 +29,11 @@ signals:
 	void monoChanged();
 
 private:
-	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(FontFamily, QString, b_sans, "DejaVu Sans", &FontFamily::sansChanged)
+	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(FontFamily, QString, b_sans, "Inter", &FontFamily::sansChanged)
 	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(FontFamily, QString, b_mono, "RobotoMono Nerd Font Propo", &FontFamily::monoChanged)
 };
 
-class Appearance : public utils::SerializableObject {
+class AppearanceConfig : public utils::SerializableObject {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
@@ -41,7 +41,7 @@ class Appearance : public utils::SerializableObject {
 	Q_PROPERTY(int scaling READ default WRITE default NOTIFY scalingChanged BINDABLE bindableScaling RESET resetScaling)
 	Q_PROPERTY(ns::configs::FontFamily *fontFamily READ fontFamily CONSTANT)
 public:
-	explicit Appearance(const QString &className, QObject *root, QObject *parent);
+	explicit AppearanceConfig(const QString &className, QObject *root, QObject *parent);
 	[[nodiscard]] QBindable<int> bindableScaling() const;
 	void resetScaling();
 	[[nodiscard]] FontFamily *fontFamily();
@@ -51,6 +51,6 @@ signals:
 
 private:
 	FontFamily m_fontFamily{"FontFamily", this, this};
-	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(Appearance, int, b_scaling, 1, &Appearance::scalingChanged)
+	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(AppearanceConfig, int, b_scaling, 1, &AppearanceConfig::scalingChanged)
 };
 } // namespace ns::configs

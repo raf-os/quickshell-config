@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import qs.components
 import qs.modules.bar.workspaces
+import qs.modules.bar.left as BARLEFT
 
 import org.nightshell.Hyprland
 import org.nightshell.Configs as C
@@ -19,37 +20,26 @@ Item {
 	readonly property int leftLength: leftComponent.width
 	readonly property int centerLength: workspacesItems.width
 
-	readonly property int topLineHeight: 4
+	readonly property int padding: 4
+
+	property alias leftComponent: leftComponent
 
 	implicitHeight: 32
 
-	Item {
+	BARLEFT.Main {
 		id: leftComponent
+
+		activeToplevel: root.activeToplevel
 
 		anchors {
 			left: parent.left
+			leftMargin: root.padding
 			right: centerComponent.left
 			rightMargin: centerComponent.height
 			top: parent.top
-			topMargin: root.topLineHeight
+			topMargin: root.padding
 			bottom: parent.bottom
-		}
-
-		StyledText {
-			id: toplevelTitle
-
-			anchors {
-				top: parent.top
-				bottom: parent.bottom
-				left: parent.left
-			}
-
-			text: root.activeToplevel ? root.activeToplevel.title : "Desktop"
-			color: C.Colors.secondaryContent
-			font.weight: 600
-			font.pixelSize: parent.height * 0.5
-
-			verticalAlignment: Text.AlignVCenter
+			bottomMargin: root.padding
 		}
 	}
 
@@ -58,7 +48,9 @@ Item {
 
 		anchors {
 			top: parent.top
+			topMargin: root.padding
 			bottom: parent.bottom
+			bottomMargin: root.padding
 			horizontalCenter: parent.horizontalCenter
 		}
 
@@ -74,7 +66,7 @@ Item {
 				horizontalCenter: parent.horizontalCenter
 			}
 			workspaceDelegate: WorkspaceItem {
-				size: workspacesItems.workspaceIconSize
+				size: parent.height
 				isActive: root.nsMonitor.activeWorkspace === this.modelData
 			}
 		}

@@ -10,7 +10,7 @@ RowLayout {
 	required property string monitorName
 	readonly property int workspaceIconSize: 24
 
-	spacing: Styles.spacing_sm
+	spacing: Styles.spacing_md
 	implicitWidth: 300
 
 	Repeater {

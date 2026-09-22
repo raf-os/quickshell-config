@@ -1,5 +1,7 @@
 #include "iconprovider.h"
 
+#include <QtXml/qdom.h>
+#include <qcolor.h>
 #include <qdir.h>
 #include <qicon.h>
 #include <qlogging.h>
@@ -91,10 +93,28 @@ QPixmap IconImageProvider::handleQtIcon(
 
 QPixmap IconImageProvider::handleShellIcon(
     const QString &name, QSize *size, const QSize &resolvedSize) {
-  QFile iconFile(m_shellIconPath + "/" + name + ".svg");
+  auto    queryIdx = name.indexOf('?');
+  QString iconName;
+  QColor  requestedColor("#ffffff");
+
+  if (queryIdx != -1) {
+    auto fullQuery = name.sliced(queryIdx + 1);
+    iconName       = name.sliced(0, queryIdx);
+
+    auto args = fullQuery.split("&");
+    for (const auto &arg : args) {
+      if (arg.startsWith("color=")) {
+        requestedColor = QColor(arg.sliced(6));
+      }
+    }
+  } else {
+    iconName = name;
+  }
+
+  QFile iconFile(m_shellIconPath + "/" + iconName + ".svg");
 
   if (!iconFile.exists()) {
-    qWarning() << "ns::iconprovider::IconImageProvider: Icon '" << name
+    qWarning() << "ns::iconprovider::IconImageProvider: Icon '" << iconName
                << "' does not exist.";
     return placeholderIcon(resolvedSize);
   }
@@ -106,14 +126,19 @@ QPixmap IconImageProvider::handleShellIcon(
     return placeholderIcon(resolvedSize);
   }
 
-  QByteArray buffer(iconFile.size(), Qt::Uninitialized);
-  iconFile.read(buffer.data(), buffer.size());
+  auto buffer = iconFile.readAll();
 
   iconFile.close();
 
-  // TODO: manipulate SVG file data to edit stroke, fill, etc., maybe?
+  QDomDocument doc;
+  doc.setContent(buffer);
 
-  QSvgRenderer renderer(buffer);
+  auto rootElement = doc.documentElement();
+  if (rootElement.tagName() == "svg" && requestedColor.isValid()) {
+    rootElement.setAttribute("fill", requestedColor.name(QColor::HexRgb));
+  }
+
+  QSvgRenderer renderer(doc.toByteArray(0));
   QPixmap      pixmap(resolvedSize);
   pixmap.fill(Qt::transparent);
 

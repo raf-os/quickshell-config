@@ -8,7 +8,7 @@
 #include <qproperty.h>
 
 namespace ns::configs {
-class Bar : public utils::SerializableObject {
+class BarConfig : public utils::SerializableObject {
 	Q_OBJECT
 	QML_ELEMENT
 	QML_UNCREATABLE("")
@@ -16,7 +16,7 @@ class Bar : public utils::SerializableObject {
 	Q_PROPERTY(int height READ default WRITE default NOTIFY heightChanged BINDABLE bindableHeight RESET resetHeight)
 
 public:
-	explicit Bar(const QString &className, QObject *root, QObject *parent);
+	explicit BarConfig(const QString &className, QObject *root, QObject *parent);
 	[[nodiscard]] QBindable<int> bindableHeight() const;
 	void resetHeight();
 
@@ -24,6 +24,6 @@ signals:
 	void heightChanged();
 
 private:
-	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(Bar, int, b_height, 32, &Bar::heightChanged)
+	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(BarConfig, int, b_height, 32, &BarConfig::heightChanged)
 };
 } // namespace ns::configs

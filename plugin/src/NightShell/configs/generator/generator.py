@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import os
 import re
@@ -27,6 +28,13 @@ _SCHEMAS_LOCATION: list[str] = [
   part for part in (_relative_path.parent / "schemas").parts
 ]
 _GENERATED_LOCATION = _path.parent / "generated"
+
+parser = argparse.ArgumentParser(
+  prog="Nightshell config generator",
+  description="Generates .h and .cpp files based on schemas defined in the ../schemas/ folder.",
+)
+parser.add_argument("--noclang")
+args = parser.parse_args()
 
 
 def toLowerCamelCase(s: str) -> str:
@@ -306,7 +314,9 @@ class QChildNodeProp(QProp):
 
   @override
   def model_post_init(self, context: Any, /) -> None:
-    self._reader = f"{toLowerCamelCase(self.name)}"
+    self._reader = re.sub(
+      r"config", "", f"{toLowerCamelCase(self.name)}", flags=re.IGNORECASE
+    )
     self._member = f"m_{toLowerCamelCase(self.name)}"
 
   @override
@@ -446,37 +456,42 @@ def main():
     genHeadersList.append(f'#include "{doc.name()}.h"')
 
     if isChanged:
-      print(f'Generated files for "{fileName}" successfully. Running clang++')
-      this_dir = Path(__file__)
-      utils_dir = this_dir.parent.parent.parent / "utils"
+      print(f'Generated files for "{fileName}" successfully.')
+      if not args.noclang:
+        print(f"Runing clang++...")
+        this_dir = Path(__file__)
+        utils_dir = this_dir.parent.parent.parent / "utils"
 
-      result = subprocess.run(
-        [
-          "clang++",
-          "-fsyntax-only",
-          "-std=c++23",
-          "-I/usr/include/qt6",
-          "-I/usr/include/qt6/QtCore",
-          "-I/usr/include/qt6/QtQml",
-          "-I/usr/include/qt6/QtQmlIntegration",
-          f"-I{utils_dir.absolute()}/",
-          f"{(_GENERATED_LOCATION / f'{fileName}.cpp').absolute()}",
-        ]
-      )
+        result = subprocess.run(
+          [
+            "clang++",
+            "-fsyntax-only",
+            "-std=c++23",
+            "-I/usr/include/qt6",
+            "-I/usr/include/qt6/QtCore",
+            "-I/usr/include/qt6/QtQml",
+            "-I/usr/include/qt6/QtQmlIntegration",
+            f"-I{utils_dir.absolute()}/",
+            f"{(_GENERATED_LOCATION / f'{fileName}.cpp').absolute()}",
+          ]
+        )
 
-      if result.returncode == 1:
-        raise Exception(result.stderr)
+        if result.returncode == 1:
+          raise Exception(result.stderr)
 
-      print(f"Clang++ detected no errors for {fileName}.\n")
+        print(f"Clang++ detected no errors for {fileName}.\n")
     else:
-      print(f"Detected no changes for {fileName}. Skipping.\n")
+      print(f"Detected no changes for {fileName}.\n")
 
   print(f"Generation successful! Generating import files...")
 
   isChanged = False
 
   genTypes = "\n".join(
-    [f"X({d.className()}, {toLowerCamelCase(d.className())})" for d in docs]
+    [
+      f"X({d.className()}, {re.sub(r'config', '', toLowerCamelCase(d.className()), flags=re.IGNORECASE)})"
+      for d in docs
+    ]
   )
   isChanged = isChanged | writeIfChanged(
     _GENERATED_LOCATION / "gen_types.def", genTypes
@@ -494,7 +509,7 @@ def main():
   isChanged = False
 
   cmakeLines: list[str] = [
-    "find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui)",
+    "find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui Quick)",
     "\nqt6_add_library(nightshell_configs_generated STATIC)",
     f"\ntarget_sources(nightshell_configs_generated PRIVATE",
     toIndentedBlock([f"{s}.cpp" for s in genSources], 1),
@@ -504,7 +519,9 @@ def main():
     "\nset_target_properties(nightshell_configs_generated PROPERTIES",
     "\tPOSITION_INDEPENDENT_CODE ON)",
     "\ntarget_link_libraries(nightshell_configs_generated PRIVATE",
-    toIndentedBlock(["Qt6::Core", "Qt6::Qml", "Qt6::Gui", "nightshell_utils"], 1),
+    toIndentedBlock(
+      ["Qt6::Core", "Qt6::Qml", "Qt6::Gui", "Qt6::Quick", "nightshell_utils"], 1
+    ),
     ")",
     "\nset(GENERATED_SOURCES",
     toIndentedBlock([f"generated/{s}.h" for s in genSources], 1),
