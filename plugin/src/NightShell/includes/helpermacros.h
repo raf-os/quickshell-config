@@ -28,6 +28,26 @@ private:                                                                       \
   Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(                                        \
       Class, Type, b_##Name, DefaultValue, &Class::Name##Changed)
 
+#define AUTO_BINDABLE_WRITABLE(Class, Type, Name)                              \
+  Q_PROPERTY(                                                                  \
+      Type Name READ default WRITE default NOTIFY Name##Changed BINDABLE       \
+                                                  bindable_##Name)             \
+public:                                                                        \
+  AUTO_BINDABLE_IMPL_DECLARE(Type, Name)                                       \
+private:                                                                       \
+  Q_OBJECT_BINDABLE_PROPERTY(Class, Type, b_##Name, &Class::Name##Changed)
+
+#define AUTO_BINDABLE_WRITABLE_DEFAULT(Class, Type, Name, DefaultValue)        \
+  Q_PROPERTY(Type Name READ default WRITE default NOTIFY Name##Changed RESET   \
+          reset_##Name BINDABLE bindable_##Name)                               \
+public:                                                                        \
+  AUTO_BINDABLE_IMPL_DECLARE(Type, Name)                                       \
+  void reset_##Name() { b_##Name = DefaultValue; }                             \
+                                                                               \
+private:                                                                       \
+  Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(                                        \
+      Class, Type, b_##Name, DefaultValue, &Class::Name##Changed)
+
 #define AUTO_MEYERS_SINGLETON(Class)                                           \
 public:                                                                        \
   static Class *instance() {                                                   \

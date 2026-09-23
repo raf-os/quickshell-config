@@ -32,6 +32,7 @@ set(MYSHELL_QML_TARGET_PATH "" CACHE INTERNAL "")
 set(MYSHELLUTILS_QML_TARGET_PATH "" CACHE INTERNAL "")
 set(MYSHELL_CONFIG_QML_TARGET_PATH "" CACHE INTERNAL "")
 set(MYSHELL_CONTROL_PANEL_LIBPATH "" CACHE INTERNAL "")
+set(LIBRARIES_RPATH_LIST "" CACHE INTERNAL "")
 
 include(FetchContent)
 
@@ -66,6 +67,7 @@ list(
   "${INSTALL_QMLDIR}/org/nightshell/Hyprland/Toplevels"
   "${INSTALL_QMLDIR}/org/nightshell/Configs"
   "${INSTALL_QMLDIR}/org/nightshell/Utils"
+  "${INSTALL_QMLDIR}/org/nightshell/Services"
   "${CMAKE_INSTALL_PREFIX}/${NIGHTSHELL_INSTALL_LIBDIR}"
   "/usr/local/lib"
 )

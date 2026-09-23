@@ -3,6 +3,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Qml Gui Quick)
 qt6_add_library(nightshell_configs_generated STATIC)
 
 target_sources(nightshell_configs_generated PRIVATE
+	modules.cpp
 	appearance.cpp
 	bar.cpp
 )
@@ -22,6 +23,7 @@ target_link_libraries(nightshell_configs_generated PRIVATE
 )
 
 set(GENERATED_SOURCES
+	generated/modules.h
 	generated/appearance.h
 	generated/bar.h
 	PARENT_SCOPE

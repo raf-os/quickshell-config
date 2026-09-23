@@ -3,9 +3,10 @@ pragma ComponentBehavior: Bound
 import qs.components
 import qs.modules.bar.workspaces
 import qs.modules.bar.left as BARLEFT
+import qs.modules.bar.right as BARRIGHT
 
 import org.nightshell.Hyprland
-import org.nightshell.Configs as C
+import org.nightshell.Configs
 import Quickshell
 import QtQuick
 
@@ -21,10 +22,12 @@ Item {
 	readonly property int centerLength: workspacesItems.width
 
 	readonly property int padding: 4
+	readonly property int paddingH: Styles.padding_md
+	readonly property int spacing: Styles.spacing_lg
 
 	property alias leftComponent: leftComponent
 
-	implicitHeight: 32
+	implicitHeight: 36
 
 	BARLEFT.Main {
 		id: leftComponent
@@ -33,9 +36,9 @@ Item {
 
 		anchors {
 			left: parent.left
-			leftMargin: root.padding
+			leftMargin: root.paddingH
 			right: centerComponent.left
-			rightMargin: centerComponent.height
+			rightMargin: root.spacing
 			top: parent.top
 			topMargin: root.padding
 			bottom: parent.bottom
@@ -69,6 +72,21 @@ Item {
 				size: parent.height
 				isActive: root.nsMonitor.activeWorkspace === this.modelData
 			}
+		}
+	}
+
+	BARRIGHT.Main {
+		id: rightComponent
+
+		anchors {
+			top: parent.top
+			topMargin: root.padding
+			bottom: parent.bottom
+			bottomMargin: root.padding
+			left: centerComponent.right
+			leftMargin: root.spacing
+			right: parent.right
+			rightMargin: root.paddingH
 		}
 	}
 }

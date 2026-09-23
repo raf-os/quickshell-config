@@ -47,7 +47,7 @@ Item {
 			top: parent.top
 			bottom: parent.bottom
 			left: osIconWrapper.right
-			leftMargin: Styles.spacing_sm
+			leftMargin: Styles.spacing_md
 		}
 
 		clip: true

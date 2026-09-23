@@ -4,7 +4,7 @@ qt6_add_library(nightshell_utils SHARED)
 
 target_sources(
   nightshell_utils
-  PRIVATE paths.cpp sysinfo.cpp serializableobject.cpp
+  PRIVATE focusgrabber.cpp paths.cpp sysinfo.cpp serializableobject.cpp
 )
 
 set_target_properties(nightshell_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)

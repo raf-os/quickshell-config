@@ -19,7 +19,7 @@ ShapePath {
 	readonly property int titleStartX: leftComponent.titleX
 	readonly property int titleLength: leftComponent.titleWidth
 
-	startX: 0
+	startX: root.bar.paddingH
 	startY: bar.padding
 
 	strokeWidth: 0
@@ -27,7 +27,7 @@ ShapePath {
 	fillColor: Colors.secondary
 
 	PathMove {
-		x: root.osIconStartX + root.bar.padding
+		x: root.osIconStartX + root.startX
 		y: root.startY
 	}
 	PathRectangle {
@@ -40,7 +40,7 @@ ShapePath {
 	}
 
 	PathMove {
-		x: root.titleStartX + root.bar.padding
+		x: root.titleStartX + root.startX
 		y: root.startY
 	}
 	PathRectangle {

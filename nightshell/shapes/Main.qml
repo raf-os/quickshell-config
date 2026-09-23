@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import qs.components
 import qs.modules.bar
 import qs.modules.bar.workspaces
 
@@ -18,14 +19,10 @@ Item {
 	width: screen.width
 	height: screen.height
 
-	MultiEffect {
+	BarGlowEffect {
 		id: glowEffect
 		source: glowLayer
 		anchors.fill: glowLayer
-		blurEnabled: true
-		blur: 1
-		blurMax: 12
-		brightness: 0.2
 	}
 
 	RenderPass {

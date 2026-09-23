@@ -32,6 +32,17 @@ class IntProperty(Property[int]):
     return f"{str(self.defaultValue)}"
 
 
+class BoolProperty(Property[bool]):
+  type: str = "bool"
+
+  @override
+  def getDefaultValue(self) -> str | None:
+    d = self.defaultValue
+    if d is None:
+      return None
+    return "true" if self.defaultValue else "false"
+
+
 class StrProperty(Property[str]):
   type: str = "QString"
 

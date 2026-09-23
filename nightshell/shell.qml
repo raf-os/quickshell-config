@@ -11,7 +11,7 @@ ShellRoot {
 	id: root
 
 	Main {}
-	Background {}
+	// Background {}
 
 	Component.onCompleted: {
 		IPCServer.setup();

@@ -7,7 +7,7 @@ import org.nightshell.Configs
 import QtQuick
 import QtQuick.Effects
 
-Item {
+MouseArea {
 	id: root
 
 	required property int size
@@ -19,6 +19,8 @@ Item {
 
 	implicitWidth: size
 	implicitHeight: size
+
+	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
 	RectangularShadow {
 		anchors.fill: parent
