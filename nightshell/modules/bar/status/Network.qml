@@ -1,5 +1,7 @@
 import QtQuick
 
-Item {
+BaseStatus {
 	id: root
+
+	icon: "network_disconnected"
 }

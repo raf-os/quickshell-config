@@ -22,6 +22,10 @@ MouseArea {
 
 	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
+	onClicked: {
+		Hyprland.dispatch(`hl.dsp.focus({ workspace = "${root.modelData.id}" })`);
+	}
+
 	RectangularShadow {
 		anchors.fill: parent
 		opacity: root.isActive ? 0.75 : 0

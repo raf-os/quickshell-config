@@ -26,6 +26,7 @@ Item {
 	readonly property int spacing: Styles.spacing_lg
 
 	property alias leftComponent: leftComponent
+	property alias systemTray: rightComponent.systemTray
 
 	implicitHeight: 36
 

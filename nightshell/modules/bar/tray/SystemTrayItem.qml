@@ -10,10 +10,35 @@ MouseArea {
 	required property bool isActive
 	property int padding: 4
 
+	acceptedButtons: Qt.AllButtons
 	hoverEnabled: true
 	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
 	implicitWidth: implicitHeight
+
+	signal openAttachedMenu
+	signal requestClose
+
+	onClicked: ev => {
+		if (ev.button === Qt.LeftButton) {
+			if (root.modelData.isMenuOnly) {
+				root.openAttachedMenu();
+			} else {
+				root.modelData.activate();
+			}
+		} else if (ev.button === Qt.MiddleButton) {
+			if (root.modelData.isMenuOnly)
+				return;
+			root.modelData.secondaryActivate();
+		} else if (ev.button === Qt.RightButton) {
+			root.openAttachedMenu();
+		}
+	}
+
+	onModelDataChanged: {
+		if (!modelData)
+			root.requestClose();
+	}
 
 	Image {
 		id: trayItemIcon

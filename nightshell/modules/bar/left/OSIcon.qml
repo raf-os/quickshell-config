@@ -3,7 +3,7 @@ import org.nightshell.Utils
 import QtQuick
 import QtQuick.Effects
 
-Item {
+MouseArea {
 	id: root
 
 	implicitWidth: height

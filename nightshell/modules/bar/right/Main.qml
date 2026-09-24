@@ -1,10 +1,13 @@
 import qs.modules.bar.tray
+import qs.modules.bar.status as STATUS
 
 import QtQuick
 import QtQuick.Layouts
 
 Item {
 	id: root
+
+	property alias systemTray: systemTray
 
 	RowLayout {
 		id: mainLayout
@@ -16,7 +19,10 @@ Item {
 			Layout.fillHeight: true
 		}
 
-		SystemTray {}
+		STATUS.Main {}
+		SystemTray {
+			id: systemTray
+		}
 		TimeWidget {}
 	}
 }

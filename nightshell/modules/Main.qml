@@ -29,14 +29,11 @@ Variants {
 			screen: scope.modelData
 
 			exclusionMode: ExclusionMode.Ignore
-			mask: Region {
+			mask: MaskRegions {
 				id: windowMask
-				intersection: Intersection.Xor
 
-				x: 0
-				y: 32
-				width: win.width
-				height: win.height - y
+				bar: bar
+				win: win
 			}
 
 			anchors {
@@ -65,6 +62,20 @@ Variants {
 						top: parent.top
 						left: parent.left
 						right: parent.right
+					}
+				}
+
+				Content {
+					id: content
+					screen: scope.modelData
+					win: win
+					bar: bar
+
+					anchors {
+						top: bar.bottom
+						left: parent.left
+						right: parent.right
+						bottom: parent.bottom
 					}
 				}
 			}

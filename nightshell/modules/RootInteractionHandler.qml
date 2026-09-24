@@ -7,4 +7,6 @@ MouseArea {
 	onClicked: {
 		FocusGrabberManager.forceClear();
 	}
+
+	focus: true
 }

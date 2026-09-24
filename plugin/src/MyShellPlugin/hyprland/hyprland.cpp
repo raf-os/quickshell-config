@@ -1,6 +1,7 @@
 #include "hyprland.h"
 
 #include <functional>
+#include <iterator>
 #include <utility>
 
 #include <qbytearrayview.h>
@@ -17,6 +18,7 @@
 #include <qlocalsocket.h>
 #include <qlogging.h>
 #include <qloggingcategory.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qprocess.h>
 #include <qscopeguard.h>
@@ -31,7 +33,7 @@
 #include "workspacesmodel.h"
 
 namespace ns::hyprland {
-Q_LOGGING_CATEGORY(logNSHyprland, "nightshell.hyprland")
+Q_LOGGING_CATEGORY(logNSHyprland, "nightshell.hyprland", QtWarningMsg)
 
 Hyprland::Hyprland(QObject *parent)
     : QObject(parent), m_eventHandler(new HyprEvents(this)),
@@ -159,6 +161,54 @@ void Hyprland::dispatch(const QString &request) {
   QObject::connect(requestSocket, &QLocalSocket::errorOccurred, this, onError);
 
   requestSocket->connectToServer(m_requestSocketPath);
+}
+
+void Hyprland::applyOptions(const QVariantMap &options) {
+  if (options.isEmpty()) return;
+
+  QString req;
+  req.reserve(1024);
+
+  std::function<void(const QVariantMap &)> parseNested =
+      [&](const QVariantMap &map) {
+        req += "{";
+        for (auto it = map.cbegin(); it != map.cend(); ++it) {
+          QString thisOption;
+          thisOption.reserve(128);
+
+          auto parts = it.key().split(':');
+          req += parts.join(" = {") + " = ";
+
+          if (it.value().canConvert<QVariantMap>()) {
+            parseNested(it.value().toMap());
+          } else {
+            req += it.value().toString();
+          }
+
+          req += QString("}").repeated(parts.size() - 1);
+
+          if (std::distance(it, map.cend()) > 1) {
+            req += ", ";
+          }
+        }
+        req += "}";
+      };
+
+  parseNested(options);
+
+  QString request = QString("eval hl.config(%1)").arg(req);
+
+  hyprctl(request.toLocal8Bit(), [](bool success, QByteArray res) {
+    if (!success) {
+      qCWarning(logNSHyprland) << "Error applying hyprland options:\n" << res;
+    } else {
+      qCDebug(logNSHyprland) << res;
+    }
+  });
+}
+
+void Hyprland::reloadOptions() {
+  hyprctl("reload", [](bool /*unused*/, QByteArray /*unused*/) {});
 }
 
 HyprEvents        *Hyprland::eventHandler() { return m_eventHandler; }

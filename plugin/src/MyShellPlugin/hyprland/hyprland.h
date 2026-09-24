@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qjsengine.h>
 #include <qlist.h>
@@ -70,6 +71,8 @@ public:
   void             hyprctl(const QByteArray                   &request,
       const std::function<void(bool, QByteArray)> &callback);
   Q_INVOKABLE void dispatch(const QString &request);
+  Q_INVOKABLE void applyOptions(const QVariantMap &options);
+  Q_INVOKABLE void reloadOptions();
 
 private slots:
   void queryHyprInputConfigs();

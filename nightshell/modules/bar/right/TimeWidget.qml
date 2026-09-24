@@ -13,23 +13,33 @@ BaseWidget {
 	readonly property string clockFont: Config.appearance.fontFamily.sans
 	readonly property color textColor: Colors.primary
 
-	implicitWidth: mainLayout.width + Styles.padding_md * 2
+	implicitWidth: (dateFont.averageCharacterWidth * dateMetrics.text.length) + (timeFont.averageCharacterWidth * timeMetrics.text.length) + mainLayout.spacing + Styles.padding_md * 2
 
 	Layout.fillHeight: true
 
-	TextMetrics {
-		id: dateMetrics
+	FontMetrics {
+		id: dateFont
 		font.family: root.clockFont
 		font.weight: 400
 		font.pointSize: Math.max(root.height * 0.35, Styles.text_sm)
+	}
+
+	FontMetrics {
+		id: timeFont
+		font.family: root.clockFont
+		font.weight: 600
+		font.pointSize: Math.max(root.height * 0.5, Styles.text_m)
+	}
+
+	TextMetrics {
+		id: dateMetrics
+		font: dateFont.font
 		text: Time.dateStr
 	}
 
 	TextMetrics {
 		id: timeMetrics
-		font.family: root.clockFont
-		font.weight: 600
-		font.pointSize: Math.max(root.height * 0.5, Styles.text_m)
+		font: timeFont.font
 		text: Time.timeStr
 	}
 
