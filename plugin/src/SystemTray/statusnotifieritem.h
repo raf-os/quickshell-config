@@ -99,6 +99,8 @@ public:
   Q_INVOKABLE void activate();
   Q_INVOKABLE void secondaryActivate();
 
+  void prepareForUnregistration();
+
   QPixmap                  createPixmap(const QSize &size);
   dbusmenu::DBusMenuModel *menuHandle();
 
@@ -169,7 +171,8 @@ private slots:
   void readIconData();
 
 private:
-  bool                     m_isReady = false;
+  bool                     m_isReady         = false;
+  bool                     m_isUnregistering = false;
   QString                  m_watcherId;
   QDBusStatusNotifierItem *m_item = nullptr;
   std::unique_ptr<TrayImageHandle>

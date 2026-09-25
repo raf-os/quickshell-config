@@ -10,6 +10,10 @@
 #include <qdbuspendingcall.h>
 #include <qdbuspendingreply.h>
 #include <qobject.h>
+#include <qtdbusglobal.h>
+#include <qvariant.h>
+
+#include "dbusbindableproperty.h"
 
 namespace ns::dbus {
 template <typename T>
@@ -33,6 +37,25 @@ void asyncReadProperty(QDBusAbstractInterface &interface,
         }
         callback(value, error);
         w->deleteLater();
+      });
+}
+
+void asyncReadPropertyInternal(const QMetaType &type,
+    QDBusAbstractInterface &interface, const QString &property,
+    std::function<void(std::function<QDBusError(QVariant *)>)> callback);
+
+template <typename BindablePtr>
+void asyncReadSimpleProperty(QDBusAbstractInterface *interface,
+    const QString &propertyName, BindablePtr *bindable) {
+  using Bindable_t = BindableType<BindablePtr>::Type;
+  asyncReadPropertyInternal(QMetaType::fromType<Bindable_t>(), *interface,
+      propertyName,
+      [bindable](std::function<QDBusError(QVariant *)> internalCallback) {
+        QVariant slot;
+        auto     error = internalCallback(&slot);
+        if (!error.isValid()) {
+          *bindable = qdbus_cast<Bindable_t>(slot);
+        }
       });
 }
 

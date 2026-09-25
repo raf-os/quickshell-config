@@ -18,6 +18,7 @@
 #include "dbus_item.h"
 #include "dbusmenumodel.h"
 #include "dbustypes.h"
+#include "dbusutils.h"
 #include "iconprovider.h"
 #include "trayimagehandle.h"
 
@@ -62,6 +63,7 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
 
   m_item = new QDBusStatusNotifierItem(
       conn, path, QDBusConnection::sessionBus(), this);
+  m_item->setTimeout(500);
 
   if (!m_item->isValid()) {
     qCWarning(logNSStatusNotifierItem)
@@ -69,14 +71,23 @@ StatusNotifierItem::StatusNotifierItem(const QString &address, QObject *parent)
     return;
   }
 
-  QObject::connect(m_item, &QDBusStatusNotifierItem::NewTitle, this,
-      [this]() { b_title = m_item->title(); });
+  QObject::connect(m_item, &QDBusStatusNotifierItem::NewTitle, this, [this]() {
+    if (!m_item->isValid()) return;
+    dbus::asyncReadSimpleProperty(m_item, "Title", &b_title);
+    // b_title = m_item->title();
+  });
 
   QObject::connect(m_item, &QDBusStatusNotifierItem::NewStatus, this,
-      [this](const QString &status) { b_status = Status::fromString(status); });
+      [this](const QString &status) {
+        if (!m_item->isValid()) return;
+        b_status = Status::fromString(status);
+      });
 
-  QObject::connect(m_item, &QDBusStatusNotifierItem::NewToolTip, this,
-      [this]() { this->readTooltip(); });
+  QObject::connect(
+      m_item, &QDBusStatusNotifierItem::NewToolTip, this, [this]() {
+        if (!m_item->isValid()) return;
+        this->readTooltip();
+      });
 
   QObject::connect(m_item, &QDBusStatusNotifierItem::NewIcon, this,
       [this]() { this->readIconData(); });
@@ -181,15 +192,23 @@ void StatusNotifierItem::readAllParameters() {
 }
 
 void StatusNotifierItem::readTooltip() {
-  if (!m_item) return;
+  if (!m_item || !m_item->isValid()) return;
 
-  QScopedPropertyUpdateGroup scope;
-  b_tooltipTitle       = m_item->toolTip().title;
-  b_tooltipDescription = m_item->toolTip().description;
+  // I've had to do it this way because of qbittorrent: when shutting down, it
+  // will emit a NewToolTip signal but won't return anything until it fully
+  // finishes shutting down. Standard QDBusAbstractInterface behavior is to
+  // block the calling thread.
+  dbus::asyncReadProperty<DBusTrayTooltip>(
+      *m_item, "ToolTip", [this](DBusTrayTooltip value, QDBusError E) {
+        if (E.isValid()) return;
+
+        b_tooltipTitle       = value.title;
+        b_tooltipDescription = value.description;
+      });
 }
 
 void StatusNotifierItem::readIconData() {
-  if (!m_item) return;
+  if (!m_item || !m_item->isValid()) return;
 
   QScopedPropertyUpdateGroup scope;
   b_iconName          = m_item->iconName();
@@ -208,6 +227,11 @@ void StatusNotifierItem::activate() { m_item->Activate(0, 0); }
 
 void StatusNotifierItem::secondaryActivate() {
   m_item->SecondaryActivate(0, 0);
+}
+
+void StatusNotifierItem::prepareForUnregistration() {
+  m_isUnregistering = true;
+  m_menuHandle->prepareForUnregistration();
 }
 
 QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
@@ -300,6 +324,7 @@ QPixmap StatusNotifierItem::createPixmap(const QSize &size) {
 }
 
 void StatusNotifierItem::refreshPixmap() {
+  if (!m_item || !m_item->isValid()) return;
   b_pixmapIndex = b_pixmapIndex.value() + 1;
 }
 } // namespace ns::systemtray

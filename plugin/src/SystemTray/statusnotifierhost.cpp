@@ -1,5 +1,7 @@
 #include "statusnotifierhost.h"
 
+#include <algorithm>
+
 #include <qcontainerfwd.h>
 #include <qdbusconnection.h>
 #include <qdbuserror.h>
@@ -132,9 +134,21 @@ void StatusNotifierHost::onItemRegistered(const QString &item) {
   emit itemRegistered(nItem);
 }
 
+void StatusNotifierHost::prepareForUnregistration(const QString &name) {
+  auto it = std::ranges::find_if(m_items.keyBegin(), m_items.keyEnd(),
+      [name](const QString &h) { return h.startsWith(name); });
+  if (it != m_items.keyEnd()) {
+    auto item = m_items.value(*it);
+    if (item) item->prepareForUnregistration();
+  }
+}
+
 void StatusNotifierHost::onItemUnregistered(const QString &item) {
-  if (auto *nItem = m_items.value(item)) {
-    m_items.remove(item);
+  auto it = std::ranges::find_if(m_items.keyBegin(), m_items.keyEnd(),
+      [item](const QString &name) { return name.startsWith(item); });
+  if (it != m_items.keyEnd()) {
+    auto nItem = m_items.value(*it);
+    m_items.remove(*it);
     emit itemUnregistered(nItem);
     nItem->deleteLater();
     qCDebug(logNSStatusNotifierHost)

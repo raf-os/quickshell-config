@@ -10,14 +10,17 @@
 #include <qdatetime.h>
 #include <qdbusconnection.h>
 #include <qdbusextratypes.h>
+#include <qdbusmessage.h>
 #include <qdbusmetatype.h>
 #include <qdbuspendingcall.h>
 #include <qdbuspendingreply.h>
+#include <qlist.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qproperty.h>
 #include <qstringview.h>
+#include <qtimer.h>
 #include <qtpreprocessorsupport.h>
 #include <qtypes.h>
 #include <qvariant.h>
@@ -80,7 +83,8 @@ void complexPropertyExtract(const QVariantMap &propMap, const QString &propName,
 DBusMenuModel::DBusMenuModel(
     const QString &service, const QString &path, QObject *parent)
     : QAbstractItemModel(parent),
-      m_rootItem(std::make_unique<DBusMenuModelItem>(0, this, nullptr)) {
+      m_rootItem(std::make_unique<DBusMenuModelItem>(0, this, nullptr)),
+      m_service(service), m_path(path) {
   qDBusRegisterMetaType<DBusMenuLayout>();
   qDBusRegisterMetaType<DBusMenuIdList>();
   qDBusRegisterMetaType<DBusMenuItemProperties>();
@@ -91,6 +95,7 @@ DBusMenuModel::DBusMenuModel(
   m_items.insert(0, m_rootItem.get());
   m_interface =
       new DBusMenuInterface(service, path, QDBusConnection::sessionBus(), this);
+  m_interface->setTimeout(500);
 
   if (!m_interface->isValid()) {
     qCWarning(logNSDBusMenu)
@@ -176,12 +181,20 @@ QVariant DBusMenuModel::data(const QModelIndex &index, int role) const {
 }
 
 void DBusMenuModel::onLayoutUpdated(quint32 revision, qint32 parent) {
+  QTimer::singleShot(0, this, [this, revision, parent] {
+    this->onDelayedLayoutUpdated(revision, parent);
+  });
+}
+
+void DBusMenuModel::onDelayedLayoutUpdated(quint32 revision, qint32 parent) {
+  if (m_isUnregistering) return;
   this->updateLayout(parent, -1);
 }
 
 void DBusMenuModel::onItemsPropertiesUpdated(
     const DBusMenuItemPropertiesList    &updatedProps,
     const DBusMenuItemPropertyNamesList &removedProps) {
+  if (m_isUnregistering) return;
   for (const auto &propset : updatedProps) {
     if (auto item = m_items.value(propset.id)) {
       item->handleUpdatePayload(propset.properties, {});
@@ -196,11 +209,21 @@ void DBusMenuModel::onItemsPropertiesUpdated(
 }
 
 void DBusMenuModel::updateLayout(qint32 parent, qint32 depth) {
+  if (m_isUpdating || m_isUnregistering) return;
+  if (!m_interface->isValid()) return;
+
   auto pending     = m_interface->GetLayout(parent, depth, {});
   auto callWatcher = new QDBusPendingCallWatcher(pending, this);
+  m_isUpdating     = true;
 
-  QObject::connect(callWatcher, &QDBusPendingCallWatcher::finished, this,
+  QObject::connect(
+      callWatcher, &QDBusPendingCallWatcher::finished, this,
       [this, parent, depth](QDBusPendingCallWatcher *call) {
+        if (!m_interface->isValid()) {
+          delete call;
+          return;
+        }
+
         const QDBusPendingReply<uint, DBusMenuLayout> reply = *call;
 
         if (reply.isError()) {
@@ -220,7 +243,9 @@ void DBusMenuModel::updateLayout(qint32 parent, qint32 depth) {
         }
 
         delete call;
-      });
+        m_isUpdating = false;
+      },
+      Qt::QueuedConnection);
 }
 
 void DBusMenuModel::updateLayoutRecursively(
@@ -358,8 +383,21 @@ void DBusMenuModel::removeItem(DBusMenuModelItem *item) {
 }
 
 void DBusMenuModel::sendEvent(qint32 item, const QString &event) {
-  auto pending = m_interface->Event(
-      item, event, QDBusVariant(0), QDateTime::currentSecsSinceEpoch());
+  if (m_isUnregistering) return;
+
+  QDBusMessage    msg = QDBusMessage::createMethodCall(m_interface->service(),
+      m_interface->path(), m_interface->interface(), "Event");
+  QList<QVariant> argumentList;
+  argumentList << QVariant::fromValue(item) << QVariant::fromValue(event)
+               << QVariant::fromValue(QDBusVariant(0))
+               << QVariant::fromValue(
+                      static_cast<uint>(QDateTime::currentSecsSinceEpoch()));
+  msg.setArguments(argumentList);
+  msg.setDelayedReply(true);
+  auto pending = QDBusConnection::sessionBus().asyncCall(msg);
+
+  // auto pending = m_interface->Event(
+  //     item, event, QDBusVariant(0), QDateTime::currentSecsSinceEpoch());
 
   auto *call = new QDBusPendingCallWatcher(pending, this);
   QObject::connect(call, &QDBusPendingCallWatcher::finished, this,
@@ -374,19 +412,27 @@ void DBusMenuModel::sendEvent(qint32 item, const QString &event) {
       });
 }
 
+void DBusMenuModel::prepareForUnregistration() { m_isUnregistering = true; }
+
 void DBusMenuModel::prepareToShow(qint32 item, qint32 depth) {
+  if (m_isUnregistering) return;
+
   auto  pending = m_interface->AboutToShow(item);
   auto *call    = new QDBusPendingCallWatcher(pending, this);
 
   QObject::connect(call, &QDBusPendingCallWatcher::finished, this,
       [this, item, depth](QDBusPendingCallWatcher *call) {
+        if (m_isUnregistering) {
+          delete call;
+          return;
+        }
+
         const QDBusPendingReply<bool> reply = *call;
         if (reply.isError()) {
           qCDebug(logNSDBusMenu)
               << "Error in AboutToShow method for" << item << "of" << this
               << "(ignored):" << reply.error();
         }
-
         this->updateLayout(item, depth);
         delete call;
       });
@@ -394,11 +440,18 @@ void DBusMenuModel::prepareToShow(qint32 item, qint32 depth) {
 
 void DBusMenuModel::prepareToShowWithCallback(
     qint32 item, QObject *handler, std::function<void(bool)> callback) {
+  if (m_isUnregistering) return;
+
   auto  pending = m_interface->AboutToShow(item);
   auto *call    = new QDBusPendingCallWatcher(pending, handler);
 
   QObject::connect(call, &QDBusPendingCallWatcher::finished, handler,
       [this, item, callback](QDBusPendingCallWatcher *call) {
+        if (m_isUnregistering) {
+          delete call;
+          return;
+        }
+
         const QDBusPendingReply<bool> reply = *call;
 
         bool shouldUpdate = true;

@@ -20,6 +20,7 @@ public:
   void connectToWatcher();
 
   [[nodiscard]] QList<StatusNotifierItem *> items() const;
+  void prepareForUnregistration(const QString &name);
 
 signals:
   void itemRegistered(StatusNotifierItem *item);

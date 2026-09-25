@@ -11,6 +11,7 @@
 #include <qobject.h>
 
 #include "dbus_watcher.h"
+#include "statusnotifierhost.h"
 
 namespace ns::systemtray {
 Q_LOGGING_CATEGORY(
@@ -84,6 +85,7 @@ void StatusNotifierWatcher::onServiceUnregistered(const QString &service) {
       });
 
   if (it != m_items.end()) {
+    StatusNotifierHost::instance()->prepareForUnregistration(service);
     qCDebug(logNSStatusNotifierWatcher)
         << "Unregistered StatusNotifierItem" << *it;
     emit StatusNotifierItemUnregistered(*it);

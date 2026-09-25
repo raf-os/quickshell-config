@@ -5,11 +5,13 @@
 
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
+#include <qdbuspendingcall.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qobjectdefs.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
 #include <qstringview.h>
@@ -79,6 +81,7 @@ public:
 
   void sendEvent(qint32 item, const QString &event);
   void prepareToShow(qint32 item, qint32 depth);
+  void prepareForUnregistration();
 
   /* item: unique item ID
    * handler: object tasked with cleanup, usually "this" for whoever's calling
@@ -95,12 +98,18 @@ public:
 
 private slots:
   void onLayoutUpdated(quint32 revision, qint32 parent);
+  void onDelayedLayoutUpdated(quint32 revision, qint32 parent);
   void onItemsPropertiesUpdated(const DBusMenuItemPropertiesList &updatedProps,
       const DBusMenuItemPropertyNamesList                        &removedProps);
 
 private:
-  quint32 m_refcount = 0;
-  // quint32                            m_maxDepth  = 1;
+  quint32 m_refcount        = 0;
+  bool    m_isUnregistering = false;
+  bool    m_isUpdating      = false;
+
+  QString m_service;
+  QString m_path;
+
   DBusMenuInterface                 *m_interface = nullptr;
   std::unique_ptr<DBusMenuModelItem> m_rootItem;
   QHash<qint32, DBusMenuModelItem *> m_items;
