@@ -43,13 +43,15 @@ BaseWidget {
 		text: Time.timeStr
 	}
 
-	BarGlowEffect {
+	SimpleGlowEffect {
 		source: mainLayout
 		anchors.fill: mainLayout
+		shadowColor: root.textColor
 	}
 
 	RowLayout {
 		id: mainLayout
+		visible: false
 		spacing: Styles.spacing_sm
 
 		anchors {
@@ -60,7 +62,7 @@ BaseWidget {
 		StyledText {
 			text: dateMetrics.text
 			font: dateMetrics.font
-			color: root.textColor
+			color: Qt.darker(root.textColor, 1.3)
 			Layout.alignment: Qt.AlignTop
 		}
 

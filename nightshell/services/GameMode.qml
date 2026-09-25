@@ -9,9 +9,19 @@ Singleton {
 	id: root
 
 	property alias isActive: props.isActive
+	property alias isOnCooldown: activationCooldown.running
 
 	function toggleGamemode() {
+		if (activationCooldown.running)
+			return;
+
 		isActive = !isActive;
+		activationCooldown.start();
+	}
+
+	Timer {
+		id: activationCooldown
+		interval: 500
 	}
 
 	PersistentProperties {
@@ -26,7 +36,7 @@ Singleton {
 				"general": {
 					"gaps_in": 0,
 					"gaps_out": 0,
-					"border_size": 0
+					"border_size": 1
 				},
 				"decoration": {
 					"shadow:enabled": false,

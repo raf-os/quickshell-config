@@ -3,5 +3,7 @@ import QtQuick
 BaseStatus {
 	id: root
 
-	icon: "notification_off"
+	StatusIcon {
+		icon: "notification_off"
+	}
 }

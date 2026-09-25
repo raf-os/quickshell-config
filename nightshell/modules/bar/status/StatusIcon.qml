@@ -3,6 +3,7 @@ import QtQuick
 Item {
 	id: root
 	required property string icon
+	anchors.fill: parent
 
 	Image {
 		asynchronous: true

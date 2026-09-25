@@ -1,15 +1,9 @@
-import qs.services
-
 import QtQuick
-import QtQuick.Effects
 
-MultiEffect {
+WrappedMultiEffect {
 	id: root
 
-	property bool shouldEnable: true
-	enabled: !GameMode.isActive && shouldEnable
-
-	blurEnabled: true
+	blurEnabled: enabled
 	blur: 1
 	blurMax: 12
 	blurMultiplier: 0.4

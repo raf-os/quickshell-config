@@ -3,5 +3,7 @@ import QtQuick
 BaseStatus {
 	id: root
 
-	icon: "volume_low"
+	StatusIcon {
+		icon: "volume_low"
+	}
 }
