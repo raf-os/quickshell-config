@@ -8,6 +8,7 @@ Item {
 	id: root
 
 	property alias systemTray: systemTray
+	property alias statusItems: statusItems
 
 	RowLayout {
 		id: mainLayout
@@ -19,7 +20,9 @@ Item {
 			Layout.fillHeight: true
 		}
 
-		STATUS.Main {}
+		STATUS.Main {
+			id: statusItems
+		}
 		SystemTray {
 			id: systemTray
 		}

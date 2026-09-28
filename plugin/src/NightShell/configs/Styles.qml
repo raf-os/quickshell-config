@@ -10,7 +10,7 @@ Item {
 
 	readonly property int text_xs: scaling * 8
 	readonly property int text_sm: scaling * 10
-	readonly property int text_m: scaling * 12
+	readonly property int text_md: scaling * 12
 	readonly property int text_lg: scaling * 15
 	readonly property int text_xl: scaling * 17
 

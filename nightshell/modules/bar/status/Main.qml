@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import org.nightshell.Configs
 import QtQuick
 import QtQuick.Layouts
@@ -9,6 +11,18 @@ Item {
 
 	implicitWidth: mainLayout.width
 	Layout.fillHeight: true
+
+	function toggleActive(item: BaseStatus) {
+		if (currentActive === item) {
+			currentActive = null;
+		} else {
+			currentActive = item;
+		}
+	}
+
+	function clearActive() {
+		root.currentActive = null;
+	}
 
 	RowLayout {
 		id: mainLayout
@@ -45,7 +59,12 @@ Item {
 		WrappedStatus {
 			id: notificationStatus
 			active: Config.modules.enabledModules.notifications
-			sourceComponent: Notifications {}
+			sourceComponent: Notifications {
+				id: notifStatus
+				onClicked: {
+					root.toggleActive(notifStatus);
+				}
+			}
 		}
 	}
 

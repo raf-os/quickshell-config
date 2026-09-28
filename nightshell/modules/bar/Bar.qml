@@ -27,6 +27,7 @@ Item {
 
 	property alias leftComponent: leftComponent
 	property alias systemTray: rightComponent.systemTray
+	property alias statusItems: rightComponent.statusItems
 
 	implicitHeight: 36
 

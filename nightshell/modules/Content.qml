@@ -1,4 +1,5 @@
 import qs.modules.bar
+import qs.modules.notifications as NOTIFICATIONS
 import qs.modules.bar.tray
 
 import Quickshell
@@ -12,9 +13,27 @@ Item {
 
 	required property Bar bar
 
+	property alias notificationsOverlay: notificationsOverlay
+
 	TrayItemPopout {
 		id: trayPopout
-		systemTray: root.bar.systemTray
-		content: root
+		systemTray: root.bar.systemTray // qmllint disable incompatible-type
+		content: root // qmllint disable incompatible-type
+	}
+
+	NOTIFICATIONS.Overlay {
+		id: notificationsOverlay
+
+		anchors {
+			top: parent.top
+			right: parent.right
+		}
+
+		maxHeight: root.height
+	}
+
+	NOTIFICATIONS.PanelWrapper {
+		id: notificationsPanel
+		statusModule: root.bar.statusItems
 	}
 }

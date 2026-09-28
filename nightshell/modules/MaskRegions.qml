@@ -11,6 +11,7 @@ Region {
 
 	required property Bar bar
 	required property QsWindow win
+	required property Content content
 
 	intersection: Intersection.Xor
 
@@ -28,6 +29,10 @@ Region {
 		y: root.y
 		width: root.width
 		height: FocusGrabberManager.active ? root.height : 0
+	}
+
+	ContentRegion {
+		surface: root.content.notificationsOverlay
 	}
 
 	component ContentRegion: Region {

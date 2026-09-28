@@ -6,6 +6,8 @@ import QtQuick
 BaseWidget {
 	id: root
 
+	required property string name
+
 	signal clicked(ev: MouseEvent)
 
 	anchors {

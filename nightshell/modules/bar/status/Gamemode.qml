@@ -7,6 +7,7 @@ import QtQuick
 
 BaseStatus {
 	id: root
+	name: "gamemode"
 
 	StatusIcon {
 		id: icon

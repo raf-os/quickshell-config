@@ -28,7 +28,7 @@ BaseWidget {
 		id: timeFont
 		font.family: root.clockFont
 		font.weight: 600
-		font.pointSize: Math.max(root.height * 0.5, Styles.text_m)
+		font.pointSize: Math.max(root.height * 0.5, Styles.text_md)
 	}
 
 	TextMetrics {

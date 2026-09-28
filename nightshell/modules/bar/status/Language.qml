@@ -3,6 +3,7 @@ import QtQuick
 
 BaseStatus {
 	id: root
+	name: "language"
 
 	StyledText {
 		anchors.fill: parent

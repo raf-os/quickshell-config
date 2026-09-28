@@ -9,6 +9,8 @@ import QtQuick.Effects
 BaseStatus {
 	id: root
 
+	name: "network"
+
 	readonly property bool isConnected: NetworkService.isConnected
 	readonly property bool isUncertain: NetworkService.isConnecting || NetworkService.isLimitedConnection
 	readonly property bool isDisconnected: !isConnected && !isUncertain

@@ -34,6 +34,7 @@ Variants {
 
 				bar: bar
 				win: win
+				content: content
 			}
 
 			anchors {
