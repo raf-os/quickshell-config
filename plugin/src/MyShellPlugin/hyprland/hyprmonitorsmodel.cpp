@@ -1,8 +1,10 @@
 #include "hyprmonitorsmodel.h"
 
 #include <algorithm>
+#include <iterator>
 #include <utility>
 
+#include <qabstractitemmodel.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
@@ -12,6 +14,8 @@
 #include <qobject.h>
 #include <qqmllist.h>
 #include <qstringview.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 #include "hyprdefs.h"
 #include "hyprmonitor.h"
@@ -20,7 +24,23 @@
 namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland) // from hyprland.cpp
 
-HyprMonitorsModel::HyprMonitorsModel(QObject *parent) : QObject(parent) {}
+HyprMonitorsModel::HyprMonitorsModel(QObject *parent)
+    : QAbstractListModel(parent) {}
+
+qint32 HyprMonitorsModel::rowCount(const QModelIndex &parent) const {
+  if (parent.isValid()) return 0;
+  return static_cast<qint32>(m_monitors.size());
+}
+
+QVariant HyprMonitorsModel::data(const QModelIndex &index, qint32 role) const {
+  if (!index.isValid()) return {};
+
+  switch (role) {
+  case Roles::ModelDataRole:
+    return QVariant::fromValue(m_monitors.at(index.row()));
+  default: return {};
+  }
+}
 
 QQmlListProperty<HyprMonitor> HyprMonitorsModel::values() {
   return readonlyQmlList(this, &m_monitors);
@@ -28,6 +48,34 @@ QQmlListProperty<HyprMonitor> HyprMonitorsModel::values() {
 
 QList<HyprMonitor *> HyprMonitorsModel::listValues() const {
   return m_monitors;
+}
+
+HyprMonitor *HyprMonitorsModel::focusedMonitor() { return m_focusedMonitor; }
+
+void HyprMonitorsModel::onMonitorFocused(
+    const QString &monitorName, int /*unused*/) {
+  auto it = std::ranges::find_if(
+      m_monitors.begin(), m_monitors.end(), [&monitorName](HyprMonitor *mon) {
+        return mon->bindableName().value() == monitorName;
+      });
+  if (it == m_monitors.end() || *it == m_focusedMonitor.get()) return;
+
+  m_focusedMonitor = *it;
+  emit focusedMonitorChanged();
+}
+
+void HyprMonitorsModel::onMonitorDestroyed() {
+  auto m = static_cast<HyprMonitor *>(this->sender());
+  if (m_focusedMonitor.get() == m) {
+    m_focusedMonitor = nullptr;
+    emit focusedMonitorChanged();
+  }
+  auto idx = m_monitors.indexOf(m);
+  if (idx != -1) {
+    beginRemoveRows({}, idx, idx);
+    m_monitors.removeAt(idx);
+    endRemoveRows();
+  }
 }
 
 void HyprMonitorsModel::processMonitorData(QByteArray data) {
@@ -61,6 +109,8 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
       monitor = *it;
     } else {
       monitor = new HyprMonitor(id, this);
+      QObject::connect(monitor, &QObject::destroyed, this,
+          &HyprMonitorsModel::onMonitorDestroyed);
     }
 
     common::HyprMonitorData data;
@@ -73,6 +123,7 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
     data.x        = jObj.value("x").toInt();
     data.y        = jObj.value("y").toInt();
     data.disabled = jObj.value("disabled").toBool();
+    auto focused  = jObj.value("focused").toBool();
 
     if (jObj.value("activeWorkspace").isObject()) {
       auto aw                   = jObj.value("activeWorkspace").toObject();
@@ -81,12 +132,20 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
     }
 
     monitor->processData(std::move(data));
+    if (focused) {
+      if (m_focusedMonitor.get() != monitor) {
+        m_focusedMonitor = monitor;
+        emit focusedMonitorChanged();
+      }
+    }
 
     m_monitors.append(monitor);
   }
 
+  beginResetModel();
   std::sort(m_monitors.begin(), m_monitors.end(),
       [](HyprMonitor *a, HyprMonitor *b) { return a->id() < b->id(); });
+  endResetModel();
 
   for (auto *cleanup : old) {
     cleanup->deleteLater();
@@ -95,13 +154,17 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
   emit valuesChanged();
 }
 
-void HyprMonitorsModel::removeMonitorById(int id, const QString & /*unused*/) {
-  auto it = std::ranges::find_if(m_monitors.begin(), m_monitors.end(),
-      [id](HyprMonitor *mon) { return mon->id() == id; });
-
-  if (it != m_monitors.end()) {
-    m_monitors.erase(it);
-    emit valuesChanged();
-  }
-}
+// void HyprMonitorsModel::removeMonitorById(int id, const QString & /*unused*/)
+// {
+//   auto it = std::ranges::find_if(m_monitors.begin(), m_monitors.end(),
+//       [id](HyprMonitor *mon) { return mon->id() == id; });
+//
+//   if (it != m_monitors.end()) {
+//     auto idx = std::distance(m_monitors.begin(), it);
+//     beginRemoveRows({}, idx, idx);
+//     m_monitors.erase(it);
+//     endRemoveRows();
+//     emit valuesChanged();
+//   }
+// }
 } // namespace ns::hyprland

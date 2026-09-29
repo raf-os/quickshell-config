@@ -1,5 +1,6 @@
 #include "iconprovider.h"
 
+#include <QtCore>
 #include <QtXml/qdom.h>
 #include <qcolor.h>
 #include <qdir.h>
@@ -139,7 +140,8 @@ QPixmap IconImageProvider::handleShellIcon(
   }
 
   QSvgRenderer renderer(doc.toByteArray(0));
-  QPixmap      pixmap(resolvedSize);
+  renderer.setAspectRatioMode(Qt::KeepAspectRatio);
+  QPixmap pixmap(resolvedSize);
   pixmap.fill(Qt::transparent);
 
   if (!renderer.isValid()) {

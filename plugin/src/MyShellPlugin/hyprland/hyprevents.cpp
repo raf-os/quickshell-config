@@ -122,6 +122,17 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
         emit windowMoved(addr, wpid);
       }
     }
+  } else if (event == "focusedmonv2") {
+    const auto params = data.split(",");
+    if (params.size() == 2) {
+      bool isOk;
+      auto monname = params.at(0);
+      auto wpid    = params.at(1).toInt(&isOk);
+
+      if (isOk) {
+        emit monitorFocused(monname, wpid);
+      }
+    }
   }
 }
 

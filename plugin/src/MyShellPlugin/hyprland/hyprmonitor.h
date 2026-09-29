@@ -19,13 +19,14 @@ class HyprMonitor : public QObject {
   QML_UNCREATABLE("")
 
   Q_PROPERTY(int id READ id CONSTANT)
-  Q_PROPERTY(QString name READ default NOTIFY nameChanged BINDABLE bName)
-  Q_PROPERTY(QString model READ default NOTIFY modelChanged BINDABLE bModel)
+  Q_PROPERTY(QString name READ default NOTIFY nameChanged BINDABLE bindableName)
   Q_PROPERTY(
-      bool disabled READ default NOTIFY disabledChanged BINDABLE bDisabled)
-  Q_PROPERTY(
-      QPoint position READ default NOTIFY positionChanged BINDABLE bPosition)
-  Q_PROPERTY(QPoint size READ default NOTIFY sizeChanged BINDABLE bSize)
+      QString model READ default NOTIFY modelChanged BINDABLE bindableModel)
+  Q_PROPERTY(bool disabled READ default NOTIFY disabledChanged BINDABLE
+          bindableDisabled)
+  Q_PROPERTY(QPoint position READ default NOTIFY positionChanged BINDABLE
+          bindablePosition)
+  Q_PROPERTY(QPoint size READ default NOTIFY sizeChanged BINDABLE bindableSize)
 
   Q_PROPERTY(QQmlListProperty<HyprWorkspace> workspaces READ workspaces NOTIFY
           workspacesChanged)
@@ -36,11 +37,13 @@ public:
   explicit HyprMonitor(int id, QObject *parent = nullptr);
 
   [[nodiscard]] int                id() const { return m_id; }
-  [[nodiscard]] QBindable<QString> bName() const { return &b_name; }
-  [[nodiscard]] QBindable<QString> bModel() const { return &b_model; }
-  [[nodiscard]] QBindable<bool>    bDisabled() const { return &b_disabled; }
-  [[nodiscard]] QBindable<QPoint>  bPosition() const { return &b_position; }
-  [[nodiscard]] QBindable<QPoint>  bSize() const { return &b_size; }
+  [[nodiscard]] QBindable<QString> bindableName() const { return &b_name; }
+  [[nodiscard]] QBindable<QString> bindableModel() const { return &b_model; }
+  [[nodiscard]] QBindable<bool> bindableDisabled() const { return &b_disabled; }
+  [[nodiscard]] QBindable<QPoint> bindablePosition() const {
+    return &b_position;
+  }
+  [[nodiscard]] QBindable<QPoint> bindableSize() const { return &b_size; }
 
   [[nodiscard]] QQmlListProperty<HyprWorkspace> workspaces();
   [[nodiscard]] HyprWorkspace                  *activeWorkspace();

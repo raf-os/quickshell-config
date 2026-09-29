@@ -7,6 +7,7 @@ import qs.modules.bar.right as BARRIGHT
 
 import org.nightshell.Hyprland
 import org.nightshell.Configs
+
 import Quickshell
 import QtQuick
 
@@ -29,7 +30,7 @@ Item {
 	property alias systemTray: rightComponent.systemTray
 	property alias statusItems: rightComponent.statusItems
 
-	implicitHeight: 36
+	implicitHeight: Styles.bar_height
 
 	BARLEFT.Main {
 		id: leftComponent

@@ -83,6 +83,8 @@ Hyprland::Hyprland(QObject *parent)
       &ToplevelModel::onWindowMoveWorkspace);
   QObject::connect(m_eventHandler, &HyprEvents::workspacesChanged, this,
       &Hyprland::queryWorkspaces);
+  QObject::connect(m_eventHandler, &HyprEvents::monitorFocused, m_monitorsModel,
+      &HyprMonitorsModel::onMonitorFocused);
 
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
       &wayland::wlr::toplevels::ToplevelManager::toplevelsChanged, this,

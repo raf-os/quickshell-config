@@ -25,4 +25,6 @@ Item {
 	readonly property int spacing_md: scaling * 5
 	readonly property int spacing_lg: scaling * 7
 	readonly property int spacing_xl: scaling * 10
+
+	readonly property int bar_height: 36
 }

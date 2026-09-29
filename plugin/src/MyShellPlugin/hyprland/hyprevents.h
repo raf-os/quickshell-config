@@ -36,6 +36,7 @@ signals:
   void workspacesChanged();
   void userWorkspaceChanged();
   void windowMoved(quint64 address, int workspaceId);
+  void monitorFocused(QString monitorName, int workspaceId);
   void isConnectedChanged();
 
 private:

@@ -2,8 +2,10 @@ pragma ComponentBehavior: Bound
 
 import qs.components
 
+import org.nightshell.Components
 import org.nightshell.Hyprland
 import org.nightshell.Configs
+
 import QtQuick
 import QtQuick.Effects
 
@@ -34,29 +36,33 @@ MouseArea {
 		color: Colors.secondary
 	}
 
-	Rectangle {
+	ChamferRect {
 		anchors {
 			fill: parent
 		}
 
+		bottomRightChamfer: 6
+
 		color: root.isActive ? Colors.secondary : Colors.primaryContent
-		border.width: 1
-		border.color: root.isActive ? Colors.secondary : Colors.primary
+		borderWidth: 1
+		borderColor: root.isActive ? Colors.secondary : Colors.primary
 	}
 
 	Loader {
 		id: workspaceIconLoader
 		active: root.hasToplevels
-		anchors.fill: parent
+		anchors.centerIn: parent
 		sourceComponent: Item {
-			anchors.fill: parent
-			anchors.margins: 2
+			anchors.centerIn: parent
+
+			implicitWidth: Styles.text_xl
+			implicitHeight: implicitWidth
 
 			Image {
 				id: workspaceIconImage
 				visible: false
-				width: parent.width
-				height: parent.height
+				width: parent.implicitWidth
+				height: parent.implicitHeight
 				source: `image://qicons/shell/${root.modelData.toplevels.length <= 1 ? "window" : "window_multiple"}`
 			}
 

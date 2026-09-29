@@ -132,9 +132,8 @@ void  ChamferRect::setChamfer(float value) {
 #define CHAMFER_CORNER(Coordinate, CoordinateUpper, Getter, Setter)            \
   float ChamferRect::Getter() const { return m_chamfer.Coordinate(); }         \
   void  ChamferRect::Setter(float value) {                                     \
-    auto val = cappedChamfer(value);                                           \
-    if (m_chamfer.Coordinate() == val) return;                                 \
-    m_chamfer.set##CoordinateUpper(val);                                       \
+    if (m_chamfer.Coordinate() == value) return;                               \
+    m_chamfer.set##CoordinateUpper(value);                                     \
     m_chamferChanged = true;                                                   \
     emit chamferChanged();                                                     \
     update();                                                                  \
