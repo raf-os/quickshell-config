@@ -39,9 +39,10 @@ bool ChamferRectShader::updateUniformData(
   auto *customMaterial = static_cast<ChamferRectMaterial *>(newMaterial);
   if (oldMaterial != newMaterial || customMaterial->uniforms.dirty) {
     memcpy(buf->data() + 68, &customMaterial->uniforms.border_width, 4);
-    memcpy(buf->data() + 72, &customMaterial->uniforms.corners, 16);
-    memcpy(buf->data() + 88, &customMaterial->uniforms.color, 16);
-    memcpy(buf->data() + 104, &customMaterial->uniforms.border_color, 16);
+    memcpy(buf->data() + 72, &customMaterial->uniforms.iResolution, 8);
+    memcpy(buf->data() + 80, &customMaterial->uniforms.corners, 16);
+    memcpy(buf->data() + 96, &customMaterial->uniforms.color, 16);
+    memcpy(buf->data() + 112, &customMaterial->uniforms.border_color, 16);
     customMaterial->uniforms.dirty = false;
     changed                        = true;
   }

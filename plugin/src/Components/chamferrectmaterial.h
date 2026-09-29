@@ -18,6 +18,7 @@ public:
 
   struct {
     float border_width;
+    float iResolution[2];
     float corners[4];
     float color[4];
     float border_color[4];
