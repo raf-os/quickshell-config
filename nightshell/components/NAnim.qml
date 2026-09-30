@@ -1,3 +1,5 @@
+import org.nightshell.Configs
+
 import QtQuick
 
 NumberAnimation {
@@ -5,5 +7,5 @@ NumberAnimation {
 
 	duration: 500
 	easing.type: Easing.BezierSpline
-	easing.bezierCurve: [0.2, 0, 0, 1, 1, 1]
+	easing.bezierCurve: Styles.anim_defaultEase
 }

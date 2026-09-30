@@ -6,3 +6,6 @@
 
   C(secondary, "#1ee8e4")
   C(secondaryContent, "#022a29")
+
+  C(accent, "#fdcf22")
+  C(accentContent, "#111605")

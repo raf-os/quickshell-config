@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 
+import org.nightshell.Utils
+
 import qs.components
 import qs.shapes as Shapes
 import qs.modules.bar
@@ -27,6 +29,8 @@ Variants {
 
 			name: "main-shell"
 			screen: scope.modelData
+
+			WlrLayershell.keyboardFocus: FocusGrabberManager.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
 			exclusionMode: ExclusionMode.Ignore
 			mask: MaskRegions {
