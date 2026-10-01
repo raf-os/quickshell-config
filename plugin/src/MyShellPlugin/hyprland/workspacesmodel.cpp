@@ -78,6 +78,13 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
     wpdata.isPersistent = obj.value("ispersistent").toBool(false);
     wpdata.monitorId    = obj.value("monitorID").toInt(-1);
     wpdata.monitorName  = obj.value("monitor").toString();
+    wpdata.isFullScreen = obj.value("hasfullscreen").toBool(false);
+
+    bool isOk;
+    auto lw = obj.value("lastwindow").toString().toULongLong(&isOk, 16);
+    if (isOk) {
+      wpdata.lastWindow = lw;
+    }
 
     workspace->updateData(std::move(wpdata));
   }
@@ -123,5 +130,14 @@ void WorkspacesModel::onWindowMoved(ToplevelInstance *toplevel) {
   auto workspaceId = toplevel->workspaceId();
   if (!m_workspaces.contains(workspaceId)) return;
   m_workspaces.value(workspaceId)->attachToplevel(toplevel);
+}
+
+void WorkspacesModel::onWorkspaceRenamed(int workspaceId, const QString &name) {
+  auto it = std::ranges::find_if(m_workspaces.begin(), m_workspaces.end(),
+      [&workspaceId](HyprWorkspace *w) { return w->id() == workspaceId; });
+
+  if (it != m_workspaces.end()) {
+    (*it)->setName(name);
+  }
 }
 } // namespace ns::hyprland

@@ -59,11 +59,14 @@ public:
   [[nodiscard]] int                keyboardLayoutIndex() const;
   void                             setKeyboardLayoutIndex(const int &value);
 
-  void             hyprctl(const QByteArray                   &request,
-      const std::function<void(bool, QByteArray)> &callback);
+  void             hyprctl(const QByteArray                           &request,
+      const std::function<void(bool, const QByteArray &)> &callback);
   Q_INVOKABLE void dispatch(const QString &request);
   Q_INVOKABLE void applyOptions(const QVariantMap &options);
   Q_INVOKABLE void reloadOptions();
+
+public slots:
+  void switchKeyboardLayout(const QString &cmd);
 
 private slots:
   void queryHyprInputConfigs();
@@ -81,11 +84,12 @@ private:
 
   QString m_requestSocketPath;
 
-  bool m_requestingDevices     = false;
-  bool m_requestingToplevels   = false;
-  bool m_requestingInputConfig = false;
-  bool m_requestingWorkspaces  = false;
-  bool m_requestingMonitors    = false;
+  bool m_switchingKeyboardLayout = false;
+  bool m_requestingDevices       = false;
+  bool m_requestingToplevels     = false;
+  bool m_requestingInputConfig   = false;
+  bool m_requestingWorkspaces    = false;
+  bool m_requestingMonitors      = false;
 
   HyprEvents        *m_eventHandler    = nullptr;
   ToplevelModel     *m_toplevelModel   = nullptr;

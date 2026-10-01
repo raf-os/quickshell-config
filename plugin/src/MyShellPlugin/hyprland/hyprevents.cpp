@@ -105,9 +105,14 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
       emit activeWindowChanged(addr);
     }
   } else if (event == "createworkspace" || event == "destroyworkspace" ||
-             event == "moveworkspace" || event == "renameworkspace")
+             event == "moveworkspace")
   {
     emit workspacesChanged();
+  } else if (event == "renameworkspace") {
+    const auto params = data.split(",");
+    const auto wpid   = params.at(0).toInt(nullptr, -1);
+    const auto wpname = params.at(1);
+    emit       workspaceRenamed(wpid, wpname);
   } else if (event == "workspace" || event == "workspacev2") {
     emit userWorkspaceChanged();
   } else if (event == "movewindowv2") {
@@ -133,6 +138,10 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
         emit monitorFocused(monname, wpid);
       }
     }
+  } else if (event == "fullscreen") {
+    emit windowFullscreen();
+  } else if (event == "monitoradded" || event == "monitorremoved") {
+    emit monitorsChanged();
   }
 }
 

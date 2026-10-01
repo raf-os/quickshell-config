@@ -8,14 +8,14 @@ import QtQuick
 Singleton {
 	id: root
 
-	property alias isActive: props.isActive
+	readonly property bool isActive: props.isActive
 	property alias isOnCooldown: activationCooldown.running
 
 	function toggleGamemode() {
 		if (activationCooldown.running)
 			return;
 
-		isActive = !isActive;
+		props.isActive = !props.isActive;
 		activationCooldown.start();
 	}
 

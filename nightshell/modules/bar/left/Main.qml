@@ -1,4 +1,6 @@
 import qs.components
+import qs.utils
+
 import org.nightshell.Configs
 import org.nightshell.Hyprland
 
@@ -7,6 +9,7 @@ import QtQuick
 Item {
 	id: root
 
+	required property InstanceContext context
 	required property ToplevelInstance activeToplevel
 	readonly property int titleX: titleWrapper.x
 	readonly property int titleWidth: titleWrapper.width
@@ -16,8 +19,6 @@ Item {
 	Item {
 		id: osIconWrapper
 
-		readonly property int padding: 4
-
 		anchors {
 			top: parent.top
 			left: parent.left
@@ -25,15 +26,18 @@ Item {
 			bottom: parent.bottom
 		}
 
-		implicitWidth: osIcon.width + padding * 4
+		implicitWidth: osIcon.width
 
 		OSIcon {
 			id: osIcon
+			isActive: root.context.isLauncherActive
+
+			onClicked: root.context.requestToggleLauncher()
+
 			anchors {
 				top: parent.top
 				bottom: parent.bottom
 				horizontalCenter: parent.horizontalCenter
-				margins: osIconWrapper.padding
 			}
 		}
 	}

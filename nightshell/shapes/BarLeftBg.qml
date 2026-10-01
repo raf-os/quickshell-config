@@ -26,18 +26,18 @@ ShapePath {
 	strokeColor: "transparent"
 	fillColor: Colors.secondary
 
-	PathMove {
-		x: root.osIconStartX + root.startX
-		y: root.startY
-	}
-	PathRectangle {
-		relativeX: 0
-		relativeY: 0
-		width: root.osIconLength
-		height: root.itemHeight
-		bevel: true
-		bottomLeftRadius: 8
-	}
+	// PathMove {
+	// 	x: root.osIconStartX + root.startX
+	// 	y: root.startY
+	// }
+	// PathRectangle {
+	// 	relativeX: 0
+	// 	relativeY: 0
+	// 	width: root.osIconLength
+	// 	height: root.itemHeight
+	// 	bevel: true
+	// 	bottomLeftRadius: 8
+	// }
 
 	PathMove {
 		x: root.titleStartX + root.startX

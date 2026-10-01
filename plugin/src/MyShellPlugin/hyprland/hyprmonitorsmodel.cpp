@@ -1,7 +1,6 @@
 #include "hyprmonitorsmodel.h"
 
 #include <algorithm>
-#include <iterator>
 #include <utility>
 
 #include <qabstractitemmodel.h>

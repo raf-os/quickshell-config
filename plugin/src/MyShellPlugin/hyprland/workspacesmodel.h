@@ -29,6 +29,7 @@ public:
   [[nodiscard]] QList<HyprWorkspace *> valueList() const;
 
 public slots:
+  void onWorkspaceRenamed(int workspaceId, const QString &name);
   void onWindowMoved(ToplevelInstance *instance);
   void onToplevelsChanged(const QList<ToplevelInstance *> &newToplevels);
 

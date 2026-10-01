@@ -86,8 +86,14 @@ Hyprland::Hyprland(QObject *parent)
       &ToplevelModel::onWindowMoveWorkspace);
   QObject::connect(m_eventHandler, &HyprEvents::workspacesChanged, this,
       &Hyprland::queryWorkspaces);
+  QObject::connect(m_eventHandler, &HyprEvents::windowFullscreen, this,
+      &Hyprland::queryWorkspaces);
   QObject::connect(m_eventHandler, &HyprEvents::monitorFocused, m_monitorsModel,
       &HyprMonitorsModel::onMonitorFocused);
+  QObject::connect(m_eventHandler, &HyprEvents::workspaceRenamed,
+      m_workspacesModel, &WorkspacesModel::onWorkspaceRenamed);
+  QObject::connect(m_eventHandler, &HyprEvents::monitorsChanged, this,
+      &Hyprland::queryMonitors);
 
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
       &wayland::wlr::toplevels::ToplevelManager::toplevelsChanged, this,
@@ -99,8 +105,8 @@ Hyprland::Hyprland(QObject *parent)
       m_workspacesModel, &WorkspacesModel::onWindowMoved);
 }
 
-void Hyprland::hyprctl(const QByteArray         &request,
-    const std::function<void(bool, QByteArray)> &callback) {
+void Hyprland::hyprctl(const QByteArray                 &request,
+    const std::function<void(bool, const QByteArray &)> &callback) {
   if (m_requestSocketPath.isEmpty()) return;
 
   auto requestSocket = new QLocalSocket(this);
@@ -203,7 +209,7 @@ void Hyprland::applyOptions(const QVariantMap &options) {
 
   QString request = QString("eval hl.config(%1)").arg(req);
 
-  hyprctl(request.toLocal8Bit(), [](bool success, QByteArray res) {
+  hyprctl(request.toLocal8Bit(), [](bool success, const QByteArray &res) {
     if (!success) {
       qCWarning(logNSHyprland) << "Error applying hyprland options:\n" << res;
     } else {
@@ -213,7 +219,17 @@ void Hyprland::applyOptions(const QVariantMap &options) {
 }
 
 void Hyprland::reloadOptions() {
-  hyprctl("reload", [](bool /*unused*/, QByteArray /*unused*/) {});
+  hyprctl("reload", [](bool /*unused*/, const QByteArray & /*unused*/) {});
+}
+
+void Hyprland::switchKeyboardLayout(const QString &cmd) {
+  if (m_switchingKeyboardLayout) return;
+  m_switchingKeyboardLayout = true;
+
+  hyprctl(cmd.toLocal8Bit(),
+      [this](bool /*unused*/, const QByteArray & /*unused*/) {
+        m_switchingKeyboardLayout = false;
+      });
 }
 
 HyprEvents        *Hyprland::eventHandler() { return m_eventHandler; }

@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.utils
 import qs.modules.bar.workspaces
 import qs.modules.bar.left as BARLEFT
 import qs.modules.bar.right as BARRIGHT
@@ -15,9 +16,10 @@ Item {
 	id: root
 
 	required property BasePanelWindow panelWindow
-	required property ShellScreen screen
-	readonly property HyprMonitor nsMonitor: Hyprland.monitorsModel.values.find(m => m.name === screen.name) ?? null
-	readonly property ToplevelInstance activeToplevel: Hyprland.toplevelModel.activeToplevel
+	required property InstanceContext context
+	readonly property ShellScreen screen: context.shellScreen
+	readonly property HyprMonitor nsMonitor: context.hyprMonitor
+	readonly property ToplevelInstance activeToplevel: nsMonitor?.activeWorkspace?.activeToplevel ?? null
 
 	readonly property int leftLength: leftComponent.width
 	readonly property int centerLength: workspacesItems.width
@@ -36,6 +38,7 @@ Item {
 		id: leftComponent
 
 		activeToplevel: root.activeToplevel
+		context: root.context
 
 		anchors {
 			left: parent.left

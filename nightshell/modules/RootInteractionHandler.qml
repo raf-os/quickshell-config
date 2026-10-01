@@ -4,6 +4,8 @@ import QtQuick
 MouseArea {
 	id: root
 
+	acceptedButtons: Qt.AllButtons
+
 	onClicked: {
 		FocusGrabberManager.forceClear();
 	}

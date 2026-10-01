@@ -1,7 +1,11 @@
+import qs.utils
 import qs.modules.bar
 import qs.modules.notifications as NOTIFICATIONS
 import qs.modules.launcher as LAUNCHER
+import qs.modules.osd as OSD
 import qs.modules.bar.tray
+
+import org.nightshell.Hyprland
 
 import Quickshell
 import QtQuick
@@ -9,12 +13,15 @@ import QtQuick
 FocusScope {
 	id: root
 
-	required property ShellScreen screen
-	required property QsWindow win
+	required property InstanceContext context
+	readonly property ShellScreen screen: context.shellScreen
+	readonly property Bar bar: context.bar
+	readonly property QsWindow win: context.win
 
-	required property Bar bar
+	readonly property HyprMonitor hyprMonitor: Hyprland.monitorsModel.values.find(m => m.name === screen.name) ?? null
 
 	property alias notificationsOverlay: notificationsOverlay
+	property alias launcherWrapper: launcherWrapper
 
 	TrayItemPopout {
 		id: trayPopout
@@ -27,7 +34,16 @@ FocusScope {
 
 		anchors.centerIn: parent
 		maxWidth: root.width
-		content: root // qmllint disable incompatible-type
+		context: root.context
+	}
+
+	OSD.OSD {
+		id: osd
+		context: root.context
+		anchors {
+			bottom: parent.bottom
+			right: parent.right
+		}
 	}
 
 	NOTIFICATIONS.Overlay {

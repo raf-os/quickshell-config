@@ -34,9 +34,12 @@ signals:
   void keyboardLayoutChanged(QString keyboardName, QString layoutName);
   void activeWindowChanged(quint64 address);
   void workspacesChanged();
+  void workspaceRenamed(int workspaceId, QString workspaceName);
   void userWorkspaceChanged();
   void windowMoved(quint64 address, int workspaceId);
+  void windowFullscreen();
   void monitorFocused(QString monitorName, int workspaceId);
+  void monitorsChanged();
   void isConnectedChanged();
 
 private:

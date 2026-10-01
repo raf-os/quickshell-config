@@ -16,12 +16,15 @@ Image {
 	width: size
 	height: size
 	source: `image://qicons/shell/${icon}`
+	sourceSize.width: size
+	sourceSize.height: size
 
 	layer.enabled: root.colorize
 	layer.effect: SimpleGlowEffect {
 		colorization: root.colorize ? 1 : 0
 		colorizationColor: root.color
 		shadowEnabled: root.glow && shouldEnable
+		shadowOpacity: root.glow ? 1 : 0
 		shadowColor: root.color
 	}
 }

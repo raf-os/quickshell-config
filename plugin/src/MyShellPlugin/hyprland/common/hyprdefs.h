@@ -15,10 +15,12 @@ struct HyprWindowData {
 
 struct HyprWorkspaceData {
   bool    isPersistent;
+  bool    isFullScreen;
   int     id;
   int     monitorId;
   QString monitorName;
   QString name;
+  quint64 lastWindow;
 };
 
 struct HyprMonitorData {

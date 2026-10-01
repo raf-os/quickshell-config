@@ -11,6 +11,9 @@ Image {
 	asynchronous: true
 	width: size
 	height: size
+	sourceSize.width: size
+	sourceSize.height: size
+
 	source: {
 		let s = `image://qicons/qt/${icon}`;
 		if (fallback === "")

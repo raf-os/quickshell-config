@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.modules as Modules
+import qs.utils
 
 import org.nightshell.Utils
 import org.nightshell.Hyprland
@@ -13,14 +14,23 @@ import QtQuick
 Item {
 	id: root
 
-	required property Modules.Content content
+	required property InstanceContext context
+	readonly property Modules.Content content: context.content
 	required property int maxWidth
 	property bool isActive: false
 
 	function toggleLauncher(targetScreen: ShellScreen) {
-		if (targetScreen != root.content.screen) {
+		const hmon = Hyprland.monitorsModel.values.find(m => m.name === targetScreen.name);
+		if (targetScreen != root.content.screen && hmon) {
 			root.isActive = false;
 			return;
+		}
+		if (hmon) {
+			const hwp = hmon.activeWorkspace;
+			if (hwp.isFullScreen) {
+				root.isActive = false;
+				return;
+			}
 		}
 		root.isActive = !root.isActive;
 	}
@@ -35,6 +45,13 @@ Item {
 			const activeScreen = Hyprland.monitorsModel.focusedMonitor;
 			const qsScreen = Quickshell.screens.find(s => s.name === activeScreen.name);
 			root.toggleLauncher(qsScreen);
+		}
+	}
+
+	Connections {
+		target: root.context
+		function onRequestToggleLauncher() {
+			root.toggleLauncher(root.context.shellScreen);
 		}
 	}
 

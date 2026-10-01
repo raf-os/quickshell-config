@@ -1,10 +1,12 @@
 pragma ComponentBehavior: Bound
 
 import org.nightshell.Utils
+import org.nightshell.Hyprland as N_HYPRLAND
 
 import qs.components
 import qs.shapes as Shapes
 import qs.modules.bar
+import qs.utils
 
 import Quickshell
 import Quickshell.Wayland
@@ -48,6 +50,16 @@ Variants {
 				left: true
 			}
 
+			InstanceContext {
+				id: context
+
+				hyprMonitor: N_HYPRLAND.Hyprland.monitorsModel.values.find(m => m.name === scope.modelData.name)
+				win: win
+				shellScreen: scope.modelData
+				bar: bar
+				content: content // qmllint disable incompatible-type
+			}
+
 			RootInteractionHandler {
 				anchors.fill: parent
 
@@ -60,8 +72,8 @@ Variants {
 
 				Bar {
 					id: bar
-					screen: scope.modelData
 					panelWindow: win
+					context: context
 
 					anchors {
 						top: parent.top
@@ -72,9 +84,7 @@ Variants {
 
 				Content {
 					id: content
-					screen: scope.modelData
-					win: win
-					bar: bar
+					context: context
 
 					anchors {
 						top: bar.bottom
