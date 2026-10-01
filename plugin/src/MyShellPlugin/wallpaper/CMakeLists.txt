@@ -27,6 +27,7 @@ qt_add_qml_module(
 target_link_libraries(
   nightshell_wallpaper
   PRIVATE Qt::Core Qt::Gui Qt::Qml myshell_utils
+  PUBLIC nightshell_includes
 )
 
 install_qml_module(nightshell_wallpaper)

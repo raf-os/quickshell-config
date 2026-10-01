@@ -74,7 +74,7 @@ target_link_libraries(
     nightshell_dbus_imageprovider
     nightshell_dbusmenu
     nightshell_icon_provider_plugin
-    myshell_include
+    nightshell_includes
     myshell_utils
 )
 

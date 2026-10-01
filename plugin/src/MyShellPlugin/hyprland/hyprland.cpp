@@ -25,6 +25,7 @@
 #include <qstringview.h>
 #include <qtenvironmentvariables.h>
 
+#include "helpermacros.h"
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
 #include "hyprmonitorsmodel.h"
@@ -34,6 +35,8 @@
 
 namespace ns::hyprland {
 Q_LOGGING_CATEGORY(logNSHyprland, "nightshell.hyprland", QtWarningMsg)
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(Hyprland)
 
 Hyprland::Hyprland(QObject *parent)
     : QObject(parent), m_eventHandler(new HyprEvents(this)),

@@ -1,7 +1,4 @@
 #include "notificationserver.h"
-#include "dbus_notifications.h"
-#include "dbusimage.h"
-#include "notification.h"
 
 #include <qcontainerfwd.h>
 #include <qdbusconnection.h>
@@ -13,10 +10,15 @@
 #include <qqmlengine.h>
 #include <qtypes.h>
 
-namespace ns {
-namespace notifications {
-Q_LOGGING_CATEGORY(logNSNotifications,
-                   "nightshell.notifications")
+#include "dbus_notifications.h"
+#include "dbusimage.h"
+#include "helpermacros.h"
+#include "notification.h"
+
+namespace ns::notifications {
+Q_LOGGING_CATEGORY(logNSNotifications, "nightshell.notifications")
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(NotificationServer)
 
 NotificationServer::NotificationServer(QObject *parent) : QObject(parent) {
   qDBusRegisterMetaType<dbusprovider::DBusNotificationImage>();
@@ -38,10 +40,8 @@ NotificationServer::NotificationServer(QObject *parent) : QObject(parent) {
     return;
   }
 
-  QObject::connect(&m_serviceWatcher,
-                   &QDBusServiceWatcher::serviceUnregistered,
-                   this,
-                   &NotificationServer::onServiceUnregistered);
+  QObject::connect(&m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered,
+      this, &NotificationServer::onServiceUnregistered);
 
   m_serviceWatcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
   // m_serviceWatcher.addWatchedService("org.freedesktop.Notifications");
@@ -78,8 +78,7 @@ void NotificationServer::closeConnection() {
 }
 
 void NotificationServer::setIsActive(const bool &value) {
-  if (value == m_isActive)
-    return;
+  if (value == m_isActive) return;
 
   m_isActive = value;
   emit isActiveChanged();
@@ -98,7 +97,8 @@ void NotificationServer::setIsActive(const bool &value) {
 void NotificationServer::closeAllNotifications() {
   m_model.clearModel();
   for (auto it = m_notificationsMap.begin(); it != m_notificationsMap.end();
-       ++it) {
+      ++it)
+  {
     it.value()->dismiss();
   }
 }
@@ -110,7 +110,8 @@ void NotificationServer::onServiceUnregistered(const QString & /*unused*/) {
 void NotificationServer::resetServerState() {
   m_model.resetState();
   for (auto it = m_notificationsMap.begin(); it != m_notificationsMap.end();
-       ++it) {
+      ++it)
+  {
     it.value()->deleteLater();
   }
   m_notificationsMap.clear();
@@ -119,10 +120,8 @@ void NotificationServer::resetServerState() {
 }
 
 void NotificationServer::deleteNotification(
-    Notification                 *notification,
-    NotificationCloseReason::Enum reason) {
-  if (!m_notificationsMap.contains(notification->id()))
-    return;
+    Notification *notification, NotificationCloseReason::Enum reason) {
+  if (!m_notificationsMap.contains(notification->id())) return;
 
   emit notification->closed(reason);
 
@@ -150,23 +149,17 @@ QStringList NotificationServer::GetCapabilities() const {
   return capabilities;
 }
 
-QString NotificationServer::GetServerInformation(QString &vendor,
-                                                 QString &version,
-                                                 QString &specVersion) {
+QString NotificationServer::GetServerInformation(
+    QString &vendor, QString &version, QString &specVersion) {
   vendor      = "nightshell";
   version     = "1.0";
   specVersion = "1.3";
   return "Nightshell Notifications";
 }
 
-uint NotificationServer::Notify(const QString     &appName,
-                                uint               replacesId,
-                                const QString     &appIcon,
-                                const QString     &summary,
-                                const QString     &body,
-                                const QStringList &actions,
-                                const QVariantMap &hints,
-                                int                expireTimeout) {
+uint NotificationServer::Notify(const QString &appName, uint replacesId,
+    const QString &appIcon, const QString &summary, const QString &body,
+    const QStringList &actions, const QVariantMap &hints, int expireTimeout) {
   auto *notification =
       replacesId == 0 ? nullptr : this->m_notificationsMap.value(replacesId);
   bool isUpdate = notification != nullptr;
@@ -187,5 +180,4 @@ uint NotificationServer::Notify(const QString     &appName,
 
   return notification->id();
 }
-} // namespace notifications
-} // namespace ns
+} // namespace ns::notifications

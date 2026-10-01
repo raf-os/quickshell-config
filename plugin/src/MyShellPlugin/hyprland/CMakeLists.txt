@@ -48,8 +48,8 @@ target_link_libraries(
     Qt6::Network
     rapidfuzz::rapidfuzz
     myshell_utils
-    myshell_include
   PUBLIC
+    nightshell_includes
     nightshell_hyprland_toplevels
     nightshell_hyprland_common
     nightshell_wayland_toplevels

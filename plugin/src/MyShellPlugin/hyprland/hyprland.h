@@ -16,6 +16,7 @@
 #include <qtimer.h>
 #include <qtmetamacros.h>
 
+#include "helpermacros.h"
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
 #include "hyprmonitorsmodel.h"
@@ -40,19 +41,9 @@ class Hyprland : public QObject {
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
           keyboardLayoutIndexChanged)
 
+  AUTO_MEYERS_SINGLETON_QML_DECL(Hyprland)
+
 public:
-  static Hyprland *instance() {
-    static Hyprland *s_instance = new Hyprland();
-    return s_instance;
-  }
-
-  static Hyprland *create(QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
-    auto inst = instance();
-    if (qmlEngine)
-      qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
-    return inst;
-  }
-
   struct InputQueryPayload {
     QByteArray kbLayout;
     QByteArray kbVariant;

@@ -1,10 +1,8 @@
 #include "wallpapermanager.h"
-#include "paths.h"
-#include "wallpapercommon.h"
-#include "wallpapermeta.h"
+
+#include <algorithm>
 
 #include <QtCore>
-#include <algorithm>
 #include <qbuffer.h>
 #include <qdebug.h>
 #include <qdir.h>
@@ -22,9 +20,15 @@
 #include <qstringview.h>
 #include <qtimer.h>
 
+#include "helpermacros.h"
+#include "paths.h"
+#include "wallpapercommon.h"
+#include "wallpapermeta.h"
+
 namespace ns::wallpaper {
-Q_LOGGING_CATEGORY(logNSWallpaper,
-                   "nightshell.wallpaper")
+Q_LOGGING_CATEGORY(logNSWallpaper, "nightshell.wallpaper")
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(WallpaperManager)
 
 WallpaperManager::WallpaperManager(QObject *parent) : QObject(parent) {
   m_switchTimer.setSingleShot(true);
@@ -33,10 +37,8 @@ WallpaperManager::WallpaperManager(QObject *parent) : QObject(parent) {
 
   m_fileDebounceTimer.setSingleShot(true);
   m_fileDebounceTimer.setInterval(300);
-  QObject::connect(&m_fileDebounceTimer,
-                   &QTimer::timeout,
-                   this,
-                   &WallpaperManager::parseConfig);
+  QObject::connect(&m_fileDebounceTimer, &QTimer::timeout, this,
+      &WallpaperManager::parseConfig);
 
   QString cfgPath =
       myqmlplugin::utils::Paths::instance()->config() + "/wallpapers.json";
@@ -47,10 +49,8 @@ WallpaperManager::WallpaperManager(QObject *parent) : QObject(parent) {
     parseConfig();
   }
 
-  QObject::connect(&m_fileWatcher,
-                   &QFileSystemWatcher::fileChanged,
-                   this,
-                   [this]() { this->m_fileDebounceTimer.start(); });
+  QObject::connect(&m_fileWatcher, &QFileSystemWatcher::fileChanged, this,
+      [this]() { this->m_fileDebounceTimer.start(); });
 }
 
 WallpaperMeta *WallpaperManager::current() {
@@ -65,8 +65,7 @@ WallpaperMeta *WallpaperManager::moveForward() {
 
   m_switchTimer.stop();
 
-  if (m_instances.length() == 0)
-    return next;
+  if (m_instances.length() == 0) return next;
 
   const auto cur = current();
 
@@ -127,15 +126,13 @@ void WallpaperManager::parseConfig() {
       m_switchTimer.stop();
 
       for (const auto &item : arr) {
-        if (!item.isObject())
-          continue;
+        if (!item.isObject()) continue;
 
         const QJsonObject obj = item.toObject();
 
         auto path = obj.value("path").toString();
 
-        if (path.isEmpty())
-          continue;
+        if (path.isEmpty()) continue;
 
         auto interval = obj.value("interval").toInt(-1);
         auto fillMode = obj.value("fillMode").toString("fit");
@@ -144,8 +141,7 @@ void WallpaperManager::parseConfig() {
       }
 
       for (auto item : parseBuffer) {
-        if (!QFileInfo(item.path).exists())
-          continue;
+        if (!QFileInfo(item.path).exists()) continue;
 
         auto wpp = new WallpaperMeta(item.path, this);
         wpp->setInterval(std::min(std::max(-1, item.interval), 2147483));
@@ -175,22 +171,19 @@ void WallpaperManager::parseConfig() {
 void WallpaperManager::setupTimer() {
   m_switchTimer.stop();
 
-  if (m_instances.length() < 2)
-    return;
+  if (m_instances.length() < 2) return;
 
   auto cur = current();
 
-  if (!cur)
-    return;
-  if (cur->interval() < 1)
-    return;
+  if (!cur) return;
+  if (cur->interval() < 1) return;
 
   m_switchTimer.setInterval(std::max(cur->interval() * 1000, 5000));
   m_switchTimer.start();
 }
 
-void WallpaperManager::forceSingleWallpaper(const QString &path,
-                                            const QString &fillMode) {
+void WallpaperManager::forceSingleWallpaper(
+    const QString &path, const QString &fillMode) {
   if (m_instances.length() == 1) {
     auto existingInstance = m_instances[0];
     if (existingInstance->path() == path) {
@@ -270,8 +263,7 @@ void WallpaperManager::triggerParse() { return parseConfig(); }
 
 void WallpaperManager::attachWatcher() {
   QFileInfo cfgFile(m_configPath);
-  if (!cfgFile.exists())
-    return;
+  if (!cfgFile.exists()) return;
 
   if (!m_fileWatcher.files().contains(m_configPath)) {
     m_fileWatcher.addPath(m_configPath);

@@ -61,6 +61,7 @@ target_link_libraries(
     Qt::Quick
     Qt::DBus
     nightshell_dbus_imageprovider
+    nightshell_includes
 )
 
 install_qml_module(myshell_notifications)

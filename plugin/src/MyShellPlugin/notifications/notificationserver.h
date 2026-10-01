@@ -1,8 +1,5 @@
 #pragma once
 
-#include "notification.h"
-#include "notificationsmodel.h"
-
 #include <qcontainerfwd.h>
 #include <qdbusservicewatcher.h>
 #include <qhash.h>
@@ -13,37 +10,30 @@
 #include <qtmetamacros.h>
 #include <qtypes.h>
 
-namespace ns {
-namespace notifications {
+#include "helpermacros.h"
+#include "notification.h"
+#include "notificationsmodel.h"
+
+namespace ns::notifications {
 class NotificationServer : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
 
+  AUTO_MEYERS_SINGLETON_QML_DECL(NotificationServer)
+
   Q_PROPERTY(ns::notifications::NotificationsModel *model READ model NOTIFY
-                 modelChanged)
+          modelChanged)
   Q_PROPERTY(
       bool isActive READ isActive WRITE setIsActive NOTIFY isActiveChanged)
 
 public:
-  static NotificationServer *instance() {
-    static NotificationServer *s_instance = new NotificationServer();
-    return s_instance;
-  }
-
-  static NotificationServer *create(QQmlEngine *qmlEngine, QJSEngine *) {
-    auto i = instance();
-    if (qmlEngine)
-      qmlEngine->setObjectOwnership(i, QJSEngine::CppOwnership);
-    return i;
-  }
-
-  void deleteNotification(Notification *notification,
-                          NotificationCloseReason::Enum reason);
+  void deleteNotification(
+      Notification *notification, NotificationCloseReason::Enum reason);
 
   [[nodiscard]] NotificationsModel *model() { return &m_model; }
-  [[nodiscard]] bool isActive() const { return m_isActive; }
-  void setIsActive(const bool &value);
+  [[nodiscard]] bool                isActive() const { return m_isActive; }
+  void                              setIsActive(const bool &value);
 
   Q_INVOKABLE void closeAllNotifications();
 
@@ -90,11 +80,10 @@ private:
 
   void resetServerState();
 
-  bool m_isActive = false;
-  QDBusServiceWatcher m_serviceWatcher{this};
-  quint32 m_curId = 1;
+  bool                           m_isActive = false;
+  QDBusServiceWatcher            m_serviceWatcher{this};
+  quint32                        m_curId = 1;
   QHash<quint32, Notification *> m_notificationsMap;
-  NotificationsModel m_model{this};
+  NotificationsModel             m_model{this};
 };
-} // namespace notifications
-} // namespace ns
+} // namespace ns::notifications

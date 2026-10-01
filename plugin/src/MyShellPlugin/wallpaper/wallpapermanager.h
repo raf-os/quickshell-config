@@ -1,7 +1,5 @@
 #pragma once
 
-#include "wallpapermeta.h"
-
 #include <qfilesystemwatcher.h>
 #include <qjsengine.h>
 #include <qlist.h>
@@ -11,29 +9,21 @@
 #include <qtimer.h>
 #include <qtmetamacros.h>
 
+#include "helpermacros.h"
+#include "wallpapermeta.h"
+
 namespace ns::wallpaper {
 class WallpaperManager : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
 
+  AUTO_MEYERS_SINGLETON_QML_DECL(WallpaperManager)
+
   Q_PROPERTY(
       ns::wallpaper::WallpaperMeta *current READ current NOTIFY currentChanged)
 
 public:
-  static WallpaperManager *instance() {
-    static WallpaperManager *s_instance = new WallpaperManager();
-    return s_instance;
-  }
-
-  static WallpaperManager *create(QQmlEngine *qmlEngine,
-                                  QJSEngine * /* unused */) {
-    auto inst = instance();
-    if (qmlEngine)
-      qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
-    return inst;
-  }
-
   struct ParsedJsonObject {
     QString path;
     QString fillMode;
@@ -49,8 +39,7 @@ signals:
   void currentChanged();
 
 public slots:
-  void forceSingleWallpaper(const QString &path,
-                            const QString &fillMode);
+  void forceSingleWallpaper(const QString &path, const QString &fillMode);
 
 private slots:
   void parseConfig();
