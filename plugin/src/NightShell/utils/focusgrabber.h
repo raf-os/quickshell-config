@@ -17,7 +17,7 @@ class NS_UTILS_EXPORT FocusGrabberManager : public QObject {
   QML_ELEMENT
   QML_SINGLETON
 
-  AUTO_MEYERS_SINGLETON_QML(FocusGrabberManager)
+  AUTO_MEYERS_SINGLETON_QML_DECL(FocusGrabberManager)
 
   Q_PROPERTY(
       bool active READ default NOTIFY activeChanged BINDABLE bindableActive)

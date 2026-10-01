@@ -21,7 +21,7 @@ class Config : public QObject {
   QML_ELEMENT
   QML_SINGLETON
 
-  AUTO_MEYERS_SINGLETON_QML(Config)
+  AUTO_MEYERS_SINGLETON_QML_DECL(Config)
 
 #define X(Type, Name)                                                          \
   Q_PROPERTY(ns::configs::Type *Name READ Name CONSTANT)                       \

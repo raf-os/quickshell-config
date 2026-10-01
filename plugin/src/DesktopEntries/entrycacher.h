@@ -1,14 +1,16 @@
 #pragma once
 
-#include "entryscanner.h"
-
 #include <optional>
+
 #include <qlist.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
 
+#include "entryscanner.h"
+#include "ns_desktopentries_shared_global.h"
+
 namespace ns::desktop::entries {
-class EntryCacher : public QObject {
+class NS_DESKTOPENTRIES_EXPORT EntryCacher : public QObject {
   Q_OBJECT
 
 public:

@@ -3,9 +3,11 @@ import qs.modules.background
 
 import org.nightshell.Configs
 import org.nightshell.Notifications
+import org.nightshell.DesktopEntries
 import org.nightshell.DBusImageProvider
 import org.nightshell.IconProvider
 import org.nightshell.IpcServer
+import org.nightshell.Utils
 import Quickshell
 import QtQuick
 
@@ -30,6 +32,8 @@ ShellRoot {
 		// Singletons are lazily loaded, so here the necessary ones are loaded by force
 		// (don't worry they enjoy it)
 		IPCServer.setup();
+		StateManager;
+		DesktopEntries;
 
 		root.evalNotificationServerConfig();
 	}

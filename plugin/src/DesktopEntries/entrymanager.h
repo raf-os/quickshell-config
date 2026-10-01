@@ -1,11 +1,5 @@
 #pragma once
 
-#include "desktopentry.h"
-#include "entryaction.h"
-#include "entrycacher.h"
-#include "entrymonitor.h"
-#include "entryscanner.h"
-
 #include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qhash.h>
@@ -18,8 +12,15 @@
 #include <qtmetamacros.h>
 #include <qtypes.h>
 
+#include "desktopentry.h"
+#include "entryaction.h"
+#include "entrycacher.h"
+#include "entrymonitor.h"
+#include "entryscanner.h"
+#include "ns_desktopentries_shared_global.h"
+
 namespace ns::desktop::entries {
-class EntryManager : public QObject {
+class NS_DESKTOPENTRIES_EXPORT EntryManager : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
@@ -30,25 +31,21 @@ public:
     return s_instance;
   }
 
-  static EntryManager *create(QQmlEngine *qmlEngine,
-                              QJSEngine * /* unused */) {
+  static EntryManager *create(QQmlEngine *qmlEngine, QJSEngine * /* unused */) {
     auto inst = instance();
     if (qmlEngine)
       qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
     return inst;
   }
 
-  QHash<QString,
-        DesktopEntry *>
-  getEntries() const;
+  QHash<QString, DesktopEntry *> getEntries() const;
 
   Q_INVOKABLE DesktopEntry *findEntryById(const QString &id);
   Q_INVOKABLE DesktopEntry *findEntry(const QString &name);
   Q_INVOKABLE void          toggleFavorite(DesktopEntry *target);
 
   Q_INVOKABLE void executeGeneric(const QStringList &cmd,
-                                  const QString     &workingDirectory,
-                                  DesktopEntry      *reference = nullptr);
+      const QString &workingDirectory, DesktopEntry *reference = nullptr);
 
 public slots:
   quint32 getFrequencyForApp(const QString &id) const;

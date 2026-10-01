@@ -4,9 +4,12 @@
 #include <qobject.h>
 
 #include "colors.h"
+#include "helpermacros.h"
 
 namespace ns::configs {
 ColorsQML::ColorsQML(QObject *parent) : QObject(parent) { setupConnections(); }
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(ColorsQML)
 
 void ColorsQML::onCurrentThemeChanged() { setupConnections(); }
 

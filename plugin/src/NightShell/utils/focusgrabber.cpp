@@ -2,8 +2,12 @@
 
 #include <qobject.h>
 
+#include "helpermacros.h"
+
 namespace ns::utils {
 FocusGrabberManager::FocusGrabberManager(QObject *parent) : QObject(parent) {}
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(FocusGrabberManager)
 
 void FocusGrabberManager::grabFocus(FocusGrabberQML *target) {
   if (target == m_current.get()) return;

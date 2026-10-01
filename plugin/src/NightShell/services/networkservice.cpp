@@ -1,5 +1,7 @@
 #include "networkservice.h"
 
+#include "helpermacros.h"
+
 namespace ns::services {
 NetworkService::NetworkService(QObject *parent) : QObject(parent) {
   m_nmi = new org::freedesktop::NetworkManager("org.freedesktop.NetworkManager",
@@ -10,6 +12,8 @@ NetworkService::NetworkService(QObject *parent) : QObject(parent) {
   QObject::connect(m_nmi, &org::freedesktop::NetworkManager::StateChanged, this,
       &NetworkService::onNetworkStateChanged);
 }
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(NetworkService)
 
 void NetworkService::onNetworkStateChanged(uint state) {
   if (m_NMState == state) return;

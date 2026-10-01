@@ -1,5 +1,6 @@
 import qs.components
 
+import org.nightshell.Utils
 import org.nightshell.Components
 import org.nightshell.DesktopEntries
 import org.nightshell.Configs
@@ -16,7 +17,7 @@ MouseArea {
 	readonly property bool hasDescription: modelData.comment !== ""
 
 	readonly property bool isSelected: ListView.isCurrentItem
-	readonly property bool isFavorite: false
+	readonly property bool isFavorite: StateManager.favoriteApps.includes(modelData.id)
 	readonly property int padding: Styles.padding_sm
 	readonly property int spacing: Styles.spacing_xl
 
@@ -60,6 +61,14 @@ MouseArea {
 		implicitWidth: 24 + root.spacing * 2
 		hoverEnabled: true
 		cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+		onClicked: {
+			if (root.isFavorite) {
+				StateManager.removeFavoriteApp(root.modelData.id);
+			} else {
+				StateManager.addFavoriteApp(root.modelData.id);
+			}
+		}
 
 		ShellIcon {
 			id: favoriteIcon

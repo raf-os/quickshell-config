@@ -5,6 +5,8 @@
 #include <qtimer.h>
 #include <qtypes.h>
 
+#include "helpermacros.h"
+
 namespace ns::utils {
 SystemTime::SystemTime(QObject *parent) : QObject(parent) {
   QObject::connect(
@@ -12,6 +14,8 @@ SystemTime::SystemTime(QObject *parent) : QObject(parent) {
   b_enabled.onValueChanged([this] { this->update(); });
   update();
 }
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(SystemTime)
 
 QDateTime SystemTime::date() const { return m_currentTime; }
 

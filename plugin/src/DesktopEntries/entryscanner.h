@@ -7,6 +7,8 @@
 #include <qrunnable.h>
 #include <qtmetamacros.h>
 
+#include "ns_desktopentries_shared_global.h"
+
 namespace ns::desktop::entries {
 struct EntryActionData {
   QString                 id;
@@ -36,16 +38,16 @@ struct EntryData {
   bool                    terminal  = false;
 };
 
-class DesktopEntryScanner : public QObject, public QRunnable {
+class NS_DESKTOPENTRIES_EXPORT DesktopEntryScanner : public QObject,
+                                                     public QRunnable {
   Q_OBJECT
 
 public:
   explicit DesktopEntryScanner(QObject *parent = nullptr);
 
   void run() override;
-  void scanDirectory(const QString    &path,
-                     const QString    &idPrefix,
-                     QList<EntryData> &entries);
+  void scanDirectory(
+      const QString &path, const QString &idPrefix, QList<EntryData> &entries);
 
 signals:
   void scanCompleted(const QList<EntryData> &results);

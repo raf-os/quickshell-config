@@ -5,8 +5,10 @@
 #include <qtimer.h>
 #include <qtmetamacros.h>
 
+#include "ns_desktopentries_shared_global.h"
+
 namespace ns::desktop::entries {
-class EntryMonitor : public QObject {
+class NS_DESKTOPENTRIES_EXPORT EntryMonitor : public QObject {
   Q_OBJECT
 
 public:

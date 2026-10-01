@@ -48,16 +48,23 @@ private:                                                                       \
   Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(                                        \
       Class, Type, b_##Name, DefaultValue, &Class::Name##Changed)
 
-#define AUTO_MEYERS_SINGLETON(Class)                                           \
+#define AUTO_MEYERS_SINGLETON_DECL(Class)                                      \
 public:                                                                        \
-  static Class *instance() {                                                   \
+  static Class *instance();
+
+#define AUTO_MEYERS_SINGLETON_QML_DECL(Class)                                  \
+  AUTO_MEYERS_SINGLETON_DECL(Class)                                            \
+  static Class *create(QQmlEngine *qmlEngine, QJSEngine * /*unused*/);
+
+#define AUTO_MEYERS_SINGLETON_IMPL(Class)                                      \
+  Class *Class::instance() {                                                   \
     static Class *s_instance = new Class();                                    \
     return s_instance;                                                         \
   }
 
-#define AUTO_MEYERS_SINGLETON_QML(Class)                                       \
-  AUTO_MEYERS_SINGLETON(Class)                                                 \
-  static Class *create(QQmlEngine *qmlEngine, QJSEngine * /*unused*/) {        \
+#define AUTO_MEYERS_SINGLETON_QML_IMPL(Class)                                  \
+  AUTO_MEYERS_SINGLETON_IMPL(Class)                                            \
+  Class *Class::create(QQmlEngine *qmlEngine, QJSEngine *) {                   \
     auto inst = instance();                                                    \
     if (qmlEngine)                                                             \
       qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);           \

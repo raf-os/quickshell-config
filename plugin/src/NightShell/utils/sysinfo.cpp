@@ -5,6 +5,8 @@
 #include <qlogging.h>
 #include <qobject.h>
 
+#include "helpermacros.h"
+
 namespace ns::utils {
 SysInfo::SysInfo(QObject *parent) : QObject(parent) {
   auto osfile = QFile("/etc/os-release");
@@ -38,6 +40,8 @@ SysInfo::SysInfo(QObject *parent) : QObject(parent) {
     }
   }
 }
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(SysInfo)
 
 QString SysInfo::name() const { return m_name; }
 QString SysInfo::id() const { return m_id; }

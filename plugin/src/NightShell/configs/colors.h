@@ -35,7 +35,7 @@ public:
 
 class Colors : public QObject {
   Q_OBJECT
-  AUTO_MEYERS_SINGLETON(Colors)
+  AUTO_MEYERS_SINGLETON_DECL(Colors)
 
   Q_PROPERTY(ns::configs::ColorThemeMetadata *metadata READ metadata CONSTANT)
   Q_PROPERTY(ns::configs::ColorData *current READ current NOTIFY currentChanged)

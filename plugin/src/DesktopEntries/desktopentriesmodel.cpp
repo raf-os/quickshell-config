@@ -16,44 +16,35 @@
 #include <qvariant.h>
 #include <rapidfuzz/fuzz.hpp>
 
-#include "config.h"
 #include "desktopentry.h"
 #include "entrymanager.h"
-#include "generated/launcherconfig.h"
+#include "statemanager.h"
 
 namespace ns::desktop::entries {
 Q_DECLARE_LOGGING_CATEGORY(logNSDesktopEntries)
 
 DesktopEntriesModel::DesktopEntriesModel(QObject *parent)
-    : QAbstractListModel(parent),
-      m_manager(EntryManager::instance()) {
+    : QAbstractListModel(parent), m_manager(EntryManager::instance()) {
   m_debouncer.setInterval(250);
   m_debouncer.setSingleShot(true);
 
-  QObject::connect(&m_debouncer,
-                   &QTimer::timeout,
-                   this,
-                   &DesktopEntriesModel::onDebounceTimeout);
+  QObject::connect(&m_debouncer, &QTimer::timeout, this,
+      &DesktopEntriesModel::onDebounceTimeout);
 
   this->onEntriesChanged();
 
-  QObject::connect(m_manager,
-                   &EntryManager::applicationsChanged,
-                   this,
-                   &DesktopEntriesModel::onEntriesChanged);
-  QObject::connect(m_manager,
-                   &EntryManager::applicationsFrequencyChanged,
-                   this,
-                   &DesktopEntriesModel::reSortEntries);
+  QObject::connect(m_manager, &EntryManager::applicationsChanged, this,
+      &DesktopEntriesModel::onEntriesChanged);
+  QObject::connect(m_manager, &EntryManager::applicationsFrequencyChanged, this,
+      &DesktopEntriesModel::reSortEntries);
   QObject::connect(
       m_manager, &QObject::destroyed, this, [this]() { this->deleteLater(); });
 
-  this->onFavoriteEntriesChanged();
+  sortEntries(m_entries);
 
-  QObject::connect(myqmlplugin::configs::Config::instance()->launcher(),
-                   &myqmlplugin::configs::LauncherConfig::favoriteAppsChanged,
-                   this,
-                   &DesktopEntriesModel::onFavoriteEntriesChanged);
+  auto sm = utils::StateManager::instance();
+  QObject::connect(sm, &utils::StateManager::favoriteAppsChanged, this,
+      &DesktopEntriesModel::onFavoriteEntriesChanged);
 }
 
 qint32 DesktopEntriesModel::rowCount(const QModelIndex &parent) const {
@@ -61,8 +52,8 @@ qint32 DesktopEntriesModel::rowCount(const QModelIndex &parent) const {
   return static_cast<qint32>(this->m_entries.size());
 }
 
-QVariant DesktopEntriesModel::data(const QModelIndex &index,
-                                   qint32             role) const {
+QVariant DesktopEntriesModel::data(
+    const QModelIndex &index, qint32 role) const {
   if (!index.isValid()) return {};
 
   switch (role) {
@@ -72,8 +63,7 @@ QVariant DesktopEntriesModel::data(const QModelIndex &index,
   }
 }
 
-bool DesktopEntriesModel::sortCompare(DesktopEntry *a,
-                                      DesktopEntry *b) {
+bool DesktopEntriesModel::sortCompare(DesktopEntry *a, DesktopEntry *b) {
   return a->bindableName().value().localeAwareCompare(
              b->bindableName().value()) < 0;
 };
@@ -104,7 +94,7 @@ void DesktopEntriesModel::applyFilters(QList<DesktopEntry *> &list) {
 }
 
 bool DesktopEntriesModel::isEntryFavorite(DesktopEntry *entry) {
-  return m_favoriteEntries.contains(entry->id());
+  return utils::StateManager::instance()->favoriteApps().contains(entry->id());
 }
 
 bool DesktopEntriesModel::isEntryFiltered(const DesktopEntry *entry) {
@@ -127,17 +117,15 @@ void DesktopEntriesModel::onEntriesChanged() {
 }
 
 void DesktopEntriesModel::onFavoriteEntriesChanged() {
-  auto newFavs =
-      myqmlplugin::configs::Config::instance()->launcher()->favoriteApps();
+  auto tempEntries = m_entries;
+  sortEntries(tempEntries);
 
-  if (newFavs == m_favoriteEntries) return;
-
-  m_favoriteEntries = newFavs;
-
-  this->beginResetModel();
-  sortEntries(m_entries);
-  this->endResetModel();
-  emit entryListChanged();
+  if (tempEntries != m_entries) {
+    this->beginResetModel();
+    m_entries = tempEntries;
+    this->endResetModel();
+    emit entryListChanged();
+  }
 }
 
 QString DesktopEntriesModel::queryString() const { return m_queryString; }
@@ -183,7 +171,8 @@ void DesktopEntriesModel::onDebounceTimeout() {
   rapidfuzz::fuzz::CachedPartialRatio<char> scorer(qstr);
 
   for (auto it = originalEntries.constBegin(); it != originalEntries.constEnd();
-       ++it) {
+      ++it)
+  {
     const auto entry = it.value();
 
     if (isEntryFiltered(entry)) continue;
@@ -252,24 +241,21 @@ void DesktopEntriesModel::resetAllFilters() {
   emit entryListChanged();
 }
 
-DesktopEntry *
-DesktopEntriesModel::entryListAt(QQmlListProperty<DesktopEntry> *property,
-                                 qsizetype                       index) {
+DesktopEntry *DesktopEntriesModel::entryListAt(
+    QQmlListProperty<DesktopEntry> *property, qsizetype index) {
   auto list = static_cast<QList<DesktopEntry *> *>(property->data);
   return list->at(index);
 }
 
-qsizetype
-DesktopEntriesModel::entryListCount(QQmlListProperty<DesktopEntry> *property) {
+qsizetype DesktopEntriesModel::entryListCount(
+    QQmlListProperty<DesktopEntry> *property) {
   auto list = static_cast<QList<DesktopEntry *> *>(property->data);
   return list->count();
 }
 
 // Returns read-only list
 QQmlListProperty<DesktopEntry> DesktopEntriesModel::entryList() {
-  return QQmlListProperty<DesktopEntry>(this,
-                                        &m_entries,
-                                        &DesktopEntriesModel::entryListCount,
-                                        &DesktopEntriesModel::entryListAt);
+  return QQmlListProperty<DesktopEntry>(this, &m_entries,
+      &DesktopEntriesModel::entryListCount, &DesktopEntriesModel::entryListAt);
 }
 } // namespace ns::desktop::entries

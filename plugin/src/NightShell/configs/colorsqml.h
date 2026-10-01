@@ -13,7 +13,7 @@ class ColorsQML : public QObject {
   QML_NAMED_ELEMENT(Colors)
   QML_SINGLETON
 
-  AUTO_MEYERS_SINGLETON_QML(ColorsQML)
+  AUTO_MEYERS_SINGLETON_QML_DECL(ColorsQML)
 
 #define C(Name, Value) AUTO_BINDABLE_DEFAULT(ColorsQML, QColor, Name, Value)
 #include "colors.def"

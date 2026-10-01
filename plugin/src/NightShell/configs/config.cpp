@@ -19,6 +19,7 @@
 #include <qtimer.h>
 #include <qvariant.h>
 
+#include "helpermacros.h"
 #include "paths.h"
 
 #define CONFIG_FILE_NAME "/configs.json"
@@ -43,6 +44,8 @@ Config::Config(QObject *parent) : QObject(parent) {
 
   onConfigFileChanged();
 }
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(Config)
 
 #define X(Type, Name)                                                          \
   Type *Config::Name() { return &m_##Name; }

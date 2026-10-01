@@ -15,7 +15,7 @@ class NS_SERVICES_EXPORT SystemTime : public QObject {
   QML_ELEMENT
   QML_SINGLETON
 
-  AUTO_MEYERS_SINGLETON_QML(SystemTime)
+  AUTO_MEYERS_SINGLETON_QML_DECL(SystemTime)
 
   Q_PROPERTY(QDateTime date READ date NOTIFY dateChanged)
   AUTO_BINDABLE_WRITABLE_DEFAULT(SystemTime, bool, enabled, true)

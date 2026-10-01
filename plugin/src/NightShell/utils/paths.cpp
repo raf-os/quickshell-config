@@ -16,11 +16,11 @@ void Paths::setupDefaultPaths() {
 
     b_config = qEnvironmentVariable("XDG_CONFIG_HOME", m_home + "/.config") +
                m_shellFolder;
-    b_state  = qEnvironmentVariable("XDG_STATE_HOME", m_home + "/.config") +
-               m_shellFolder;
-    b_cache  = qEnvironmentVariable("XDG_CACHE_HOME", m_home + "/.config") +
-               m_shellFolder;
-    b_data   = DATADIR_DEFAULT_PATH;
+    b_state = qEnvironmentVariable("XDG_STATE_HOME", m_home + "/.local/state") +
+              m_shellFolder;
+    b_cache = qEnvironmentVariable("XDG_CACHE_HOME", m_home + "/.cache") +
+              m_shellFolder;
+    b_data  = DATADIR_DEFAULT_PATH;
     b_hyprConfig = m_home + "/.config/hypr";
   }
 

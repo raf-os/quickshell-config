@@ -1,9 +1,8 @@
 #include "entrycacher.h"
-#include "entryscanner.h"
-#include "entryutils.h"
-#include "paths.h"
 
 #include <optional>
+#include <utility>
+
 #include <qbuffer.h>
 #include <qdatetime.h>
 #include <qdir.h>
@@ -19,7 +18,10 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qstringview.h>
-#include <utility>
+
+#include "entryscanner.h"
+#include "entryutils.h"
+#include "paths.h"
 
 namespace ns::desktop::entries {
 Q_DECLARE_LOGGING_CATEGORY(logNSDesktopEntries) // from entrymanager.cpp
@@ -28,7 +30,7 @@ EntryCacher::EntryCacher(QObject *parent) : QObject(parent) {}
 
 // If `true` is returned, it means cache values are still ok
 bool EntryCacher::isCacheValid() {
-  const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
+  const auto cachePath = utils::Paths::instance()->bindableCache().value();
 
   QFile cacheFile(cachePath + "/" + m_dateCacheFilename);
   if (!cacheFile.exists()) {
@@ -73,8 +75,7 @@ bool EntryCacher::isCacheValid() {
     }
 
     QFileInfo _dir(path);
-    if (!_dir.exists())
-      continue;
+    if (!_dir.exists()) continue;
 
     auto lastModified = _dir.lastModified().toSecsSinceEpoch();
     auto cacheDate    = it.value().toString().toLongLong();
@@ -89,11 +90,10 @@ bool EntryCacher::isCacheValid() {
 }
 
 std::optional<QList<EntryData>> EntryCacher::readFromCache() {
-  const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
+  const auto cachePath = utils::Paths::instance()->bindableCache().value();
   QFile      file(cachePath + "/" + m_caheFilename);
 
-  if (!file.exists())
-    return std::nullopt;
+  if (!file.exists()) return std::nullopt;
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     return std::nullopt;
@@ -115,8 +115,7 @@ std::optional<QList<EntryData>> EntryCacher::readFromCache() {
   QList<EntryData> data;
 
   for (auto it = jRoot.constBegin(); it != jRoot.constEnd(); ++it) {
-    if (!it.value().isObject())
-      continue;
+    if (!it.value().isObject()) continue;
     auto id = it.key();
     // if (data.contains(id)) {
     //   qCDebug(logNSDesktopEntries)
@@ -165,8 +164,7 @@ std::optional<QList<EntryData>> EntryCacher::readFromCache() {
       auto actionList = _aList.toObject();
 
       for (const auto &act : actionList) {
-        if (!act.isObject())
-          continue;
+        if (!act.isObject()) continue;
         auto actData = act.toObject();
 
         auto actName    = actData.value("Name").toString();
@@ -201,8 +199,7 @@ void EntryCacher::saveToCache(const QList<EntryData> &data) {
     QJsonObject jEntry;
 
     auto eId = entry.id;
-    if (jsonRoot.contains(eId))
-      continue;
+    if (jsonRoot.contains(eId)) continue;
 
     jEntry.insert("Name", QJsonValue(entry.name));
     jEntry.insert("GenericName", QJsonValue(entry.genericName));
@@ -232,7 +229,7 @@ void EntryCacher::saveToCache(const QList<EntryData> &data) {
     jsonRoot.insert(eId, jEntry);
   }
 
-  const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
+  const auto cachePath = utils::Paths::instance()->bindableCache().value();
   QFile      file(cachePath + "/" + m_caheFilename);
 
   if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -255,15 +252,14 @@ void EntryCacher::recordDirectoryModificationDates() {
   for (const auto &path : paths) {
     QFileInfo fileInfo(path);
 
-    if (!fileInfo.exists())
-      continue;
+    if (!fileInfo.exists()) continue;
 
     auto curModDate =
         QString::number(fileInfo.lastModified().toSecsSinceEpoch());
     jObj.insert(path, QJsonValue(curModDate));
   }
 
-  const auto cachePath = myqmlplugin::utils::Paths::instance()->cache();
+  const auto cachePath = utils::Paths::instance()->bindableCache().value();
   QFile      file(cachePath + "/" + m_dateCacheFilename);
 
   if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {

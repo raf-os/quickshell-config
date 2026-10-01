@@ -14,7 +14,7 @@ class NetworkService : public QObject {
   QML_SINGLETON
   QML_ELEMENT
 
-  AUTO_MEYERS_SINGLETON_QML(NetworkService)
+  AUTO_MEYERS_SINGLETON_QML_DECL(NetworkService)
 
   Q_PROPERTY(bool isConnecting READ isConnecting NOTIFY connectivityChanged)
   Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectivityChanged)

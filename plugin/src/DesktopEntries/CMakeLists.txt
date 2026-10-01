@@ -20,13 +20,19 @@ target_sources(
 
 target_include_directories(
   nightshell_desktop_entries
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_compile_definitions(
+  nightshell_desktop_entries
+  PRIVATE NS_DESKTOPENTRIES_SHARED_LIB
 )
 
 qt6_add_qml_module(
   nightshell_desktop_entries
   URI "${ORG_URI_PREFIX}.DesktopEntries"
   VERSION 0.1
+  DEPENDENCIES "${ORG_URI_PREFIX}.Utils"
 )
 
 target_link_libraries(
@@ -36,9 +42,8 @@ target_link_libraries(
     Qt6::Qml
     Qt6::Sql
     rapidfuzz::rapidfuzz
-    myshell_utils
-    myshell_interfaces
-    myshell_configs
+    nightshell_utils
+    nightshell_includes
 )
 
 install_qml_module(nightshell_desktop_entries)

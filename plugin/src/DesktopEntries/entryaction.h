@@ -6,10 +6,12 @@
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
+#include "ns_desktopentries_shared_global.h"
+
 namespace ns::desktop::entries {
 class DesktopEntry;
 
-class EntryAction : public QObject {
+class NS_DESKTOPENTRIES_EXPORT EntryAction : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_UNCREATABLE("")
@@ -17,15 +19,15 @@ class EntryAction : public QObject {
   Q_PROPERTY(QString id READ getId CONSTANT)
 
   Q_PROPERTY(QString name READ default WRITE default NOTIFY nameChanged BINDABLE
-                 bindableName)
+          bindableName)
   Q_PROPERTY(QString icon READ default WRITE default NOTIFY iconChanged BINDABLE
-                 bindableIcon)
-  Q_PROPERTY(QStringList command READ default WRITE default NOTIFY
-                 commandChanged BINDABLE bindableCommand)
+          bindableIcon)
+  Q_PROPERTY(
+      QStringList command READ default WRITE default NOTIFY commandChanged
+          BINDABLE bindableCommand)
 
 public:
-  explicit EntryAction(QString       id,
-                       DesktopEntry *entry = nullptr);
+  explicit EntryAction(QString id, DesktopEntry *entry = nullptr);
 
   Q_INVOKABLE void execute();
   DesktopEntry    *entry();
@@ -47,18 +49,12 @@ private:
   DesktopEntry *m_entry;
   QString       m_id;
 
-  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::EntryAction,
-                             QString,
-                             m_name,
-                             &EntryAction::nameChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::EntryAction,
-                             QString,
-                             m_icon,
-                             &EntryAction::iconChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::EntryAction,
-                             QStringList,
-                             m_command,
-                             &EntryAction::commandChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::EntryAction, QString, m_name,
+      &EntryAction::nameChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::EntryAction, QString, m_icon,
+      &EntryAction::iconChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(ns::desktop::entries::EntryAction, QStringList,
+      m_command, &EntryAction::commandChanged)
 
   friend class DesktopEntry;
 };

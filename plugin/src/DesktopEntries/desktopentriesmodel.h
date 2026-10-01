@@ -1,7 +1,5 @@
 #pragma once
 
-#include "desktopentry.h"
-#include "entrymanager.h"
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qhash.h>
@@ -16,17 +14,21 @@
 #include <qtypes.h>
 #include <qvariant.h>
 
+#include "desktopentry.h"
+#include "entrymanager.h"
+#include "ns_desktopentries_shared_global.h"
+
 namespace ns::desktop::entries {
-class DesktopEntriesModel : public QAbstractListModel {
+class NS_DESKTOPENTRIES_EXPORT DesktopEntriesModel : public QAbstractListModel {
   Q_OBJECT
   QML_ELEMENT
 
   Q_PROPERTY(QQmlListProperty<ns::desktop::entries::DesktopEntry> entryList READ
-                 entryList NOTIFY entryListChanged)
+          entryList NOTIFY entryListChanged)
   Q_PROPERTY(QString queryString READ queryString WRITE setQueryString NOTIFY
-                 queryStringChanged)
+          queryStringChanged)
   Q_PROPERTY(bool hideTerminalOnly READ hideTerminalOnly WRITE
-                 setHideTerminalOnly NOTIFY hideTerminalOnlyChanged)
+          setHideTerminalOnly NOTIFY hideTerminalOnlyChanged)
 
 public:
   explicit DesktopEntriesModel(QObject *parent = nullptr);
@@ -34,17 +36,14 @@ public:
   enum Roles {
     ModelDataRole = Qt::UserRole + 1,
   };
-  QHash<int,
-        QByteArray>
-  roleNames() const override {
+  QHash<int, QByteArray> roleNames() const override {
     return {
         {Roles::ModelDataRole, "modelData"}
     };
   }
 
   qint32   rowCount(const QModelIndex &parent = {}) const override;
-  QVariant data(const QModelIndex &index,
-                qint32             role) const override;
+  QVariant data(const QModelIndex &index, qint32 role) const override;
 
   [[nodiscard]] QString queryString() const;
   void                  setQueryString(const QString &value);
@@ -54,8 +53,7 @@ public:
 
   [[nodiscard]] QQmlListProperty<DesktopEntry> entryList();
 
-  static bool sortCompare(DesktopEntry *a,
-                          DesktopEntry *b);
+  static bool sortCompare(DesktopEntry *a, DesktopEntry *b);
 
   void sortEntries(QList<DesktopEntry *> &list);
   void applyFilters(QList<DesktopEntry *> &list);
@@ -81,7 +79,6 @@ private:
   EntryManager         *m_manager;
   QList<DesktopEntry *> m_entries;
   QList<DesktopEntry *> m_filteredEntries;
-  QStringList           m_favoriteEntries;
   quint32               m_filters = 0;
 
   QString m_queryString;
@@ -93,8 +90,8 @@ private:
     QString query            = "";
   } m_previousState;
 
-  static DesktopEntry *entryListAt(QQmlListProperty<DesktopEntry> *property,
-                                   qsizetype                       index);
-  static qsizetype     entryListCount(QQmlListProperty<DesktopEntry> *property);
+  static DesktopEntry *entryListAt(
+      QQmlListProperty<DesktopEntry> *property, qsizetype index);
+  static qsizetype entryListCount(QQmlListProperty<DesktopEntry> *property);
 };
 } // namespace ns::desktop::entries

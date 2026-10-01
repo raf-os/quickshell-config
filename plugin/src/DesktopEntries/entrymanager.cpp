@@ -27,28 +27,24 @@
 #include <qtypes.h>
 #include <quuid.h>
 
-#include "config.h"
 #include "desktopentry.h"
 #include "entryaction.h"
 #include "entrycacher.h"
 #include "entrymonitor.h"
 #include "entryscanner.h"
 #include "paths.h"
+#include "statemanager.h"
 
 namespace ns::desktop::entries {
-Q_LOGGING_CATEGORY(logNSDesktopEntries,
-                   "nightshell.desktop.entries",
-                   QtWarningMsg)
+Q_LOGGING_CATEGORY(
+    logNSDesktopEntries, "nightshell.desktop.entries", QtWarningMsg)
 
 EntryManager::EntryManager(QObject *parent)
-    : QObject(parent),
-      m_monitor(new EntryMonitor(this)),
+    : QObject(parent), m_monitor(new EntryMonitor(this)),
       m_entryCacher(new EntryCacher(this)),
       m_uuid(QUuid::createUuid().toString()) {
-  QObject::connect(m_monitor,
-                   &EntryMonitor::entriesChanged,
-                   this,
-                   &EntryManager::scanDesktopEntries);
+  QObject::connect(m_monitor, &EntryMonitor::entriesChanged, this,
+      &EntryManager::scanDesktopEntries);
 
   if (QSqlDatabase::drivers().contains("QSQLITE")) {
     auto db = QSqlDatabase::addDatabase("QSQLITE", m_uuid);
@@ -95,7 +91,7 @@ QSqlError EntryManager::initDb() {
     return db.lastError();
   }
   const auto path =
-      myqmlplugin::utils::Paths::instance()->state() + "/appdb.sqlite";
+      utils::Paths::instance()->bindableState().value() + "/appdb.sqlite";
   db.setDatabaseName(path);
   if (!db.open()) {
     return db.lastError();
@@ -144,8 +140,7 @@ void EntryManager::incrementFrequencyFor(DesktopEntry *target) {
 }
 
 void EntryManager::executeGeneric(const QStringList &cmd,
-                                  const QString     &workingDirectory,
-                                  DesktopEntry      *reference) {
+    const QString &workingDirectory, DesktopEntry *reference) {
   if (cmd.size() < 1) return;
 
   this->incrementFrequencyFor(reference);
@@ -191,10 +186,8 @@ void EntryManager::scanDesktopEntries() {
   m_scanInProgress = true;
   m_scanQueued     = false;
   auto scanner     = new DesktopEntryScanner(this);
-  QObject::connect(scanner,
-                   &DesktopEntryScanner::scanCompleted,
-                   this,
-                   &EntryManager::onScanCompleted);
+  QObject::connect(scanner, &DesktopEntryScanner::scanCompleted, this,
+      &EntryManager::onScanCompleted);
   QThreadPool::globalInstance()->start(scanner);
 }
 
@@ -296,23 +289,18 @@ DesktopEntry *EntryManager::findEntry(const QString &name) {
 }
 
 void EntryManager::toggleFavorite(DesktopEntry *target) {
-  auto       lconfig = myqmlplugin::configs::Config::instance()->launcher();
-  auto       curApps = lconfig->favoriteApps();
-  const auto idx     = lconfig->favoriteApps().indexOf(target->id());
-  if (idx == -1) {
-    curApps.append(target->id());
-    lconfig->setFavoriteApps(std::move(curApps));
-  } else {
-    curApps.removeAt(idx);
-    lconfig->setFavoriteApps(std::move(curApps));
-  }
+  auto       sm    = utils::StateManager::instance();
+  auto       favs  = sm->favoriteApps();
+  const auto appId = target->id();
 
-  myqmlplugin::configs::Config::instance()->saveConfigs();
+  if (favs.contains(appId)) {
+    sm->removeFavoriteApp(appId);
+  } else {
+    sm->addFavoriteApp(appId);
+  }
 }
 
-QHash<QString,
-      DesktopEntry *>
-EntryManager::getEntries() const {
+QHash<QString, DesktopEntry *> EntryManager::getEntries() const {
   return m_desktopEntries;
 }
 } // namespace ns::desktop::entries
