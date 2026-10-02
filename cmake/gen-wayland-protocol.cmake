@@ -72,6 +72,8 @@ function(gen_wayland_protocol target name dir)
       PRIVATE ${WS_CLIENT_BODY} ${QWS_CLIENT_BODY}
     )
 
+    set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
     target_include_directories(${target} PUBLIC ${PROTO_BUILD_PATH})
 
     target_link_libraries(

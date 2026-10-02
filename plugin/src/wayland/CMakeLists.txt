@@ -65,10 +65,18 @@ add_subdirectory(wlr)
 add_subdirectory(toplevels)
 add_subdirectory(screencopy)
 add_subdirectory(input-inhibit)
+add_subdirectory(session-lock)
 
 qt6_add_library(nightshell_wayland SHARED)
 
-target_sources(nightshell_wayland PRIVATE screencopy/screencopy_qml_view.cpp)
+target_sources(
+  nightshell_wayland
+  PRIVATE
+    wayland_logging.cpp
+    screencopy/screencopy_qml_view.cpp
+    session-lock/qml_session_lock.cpp
+    session-lock/qml_lock_surface.cpp
+)
 
 target_include_directories(
   nightshell_wayland
@@ -99,6 +107,7 @@ target_link_libraries(
     nightshell_wayland_buffer
     nightshell_wayland_toplevels
     nightshell_wayland_wlr
+    nightshell_wayland_sessionlock
     nightshell_hyprland
 )
 

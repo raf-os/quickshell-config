@@ -1,5 +1,8 @@
 My own personal quickshell config.
 
+> [!NOTE]
+> The shell is currently being rewritten to be independent from quickshell, a bit more compositor agnostic, and to have a more unique appearance.
+
 Requires quickshell and all its dependencies.
 
 A bunch of the early code and structure was based off of the [Caelestia](https://github.com/caelestia-dots/shell) shell. It's more feature complete and customizable, so maybe go check it out if it interests you.
@@ -37,10 +40,9 @@ exec-once = quickshell -c myshell
 
 This list is incomplete as of now
 
+* Qt6 version >= 6.10.0
 * [Hyprland](https://hypr.land/)
-* app2unit
 * NetworkManager
-* libxml2
 * libcanberra
 
 ### Optional build dependencies
