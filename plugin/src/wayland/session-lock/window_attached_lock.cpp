@@ -21,6 +21,7 @@ WindowAttachedLock::~WindowAttachedLock() {
 LockSurface *WindowAttachedLock::getSurface() { return m_surface; }
 
 WindowAttachedLock *WindowAttachedLock::getForWindow(QWindow *window) {
+  if (!window) return nullptr;
   auto v = window->property("sessionlock_attached");
 
   if (v.canConvert<WindowAttachedLock *>()) {

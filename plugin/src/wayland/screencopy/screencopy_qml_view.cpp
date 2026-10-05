@@ -40,10 +40,8 @@ void ScreencopyQMLView::componentComplete() {
 
   auto *bufManager = buffer::WlBufferManager::instance();
   if (!bufManager->isReady()) {
-    QObject::connect(bufManager,
-                     &buffer::WlBufferManager::ready,
-                     this,
-                     &ScreencopyQMLView::onBuffersReady);
+    QObject::connect(bufManager, &buffer::WlBufferManager::ready, this,
+        &ScreencopyQMLView::onBuffersReady);
 
     bufManager->initWindow(this->window());
   } else {
@@ -77,9 +75,8 @@ QObject *ScreencopyQMLView::captureSource() const { return m_captureSource; }
 void     ScreencopyQMLView::setCaptureSource(QObject *source) {
   QObject *resolvedSource = nullptr;
 
-  auto validateAndConnect =
-      [this, &resolvedSource](QObject              *resolved,
-                              std::function<void()> ifNewFn) -> bool {
+  auto validateAndConnect = [this, &resolvedSource](QObject *resolved,
+                                std::function<void()>        ifNewFn) -> bool {
     if (resolved == m_captureSource) return false;
     else {
       resolvedSource = resolved;
@@ -94,17 +91,15 @@ void     ScreencopyQMLView::setCaptureSource(QObject *source) {
 
   if (auto *wlrsource = qobject_cast<hyprland::ToplevelInstance *>(source)) {
     auto wlh = wlrsource->waylandHandle();
-    if (!validateAndConnect(wlh, [this, wlrsource] {
-          m_sourceChangeConnection = QObject::connect(
-              wlrsource,
-              &hyprland::ToplevelInstance::waylandHandleChanged,
-              this,
-              [this, wlrsource] { this->setCaptureSource(wlrsource); });
-        })) {
+    if (!validateAndConnect(wlh,
+            [this, wlrsource] {
+              m_sourceChangeConnection = QObject::connect(wlrsource,
+                  &hyprland::ToplevelInstance::waylandHandleChanged, this,
+                  [this, wlrsource] { this->setCaptureSource(wlrsource); });
+            }))
+    {
       QObject::connect(
-          wlrsource,
-          &hyprland::ToplevelInstance::waylandHandleChanged,
-          this,
+          wlrsource, &hyprland::ToplevelInstance::waylandHandleChanged, this,
           [this, wlrsource] { this->setCaptureSource(wlrsource); },
           Qt::SingleShotConnection);
       return;
@@ -121,10 +116,8 @@ void     ScreencopyQMLView::setCaptureSource(QObject *source) {
 
   if (resolvedSource) {
     m_sourceCleanupConnection =
-        QObject::connect(resolvedSource,
-                         &QObject::destroyed,
-                         this,
-                         &ScreencopyQMLView::onCaptureSourceDestroyed);
+        QObject::connect(resolvedSource, &QObject::destroyed, this,
+            &ScreencopyQMLView::onCaptureSourceDestroyed);
 
     if (m_isCompleted) {
       this->createContext();
@@ -147,15 +140,11 @@ void ScreencopyQMLView::createContext() {
 
   m_context->setParent(this);
 
-  QObject::connect(m_context,
-                   &ScreencopyContext::stopped,
-                   this,
-                   &ScreencopyQMLView::onContextStopped);
+  QObject::connect(m_context, &ScreencopyContext::stopped, this,
+      &ScreencopyQMLView::onContextStopped);
 
-  QObject::connect(m_context,
-                   &ScreencopyContext::frameCaptured,
-                   this,
-                   &ScreencopyQMLView::onFrameCaptured);
+  QObject::connect(m_context, &ScreencopyContext::frameCaptured, this,
+      &ScreencopyQMLView::onFrameCaptured);
 
   if (m_queuedContextCapture) {
     m_queuedContextCapture = false;
@@ -211,8 +200,8 @@ void ScreencopyQMLView::deleteContext(bool shouldUpdate) {
   }
 }
 
-QSGNode *ScreencopyQMLView::updatePaintNode(QSGNode *oldNode,
-                                            UpdatePaintNodeData * /*unused*/) {
+QSGNode *ScreencopyQMLView::updatePaintNode(
+    QSGNode *oldNode, UpdatePaintNodeData * /*unused*/) {
   if (!m_context || !b_hasContent) {
     delete oldNode;
     this->setFlag(QQuickItem::ItemHasContents, false);

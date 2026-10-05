@@ -7,6 +7,7 @@
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
+#include "helpermacros.h"
 #include "wallpapermanager.h"
 
 namespace ns::ipc::server {
@@ -15,34 +16,23 @@ class IPCServer : public QObject {
   QML_ELEMENT
   QML_SINGLETON
 
+  AUTO_MEYERS_SINGLETON_QML_DECL(IPCServer)
+
 public:
-  static IPCServer *instance() {
-    static IPCServer *s_instance = new IPCServer();
-    return s_instance;
-  }
-
-  static IPCServer *create(QQmlEngine *qmlEngine,
-                           QJSEngine * /* unused */) {
-    auto i = instance();
-    if (qmlEngine) qmlEngine->setObjectOwnership(i, QQmlEngine::CppOwnership);
-    return i;
-  }
-
   Q_INVOKABLE void setup() {
     // This is simply here to instantiate this from QML
   }
 
 public slots:
-  bool AppendWallpaper(const QString &path,
-                       const QString &fillMode,
-                       const int     &duration);
+  bool AppendWallpaper(
+      const QString &path, const QString &fillMode, const int &duration);
   bool AppendWallpaperDialog(const QString &path);
-  bool ChangeWallpaper(const QString &path,
-                       const QString &fillMode);
+  bool ChangeWallpaper(const QString &path, const QString &fillMode);
   bool NextWallpaper();
   bool ToggleLauncher();
   bool OpenLauncher();
   bool ToggleTaskSwitcher();
+  bool SessionLock();
 
 private slots:
   void setupWallpaperManagerConnections();
@@ -57,6 +47,7 @@ signals:
   void launcherToggleRequested();
   void launcherOpenRequested();
   void taskSwitcherToggleRequested();
+  void sessionLockRequested();
 
 private:
   explicit IPCServer(QObject *parent = nullptr);

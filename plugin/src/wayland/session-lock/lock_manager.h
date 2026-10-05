@@ -16,7 +16,9 @@ public:
 
   SessionLock       *acquireLock();
   [[nodiscard]] bool isLocked() const;
-  [[nodiscard]] bool isSecure() const;
+
+  static bool sessionLocked();
+  static bool isSecure();
 
   [[nodiscard]] SessionLock *getLock();
   void                       clearLock();

@@ -11,8 +11,7 @@
 #include "toplevels/wl_toplevel_handle.h"
 
 namespace ns::wayland::screencopy {
-Q_LOGGING_CATEGORY(logNSScreencopy,
-                   "ns.wayland.screencopy")
+Q_LOGGING_CATEGORY(logNSScreencopy, "ns.wayland.screencopy")
 
 static const std::string_view SC_ICC_INACTIVE_MANAGER_ERROR =
     "Unable to create context - ICC manager is not active. This could "
@@ -21,7 +20,8 @@ static const std::string_view SC_ICC_INACTIVE_MANAGER_ERROR =
 
 ScreencopyContext *ScreencopyManager::createContext(QObject *object) {
   if (auto toplevel =
-          qobject_cast<wayland::toplevels::WLToplevelHandle *>(object)) {
+          qobject_cast<wayland::toplevels::WLToplevelHandle *>(object))
+  {
     auto *manager = icc::IccManager::instance();
     if (!manager->isActive()) {
       qCWarning(logNSScreencopy) << SC_ICC_INACTIVE_MANAGER_ERROR;
@@ -35,7 +35,7 @@ ScreencopyContext *ScreencopyManager::createContext(QObject *object) {
       qCWarning(logNSScreencopy) << SC_ICC_INACTIVE_MANAGER_ERROR;
       return nullptr;
     }
-    auto ctx = manager->createContextFromToplevel(toplevel);
+    auto ctx = manager->createContextFromScreen(screen);
     return ctx;
   }
 

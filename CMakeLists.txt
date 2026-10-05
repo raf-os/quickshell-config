@@ -72,7 +72,7 @@ list(
   "/usr/local/lib"
 )
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 6.10.0 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup(REQUIRES 6.10.0)
 

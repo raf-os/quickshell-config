@@ -17,6 +17,7 @@ public:
   ~LockSurface() override;
   Q_DISABLE_COPY_MOVE(LockSurface)
 
+  [[nodiscard]] bool isExposed() const override;
   [[nodiscard]] bool isConfigured() const;
   void               applyConfigure() override;
 
@@ -29,7 +30,10 @@ private:
   void ext_session_lock_surface_v1_configure(
       quint32 serial, quint32 width, quint32 height) override;
 
+  // void initVisible();
+
   bool                m_configured = false;
+  bool                m_visible    = false;
   QSize               m_size;
   WindowAttachedLock *m_attachedLock = nullptr;
 };

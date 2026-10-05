@@ -73,6 +73,7 @@ target_sources(
   nightshell_wayland
   PRIVATE
     wayland_logging.cpp
+    eager_buffer_initializer.cpp
     screencopy/screencopy_qml_view.cpp
     session-lock/qml_session_lock.cpp
     session-lock/qml_lock_surface.cpp
@@ -80,7 +81,9 @@ target_sources(
 
 target_include_directories(
   nightshell_wayland
-  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/screencopy"
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/screencopy"
+    "${CMAKE_CURRENT_SOURCE_DIR}/session-lock"
 )
 
 qt6_add_qml_module(

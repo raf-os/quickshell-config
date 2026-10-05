@@ -40,8 +40,7 @@ void IccScreencopyContext::captureFrame() {
 
 // ext-image-copy-capture-session-v1
 void IccScreencopyContext::ext_image_copy_capture_session_v1_buffer_size(
-    uint32_t width,
-    uint32_t height) {
+    uint32_t width, uint32_t height) {
   this->clearOldState();
 
   m_request.width  = width;
@@ -70,8 +69,7 @@ void IccScreencopyContext::ext_image_copy_capture_session_v1_dmabuf_device(
 }
 
 void IccScreencopyContext::ext_image_copy_capture_session_v1_dmabuf_format(
-    uint32_t  format,
-    wl_array *modifiers) {
+    uint32_t format, wl_array *modifiers) {
   this->clearOldState();
 
   auto *modifierArray = reinterpret_cast<uint64_t *>(modifiers->data);
@@ -122,17 +120,13 @@ void IccScreencopyContext::commitCapture() {
 
   if (newBuffer) {
     // This buffer is empty, repaint the whole thing
-    CCAPTURE_FRAME::damage_buffer(0,
-                                  0,
-                                  static_cast<int>(m_request.width),
-                                  static_cast<int>(m_request.height));
+    CCAPTURE_FRAME::damage_buffer(0, 0, static_cast<int>(m_request.width),
+        static_cast<int>(m_request.height));
 
     m_lastDamage = QRect();
   } else if (!m_lastDamage.isEmpty()) {
-    CCAPTURE_FRAME::damage_buffer(m_lastDamage.x(),
-                                  m_lastDamage.y(),
-                                  m_lastDamage.width(),
-                                  m_lastDamage.height());
+    CCAPTURE_FRAME::damage_buffer(m_lastDamage.x(), m_lastDamage.y(),
+        m_lastDamage.width(), m_lastDamage.height());
 
     // Damage was already applied, clear it
     m_lastDamage = QRect();
@@ -148,10 +142,7 @@ void IccScreencopyContext::ext_image_copy_capture_frame_v1_transform(
 }
 
 void IccScreencopyContext::ext_image_copy_capture_frame_v1_damage(
-    int32_t x,
-    int32_t y,
-    int32_t width,
-    int32_t height) {
+    int32_t x, int32_t y, int32_t width, int32_t height) {
   m_damage = m_damage.united(QRect(x, y, width, height));
 }
 

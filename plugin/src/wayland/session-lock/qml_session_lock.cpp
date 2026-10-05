@@ -1,5 +1,7 @@
 #include "qml_session_lock.h"
 
+#include <algorithm>
+
 #include <private/qwaylandscreen_p.h>
 #include <qguiapplication.h>
 #include <qloggingcategory.h>
@@ -74,6 +76,12 @@ void SessionLockQML::realizeLockTarget() {
     }
 
     updateSurfaces(false);
+
+    if (!b_allCapturesReady.value()) {
+      guard.dismiss();
+      return;
+    }
+
     if (!manager->attemptLock()) {
       qCWarning(logNSWayland) << "Unable to acquire session lock. Aborting.";
       doUnlock();
@@ -105,6 +113,9 @@ void SessionLockQML::doUnlock() {
     surface->deleteLater();
   }
 
+  b_allCapturesReady = false;
+  m_isLocking        = false;
+  m_awaitingLock     = false;
   m_surfaces.clear();
 
   auto manager = sessionlock::LockManager::instance();
@@ -120,12 +131,12 @@ void SessionLockQML::updateSurfaces(bool show) {
         dynamic_cast<QtWaylandClient::QWaylandScreen *>(screen->handle());
     if (waylandScreen && !waylandScreen->isPlaceholder() &&
         waylandScreen->output())
-      return true;
-    return false;
+      return false;
+    return true;
   });
 
-  auto map = m_surfaces;
-  map.removeIf(
+  // auto map = m_surfaces;
+  m_surfaces.removeIf(
       [&screens, this](QMap<QScreen *, LockSurfaceQML *>::iterator it) {
         if (!screens.contains(it.key())) {
           it.value()->deleteLater();
@@ -147,8 +158,12 @@ void SessionLockQML::updateSurfaces(bool show) {
         return;
       }
 
+      QObject::connect(instance, &LockSurfaceQML::screenCopyReady, this,
+          &SessionLockQML::onScreencopyReady);
+
       instance->setParent(this);
       instance->setScreen(screen);
+      instance->setupWindow();
 
       m_surfaces[screen] = instance;
     }
@@ -163,6 +178,18 @@ void SessionLockQML::updateSurfaces(bool show) {
         surface->show();
       }
     }
+  }
+}
+
+void SessionLockQML::onScreencopyReady() {
+  const auto vals     = m_surfaces.values();
+  auto       allReady = std::ranges::all_of(vals.constBegin(), vals.constEnd(),
+      [](const LockSurfaceQML *l) { return l->isScreencopyReady(); });
+
+  if (allReady) {
+    b_allCapturesReady = true;
+    m_isLocking        = false;
+    realizeLockTarget();
   }
 }
 

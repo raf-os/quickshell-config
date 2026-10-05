@@ -36,7 +36,7 @@ qt_add_qml_module(
 
 target_link_libraries(
   nightshell_ipc_server
-  PRIVATE Qt::Core Qt::Qml Qt::DBus nightshell_wallpaper
+  PRIVATE Qt::Core Qt::Qml Qt::DBus nightshell_wallpaper nightshell_includes
 )
 
 target_link_libraries(nightshell_ipc_client PRIVATE Qt::Core Qt::DBus)

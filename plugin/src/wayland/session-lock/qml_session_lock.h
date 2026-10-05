@@ -5,6 +5,7 @@
 #include <qproperty.h>
 #include <qqmlcomponent.h>
 #include <qqmlintegration.h>
+#include <qquickwindow.h>
 #include <qscreen.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
@@ -26,7 +27,7 @@ class SessionLockQML : public QObject {
 
 public:
   explicit SessionLockQML(QObject *parent = nullptr);
-  ~SessionLockQML() override;
+  // ~SessionLockQML() override;
   Q_DISABLE_COPY_MOVE(SessionLockQML)
 
   [[nodiscard]] QQmlComponent *surfaceComponent() const;
@@ -40,7 +41,6 @@ public:
 public slots:
   void lock();
   void unlock();
-  void updateSurfaces(bool show);
 
 signals:
   void surfaceComponentChanged();
@@ -50,6 +50,8 @@ signals:
 private slots:
   void onScreensChanged();
   void doUnlock();
+  void updateSurfaces(bool show);
+  void onScreencopyReady();
 
 private:
   QQmlComponent                    *m_surfaceComponent = nullptr;
@@ -63,5 +65,7 @@ private:
       SessionLockQML, bool, b_isLocked, &SessionLockQML::isLockedChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
       SessionLockQML, bool, b_isSecure, &SessionLockQML::isSecureChanged)
+
+  Q_OBJECT_BINDABLE_PROPERTY(SessionLockQML, bool, b_allCapturesReady)
 };
 } // namespace ns::wayland

@@ -3,12 +3,14 @@
 #include <string_view>
 
 // clang-format off
-const std::string_view USAGE =
+constexpr std::string_view USAGE =
 R"#(usage: nsctl [flags] <command> [args...|--help]
 
 commands:
     wp (...)        Issue a wallpaper command
     launcher (...)  Issue a launcher command
+
+    lock            Issue a session lock command
 
 flags:
     --quiet, -q   Supress output messages
@@ -18,7 +20,7 @@ flags:
                       by an ellipsis (...).
 )#";
 
-const std::string_view WPHELP =
+constexpr std::string_view WPHELP =
 R"#(usage: nsctl [flags] wp [args...]
 
 Allows the user to request wallpaper changes. Supported file formats are jpg/jpeg and png.
@@ -41,7 +43,7 @@ commands:
               on the shell to properly configure settings.
 )#";
 
-const std::string_view LCHELP =
+constexpr std::string_view LCHELP =
 R"#(usage: nsctl [flags] launcher [args...]
 
 Allows the user to invoke the launcher.
@@ -51,7 +53,7 @@ commands:
     launcher toggle Same as above
     launcher open   Opens the launcher)#";
 
-const std::string_view INVALID_USAGE_HELP =
+constexpr std::string_view INVALID_USAGE_HELP =
 R"#(Invalid command provided. Type "nsctl -h" or "nsctl --help"
 for usage instructions.)#";
 // clang-format on

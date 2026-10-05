@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import org.nightshell.Utils
 import org.nightshell.Hyprland as N_HYPRLAND
+import org.nightshell.Wayland as N_WAYLAND
 
 import qs.components
 import qs.shapes as Shapes
@@ -49,6 +50,8 @@ Variants {
 				bottom: true
 				left: true
 			}
+
+			N_WAYLAND.EagerBufferInitializer {}
 
 			InstanceContext {
 				id: context

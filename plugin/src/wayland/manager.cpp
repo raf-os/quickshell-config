@@ -15,9 +15,7 @@
 #include "wlbufferrequest.h"
 
 namespace ns::wayland::buffer {
-Q_LOGGING_CATEGORY(logNSDmabuf,
-                   "ns.wl.dmbf2",
-                   QtWarningMsg)
+Q_LOGGING_CATEGORY(logNSDmabuf, "ns.wl.dmbf2", QtWarningMsg)
 
 WlBufferManager::WlBufferManager() : p(new WlBufferManagerPrivate(this)) {}
 
@@ -34,10 +32,7 @@ void WlBufferManager::initWindow(QQuickWindow *window) {
   static bool initWaiting = false;
 
   if (!window || !window->isSceneGraphInitialized()) {
-    if (initWaiting) return;
-    initWaiting = true;
-
-    if (window) {
+    if (window && !initWaiting) {
       // WARNING:
       // Quickshell queues these lambdas through their custom QsQuickWindowBase
       // - when one of them emits the scene graph initialization signal, it will
@@ -48,10 +43,11 @@ void WlBufferManager::initWindow(QQuickWindow *window) {
       // orders, possible race conditions, or maybe it's completely fine, and it
       // was done for a different internal reason. Testing and further
       // investigation is needed.
-      QObject::connect(window,
-                       &QQuickWindow::sceneGraphInitialized,
-                       this,
-                       [this, window]() { this->initWindow(window); });
+      initWaiting = true;
+      QObject::connect(window, &QQuickWindow::sceneGraphInitialized, this,
+          [this, window]() { this->initWindow(window); });
+    } else {
+      return;
     }
     return;
   }
@@ -118,8 +114,7 @@ WlBuffer *WlBufferManager::createBuffer(const WlBufferRequest &request) {
 }
 
 WlBufferManagerPrivate::WlBufferManagerPrivate(WlBufferManager *manager)
-    : manager(manager),
-      dmabuf(this) {}
+    : manager(manager), dmabuf(this) {}
 
 void WlBufferManagerPrivate::dmabufReady() {
   this->dmabufFormatsReady = true;

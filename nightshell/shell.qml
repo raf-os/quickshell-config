@@ -1,5 +1,6 @@
 import qs.modules as Modules
 import qs.modules.background
+import qs.modules.lockscreen
 
 import org.nightshell.Configs
 import org.nightshell.Notifications
@@ -16,6 +17,7 @@ ShellRoot {
 
 	Modules.Main {}
 	// Background {}
+	LockScreen {}
 
 	Connections {
 		target: Config.modules.enabledModules

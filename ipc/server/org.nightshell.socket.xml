@@ -28,6 +28,9 @@
     <method name="ToggleTaskSwitcher">
       <arg name="success" type="b" direction="out" />
     </method>
+    <method name="SessionLock">
+      <arg name="success" type="b" direction="out" />
+    </method>
     <signal name="WallpaperChanged">
       <arg name="path" type="s" direction="out" />
     </signal>

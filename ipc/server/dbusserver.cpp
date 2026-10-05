@@ -4,12 +4,14 @@
 #include <qloggingcategory.h>
 #include <qobject.h>
 
+#include "helpermacros.h"
 #include "ns_ipc_server.h"
 #include "wallpapermanager.h"
 
 namespace ns::ipc::server {
-Q_LOGGING_CATEGORY(logNSIpc,
-                   "nightshell.ipc")
+Q_LOGGING_CATEGORY(logNSIpc, "nightshell.ipc")
+
+AUTO_MEYERS_SINGLETON_QML_IMPL(IPCServer)
 
 IPCServer::IPCServer(QObject *parent)
     : QObject(parent),
@@ -25,7 +27,8 @@ IPCServer::IPCServer(QObject *parent)
   }
 
   if (!bus.registerService("org.nightshell.socket") ||
-      !bus.registerObject("/org/nightshell/socket", this)) {
+      !bus.registerObject("/org/nightshell/socket", this))
+  {
     qCWarning(logNSIpc) << "Unable to register IPC server with DBus. Is "
                            "another instance already running?";
     return;
@@ -40,9 +43,8 @@ void IPCServer::setupWallpaperManagerConnections() {
   if (!m_wallpaperManager) return;
 
   QObject::connect(m_wallpaperManager,
-                   &wallpaper::WallpaperManager::currentChanged,
-                   this,
-                   &IPCServer::onWallpaperChanged);
+      &wallpaper::WallpaperManager::currentChanged, this,
+      &IPCServer::onWallpaperChanged);
 }
 
 void IPCServer::onWallpaperChanged() {
@@ -62,9 +64,8 @@ void IPCServer::onWallpaperChanged() {
 }
 
 // DBUS SLOTS
-bool IPCServer::AppendWallpaper(const QString &path,
-                                const QString &fillMode,
-                                const int     &duration) {
+bool IPCServer::AppendWallpaper(
+    const QString &path, const QString &fillMode, const int &duration) {
   return false;
 }
 
@@ -73,8 +74,7 @@ bool IPCServer::AppendWallpaperDialog(const QString &path) {
   return false;
 }
 
-bool IPCServer::ChangeWallpaper(const QString &path,
-                                const QString &fillMode) {
+bool IPCServer::ChangeWallpaper(const QString &path, const QString &fillMode) {
   if (!m_wallpaperManager) return false;
 
   m_wallpaperManager->forceSingleWallpaper(path, fillMode);
@@ -102,6 +102,11 @@ bool IPCServer::OpenLauncher() {
 
 bool IPCServer::ToggleTaskSwitcher() {
   emit taskSwitcherToggleRequested();
+  return true;
+}
+
+bool IPCServer::SessionLock() {
+  emit sessionLockRequested();
   return true;
 }
 // DBUS SLOTS

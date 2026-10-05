@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "dbus.h"
 #include "logging.h"
@@ -27,6 +28,31 @@ static bool misc_open_launcher(::org::nightshell::socket *instance) {
     logError("Failed opening launcher.");
   }
   return 0;
+}
+
+static bool misc_session_lock(::org::nightshell::socket *instance) {
+  auto response = instance->SessionLock().value();
+  if (response) {
+    log("ok");
+  } else {
+    logError("Failed locking session.");
+  }
+  return 0;
+}
+
+bool parse_misc_command(const QString &cmd, QStringList &args) {
+  try {
+    auto instance = db::getInterface();
+
+    if (cmd == "launcher") return parse_launcher_command(args);
+    if (cmd == "lock") return misc_session_lock(instance);
+
+    logError("Invalid command: {}", cmd.toUtf8());
+    return 1;
+  } catch (const std::runtime_error &e) {
+    logError("Caught exception: {}", e.what());
+    return 1;
+  }
 }
 
 bool parse_launcher_command(QStringList &args) {

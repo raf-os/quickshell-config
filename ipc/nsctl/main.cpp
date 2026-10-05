@@ -1,5 +1,3 @@
-#include <filesystem>
-
 #include <print>
 #include <qcommandlineoption.h>
 #include <qcommandlineparser.h>
@@ -29,8 +27,7 @@ int usage(const QString &arg = "") {
   }
 }
 
-int main(int   argc,
-         char *argv[]) {
+int main(int argc, char *argv[]) {
   if (argc < 2) {
     return usage();
   }
@@ -69,10 +66,10 @@ int main(int   argc,
 
   if (cmd == "wp") {
     return wpp::parse_wallpaper_command(positionalArguments);
-  } else if (cmd == "launcher") {
-    return misc::parse_launcher_command(positionalArguments);
   } else {
-    std::println("{}", INVALID_USAGE_HELP);
-    return 1;
+    if (misc::parse_misc_command(cmd, positionalArguments)) {
+      std::println("{}", INVALID_USAGE_HELP);
+      return 1;
+    }
   }
 }
