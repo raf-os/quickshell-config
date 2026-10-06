@@ -18,6 +18,12 @@ Item {
 		}
 	}
 
+	LockAuth {
+		id: lockAuth
+
+		lockManager: lockManager
+	}
+
 	SessionLockManager {
 		id: lockManager
 

@@ -1,6 +1,8 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Qml DBus)
 find_program(XMLLINT xmllint)
 
+add_subdirectory(pam)
+
 if(XMLLINT)
   execute_process(
     COMMAND
@@ -22,7 +24,12 @@ qt6_add_library(nightshell_services SHARED)
 
 target_sources(
   nightshell_services
-  PRIVATE systemtime.cpp networkservice.cpp ${NM_GENERATED_SOURCES}
+  PRIVATE
+    systemtime.cpp
+    networkservice.cpp
+    pamqml.cpp
+    userdata.cpp
+    ${NM_GENERATED_SOURCES}
 )
 
 set_target_properties(
@@ -44,11 +51,17 @@ qt6_add_qml_module(
   URI "${ORG_URI_PREFIX}.Services"
   VERSION 0.1
   QML_FILES Time.qml
+  DEPENDENCIES "${ORG_URI_PREFIX}.Services.Pam"
 )
 
 target_link_libraries(
   nightshell_services
-  PRIVATE Qt6::Core Qt6::Qml Qt6::DBus nightshell_includes
+  PRIVATE
+    Qt6::Core
+    Qt6::Qml
+    Qt6::DBus
+    nightshell_includes
+    nightshell_services_pam
 )
 
 install_qml_module(nightshell_services)
