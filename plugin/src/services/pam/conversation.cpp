@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdlib>
+#include <string>
 
 #include <qloggingcategory.h>
 #include <qobject.h>
@@ -69,13 +70,15 @@ void PamConversation::onMessage() {
   });
 
   auto type = PamEvent::Exit;
-  auto ok   = m_pipes.readAsBytes(&type);
+  auto ok =
+      m_pipes.readBytes(reinterpret_cast<char *>(&type), sizeof(PamEvent));
   if (!ok) return;
 
   if (type == PamEvent::Exit) {
     auto code = PamExitCode::OtherError;
 
-    ok = m_pipes.readAsBytes(&code);
+    ok =
+        m_pipes.readBytes(reinterpret_cast<char *>(&code), sizeof(PamExitCode));
     if (!ok) return;
 
     qCDebug(logNSPam) << "Subprocess exited with code"
@@ -93,6 +96,17 @@ void PamConversation::onMessage() {
     waitpid(m_childPid, nullptr, 0);
     m_childPid = 0;
   } else if (type == PamEvent::Request) {
+    PamRequestFlags flags{};
+
+    ok = m_pipes.readBytes(
+        reinterpret_cast<char *>(&flags), sizeof(PamRequestFlags));
+    if (!ok) return;
+
+    auto message = m_pipes.readString(&ok);
+    if (!ok) return;
+
+    this->message(QString::fromUtf8(message), flags.echo, flags.error,
+        flags.responseRequired);
   }
 
   scope.dismiss();

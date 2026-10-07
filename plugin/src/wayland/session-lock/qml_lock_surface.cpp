@@ -39,6 +39,12 @@ LockSurfaceQML::LockSurfaceQML(QObject *parent)
         [this] { m_screenCopy->setWidth(m_contentItem->width()); });
     QObject::connect(m_contentItem, &QQuickItem::heightChanged, m_screenCopy,
         [this] { m_screenCopy->setHeight(m_contentItem->height()); });
+    QObject::connect(m_screenCopy,
+        &screencopy::ScreencopyQMLView::hasContentChanged, this, [this] {
+          if (!m_screenCopy || !m_screenCopy->bindableHasContent().value())
+            return;
+          emit screenCopyReady();
+        });
     onScreenCopyCreated();
   };
 
@@ -77,9 +83,9 @@ void LockSurfaceQML::onScreenCopyCreated() {
   if (!m_screen) return;
 
   m_screenCopy->setCaptureSource(m_screen);
-  QObject::connect(m_screenCopy,
-      &screencopy::ScreencopyQMLView::hasContentChanged, this,
-      [this] { emit screenCopyReady(); });
+  // QObject::connect(m_screenCopy,
+  //     &screencopy::ScreencopyQMLView::hasContentChanged, this,
+  //     [this] { emit screenCopyReady(); });
   m_screenCopy->captureSingleFrame();
 }
 

@@ -18,10 +18,20 @@ Item {
 		}
 	}
 
+	function onUnlockRequested() {
+		if (unlockAnimTimer.running)
+			return;
+
+		lockManager.shouldBeActive = false;
+		unlockAnimTimer.start();
+	}
+
 	LockAuth {
 		id: lockAuth
 
 		lockManager: lockManager
+
+		onUnlockRequested: root.onUnlockRequested()
 	}
 
 	SessionLockManager {
@@ -35,13 +45,12 @@ Item {
 
 		surface: SurfaceContent {
 			isActive: lockManager.shouldBeActive
+			lockAuth: lockAuth
 
-			onUnlockRequested: {
-				if (unlockAnimTimer.running)
-					return;
+			onUnlockRequested: root.onUnlockRequested()
 
-				lockManager.shouldBeActive = false;
-				unlockAnimTimer.start();
+			onPwTextChanged: {
+				lockAuth.buffer = inputTextContent;
 			}
 		}
 	}

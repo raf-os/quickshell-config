@@ -24,7 +24,13 @@ qt6_add_qml_module(
   URI "${ORG_URI_PREFIX}.Configs"
   VERSION 0.1
   QML_FILES Styles.qml
-  SOURCES ${GENERATED_SOURCES}
+  DEPENDENCIES TARGET nightshell_configs_generated
+  IMPORTS TARGET nightshell_configs_generated
+)
+
+set_target_properties(
+  nightshell_configs_generatedplugin
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 
 target_link_libraries(
@@ -37,6 +43,7 @@ target_link_libraries(
     nightshell_includes
     nightshell_utils
     nightshell_configs_generated
+    nightshell_configs_generatedplugin
 )
 
 install_qml_module(nightshell_configs)

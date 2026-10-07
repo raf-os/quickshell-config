@@ -1,5 +1,6 @@
 #include "lock_manager.h"
 
+#include <qobject.h>
 #include <qwaylandclientextension.h>
 
 #include "helpermacros.h"
@@ -29,6 +30,10 @@ SessionLock *LockManager::acquireLock() {
   if (isLocked()) return nullptr;
   m_activeLock =
       new SessionLock(this, QtWayland::ext_session_lock_manager_v1::lock());
+  QObject::connect(
+      m_activeLock, &SessionLock::locked, this, &LockManager::isSecureChanged);
+  QObject::connect(m_activeLock, &SessionLock::unlocked, this,
+      &LockManager::isSecureChanged);
   return m_activeLock;
 }
 

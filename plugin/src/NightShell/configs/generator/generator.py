@@ -523,10 +523,16 @@ def main():
       ["Qt6::Core", "Qt6::Qml", "Qt6::Gui", "Qt6::Quick", "nightshell_utils"], 1
     ),
     ")",
-    "\nset(GENERATED_SOURCES",
-    toIndentedBlock([f"generated/{s}.h" for s in genSources], 1),
-    "\tPARENT_SCOPE",
+    "\nqt6_add_qml_module(",
+    "\tnightshell_configs_generated",
+    '\tURI "${ORG_URI_PREFIX}.Configs.Generated"',
+    "\tVERSION 0.1",
     ")",
+    "\ninstall_qml_module(nightshell_configs_generated)",
+    # "\nset(GENERATED_SOURCES",
+    # toIndentedBlock([f"generated/{s}.h" for s in genSources], 1),
+    # "\tPARENT_SCOPE",
+    # ")",
   ]
 
   isChanged = writeIfChanged(

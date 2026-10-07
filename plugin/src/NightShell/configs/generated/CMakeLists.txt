@@ -22,9 +22,10 @@ target_link_libraries(nightshell_configs_generated PRIVATE
 	nightshell_utils
 )
 
-set(GENERATED_SOURCES
-	generated/modules.h
-	generated/appearance.h
-	generated/bar.h
-	PARENT_SCOPE
+qt6_add_qml_module(
+	nightshell_configs_generated
+	URI "${ORG_URI_PREFIX}.Configs.Generated"
+	VERSION 0.1
 )
+
+install_qml_module(nightshell_configs_generated)

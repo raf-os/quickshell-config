@@ -10,8 +10,12 @@ LockSurface {
 	id: root
 
 	required property bool isActive
+	required property LockAuth lockAuth
+
+	property alias inputTextContent: foreground.inputTextContent
 
 	signal unlockRequested
+	signal pwTextChanged
 
 	MouseArea {
 		anchors.fill: parent
@@ -49,6 +53,21 @@ LockSurface {
 					}
 				}
 			]
+		}
+
+		LockForeground {
+			id: foreground
+			bufferText: root.lockAuth.buffer
+			pamMessage: root.lockAuth.message
+			opacity: bgRect.opacity
+
+			onPwTextChanged: {
+				root.pwTextChanged();
+			}
+
+			onInputAccepted: {
+				root.lockAuth.start();
+			}
 		}
 	}
 }

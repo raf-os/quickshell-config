@@ -51,7 +51,8 @@ qt6_add_qml_module(
   URI "${ORG_URI_PREFIX}.Services"
   VERSION 0.1
   QML_FILES Time.qml
-  DEPENDENCIES "${ORG_URI_PREFIX}.Services.Pam"
+  DEPENDENCIES TARGET nightshell_services_pam
+  IMPORTS TARGET nightshell_services_pam
 )
 
 target_link_libraries(
@@ -62,6 +63,7 @@ target_link_libraries(
     Qt6::DBus
     nightshell_includes
     nightshell_services_pam
+    nightshell_services_pamplugin
 )
 
 install_qml_module(nightshell_services)

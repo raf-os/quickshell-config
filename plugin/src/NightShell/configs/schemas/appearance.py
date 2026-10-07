@@ -7,7 +7,7 @@ __rootnode__ = Node(
     Node(
       name="FontFamily",
       props=[
-        StrProperty(name="sans", defaultValue="Inter"),
+        StrProperty(name="sans", defaultValue="Oxanium"),
         StrProperty(name="mono", defaultValue="RobotoMono Nerd Font Propo"),
       ],
     ),

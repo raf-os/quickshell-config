@@ -1,11 +1,14 @@
 #include "process.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <string>
 
+#include <print>
 #include <qloggingcategory.h>
+#include <qobject.h>
 #include <qscopeguard.h>
 #include <qtypes.h>
 #include <qvarlengtharray.h>
@@ -26,7 +29,9 @@ PamPipes::~PamPipes() {
 }
 
 bool PamPipes::readBytes(char *buffer, size_t length) const {
-  for (size_t i = 0; i < length;) {
+  size_t i = 0;
+
+  while (i < length) {
     auto count = read(fdIn, buffer + i, length - i);
     if (count == -1 || count == 0) return false;
 
@@ -36,7 +41,9 @@ bool PamPipes::readBytes(char *buffer, size_t length) const {
 }
 
 bool PamPipes::writeBytes(char *buffer, size_t length) const {
-  for (size_t i = 0; i < length;) {
+  size_t i = 0;
+
+  while (i < length) {
     auto count = write(fdOut, buffer + i, length - i);
     if (count == -1 || count == 0) return false;
 
@@ -51,7 +58,7 @@ std::string PamPipes::readString(bool *ok) const {
   if (!readBytes(reinterpret_cast<char *>(&length), sizeof(length))) {
     return "";
   }
-  QVarLengthArray<char, 1024> data(static_cast<qsizetype>(length));
+  QVarLengthArray<char, 1024> data(length);
   if (!readBytes(data.data(), length)) {
     return "";
   }
@@ -61,7 +68,7 @@ std::string PamPipes::readString(bool *ok) const {
 
 bool PamPipes::writeString(std::string &str) const {
   uint32_t length = str.length();
-  if (writeBytes(reinterpret_cast<char *>(&length), sizeof(length))) {
+  if (!writeBytes(reinterpret_cast<char *>(&length), sizeof(length))) {
     return false;
   }
   return writeBytes(str.data(), str.length());
@@ -93,6 +100,8 @@ PamExitCode PamProcess::exec(
   auto result = pam_start_confdir(config, user, &conv, configDir, &handle);
 
   if (result != PAM_SUCCESS) {
+    std::println("Failed starting pam conversation with error {} (code {})",
+        pam_strerror(handle, result), result);
     return PamExitCode::StartFailed;
   }
 
@@ -107,6 +116,7 @@ PamExitCode PamProcess::exec(
   }
 
   result = pam_end(handle, result);
+  handle = nullptr;
 
   return code;
 }
@@ -116,6 +126,7 @@ int PamProcess::conversation(int num_msg, const pam_message **msg,
   auto *self = static_cast<PamProcess *>(appdata_ptr);
   auto *responses =
       static_cast<pam_response *>(calloc(num_msg, sizeof(pam_response)));
+  bool initialPrompt = true;
 
   auto scope = qScopeGuard([&responses] {
     free(responses);
@@ -124,7 +135,7 @@ int PamProcess::conversation(int num_msg, const pam_message **msg,
 
   for (auto i = 0; i < num_msg; i++) {
     const auto *message  = msg[i];
-    auto       &response = resp[i];
+    auto       &response = responses[i];
 
     auto msgStr = std::string(message->msg);
     auto req =
@@ -150,7 +161,8 @@ int PamProcess::conversation(int num_msg, const pam_message **msg,
       auto r  = self->m_pipes.readString(&ok);
       if (!ok) _exit(static_cast<int>(PamExitCode::OtherError));
 
-      response->resp = strdup(r.c_str());
+      response.resp = strdup(r.c_str());
+      initialPrompt = false;
     }
   }
 

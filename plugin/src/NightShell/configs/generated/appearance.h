@@ -29,7 +29,7 @@ signals:
 	void monoChanged();
 
 private:
-	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(FontFamily, QString, b_sans, "Inter", &FontFamily::sansChanged)
+	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(FontFamily, QString, b_sans, "Oxanium", &FontFamily::sansChanged)
 	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(FontFamily, QString, b_mono, "RobotoMono Nerd Font Propo", &FontFamily::monoChanged)
 };
 

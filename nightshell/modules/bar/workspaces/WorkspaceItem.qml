@@ -18,11 +18,13 @@ MouseArea {
 
 	readonly property int borderSpacing: 3
 	readonly property bool hasToplevels: modelData.toplevels.length !== 0
+	readonly property int animDuration: 300
 
 	implicitWidth: size
 	implicitHeight: size
 
 	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+	hoverEnabled: true
 
 	onClicked: {
 		Hyprland.dispatch(`hl.dsp.focus({ workspace = "${root.modelData.id}" })`);
@@ -34,6 +36,12 @@ MouseArea {
 		blur: 10
 		spread: 2
 		color: Colors.secondary
+
+		Behavior on opacity {
+			NAnim {
+				duration: root.animDuration
+			}
+		}
 	}
 
 	ChamferRect {
@@ -43,9 +51,20 @@ MouseArea {
 
 		bottomRightChamfer: 6
 
-		color: root.isActive ? Colors.secondary : Colors.primaryContent
+		color: root.isActive ? Colors.secondary : (root.containsMouse ? Colors.primaryMuted : Colors.primaryContent)
 		borderWidth: 1
-		borderColor: root.isActive ? Colors.secondary : Colors.primary
+		borderColor: root.isActive ? Colors.secondary : (root.containsMouse ? Colors.primary : Colors.primaryMuted)
+
+		Behavior on color {
+			CAnim {
+				duration: root.animDuration
+			}
+		}
+		Behavior on borderColor {
+			CAnim {
+				duration: root.animDuration
+			}
+		}
 	}
 
 	Loader {
@@ -71,6 +90,12 @@ MouseArea {
 				anchors.fill: parent
 				colorization: 1
 				colorizationColor: root.isActive ? Colors.secondaryContent : Colors.primary
+
+				Behavior on colorizationColor {
+					CAnim {
+						duration: root.animDuration
+					}
+				}
 			}
 		}
 	}

@@ -51,6 +51,9 @@ bool PamContext::isActive() const { return m_conversation != nullptr; }
 void PamContext::startConversation() {
   if (!m_isInitialized || m_conversation != nullptr) return;
 
+  b_messageIsError     = false;
+  b_isResponseRequired = false;
+
   QString user;
 
   {
@@ -65,7 +68,7 @@ void PamContext::startConversation() {
 
     auto confFilePath = QDir(m_configDir).filePath(m_config);
     auto confFileInfo = QFileInfo(confFilePath);
-    if (!confDirInfo.isFile()) {
+    if (!confFileInfo.isFile()) {
       qCCritical(logNSPam) << "Cannot start" << this
                            << "because provided config file" << confFilePath
                            << "is invalid.";
@@ -134,8 +137,8 @@ void PamContext::abortConversation() {
     b_message = QString();
   }
 
-  b_messageIsError     = false;
-  b_isResponseRequired = false;
+  // b_messageIsError     = false;
+  // b_isResponseRequired = false;
 }
 
 void PamContext::start() {
@@ -169,12 +172,12 @@ void PamContext::onError(PamError::Enum error) {
   emit completed(PamResult::Error);
 }
 
-void PamContext::onMessage(QString message, bool isError, bool responseRequired,
-    bool responseVisible) {
+void PamContext::onMessage(
+    QString message, bool isChanged, bool isError, bool responseRequired) {
   b_message            = message;
   b_messageIsError     = isError;
   b_isResponseRequired = responseRequired;
-  b_isResponseVisible  = responseVisible;
+  // b_isResponseVisible  = responseVisible;
 
   emit pamMessageReceived();
 }

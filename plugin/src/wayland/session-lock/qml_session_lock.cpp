@@ -18,7 +18,11 @@
 #include "wayland_logging.h"
 
 namespace ns::wayland {
-SessionLockQML::SessionLockQML(QObject *parent) : QObject(parent) {}
+SessionLockQML::SessionLockQML(QObject *parent) : QObject(parent) {
+  auto manager = sessionlock::LockManager::instance();
+  QObject::connect(manager, &sessionlock::LockManager::isSecureChanged, this,
+      [this] { b_isSecure = sessionlock::LockManager::isSecure(); });
+}
 
 QBindable<bool> SessionLockQML::bindableIsLocked() const { return &b_isLocked; }
 QBindable<bool> SessionLockQML::bindableIsSecure() const { return &b_isSecure; }

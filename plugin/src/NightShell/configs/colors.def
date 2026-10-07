@@ -1,8 +1,9 @@
   C(neutral, "#000000")
   C(neutralContent, "#eedee0")
 
-  C(primary, "#ff0947")
-  C(primaryContent, "#33171b")
+  C(primary, "#f7223c")
+  C(primaryMuted, "#781b2f")
+  C(primaryContent, "#1c1724")
 
   C(secondary, "#1ee8e4")
   C(secondaryContent, "#022a29")

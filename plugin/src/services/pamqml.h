@@ -53,8 +53,8 @@ public:
   void                  setUser(const QString &user);
 
 signals:
-  void completed(PamResult::Enum result);
-  void error(PamError::Enum error);
+  void completed(ns::services::pam::PamResult::Enum result);
+  void error(ns::services::pam::PamError::Enum error);
 
   void pamMessageReceived();
 
@@ -68,8 +68,8 @@ signals:
 private slots:
   void onCompleted(PamResult::Enum result);
   void onError(PamError::Enum error);
-  void onMessage(QString message, bool isError, bool responseRequired,
-      bool responseVisible);
+  void onMessage(
+      QString message, bool isChanged, bool isError, bool responseRequired);
 
 private:
   bool             m_isInitialized = false;
