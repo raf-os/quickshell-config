@@ -5,6 +5,7 @@
 #include <qfileinfo.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
+#include <qproperty.h>
 #include <qvarlengtharray.h>
 #include <unistd.h>
 
@@ -174,10 +175,13 @@ void PamContext::onError(PamError::Enum error) {
 
 void PamContext::onMessage(
     QString message, bool isChanged, bool isError, bool responseRequired) {
-  b_message            = message;
-  b_messageIsError     = isError;
-  b_isResponseRequired = responseRequired;
-  // b_isResponseVisible  = responseVisible;
+  {
+    QScopedPropertyUpdateGroup scope;
+    b_message            = message;
+    b_messageIsError     = isError;
+    b_isResponseRequired = responseRequired;
+    b_isResponseVisible  = isChanged;
+  }
 
   emit pamMessageReceived();
 }

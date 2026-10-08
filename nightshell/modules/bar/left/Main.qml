@@ -32,7 +32,7 @@ Item {
 			id: osIcon
 			isActive: root.context.isLauncherActive
 
-			onClicked: root.context.requestToggleLauncher()
+			onClicked: root.context.requestToggleDashboard()
 
 			anchors {
 				top: parent.top

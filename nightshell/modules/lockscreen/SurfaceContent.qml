@@ -20,6 +20,7 @@ LockSurface {
 	MouseArea {
 		anchors.fill: parent
 
+		// WARNING: Only here for testing purposes
 		onClicked: root.unlockRequested()
 
 		Rectangle {
@@ -57,9 +58,9 @@ LockSurface {
 
 		LockForeground {
 			id: foreground
-			bufferText: root.lockAuth.buffer
-			pamMessage: root.lockAuth.message
 			opacity: bgRect.opacity
+
+			lockAuth: root.lockAuth
 
 			onPwTextChanged: {
 				root.pwTextChanged();

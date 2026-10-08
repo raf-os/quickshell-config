@@ -3,6 +3,7 @@ import qs.modules.bar
 import qs.modules.notifications as NOTIFICATIONS
 import qs.modules.launcher as LAUNCHER
 import qs.modules.osd as OSD
+import qs.modules.dashboard as DASHBOARD
 import qs.modules.bar.tray
 
 import org.nightshell.Hyprland
@@ -34,6 +35,17 @@ FocusScope {
 
 		anchors.centerIn: parent
 		maxWidth: root.width
+		context: root.context
+	}
+
+	DASHBOARD.Wrapper {
+		id: dashboardWrapper
+
+		anchors {
+			top: parent.top
+			left: parent.left
+		}
+
 		context: root.context
 	}
 

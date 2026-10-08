@@ -19,4 +19,5 @@ QtObject {
 	readonly property bool isLauncherActive: content?.launcherWrapper?.isActive ?? false
 
 	signal requestToggleLauncher
+	signal requestToggleDashboard
 }
