@@ -53,12 +53,21 @@ void        AbsoluteTransform::setTarget(QQuickItem *target) {
       return;
     }
 
+    m_targetChain = chainList;
+
     for (auto &node : chainList) {
       if (node == target) continue;
 
       QObject::connect(
           node, &QObject::destroyed, this, &AbsoluteTransform::onChainBroken);
+      QObject::connect(
+          node, &QQuickItem::xChanged, this, &AbsoluteTransform::updateX);
+      QObject::connect(
+          node, &QQuickItem::yChanged, this, &AbsoluteTransform::updateY);
     }
+
+    updateX();
+    updateY();
 
     QObject::connect(target, &QObject::destroyed, this,
         &AbsoluteTransform::onTargetDestroyed);
@@ -69,13 +78,6 @@ void        AbsoluteTransform::setTarget(QQuickItem *target) {
 
   m_target = target;
   emit targetChanged();
-
-  if (m_target) {
-    b_x.setBinding(
-        [this] { return calculatePositions(BindingRefresh::XBindings); });
-    b_y.setBinding(
-        [this] { return calculatePositions(BindingRefresh::YBindings); });
-  }
 }
 
 void AbsoluteTransform::disconnectChain() {
@@ -94,17 +96,20 @@ void AbsoluteTransform::onTargetDestroyed() {
 
 void AbsoluteTransform::onChainBroken() { onTargetDestroyed(); }
 
-qreal AbsoluteTransform::calculatePositions(BindingRefresh type) {
-  auto getBind = [&type](QQuickItem *item) {
-    return type == BindingRefresh::XBindings ? item->bindableX()
-                                             : item->bindableY();
-  };
-  qreal total = 0;
+void AbsoluteTransform::updateX() {
+  qreal sum = 0;
   for (const auto &node : m_targetChain) {
-    total += getBind(node).value();
+    sum += node->bindableX().value();
   }
-  qDebug() << total;
-  return total;
+  b_x = sum;
+}
+
+void AbsoluteTransform::updateY() {
+  qreal sum = 0;
+  for (const auto &node : m_targetChain) {
+    sum += node->bindableY().value();
+  }
+  b_y = sum;
 }
 
 void AbsoluteTransform::resetPosition() {

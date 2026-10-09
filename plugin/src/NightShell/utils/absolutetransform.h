@@ -39,11 +39,6 @@ class AbsoluteTransform : public QObject, public QQmlParserStatus {
 public:
   explicit AbsoluteTransform(QObject *parent = nullptr);
 
-  enum BindingRefresh : quint8 {
-    XBindings = 0,
-    YBindings = 1,
-  };
-
   void classBegin() override {}
   void componentComplete() override;
 
@@ -65,9 +60,10 @@ signals:
   void paddingChanged();
 
 private slots:
-  void  onTargetDestroyed();
-  void  onChainBroken();
-  qreal calculatePositions(BindingRefresh type);
+  void onTargetDestroyed();
+  void onChainBroken();
+  void updateX();
+  void updateY();
 
 private:
   QQuickItem         *m_target = nullptr;
