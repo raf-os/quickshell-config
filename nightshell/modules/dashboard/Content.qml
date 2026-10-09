@@ -1,6 +1,7 @@
 import qs.components
 
 import org.nightshell.Configs
+import org.nightshell.Utils
 
 import QtQuick
 import QtQuick.Layouts
@@ -12,7 +13,8 @@ MouseArea {
 
 	readonly property int desiredWidth: 420
 
-	property alias titleWrapper: titleWrapper
+	property alias titleTransform: titleTransform
+	property alias userInfoTransform: userInfoTransform
 
 	implicitWidth: desiredWidth
 	implicitHeight: mainLayout.height
@@ -25,7 +27,10 @@ MouseArea {
 	}
 
 	Background {
-		anchors.centerIn: mainLayout
+		anchors {
+			top: mainLayout.top
+			left: mainLayout.left
+		}
 		width: mainLayout.width
 		height: mainLayout.height
 
@@ -38,6 +43,8 @@ MouseArea {
 		anchors {
 			top: parent.top
 			left: parent.left
+			topMargin: Styles.spacing_md
+			leftMargin: Styles.spacing_md * 2
 		}
 
 		width: root.desiredWidth
@@ -48,18 +55,22 @@ MouseArea {
 			readonly property int padding: Styles.padding_sm
 
 			Layout.fillWidth: true
-			implicitHeight: titleText.height + padding * 2
+			implicitHeight: titleText.height
 
 			StyledText {
 				id: titleText
 
+				AbsoluteTransform {
+					id: titleTransform
+					targetAncestor: mainLayout
+				}
+
 				anchors {
 					left: parent.left
-					leftMargin: titleWrapper.padding
-					right: parent.right
-					rightMargin: titleWrapper.padding
-					verticalCenter: parent.verticalCenter
+					top: parent.top
 				}
+
+				padding: titleWrapper.padding
 
 				text: "DASHBOARD"
 				font.pointSize: Styles.text_md
@@ -67,6 +78,16 @@ MouseArea {
 			}
 		}
 
-		UserInfo {}
+		UserInfo {
+			id: userInfoComponent
+			readonly property int padding: Styles.padding_md
+			Layout.margins: padding
+
+			AbsoluteTransform {
+				id: userInfoTransform
+				targetAncestor: mainLayout
+				padding: Qt.vector2d(userInfoComponent.padding * 2, userInfoComponent.padding * 2)
+			}
+		}
 	}
 }

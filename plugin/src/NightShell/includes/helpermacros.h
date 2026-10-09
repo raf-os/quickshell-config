@@ -9,6 +9,10 @@
   [[nodiscard]] QBindable<Type> bindable_##Name() const { return &b_##Name; }; \
   Q_SIGNAL void                 Name##Changed();
 
+#define AUTO_BINDABLE_WRITABLE_IMPL_DECLARE(Type, Name)                        \
+  [[nodiscard]] QBindable<Type> bindable_##Name() { return &b_##Name; };       \
+  Q_SIGNAL void                 Name##Changed();
+
 #define AUTO_BINDABLE(Class, Type, Name)                                       \
   Q_PROPERTY(                                                                  \
       Type Name READ default NOTIFY Name##Changed BINDABLE bindable_##Name)    \
@@ -33,7 +37,7 @@ private:                                                                       \
       Type Name READ default WRITE default NOTIFY Name##Changed BINDABLE       \
                                                   bindable_##Name)             \
 public:                                                                        \
-  AUTO_BINDABLE_IMPL_DECLARE(Type, Name)                                       \
+  AUTO_BINDABLE_WRITABLE_IMPL_DECLARE(Type, Name)                              \
 private:                                                                       \
   Q_OBJECT_BINDABLE_PROPERTY(Class, Type, b_##Name, &Class::Name##Changed)
 
@@ -41,7 +45,7 @@ private:                                                                       \
   Q_PROPERTY(Type Name READ default WRITE default NOTIFY Name##Changed RESET   \
           reset_##Name BINDABLE bindable_##Name)                               \
 public:                                                                        \
-  AUTO_BINDABLE_IMPL_DECLARE(Type, Name)                                       \
+  AUTO_BINDABLE_WRITABLE_IMPL_DECLARE(Type, Name)                              \
   void reset_##Name() { b_##Name = DefaultValue; }                             \
                                                                                \
 private:                                                                       \
