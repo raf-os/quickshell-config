@@ -99,20 +99,20 @@ void LockSurface::ext_session_lock_surface_v1_configure(
   }
 }
 
-class SurfaceAccessor : public QtWaylandClient::QWaylandWindow {
-public:
-  QScopedPointer<QtWaylandClient::QWaylandSurface> &surfacePointer() {
-    return mSurface;
-  }
-};
-
-class HackSurface : public QObject, public QtWayland::wl_surface {
-public:
-  HackSurface(QtWaylandClient::QWaylandDisplay *display)
-      : wl_surface(display->createSurface(this)) {}
-  ~HackSurface() override { this->destroy(); }
-  Q_DISABLE_COPY_MOVE(HackSurface);
-};
+// class SurfaceAccessor : public QtWaylandClient::QWaylandWindow {
+// public:
+//   QScopedPointer<QtWaylandClient::QWaylandSurface> &surfacePointer() {
+//     return mSurface;
+//   }
+// };
+//
+// class HackSurface : public QObject, public QtWayland::wl_surface {
+// public:
+//   HackSurface(QtWaylandClient::QWaylandDisplay *display)
+//       : wl_surface(display->createSurface(this)) {}
+//   ~HackSurface() override { this->destroy(); }
+//   Q_DISABLE_COPY_MOVE(HackSurface);
+// };
 
 // void LockSurface::initVisible() {
 //   m_visible = true;

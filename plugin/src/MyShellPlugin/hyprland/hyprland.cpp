@@ -74,8 +74,8 @@ Hyprland::Hyprland(QObject *parent)
       &Hyprland::queryActiveDevices);
   QObject::connect(m_eventHandler, &HyprEvents::configReloaded, this,
       &Hyprland::queryWorkspaces);
-  QObject::connect(m_eventHandler, &HyprEvents::userWorkspaceChanged, this,
-      &Hyprland::queryMonitors);
+  // QObject::connect(m_eventHandler, &HyprEvents::userWorkspaceChanged, this,
+  //     &Hyprland::queryMonitors);
   QObject::connect(m_eventHandler, &HyprEvents::keyboardLayoutChanged, this,
       [this](QString /* unused */, QString /* unused */) {
         this->queryActiveDevices();

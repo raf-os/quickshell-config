@@ -19,9 +19,13 @@ Q_DECLARE_LOGGING_CATEGORY(logNSHyprland) // from hyprland.cpp
 
 HyprWorkspace::HyprWorkspace(int id, QObject *parent)
     : QObject(parent), m_id(id) {
-  QObject::connect(Hyprland::instance()->eventHandler(),
-      &HyprEvents::activeWindowChanged, this,
+  const auto hEvent = Hyprland::instance()->eventHandler();
+  QObject::connect(hEvent, &HyprEvents::activeWindowChanged, this,
       &HyprWorkspace::onAddressActivated);
+  QObject::connect(
+      hEvent, &HyprEvents::windowUrgent, this, &HyprWorkspace::onAddressUrgent);
+  QObject::connect(hEvent, &HyprEvents::userWorkspaceChanged, this,
+      &HyprWorkspace::onUserWorkspaceChanged);
 }
 
 void HyprWorkspace::updateData(common::HyprWorkspaceData data) {
@@ -47,6 +51,22 @@ void HyprWorkspace::onAddressActivated(quint64 address) {
   setActiveToplevel(address);
 }
 
+void HyprWorkspace::onUserWorkspaceChanged(
+    int workspaceId, const QString & /*unused*/) {
+  if (workspaceId == m_id) {
+    b_urgent = false;
+  }
+}
+
+void HyprWorkspace::onAddressUrgent(quint64 address) {
+  auto it =
+      std::ranges::find_if(m_childToplevels.begin(), m_childToplevels.end(),
+          [&address](ToplevelInstance *t) { return t->address() == address; });
+  if (it != m_childToplevels.end()) {
+    b_urgent = true;
+  }
+}
+
 QQmlListProperty<ToplevelInstance> HyprWorkspace::toplevels() {
   return readonlyQmlList(this, &m_childToplevels);
 }
@@ -62,6 +82,7 @@ void HyprWorkspace::setActiveToplevel(quint64 address) {
   if (it != m_childToplevels.end()) {
     m_lastAddress    = 0;
     m_activeToplevel = *it;
+    b_urgent         = false;
     emit activeToplevelChanged();
   }
 }
@@ -104,6 +125,8 @@ void HyprWorkspace::detachToplevel(ToplevelInstance *toplevel) {
     }
   }
 }
+
+QBindable<bool> HyprWorkspace::bindableUrgent() const { return &b_urgent; }
 
 QBindable<bool> HyprWorkspace::bindableIsFullScreen() {
   return &b_isFullScreen;

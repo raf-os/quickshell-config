@@ -10,6 +10,7 @@
 #include <qqmllist.h>
 
 #include "hyprdefs.h"
+#include "hyprevents.h"
 #include "hyprland.h"
 #include "hyprworkspace.h"
 #include "qlisthelpers.h"
@@ -20,6 +21,9 @@ HyprMonitor::HyprMonitor(int id, QObject *parent) : QObject(parent), m_id(id) {
   QObject::connect(Hyprland::instance()->workspacesModel(),
       &WorkspacesModel::workspacesChanged, this,
       &HyprMonitor::onWorkspacesChanged);
+  QObject::connect(Hyprland::instance()->eventHandler(),
+      &HyprEvents::userWorkspaceChanged, this,
+      &HyprMonitor::onUserWorkspaceChange);
   onWorkspacesChanged({});
 }
 
@@ -67,6 +71,10 @@ void HyprMonitor::tryAssignActiveWorkspace() {
     }
 
     emit activeWorkspaceChanged();
+  } else {
+    auto previous     = m_activeWorkspace;
+    m_activeWorkspace = nullptr;
+    if (previous != nullptr) emit activeWorkspaceChanged();
   }
 }
 
@@ -94,4 +102,31 @@ void HyprMonitor::onWorkspacesChanged(
 
   tryAssignActiveWorkspace();
 };
+
+void HyprMonitor::onUserWorkspaceChange(
+    int workspaceId, const QString &workspaceName) {
+  if (m_activeWorkspace && m_activeWorkspace->id() == workspaceId) return;
+
+  auto it = std::ranges::find_if(m_workspaces.constBegin(),
+      m_workspaces.constEnd(),
+      [&workspaceId](HyprWorkspace *wp) { return wp->id() == workspaceId; });
+
+  if (it != m_workspaces.constEnd()) {
+    if (m_activeWorkspace == *it) return;
+
+    m_activeWorkspaceData.id   = workspaceId;
+    m_activeWorkspaceData.name = workspaceName;
+
+    if (m_activeWorkspace) {
+      QObject::disconnect(m_activeWorkspace, nullptr, this, nullptr);
+    }
+
+    m_activeWorkspace = *it;
+
+    QObject::connect(m_activeWorkspace, &QObject::destroyed, this,
+        [this] { this->tryAssignActiveWorkspace(); });
+
+    emit activeWorkspaceChanged();
+  }
+}
 } // namespace ns::hyprland

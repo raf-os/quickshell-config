@@ -3,6 +3,7 @@ import qs.modules.background
 import qs.modules.lockscreen
 
 import org.nightshell.Configs
+import org.nightshell.Services
 import org.nightshell.Notifications
 import org.nightshell.DesktopEntries
 import org.nightshell.DBusImageProvider
@@ -36,6 +37,7 @@ ShellRoot {
 		IPCServer.setup();
 		StateManager;
 		DesktopEntries;
+		WeatherService;
 
 		root.evalNotificationServerConfig();
 	}

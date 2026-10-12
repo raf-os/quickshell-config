@@ -33,7 +33,7 @@ Variants {
 			name: "main-shell"
 			screen: scope.modelData
 
-			WlrLayershell.keyboardFocus: FocusGrabberManager.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+			// WlrLayershell.keyboardFocus: FocusGrabberManager.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
 			exclusionMode: ExclusionMode.Ignore
 			mask: MaskRegions {

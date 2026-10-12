@@ -11,7 +11,7 @@ import org.nightshell.Hyprland
 import Quickshell
 import QtQuick
 
-FocusScope {
+Item {
 	id: root
 
 	required property InstanceContext context

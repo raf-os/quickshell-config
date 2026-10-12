@@ -34,6 +34,7 @@ parser = argparse.ArgumentParser(
   description="Generates .h and .cpp files based on schemas defined in the ../schemas/ folder.",
 )
 parser.add_argument("--noclang")
+parser.add_argument("--nodefault")
 args = parser.parse_args()
 
 
@@ -43,24 +44,6 @@ def toLowerCamelCase(s: str) -> str:
 
 def toUpperCamelCase(s: str) -> str:
   return s[:1].upper() + s[1:]
-
-
-rootConfig: list[Node] = [
-  Node(
-    name="Appearance",
-    props=[IntProperty(name="scaling", defaultValue=1)],
-    children=[
-      Node(
-        name="FontFamily",
-        props=[
-          StrProperty(name="sans", defaultValue="DejaVu Sans"),
-          StrProperty(name="mono", defaultValue="RobotoMono Nerd Font Propo"),
-        ],
-      ),
-    ],
-  ),
-  Node(name="Bar", props=[IntProperty(name="height", defaultValue=32)]),
-]
 
 
 def toIndentedBlock(block: list[str], indentation: int) -> str:
@@ -151,7 +134,7 @@ class DocumentMeta(BaseModel):
       case "QList":
         header = "qlist.h"
       case "qreal":
-        header = "qreal.h"
+        header = "qtypes.h"
       case _:
         header = None
 
@@ -411,6 +394,38 @@ class QBindableProp(QProp):
       return f"Q_OBJECT_BINDABLE_PROPERTY({self.parentClass.name}, {self.type}, {self._member}, &{self.parentClass.name}::{self._notifier})"
 
 
+def generateDefaultConfig(config: list[Node], depth: int = 1) -> str:
+  jsonStr: str = ""
+  jsonList: list[str] = []
+
+  for node in config:
+    name: str
+    propsList: list[str] = []
+    indentStr: str = "\t" * depth
+
+    if depth <= 1:
+      name = re.sub(r"config", "", toLowerCamelCase(node.name), flags=re.IGNORECASE)
+    else:
+      name = node.name
+
+    for prop in node.props:
+      if prop.getDefaultValue() is None:
+        continue
+      propsList.append(f'{indentStr}\t"{prop.name}": {prop.getDefaultValue()}')
+
+    if len(node.children) > 0:
+      propsList.append(generateDefaultConfig(node.children, depth + 1))
+
+    istr: str = f'{indentStr}"{name}": {{\n'
+    istr += ",\n".join(propsList)
+    istr += f"\n{indentStr}}}"
+    jsonList.append(istr)
+
+  jsonStr = ",\n".join(jsonList)
+
+  return jsonStr
+
+
 def main():
   directory = Path("./" + "/".join(_SCHEMAS_LOCATION))
   rootConfig: list[Node] = []
@@ -540,6 +555,13 @@ def main():
   )
   if isChanged:
     print("CMakeLists.txt successfully generated.")
+
+  dconfig = "{\n" + generateDefaultConfig(rootConfig) + "\n}"
+
+  if not args.nodefault:
+    isChanged = writeIfChanged(_GENERATED_LOCATION / "config.json", dconfig)
+    if isChanged:
+      print("Default config.json sucessfully generated.")
 
 
 try:

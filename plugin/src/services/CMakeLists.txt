@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Qml DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml DBus Network)
 find_program(XMLLINT xmllint)
 
 add_subdirectory(pam)
@@ -29,6 +29,8 @@ target_sources(
     networkservice.cpp
     pamqml.cpp
     userdata.cpp
+    requests.cpp
+    weather.cpp
     ${NM_GENERATED_SOURCES}
 )
 
@@ -61,6 +63,7 @@ target_link_libraries(
     Qt6::Core
     Qt6::Qml
     Qt6::DBus
+    Qt6::Network
     nightshell_includes
     nightshell_services_pam
     nightshell_services_pamplugin

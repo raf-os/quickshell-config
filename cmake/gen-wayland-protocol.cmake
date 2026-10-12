@@ -64,25 +64,30 @@ function(gen_wayland_protocol target name dir)
       DEPENDS Qt6::qtwaylandscanner "${PATH}"
     )
 
-    add_library(${target} STATIC)
-
-    target_sources(
-      ${target}
-      PUBLIC ${WS_CLIENT_HEADER} ${QWS_CLIENT_HEADER}
-      PRIVATE ${WS_CLIENT_BODY} ${QWS_CLIENT_BODY}
+    add_library(
+      wl-proto-${name}-wl
+      STATIC
+      ${WS_CLIENT_HEADER}
+      ${WS_CLIENT_BODY}
     )
+    add_library(${target} STATIC ${QWS_CLIENT_HEADER} ${QWS_CLIENT_BODY})
+
+    # target_sources(
+    #   ${target}
+    #   PUBLIC ${WS_CLIENT_HEADER} ${QWS_CLIENT_HEADER}
+    #   PRIVATE ${WS_CLIENT_BODY} ${QWS_CLIENT_BODY}
+    # )
 
     set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-    target_include_directories(${target} PUBLIC ${PROTO_BUILD_PATH})
+    target_include_directories(${target} INTERFACE ${PROTO_BUILD_PATH})
+
+    target_link_libraries(wl-proto-${name}-wl PRIVATE PkgConfig::WAYLAND_CLIENT)
 
     target_link_libraries(
       ${target}
-      PUBLIC
-        Qt6::Core
-        Qt6::WaylandClient
-        Qt6::WaylandClientPrivate
-        PkgConfig::WAYLAND_CLIENT
+      PRIVATE Qt6::Core
+      PUBLIC Qt6::WaylandClient Qt6::WaylandClientPrivate wl-proto-${name}-wl
     )
   endif()
 endfunction()

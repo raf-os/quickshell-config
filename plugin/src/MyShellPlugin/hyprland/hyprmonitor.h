@@ -52,6 +52,7 @@ public:
 
 private slots:
   void onWorkspacesChanged(const QList<HyprWorkspace *> & /*unused*/);
+  void onUserWorkspaceChange(int workspaceId, const QString &workspaceName);
 
 signals:
   void nameChanged();

@@ -66,14 +66,14 @@ Item {
 		color: "transparent"
 		visible: contentLoader.active
 		exclusionMode: ExclusionMode.Ignore
-		QSWayland.WlrLayershell.keyboardFocus: root.isActive ? QSWayland.WlrKeyboardFocus.Exclusive : QSWayland.WlrKeyboardFocus.None
+		// QSWayland.WlrLayershell.keyboardFocus: root.isActive ? QSWayland.WlrKeyboardFocus.Exclusive : QSWayland.WlrKeyboardFocus.None
 		QSWayland.WlrLayershell.layer: QSWayland.WlrLayer.Top
 		QSWayland.WlrLayershell.namespace: "nightshell-launcher"
 
 		MouseArea {
 			anchors.fill: parent
 			onClicked: root.closeLauncher()
-			focus: true
+			// focus: true
 
 			FocusGrabber {
 				active: root.isActive

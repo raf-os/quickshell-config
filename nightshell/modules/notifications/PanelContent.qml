@@ -16,8 +16,6 @@ MouseArea {
 	readonly property int desiredWidth: 400
 	readonly property int animDuration: 300
 
-	focus: isActive
-
 	signal exitAnimationComplete
 	signal requestClose
 

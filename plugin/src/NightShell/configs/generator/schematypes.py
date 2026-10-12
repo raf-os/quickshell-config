@@ -43,6 +43,17 @@ class BoolProperty(Property[bool]):
     return "true" if self.defaultValue else "false"
 
 
+class FloatProperty(Property[float]):
+  type: str = "qreal"
+
+  @override
+  def getDefaultValue(self) -> str | None:
+    d = self.defaultValue
+    if d is None:
+      return None
+    return f"{str(self.defaultValue)}"
+
+
 class StrProperty(Property[str]):
   type: str = "QString"
 

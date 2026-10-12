@@ -42,8 +42,13 @@ target_link_libraries(
     Qt6::Quick
     nightshell_includes
     nightshell_utils
-    nightshell_configs_generated
     nightshell_configs_generatedplugin
+  PUBLIC nightshell_configs_generated
 )
 
 install_qml_module(nightshell_configs)
+
+install(
+  FILES generated/config.json
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/nightshell"
+)

@@ -113,8 +113,14 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
     const auto wpid   = params.at(0).toInt(nullptr, -1);
     const auto wpname = params.at(1);
     emit       workspaceRenamed(wpid, wpname);
-  } else if (event == "workspace" || event == "workspacev2") {
-    emit userWorkspaceChanged();
+  } else if (event == "workspacev2") {
+    auto params = data.split(',');
+    if (params.size() == 2) {
+      bool isOk;
+      auto wpid   = params.at(0).toInt(&isOk, 10);
+      auto wpname = params.at(1);
+      if (isOk) emit userWorkspaceChanged(wpid, wpname);
+    }
   } else if (event == "movewindowv2") {
     const auto dataParams = data.split(",");
 
@@ -142,6 +148,12 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
     emit windowFullscreen();
   } else if (event == "monitoradded" || event == "monitorremoved") {
     emit monitorsChanged();
+  } else if (event == "urgent") {
+    bool isOk;
+    auto addr = data.toULongLong(&isOk, 16);
+    if (isOk) {
+      emit windowUrgent(addr);
+    }
   }
 }
 

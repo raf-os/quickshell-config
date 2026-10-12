@@ -28,6 +28,8 @@ class HyprWorkspace : public QObject {
           bindableMonitorId)
   Q_PROPERTY(QString monitorName READ default NOTIFY monitorNameChanged BINDABLE
           bindableMonitorName)
+  Q_PROPERTY(
+      bool urgent READ default NOTIFY urgentChanged BINDABLE bindableUrgent)
   Q_PROPERTY(QQmlListProperty<ns::hyprland::ToplevelInstance> toplevels READ
           toplevels NOTIFY toplevelsChanged)
   Q_PROPERTY(ns::hyprland::ToplevelInstance *activeToplevel READ activeToplevel
@@ -47,6 +49,7 @@ public:
   [[nodiscard]] QBindable<QString> bindableMonitorName() {
     return &b_monitorName;
   }
+  [[nodiscard]] QBindable<bool>                    bindableUrgent() const;
   [[nodiscard]] QQmlListProperty<ToplevelInstance> toplevels();
   [[nodiscard]] ToplevelInstance                  *activeToplevel();
   void setActiveToplevel(quint64 address);
@@ -62,11 +65,14 @@ signals:
   void isFullScreenChanged();
   void monitorIdChanged();
   void monitorNameChanged();
+  void urgentChanged();
   void toplevelsChanged();
   void activeToplevelChanged();
 
 private slots:
   void onAddressActivated(quint64 address);
+  void onUserWorkspaceChanged(int workspaceId, const QString & /*unused*/);
+  void onAddressUrgent(quint64 address);
 
 private:
   const int                  m_id;
@@ -80,6 +86,8 @@ private:
       HyprWorkspace, bool, b_isPersistent, &HyprWorkspace::isPersistentChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
       HyprWorkspace, bool, b_isFullScreen, &HyprWorkspace::isFullScreenChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprWorkspace, bool, b_urgent, &HyprWorkspace::urgentChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
       HyprWorkspace, int, b_monitorId, &HyprWorkspace::monitorIdChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
