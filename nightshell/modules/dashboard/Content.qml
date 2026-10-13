@@ -7,87 +7,138 @@ import QtQuick
 import QtQuick.Layouts
 
 MouseArea {
-	id: root
+  id: root
 
-	required property bool isActive
+  required property bool isActive
 
-	readonly property int desiredWidth: 420
+  readonly property int desiredWidth: 420
 
-	property alias titleTransform: titleTransform
-	property alias userInfoTransform: userInfoTransform
+  property alias titleTransform: titleTransform
+  property alias layoutTransform: layoutTransform
+  property alias sideTransform: sideTransform
 
-	implicitWidth: desiredWidth
-	implicitHeight: mainLayout.height
+  implicitWidth: desiredWidth
+  implicitHeight: layerWrapper.height
 
-	signal exitAnimationFinished
+  signal exitAnimationFinished
 
-	onIsActiveChanged: {
-		if (!isActive)
-			root.exitAnimationFinished();
-	}
+  onIsActiveChanged: {
+    if (!isActive)
+      root.exitAnimationFinished();
+  }
 
-	Background {
-		anchors {
-			top: mainLayout.top
-			left: mainLayout.left
-		}
-		width: mainLayout.width
-		height: mainLayout.height
+  Background {
+    anchors {
+      top: layerWrapper.top
+      left: layerWrapper.left
+    }
+    width: layerWrapper.implicitWidth
+    height: layerWrapper.implicitHeight
 
-		contentItem: root
-	}
+    contentItem: root
+    fillItem: layerWrapper
+  }
 
-	ColumnLayout {
-		id: mainLayout
+  Item {
+    id: layerWrapper
 
-		anchors {
-			top: parent.top
-			left: parent.left
-			topMargin: Styles.spacing_md
-			leftMargin: Styles.spacing_md * 2
-		}
+    implicitWidth: root.desiredWidth + sideButtonsComponent.width
+    implicitHeight: titleWrapper.implicitHeight + mainLayout.height
 
-		width: root.desiredWidth
+    layer.enabled: true
+    visible: false
 
-		Item {
-			id: titleWrapper
+    anchors {
+      top: parent.top
+      left: parent.left
+      topMargin: Styles.spacing_md
+      leftMargin: Styles.spacing_md * 2
+    }
 
-			readonly property int padding: Styles.padding_sm
+    Rectangle {
+      anchors.fill: mainLayout
+      color: Colors.primaryContent
+    }
 
-			Layout.fillWidth: true
-			implicitHeight: titleText.height
+    Item {
+      id: titleWrapper
 
-			StyledText {
-				id: titleText
+      readonly property int padding: Styles.padding_sm
 
-				AbsoluteTransform {
-					id: titleTransform
-					targetAncestor: mainLayout
-				}
+      anchors {
+        left: mainLayout.left
+        right: mainLayout.right
+      }
 
-				anchors {
-					left: parent.left
-					top: parent.top
-				}
+      implicitHeight: titleText.height
 
-				padding: titleWrapper.padding
+      Rectangle {
+        anchors.fill: parent
+        color: Colors.primary
+      }
 
-				text: "DASHBOARD"
-				font.pointSize: Styles.text_md
-				font.weight: 600
-			}
-		}
+      StyledText {
+        id: titleText
 
-		UserInfo {
-			id: userInfoComponent
-			readonly property int padding: Styles.padding_md
-			Layout.margins: padding
+        AbsoluteTransform {
+          id: titleTransform
+          targetAncestor: layerWrapper
+        }
 
-			AbsoluteTransform {
-				id: userInfoTransform
-				targetAncestor: mainLayout
-				padding: Qt.vector2d(userInfoComponent.padding * 2, userInfoComponent.padding * 2)
-			}
-		}
-	}
+        anchors {
+          left: parent.left
+          top: parent.top
+        }
+
+        padding: titleWrapper.padding
+
+        text: "DASHBOARD"
+        color: Colors.primaryContent
+        font.pointSize: Styles.text_md
+        font.weight: 600
+      }
+    }
+
+    ColumnLayout {
+      id: mainLayout
+
+      anchors {
+        top: titleWrapper.bottom
+        left: parent.left
+      }
+
+      AbsoluteTransform {
+        id: layoutTransform
+        targetAncestor: layerWrapper
+        padding: Qt.vector2d(mainLayout.anchors.leftMargin * 2, mainLayout.anchors.topMargin * 2)
+      }
+
+      width: root.desiredWidth
+      spacing: Styles.spacing_md
+
+      UserInfo {
+        id: userInfoComponent
+        readonly property int padding: Styles.padding_md
+        Layout.margins: padding
+      }
+
+      WeatherComponent {
+        id: weatherComponent
+      }
+    }
+
+    SideButtons {
+      id: sideButtonsComponent
+
+      AbsoluteTransform {
+        id: sideTransform
+        targetAncestor: layerWrapper
+      }
+
+      anchors {
+        top: titleWrapper.bottom
+        left: mainLayout.right
+      }
+    }
+  }
 }

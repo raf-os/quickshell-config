@@ -26,6 +26,8 @@ class NS_UTILS_EXPORT Paths : public QObject {
   Q_PROPERTY(QString data READ default NOTIFY dataChanged BINDABLE bindableData)
   Q_PROPERTY(QString hyprConfig READ default NOTIFY hyprConfigChanged BINDABLE
           bindableHyprConfig)
+  Q_PROPERTY(QString iconPath READ default NOTIFY iconPathChanged BINDABLE
+          bindableIconPath)
 
 public:
   static Paths *instance();
@@ -37,6 +39,7 @@ public:
   [[nodiscard]] QBindable<QString> bindableCache() const;
   [[nodiscard]] QBindable<QString> bindableData() const;
   [[nodiscard]] QBindable<QString> bindableHyprConfig() const;
+  [[nodiscard]] QBindable<QString> bindableIconPath() const;
 
 signals:
   void configChanged();
@@ -44,6 +47,7 @@ signals:
   void cacheChanged();
   void dataChanged();
   void hyprConfigChanged();
+  void iconPathChanged();
 
 private:
   explicit Paths(QObject *parent = nullptr);
@@ -60,5 +64,7 @@ private:
   Q_OBJECT_BINDABLE_PROPERTY(Paths, QString, b_data, &Paths::dataChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
       Paths, QString, b_hyprConfig, &Paths::hyprConfigChanged)
+  Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(Paths, QString, b_iconPath,
+      QString(DATADIR_DEFAULT_PATH) + "/icons", &Paths::iconPathChanged)
 };
 } // namespace ns::utils

@@ -41,9 +41,8 @@ target_link_libraries(
     Qt6::Gui
     Qt6::Quick
     nightshell_includes
-    nightshell_utils
     nightshell_configs_generatedplugin
-  PUBLIC nightshell_configs_generated
+  PUBLIC nightshell_configs_generated nightshell_utils
 )
 
 install_qml_module(nightshell_configs)

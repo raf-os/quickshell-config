@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <qhashfunctions.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -18,24 +20,48 @@ class WeatherService : public QObject {
 
   AUTO_MEYERS_SINGLETON_QML_DECL(WeatherService)
 
-#define B(Type, Name) AUTO_BINDABLE_WRITABLE(WeatherService, Type, Name)
+public:
+  enum WeatherTypes {
+    Clear,
+    Cloudy,
+    PartlyCloudy,
+    Foggy,
+    Rainy,
+    Hail,
+    Thunderstorm,
+    Snowy
+  };
+  Q_ENUM(WeatherTypes)
+
+  enum WeatherIntensity : uint8_t { Low, Medium, High };
+  Q_ENUM(WeatherIntensity)
+
+#define B(Type, Name) AUTO_BINDABLE(WeatherService, Type, Name)
   B(qreal, latitude)
   B(qreal, longitude)
+  B(qreal, currentTemperature)
+  B(ns::services::WeatherService::WeatherTypes, weatherType)
+  B(ns::services::WeatherService::WeatherIntensity, weatherIntensity)
 #undef B
+
+  static WeatherTypes     mapWeatherType(int code);
+  static WeatherIntensity mapWeatherIntensity(int code);
 
 private slots:
   void fetchData();
   void onRefetchTimerTriggered();
+  void evalEnabled();
+  void onGeolocationChanged();
 
 private:
   explicit WeatherService(QObject *parent = nullptr);
 
   static void onWeatherRequestSuccess(const QByteArray &data);
 
-  bool   m_isFetching = false;
+  bool   m_isFetching  = false;
+  bool   m_queuedFetch = false;
   QTimer m_refetchTimer;
 
   Q_OBJECT_BINDABLE_PROPERTY(WeatherService, int, b_weatherCode)
-  Q_OBJECT_BINDABLE_PROPERTY(WeatherService, qreal, b_currentTemperature)
 };
 } // namespace ns::services

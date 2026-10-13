@@ -8,66 +8,68 @@ import QtQuick
 import QtQuick.Layouts
 
 Item {
-	id: root
+  id: root
 
-	implicitHeight: mainLayout.height
+  implicitHeight: mainLayout.height
 
-	Rectangle {
-		anchors.fill: parent
-	}
+  Rectangle {
+    anchors.fill: parent
+  }
 
-	RowLayout {
-		id: mainLayout
+  RowLayout {
+    id: mainLayout
 
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: parent.top
-		}
+    anchors {
+      left: parent.left
+      right: parent.right
+      top: parent.top
+    }
 
-		Item {
-			id: userImageWrapper
+    spacing: Styles.spacing_lg
 
-			implicitWidth: 96
-			implicitHeight: 96
+    Item {
+      id: userImageWrapper
 
-			Layout.fillHeight: true
-			Layout.alignment: Qt.AlignVCenter
+      implicitWidth: 96
+      implicitHeight: 96
 
-			Rectangle {
-				anchors.fill: parent
-			}
-		}
+      Layout.fillHeight: true
+      Layout.alignment: Qt.AlignVCenter
 
-		Item {
-			id: userInfoContent
+      Rectangle {
+        anchors.fill: parent
+      }
+    }
 
-			Layout.fillWidth: true
-			Layout.fillHeight: true
+    Item {
+      id: userInfoContent
 
-			implicitHeight: userInfoContentLayout.implicitHeight
+      Layout.fillWidth: true
+      Layout.fillHeight: true
 
-			ColumnLayout {
-				id: userInfoContentLayout
+      implicitHeight: userInfoContentLayout.implicitHeight
 
-				implicitWidth: parent.implicitWidth
-				spacing: Styles.spacing_md
+      ColumnLayout {
+        id: userInfoContentLayout
 
-				InfoLabelPair {
-					label: "NAME"
-					text: UserData.name
-				}
+        implicitWidth: parent.implicitWidth
+        spacing: Styles.spacing_md
 
-				InfoLabelPair {
-					label: "Operating System"
-					text: SysInfo.name
-				}
+        InfoLabelPair {
+          label: "NAME"
+          text: UserData.name
+        }
 
-				InfoLabelPair {
-					label: "Uptime"
-					text: "1 century"
-				}
-			}
-		}
-	}
+        InfoLabelPair {
+          label: "Operating System"
+          text: SysInfo.name
+        }
+
+        InfoLabelPair {
+          label: "Uptime"
+          text: "1 century"
+        }
+      }
+    }
+  }
 }

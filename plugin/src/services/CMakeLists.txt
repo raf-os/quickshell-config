@@ -65,6 +65,7 @@ target_link_libraries(
     Qt6::DBus
     Qt6::Network
     nightshell_includes
+    nightshell_configs
     nightshell_services_pam
     nightshell_services_pamplugin
 )

@@ -57,4 +57,5 @@ QBindable<QString> Paths::bindableCache() const { return &b_cache; }
 QBindable<QString> Paths::bindableState() const { return &b_state; }
 QBindable<QString> Paths::bindableData() const { return &b_data; }
 QBindable<QString> Paths::bindableHyprConfig() const { return &b_hyprConfig; }
+QBindable<QString> Paths::bindableIconPath() const { return &b_iconPath; }
 } // namespace ns::utils
