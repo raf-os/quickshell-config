@@ -8,16 +8,16 @@ import Quickshell as QS
 import QtQuick
 
 QtObject {
-	id: root
+  id: root
 
-	property MODULES_BAR.Bar bar
-	property MODULES.Content content
-	property QS.ShellScreen shellScreen
-	property QS.QsWindow win
-	property N_HYPRLAND.HyprMonitor hyprMonitor
+  property MODULES_BAR.Bar bar
+  property MODULES.Content content
+  property QS.ShellScreen shellScreen
+  property QS.QsWindow win
+  property N_HYPRLAND.HyprMonitor hyprMonitor
 
-	readonly property bool isLauncherActive: content?.launcherWrapper?.isActive ?? false
+  readonly property bool isLauncherActive: content?.dashboardWrapper?.isActive ?? false
 
-	signal requestToggleLauncher
-	signal requestToggleDashboard
+  signal requestToggleLauncher
+  signal requestToggleDashboard
 }

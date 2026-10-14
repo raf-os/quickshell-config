@@ -31,6 +31,7 @@ target_sources(
     userdata.cpp
     requests.cpp
     weather.cpp
+    session.cpp
     ${NM_GENERATED_SOURCES}
 )
 

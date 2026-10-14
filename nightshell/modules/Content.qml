@@ -12,65 +12,66 @@ import Quickshell
 import QtQuick
 
 Item {
-	id: root
+  id: root
 
-	required property InstanceContext context
-	readonly property ShellScreen screen: context.shellScreen
-	readonly property Bar bar: context.bar
-	readonly property QsWindow win: context.win
+  required property InstanceContext context
+  readonly property ShellScreen screen: context.shellScreen
+  readonly property Bar bar: context.bar
+  readonly property QsWindow win: context.win
 
-	readonly property HyprMonitor hyprMonitor: Hyprland.monitorsModel.values.find(m => m.name === screen.name) ?? null
+  readonly property HyprMonitor hyprMonitor: Hyprland.monitorsModel.values.find(m => m.name === screen.name) ?? null
 
-	property alias notificationsOverlay: notificationsOverlay
-	property alias launcherWrapper: launcherWrapper
+  property alias notificationsOverlay: notificationsOverlay
+  property alias launcherWrapper: launcherWrapper
+  property alias dashboardWrapper: dashboardWrapper
 
-	TrayItemPopout {
-		id: trayPopout
-		systemTray: root.bar.systemTray // qmllint disable incompatible-type
-		content: root // qmllint disable incompatible-type
-	}
+  TrayItemPopout {
+    id: trayPopout
+    systemTray: root.bar.systemTray // qmllint disable incompatible-type
+    content: root // qmllint disable incompatible-type
+  }
 
-	LAUNCHER.LauncherWrapper {
-		id: launcherWrapper
+  LAUNCHER.LauncherWrapper {
+    id: launcherWrapper
 
-		anchors.centerIn: parent
-		maxWidth: root.width
-		context: root.context
-	}
+    anchors.centerIn: parent
+    maxWidth: root.width
+    context: root.context
+  }
 
-	DASHBOARD.Wrapper {
-		id: dashboardWrapper
+  DASHBOARD.Wrapper {
+    id: dashboardWrapper
 
-		anchors {
-			top: parent.top
-			left: parent.left
-		}
+    anchors {
+      top: parent.top
+      left: parent.left
+    }
 
-		context: root.context
-	}
+    context: root.context
+  }
 
-	OSD.OSD {
-		id: osd
-		context: root.context
-		anchors {
-			bottom: parent.bottom
-			right: parent.right
-		}
-	}
+  OSD.OSD {
+    id: osd
+    context: root.context
+    anchors {
+      bottom: parent.bottom
+      right: parent.right
+    }
+  }
 
-	NOTIFICATIONS.Overlay {
-		id: notificationsOverlay
+  NOTIFICATIONS.Overlay {
+    id: notificationsOverlay
 
-		anchors {
-			top: parent.top
-			right: parent.right
-		}
+    anchors {
+      top: parent.top
+      right: parent.right
+    }
 
-		maxHeight: root.height
-	}
+    maxHeight: root.height
+  }
 
-	NOTIFICATIONS.PanelWrapper {
-		id: notificationsPanel
-		statusModule: root.bar.statusItems
-	}
+  NOTIFICATIONS.PanelWrapper {
+    id: notificationsPanel
+    statusModule: root.bar.statusItems
+  }
 }

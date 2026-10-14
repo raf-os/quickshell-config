@@ -1,94 +1,110 @@
 import qs.components
 import qs.utils
 
+import org.nightshell.Components
 import org.nightshell.Configs
 import org.nightshell.Hyprland
 
 import QtQuick
 
 Item {
-	id: root
+  id: root
 
-	required property InstanceContext context
-	required property ToplevelInstance activeToplevel
-	readonly property int titleX: titleWrapper.x
-	readonly property int titleWidth: titleWrapper.width
+  required property InstanceContext context
+  required property ToplevelInstance activeToplevel
+  readonly property int titleX: titleWrapper.x
+  readonly property int titleWidth: titleWrapper.width
 
-	property alias osIcon: osIconWrapper
+  property alias osIcon: osIconWrapper
 
-	Item {
-		id: osIconWrapper
+  Item {
+    id: osIconWrapper
 
-		anchors {
-			top: parent.top
-			left: parent.left
-			leftMargin: Styles.spacing_sm
-			bottom: parent.bottom
-		}
+    anchors {
+      top: parent.top
+      left: parent.left
+      leftMargin: Styles.spacing_sm
+      bottom: parent.bottom
+    }
 
-		implicitWidth: osIcon.width
+    implicitWidth: osIcon.width
 
-		OSIcon {
-			id: osIcon
-			isActive: root.context.isLauncherActive
+    OSIcon {
+      id: osIcon
+      isActive: root.context.isLauncherActive
 
-			onClicked: root.context.requestToggleDashboard()
+      onClicked: root.context.requestToggleDashboard()
 
-			anchors {
-				top: parent.top
-				bottom: parent.bottom
-				horizontalCenter: parent.horizontalCenter
-			}
-		}
-	}
+      anchors {
+        top: parent.top
+        bottom: parent.bottom
+        horizontalCenter: parent.horizontalCenter
+      }
+    }
+  }
 
-	Item {
-		id: titleWrapper
-		readonly property int hPadding: Styles.padding_md
-		implicitWidth: Math.min(toplevelTitle.width + hPadding * 2, root.width - x)
+  Item {
+    id: titleWrapper
+    readonly property int hPadding: Styles.padding_md
+    implicitWidth: Math.min(toplevelTitle.width + hPadding * 2, root.width - x)
 
-		anchors {
-			top: parent.top
-			bottom: parent.bottom
-			left: osIconWrapper.right
-			leftMargin: Styles.spacing_md
-		}
+    anchors {
+      top: parent.top
+      bottom: parent.bottom
+      left: osIconWrapper.right
+      leftMargin: Styles.spacing_md
+    }
 
-		clip: true
+    SimpleGlowEffect {
+      source: titleRect
+      anchors.fill: titleRect
+      shadowColor: Colors.primary
+    }
 
-		TextMetrics {
-			id: titleMetrics
-			text: root.activeToplevel ? root.activeToplevel.title : "Desktop"
+    ChamferRect {
+      id: titleRect
+      anchors.fill: parent
 
-			font.family: Config.appearance.fontFamily.sans
-			font.pixelSize: (titleWrapper.height * 0.5)
-			font.weight: 600
-			font.capitalization: Font.AllUppercase
+      color: Colors.primaryContent
+      borderWidth: 1
+      borderColor: Colors.primary
 
-			elide: Text.ElideRight
-			elideWidth: root.width - titleWrapper.x - titleWrapper.hPadding
-		}
+      bottomRightChamfer: Math.floor(height / 3)
+    }
 
-		StyledText {
-			id: toplevelTitle
+    TextMetrics {
+      id: titleMetrics
+      text: root.activeToplevel ? root.activeToplevel.title : "Desktop"
 
-			anchors {
-				left: parent.left
-				leftMargin: titleWrapper.hPadding
-				top: parent.top
-				bottom: parent.bottom
-			}
+      font.family: Config.appearance.fontFamily.sans
+      font.pixelSize: (titleWrapper.height * 0.5)
+      font.weight: 500
+      font.capitalization: Font.AllUppercase
 
-			width: Math.min(titleMetrics.width + titleWrapper.hPadding, titleMetrics.elideWidth)
+      elide: Text.ElideRight
+      elideWidth: root.width - titleWrapper.x - titleWrapper.hPadding
+    }
 
-			text: titleMetrics.elidedText
-			color: Colors.secondaryContent
+    StyledText {
+      id: toplevelTitle
 
-			elide: Text.ElideRight
+      anchors {
+        left: parent.left
+        leftMargin: titleWrapper.hPadding
+        top: parent.top
+        bottom: parent.bottom
+      }
 
-			font: titleMetrics.font
+      width: Math.min(titleMetrics.width + titleWrapper.hPadding, titleMetrics.elideWidth)
 
-			verticalAlignment: Text.AlignVCenter
-		}
-	}
+      text: titleMetrics.elidedText
+      color: Colors.primary
+
+      elide: Text.ElideRight
+
+      font: titleMetrics.font
+
+      verticalAlignment: Text.AlignVCenter
+    }
+  }
 }

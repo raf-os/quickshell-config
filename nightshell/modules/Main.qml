@@ -14,89 +14,89 @@ import Quickshell.Wayland
 import QtQuick
 
 Variants {
-	id: root
+  id: root
 
-	model: Quickshell.screens
+  model: Quickshell.screens
 
-	Scope {
-		id: scope
-		required property ShellScreen modelData
+  Scope {
+    id: scope
+    required property ShellScreen modelData
 
-		Exclusions {
-			screen: scope.modelData
-			bar: bar
-		}
+    Exclusions {
+      screen: scope.modelData
+      bar: bar
+    }
 
-		BasePanelWindow {
-			id: win
+    BasePanelWindow {
+      id: win
 
-			name: "main-shell"
-			screen: scope.modelData
+      name: "main-shell"
+      screen: scope.modelData
 
-			// WlrLayershell.keyboardFocus: FocusGrabberManager.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+      // WlrLayershell.keyboardFocus: FocusGrabberManager.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
-			exclusionMode: ExclusionMode.Ignore
-			mask: MaskRegions {
-				id: windowMask
+      exclusionMode: ExclusionMode.Ignore
+      mask: MaskRegions {
+        id: windowMask
 
-				bar: bar
-				win: win
-				content: content
-			}
+        bar: bar
+        win: win
+        content: content
+      }
 
-			anchors {
-				top: true
-				right: true
-				bottom: true
-				left: true
-			}
+      anchors {
+        top: true
+        right: true
+        bottom: true
+        left: true
+      }
 
-			N_WAYLAND.EagerBufferInitializer {}
+      N_WAYLAND.EagerBufferInitializer {}
 
-			InstanceContext {
-				id: context
+      InstanceContext {
+        id: context
 
-				hyprMonitor: N_HYPRLAND.Hyprland.monitorsModel.values.find(m => m.name === scope.modelData.name)
-				win: win
-				shellScreen: scope.modelData
-				bar: bar
-				content: content // qmllint disable incompatible-type
-			}
+        hyprMonitor: N_HYPRLAND.Hyprland.monitorsModel.values.find(m => m.name === scope.modelData.name)
+        win: win
+        shellScreen: scope.modelData
+        bar: bar
+        content: content // qmllint disable incompatible-type
+      }
 
-			RootInteractionHandler {
-				anchors.fill: parent
+      RootInteractionHandler {
+        anchors.fill: parent
 
-				Shapes.Main {
-					id: bgShapes
+        // Shapes.Main {
+        // 	id: bgShapes
+        //
+        // 	screen: scope.modelData
+        // 	bar: bar
+        // }
 
-					screen: scope.modelData
-					bar: bar
-				}
+        Bar {
+          id: bar
+          panelWindow: win
+          context: context
 
-				Bar {
-					id: bar
-					panelWindow: win
-					context: context
+          anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+          }
+        }
 
-					anchors {
-						top: parent.top
-						left: parent.left
-						right: parent.right
-					}
-				}
+        Content {
+          id: content
+          context: context
 
-				Content {
-					id: content
-					context: context
-
-					anchors {
-						top: bar.bottom
-						left: parent.left
-						right: parent.right
-						bottom: parent.bottom
-					}
-				}
-			}
-		}
-	}
+          anchors {
+            top: bar.bottom
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+          }
+        }
+      }
+    }
+  }
 }

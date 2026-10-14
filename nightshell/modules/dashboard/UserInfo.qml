@@ -12,10 +12,6 @@ Item {
 
   implicitHeight: mainLayout.height
 
-  Rectangle {
-    anchors.fill: parent
-  }
-
   RowLayout {
     id: mainLayout
 
@@ -38,6 +34,7 @@ Item {
 
       Rectangle {
         anchors.fill: parent
+        color: Colors.primaryMuted
       }
     }
 
@@ -55,21 +52,26 @@ Item {
         implicitWidth: parent.implicitWidth
         spacing: Styles.spacing_md
 
-        InfoLabelPair {
+        SInfoLabelPair {
           label: "NAME"
           text: UserData.name
         }
 
-        InfoLabelPair {
+        SInfoLabelPair {
           label: "Operating System"
           text: SysInfo.name
         }
 
-        InfoLabelPair {
+        SInfoLabelPair {
           label: "Uptime"
           text: "1 century"
         }
       }
     }
+  }
+
+  component SInfoLabelPair: InfoLabelPair {
+    label_color: Colors.primary
+    text_color: Colors.primary
   }
 }

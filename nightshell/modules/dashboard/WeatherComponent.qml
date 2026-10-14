@@ -17,23 +17,11 @@ Loader {
 
     implicitHeight: mainLayout.implicitHeight
 
-    Rectangle {
-      id: separator
-      anchors {
-        top: parent.top
-        left: parent.left
-        right: parent.right
-      }
-
-      implicitHeight: 1
-      color: Colors.primary
-    }
-
     RowLayout {
       id: mainLayout
 
       anchors {
-        top: separator.bottom
+        top: parent.top
       }
 
       WeatherIcon {
@@ -53,6 +41,8 @@ Loader {
         Layout.fillHeight: true
 
         InfoLabelPair {
+          label_color: Colors.primary
+          text_color: Colors.primary
           label: "Current temperature"
           text: `${WeatherService.currentTemperature} °C`
         }

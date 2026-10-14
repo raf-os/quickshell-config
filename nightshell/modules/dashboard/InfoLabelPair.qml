@@ -6,27 +6,34 @@ import QtQuick
 import QtQuick.Layouts
 
 ColumnLayout {
-	id: root
+  id: root
 
-	required property string label
-	required property string text
+  required property string label
+  required property string text
 
-	spacing: Styles.spacing_xs
+  spacing: Styles.spacing_xs
 
-	StyledText {
-		id: labelText
+  property color label_color: Colors.neutralContent
+  property color text_color: Colors.neutralContent
 
-		text: root.label
-		font.pointSize: Styles.text_xs
-		font.capitalization: Font.AllUppercase
-		font.weight: 600
-	}
+  StyledText {
+    id: labelText
 
-	StyledText {
-		id: textText
+    text: root.label
+    font.pointSize: Styles.text_xs
+    font.capitalization: Font.AllUppercase
+    font.weight: 600
 
-		text: root.text
-		font.pointSize: Styles.text_md
-		font.weight: 600
-	}
+    color: root.label_color
+  }
+
+  StyledText {
+    id: textText
+
+    text: root.text
+    font.pointSize: Styles.text_md
+    font.weight: 600
+
+    color: root.text_color
+  }
 }

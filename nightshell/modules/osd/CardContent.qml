@@ -8,40 +8,40 @@ import QtQuick
 import QtQuick.Layouts
 
 ColumnLayout {
-	id: root
+  id: root
 
-	required property string title
-	property string content
+  required property string title
+  property string content
 
-	spacing: Styles.spacing_md
+  spacing: Styles.spacing_md
 
-	Layout.fillWidth: true
-	Layout.fillHeight: true
+  Layout.fillWidth: true
+  Layout.fillHeight: true
 
-	StyledText {
-		id: titleComponent
+  StyledText {
+    id: titleComponent
 
-		Layout.fillWidth: true
-		text: root.title
-		color: Colors.primary
+    Layout.fillWidth: true
+    text: root.title
+    color: Colors.primary
 
-		font.pointSize: Styles.text_md
-		font.weight: 700
-	}
+    font.pointSize: Styles.text_md
+    font.weight: 600
+  }
 
-	Loader {
-		id: contentLoader
-		Layout.fillWidth: true
+  Loader {
+    id: contentLoader
+    Layout.fillWidth: true
 
-		active: root.content !== ""
+    active: root.content !== ""
 
-		sourceComponent: StyledText {
-			id: contentComponent
+    sourceComponent: StyledText {
+      id: contentComponent
 
-			text: root.content
-			color: Colors.primary
+      text: root.content
+      color: Colors.primary
 
-			font.pointSize: Styles.text_sm
-		}
-	}
+      font.pointSize: Styles.text_sm
+    }
+  }
 }

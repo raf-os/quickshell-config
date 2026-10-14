@@ -12,99 +12,128 @@ Shape {
   required property Content contentItem
   required property Item fillItem
 
-  readonly property AbsoluteTransform titleTransform: contentItem.titleTransform
-  readonly property AbsoluteTransform layoutTransform: contentItem.layoutTransform
-  readonly property AbsoluteTransform sideTransform: contentItem.sideTransform
-  readonly property int chamferSize: 10
+  readonly property AbsoluteTransform sessionTransform: contentItem.sessionTransform
 
-  // qmlformat off
-	readonly property rect titleRect: {
-    return Qt.rect(
-      titleTransform.x,
-      titleTransform.y,
-      Math.min(titleTransform.width, root.width),
-      Math.min(titleTransform.height - 1, root.height)
-    );
-  }
+  readonly property int leftWidth: 24
+  readonly property int borderLeftBevel: Math.min(root.height * 0.5, 6)
+  readonly property real bottomRightBevel: Math.min(root.height / 2, 12)
 
-	readonly property rect bodyRect: {
-    return Qt.rect(
-      layoutTransform.x,
-      titleRect.y + titleRect.height,
-      Math.min(layoutTransform.width, root.width),
-      Math.min(layoutTransform.height, root.height)
-    );
-	}
+  readonly property bool shouldOffset: rendererType === Shape.CurveRenderer
 
-  readonly property rect sideRect: {
-    return Qt.rect(
-      Math.min(sideTransform.x + 1, root.width),
-      Math.min(sideTransform.y, root.height),
-      Math.min(sideTransform.xEnd - 1, root.width),
-      Math.min(sideTransform.yEnd, root.height)
-    );
-  }
-  // qmlformat on
+  preferredRendererType: Shape.CurveRenderer
 
-  readonly property real sideRectBevelLength: sideRect.width - sideRect.x
-
-  // Main shape
+  // left thing
   ShapePath {
-    id: mainPath
+    id: borderLeft
 
-    // fillColor: Colors.primaryContent
-    fillItem: root.fillItem
-    strokeColor: Colors.primary
+    fillColor: Colors.primaryMuted
     strokeWidth: 1
-    joinStyle: ShapePath.MiterJoin
+    strokeColor: Colors.primary
+    joinStyle: ShapePath.BevelJoin
 
-    // Top line
-    PathLine {
-      x: root.titleRect.x + root.titleRect.width
-      y: root.titleRect.y
+    readonly property real topDepth: Math.min(Math.floor(root.height * 0.5), 3)
+    readonly property int connectionHeight: 42
+    readonly property int connectionBevelLength: Math.max(0, Math.min(4, root.height - (connectionHeight * 2)))
+
+    PathMove {
+      x: -root.leftWidth
+      y: borderLeft.topDepth
     }
-    // Diagonal line
     PathLine {
-      x: Math.min(root.width, root.titleRect.x + root.titleRect.width + root.titleRect.height)
-      y: Math.min(root.height, root.titleRect.y + root.titleRect.height)
+      relativeX: root.leftWidth * 0.5
+      relativeY: 0
     }
-    // Horizontal line, joining with body
     PathLine {
-      x: root.bodyRect.x + root.bodyRect.width
-      y: root.bodyRect.y
+      relativeX: borderLeft.topDepth
+      y: 0
     }
-    // Bevel, side buttons
     PathLine {
-      x: root.sideRect.width
-      y: root.sideRect.y + root.sideRectBevelLength
+      x: -2
+      y: 0
     }
     PathLine {
       relativeX: 0
-      y: root.sideRect.height - root.sideRectBevelLength
+      y: Math.min(borderLeft.connectionHeight, root.height)
     }
     PathLine {
-      x: root.sideRect.x
-      y: root.sideRect.height
+      relativeX: -borderLeft.connectionBevelLength
+      relativeY: borderLeft.connectionBevelLength
     }
-    // Vertical line, right side
     PathLine {
-      x: root.sideRect.x
-      y: root.bodyRect.y + Math.max(0, root.bodyRect.height - 24)
+      relativeX: 0
+      y: Math.max(0, root.height - borderLeft.connectionHeight - borderLeft.connectionBevelLength)
     }
-    // Diagonal bevel, bottom right
     PathLine {
-      x: Math.max(0, root.sideRect.x - 24)
-      y: root.bodyRect.y + root.bodyRect.height
+      relativeX: borderLeft.connectionBevelLength
+      relativeY: borderLeft.connectionBevelLength
     }
-    // Horizontal line, bottom
     PathLine {
-      x: root.bodyRect.x
+      relativeX: 0
+      y: root.height
+    }
+    PathLine {
+      x: -root.leftWidth + root.borderLeftBevel
       relativeY: 0
     }
-    // Vertical line, left, connecting to title
     PathLine {
-      x: root.bodyRect.x
-      y: root.titleRect.y
+      relativeX: -root.borderLeftBevel
+      relativeY: -root.borderLeftBevel
+    }
+    PathLine {
+      x: -root.leftWidth
+      y: borderLeft.topDepth
+    }
+  }
+
+  // main content
+  ShapePath {
+    strokeColor: Colors.primary
+    strokeWidth: 1
+    fillColor: Colors.primaryContent
+    joinStyle: ShapePath.BevelJoin
+
+    PathRectangle {
+      x: 0
+      y: 0
+      width: root.width
+      height: root.height
+      bevel: true
+      bottomRightRadius: root.bottomRightBevel
+    }
+  }
+
+  // session section
+  ShapePath {
+    id: ss
+
+    readonly property real bevelLength: Math.min(root.width / 2, root.bottomRightBevel)
+
+    startX: 0
+    startY: root.sessionTransform.y
+
+    fillColor: Colors.primary
+    strokeWidth: 0
+    strokeColor: "transparent"
+
+    PathLine {
+      x: Math.max(0, root.width - ss.bevelLength)
+      relativeY: 0
+    }
+    PathLine {
+      x: root.width
+      y: ss.startY - ss.bevelLength
+    }
+    PathLine {
+      relativeX: 0
+      y: Math.min(root.height, root.height - ss.bevelLength)
+    }
+    PathLine {
+      relativeX: -ss.bevelLength
+      y: root.height
+    }
+    PathLine {
+      x: 0
+      y: root.height
     }
   }
 }
