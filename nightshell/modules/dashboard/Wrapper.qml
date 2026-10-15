@@ -8,42 +8,47 @@ import qs.components
 import QtQuick
 
 Item {
-	id: root
+  id: root
 
-	required property InstanceContext context
-	property bool isActive: false
+  required property InstanceContext context
+  property bool isActive: false
 
-	FocusGrabber {
-		active: root.isActive
-		onFocusLost: root.isActive = false
-	}
+  FocusGrabber {
+    active: root.isActive
+    onFocusLost: root.isActive = false
+  }
 
-	Connections {
-		target: root.context
+  Connections {
+    target: root.context
 
-		function onRequestToggleDashboard() {
-			root.isActive = !root.isActive;
-		}
-	}
+    function onRequestToggleDashboard() {
+      root.isActive = !root.isActive;
+    }
 
-	Loader {
-		id: contentLoader
+    function onRequestCloseDashboard() {
+      root.isActive = false;
+    }
+  }
 
-		active: false
+  Loader {
+    id: contentLoader
 
-		readonly property bool shouldBeActive: root.isActive
+    active: false
 
-		onShouldBeActiveChanged: {
-			if (shouldBeActive)
-				active = true;
-		}
+    readonly property bool shouldBeActive: root.isActive
 
-		sourceComponent: Content {
-			id: content
+    onShouldBeActiveChanged: {
+      if (shouldBeActive)
+        active = true;
+    }
 
-			isActive: root.isActive
+    sourceComponent: Content {
+      id: content
 
-			onExitAnimationFinished: contentLoader.active = false
-		}
-	}
+      isActive: root.isActive
+
+      onExitAnimationFinished: contentLoader.active = false
+      onCloseRequested: root.isActive = false
+    }
+  }
 }

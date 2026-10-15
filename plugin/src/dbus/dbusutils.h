@@ -1,7 +1,10 @@
 #pragma once
 
 #include <functional>
+#include <type_traits>
+#include <utility>
 
+#include <concepts>
 #include <qcontainerfwd.h>
 #include <qdbusabstractinterface.h>
 #include <qdbusargument.h>
@@ -9,6 +12,7 @@
 #include <qdbusmessage.h>
 #include <qdbuspendingcall.h>
 #include <qdbuspendingreply.h>
+#include <qlogging.h>
 #include <qobject.h>
 #include <qtdbusglobal.h>
 #include <qvariant.h>
@@ -62,18 +66,31 @@ void asyncReadSimpleProperty(QDBusAbstractInterface *interface,
 void asyncGetAll(QDBusAbstractInterface         &interface,
     std::function<void(QVariantMap, QDBusError)> callback);
 
-// not working correctly
-template <typename... Types>
-void asyncCall(QDBusPendingReply<Types...>            &pending,
-    std::function<void(QDBusPendingReply<Types...> &)> callback,
-    QObject                                           *owner) {
-  auto *call = new QDBusPendingCallWatcher(pending, owner);
+// Code below is heavily assisted by a clanker, keep an eye on it
+template <typename... Types, typename Func>
+  requires std::invocable<Func, const Types &...> ||
+           std::is_null_pointer_v<Func>
+void asyncCallback(
+    QDBusPendingReply<Types...> &pending, Func callback, QObject *owner) {
+  auto call = new QDBusPendingCallWatcher(pending, owner);
 
-  auto cb = [callback](QDBusPendingCallWatcher *call) {
-    QDBusPendingReply<Types...> reply = *call;
-    callback(reply);
-  };
+  QObject::connect(call, &QDBusPendingCallWatcher::finished, owner,
+      [callback](QDBusPendingCallWatcher *call) {
+        QDBusPendingReply<Types...> reply = *call;
 
-  QObject::connect(call, &QDBusPendingCallWatcher::finished, owner, cb);
+        if (reply.isError()) {
+          qDebug() << reply.error();
+          call->deleteLater();
+          return;
+        }
+
+        if constexpr (!std::is_null_pointer_v<Func>) {
+          []<std::size_t... Is>(std::index_sequence<Is...>, auto &rep,
+              auto &cb) { cb(rep.template argumentAt<Is>()...); }(
+              std::index_sequence_for<Types...>{}, reply, callback);
+        }
+
+        call->deleteLater();
+      });
 }
 } // namespace ns::dbus

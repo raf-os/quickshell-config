@@ -20,7 +20,19 @@ qt_add_dbus_interface(NM_GENERATED_SOURCES
   nm_interface
 )
 
+qt_add_dbus_interface(LOGIN1_MANAGER_GENERATED_SOURCES
+  org.freedesktop.login1.Manager.xml
+  login1_manager_interface
+)
+
 qt6_add_library(nightshell_services SHARED)
+qt_declare_logging_category(
+  nightshell_services
+  IDENTIFIER "ns::services::NS_LOG_SERVICES"
+  HEADER "ns_services_debug.h"
+  CATEGORY_NAME "ns.services"
+  DEFAULT_SEVERITY Debug
+)
 
 target_sources(
   nightshell_services
@@ -33,6 +45,7 @@ target_sources(
     weather.cpp
     session.cpp
     ${NM_GENERATED_SOURCES}
+    ${LOGIN1_MANAGER_GENERATED_SOURCES}
 )
 
 set_target_properties(
@@ -69,6 +82,7 @@ target_link_libraries(
     nightshell_configs
     nightshell_services_pam
     nightshell_services_pamplugin
+    nightshell_dbus
 )
 
 install_qml_module(nightshell_services)

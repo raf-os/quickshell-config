@@ -21,6 +21,7 @@ MouseArea {
   implicitHeight: layerWrapper.height
 
   signal exitAnimationFinished
+  signal closeRequested
 
   onIsActiveChanged: {
     if (isActive) {
@@ -175,6 +176,8 @@ MouseArea {
 
       SessionComponent {
         id: sessionComponent
+
+        onCloseRequested: root.closeRequested()
 
         AbsoluteTransform {
           id: sessionTransform

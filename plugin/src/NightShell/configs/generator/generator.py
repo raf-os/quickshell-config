@@ -135,6 +135,8 @@ class DocumentMeta(BaseModel):
         header = "qlist.h"
       case "qreal":
         header = "qtypes.h"
+      case "QVariantMap":
+        header = "qcontainerfwd.h"
       case _:
         header = None
 

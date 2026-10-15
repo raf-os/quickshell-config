@@ -73,6 +73,16 @@ class ListProperty[int](Property[list[int]]):
     return f"[{', '.join([str(i) for i in dl])}]"
 
 
+class DictProperty(Property[dict[str, str | int | float]]):
+  type: str = "QVariantMap"
+
+  @override
+  def getDefaultValue(self) -> str | None:
+    if self.defaultValue is None:
+      return None
+    return f"{'\n'.join([f'{k}: {str(v)}' for k, v in self.defaultValue.items()])}"
+
+
 class Node(BaseModel):
   name: str
   props: list[BaseProperty] = []

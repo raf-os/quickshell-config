@@ -19,8 +19,8 @@ MouseArea {
   required property int maxHeight
 
   readonly property int animDuration: 200
-  readonly property int hPadding: 200
-  readonly property int vPadding: 100
+  readonly property int hPadding: 300
+  readonly property int vPadding: 200
 
   anchors.centerIn: parent
 
@@ -76,11 +76,11 @@ MouseArea {
   RectangularShadow {
     id: bgShadow
     anchors.centerIn: parent
-    color: "black"
-    blur: 32
+    color: Colors.primaryMuted
+    blur: 256
     opacity: 0
-    implicitWidth: root.maxWidth
-    implicitHeight: parent.implicitHeight + Styles.padding_xl * 2
+    implicitWidth: root.maxWidth * 2
+    implicitHeight: root.maxHeight // parent.implicitHeight + Styles.padding_xl * 2
   }
 
   Item {
@@ -95,7 +95,7 @@ MouseArea {
       name: "active"
 
       PropertyChanges {
-        bgShadow.opacity: 0.5
+        bgShadow.opacity: 0.8
         wrapper.scale: 1
         wrapper.opacity: 1
       }

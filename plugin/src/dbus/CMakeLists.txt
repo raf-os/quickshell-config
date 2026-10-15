@@ -2,7 +2,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core DBus)
 
 qt6_add_library(nightshell_dbus STATIC)
 
-target_sources(nightshell_dbus PRIVATE dbusutils.cpp dbuspropertygroup.cpp)
+target_sources(nightshell_dbus PRIVATE dbusutils.cpp)
 
 target_include_directories(nightshell_dbus PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

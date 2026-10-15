@@ -1,6 +1,10 @@
+pragma ComponentBehavior: Bound
+
 import qs.components
 
 import org.nightshell.Configs
+import org.nightshell.Services
+import org.nightshell.IpcServer
 
 import QtQuick
 import QtQuick.Layouts
@@ -14,6 +18,8 @@ Item {
 
   implicitHeight: mainLayout.height + padding * 2
 
+  signal closeRequested
+
   RowLayout {
     id: mainLayout
 
@@ -21,10 +27,26 @@ Item {
 
     Btn {
       icon: "session_power"
+
+      function onSelected() {
+        SessionManager.shutdown();
+      }
+    }
+
+    Btn {
+      icon: "session_reboot"
+
+      function onSelected() {
+        SessionManager.reboot();
+      }
     }
 
     Btn {
       icon: "session_lock"
+
+      function onSelected() {
+        IPCServer.SessionLock();
+      }
     }
 
     Btn {
@@ -42,7 +64,16 @@ Item {
     implicitWidth: 24
     implicitHeight: 24
 
+    enabled: !SessionManager.isPending
     hoverEnabled: true
+
+    function onSelected() {
+    }
+
+    onClicked: {
+      root.closeRequested();
+      onSelected();
+    }
 
     ShellIcon {
       anchors.centerIn: parent

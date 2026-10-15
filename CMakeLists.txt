@@ -40,6 +40,7 @@ include(GNUInstallDirs)
 
 include(cmake/install-qml-module.cmake)
 include(cmake/gen-wayland-protocol.cmake)
+include(cmake/QtDeclareLoggingCategory.cmake)
 
 if(DEVMODE)
   set(MYSHELL_INSTALL_DATADIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")

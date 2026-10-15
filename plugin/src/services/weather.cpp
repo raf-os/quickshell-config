@@ -2,6 +2,7 @@
 
 #include <qhash.h>
 #include <qhashfunctions.h>
+#include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 #include <qjsonparseerror.h>
@@ -65,6 +66,26 @@ const QList<QPair<QList<int>, WI>> INTENSITY_TABLE = {
     {{53, 55, 56, 57, 63, 73, 81},                             WI::Medium},
     {{65, 67, 75, 82, 86, 95, 97},                             WI::High  }
 };
+
+template <typename T> T jsonArraySum(const QJsonArray &arr);
+
+template <> qreal jsonArraySum(const QJsonArray &arr) {
+  qreal sum = 0;
+  for (auto val : arr) {
+    if (!val.isDouble()) continue;
+    sum += val.toDouble();
+  }
+  return sum;
+}
+
+template <> int jsonArraySum(const QJsonArray &arr) {
+  int sum = 0;
+  for (auto val : arr) {
+    if (!val.isDouble()) continue;
+    sum += val.toInt();
+  }
+  return sum;
+}
 } // namespace
 
 WeatherService::WeatherService(QObject *parent) : QObject(parent) {
@@ -131,6 +152,16 @@ void WeatherService::onWeatherRequestSuccess(const QByteArray &data) {
     self->b_currentTemperature = cdata.value("temperature_2m").toDouble();
     self->b_weatherCode        = cdata.value("weather_code").toInt(0);
   }
+  auto daily = jobj.value("daily");
+  if (daily.isObject()) {
+    auto ddata = d.toObject();
+
+    auto maxArray = ddata.value("temperature_2m_max").toArray();
+    auto minArray = ddata.value("temperature_2m_min").toArray();
+
+    self->b_dailyMaxTemperature = jsonArraySum<qreal>(maxArray);
+    self->b_dailyMinTemperature = jsonArraySum<qreal>(minArray);
+  }
 }
 
 void WeatherService::fetchData() {
@@ -153,8 +184,10 @@ void WeatherService::fetchData() {
       {"latitude", QString::number(b_latitude.value(), 10, 6)},
       {"longitude", QString::number(b_longitude.value(), 10, 6)},
       {"current", "temperature_2m,weather_code"},
+      {"daily", "temperature_2m_max,temperature_2m_min"},
       {"forecast_days", "1"},
-      {"timeformat", "unixtime"}
+      {"timeformat", "unixtime"},
+      {"timezone", "auto"},
   };
 
   m_isFetching = true;

@@ -40,6 +40,8 @@ public:
   B(qreal, latitude)
   B(qreal, longitude)
   B(qreal, currentTemperature)
+  B(qreal, dailyMaxTemperature)
+  B(qreal, dailyMinTemperature)
   B(ns::services::WeatherService::WeatherTypes, weatherType)
   B(ns::services::WeatherService::WeatherIntensity, weatherIntensity)
 #undef B
