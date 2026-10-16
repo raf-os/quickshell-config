@@ -38,19 +38,19 @@ function(qt_declare_logging_category sources_var)
   if(NOT ARG_HEADER)
     message(
       FATAL_ERROR
-      "Missing HEADER argument for ecm_qt_declare_logging_category"
+      "Missing HEADER argument for qt_declare_logging_category"
     )
   endif()
   if(NOT ARG_IDENTIFIER)
     message(
       FATAL_ERROR
-      "Missing IDENTIFIER argument for ecm_qt_declare_logging_category"
+      "Missing IDENTIFIER argument for qt_declare_logging_category"
     )
   endif()
   if(NOT ARG_CATEGORY_NAME)
     message(
       FATAL_ERROR
-      "Missing CATEGORY_NAME argument for ecm_qt_declare_logging_category"
+      "Missing CATEGORY_NAME argument for qt_declare_logging_category"
     )
   endif()
   if(NOT ARG_DEFAULT_SEVERITY)

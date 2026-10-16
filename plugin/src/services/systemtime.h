@@ -7,7 +7,7 @@
 #include <qtmetamacros.h>
 
 #include "helpermacros.h"
-#include "ns_services_shared_global.h"
+#include "ns_services_export.h"
 
 namespace ns::utils {
 class NS_SERVICES_EXPORT SystemTime : public QObject {

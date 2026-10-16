@@ -68,8 +68,7 @@ void asyncGetAll(QDBusAbstractInterface         &interface,
 
 // Code below is heavily assisted by a clanker, keep an eye on it
 template <typename... Types, typename Func>
-  requires std::invocable<Func, const Types &...> ||
-           std::is_null_pointer_v<Func>
+  requires std::invocable<Func, const Types &...>
 void asyncCallback(
     QDBusPendingReply<Types...> &pending, Func callback, QObject *owner) {
   auto call = new QDBusPendingCallWatcher(pending, owner);
@@ -84,11 +83,9 @@ void asyncCallback(
           return;
         }
 
-        if constexpr (!std::is_null_pointer_v<Func>) {
-          []<std::size_t... Is>(std::index_sequence<Is...>, auto &rep,
-              auto &cb) { cb(rep.template argumentAt<Is>()...); }(
-              std::index_sequence_for<Types...>{}, reply, callback);
-        }
+        []<std::size_t... Is>(std::index_sequence<Is...>, auto &rep, auto &cb) {
+          cb(rep.template argumentAt<Is>()...);
+        }(std::index_sequence_for<Types...>{}, reply, callback);
 
         call->deleteLater();
       });

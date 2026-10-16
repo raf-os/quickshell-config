@@ -154,7 +154,7 @@ void WeatherService::onWeatherRequestSuccess(const QByteArray &data) {
   }
   auto daily = jobj.value("daily");
   if (daily.isObject()) {
-    auto ddata = d.toObject();
+    auto ddata = daily.toObject();
 
     auto maxArray = ddata.value("temperature_2m_max").toArray();
     auto minArray = ddata.value("temperature_2m_min").toArray();
@@ -178,7 +178,7 @@ void WeatherService::fetchData() {
   }
 
   QUrl fetchUrl("https://api.open-meteo.com/v1/"
-                "forecast?");
+                "forecast");
 
   QUrlQuery query{
       {"latitude", QString::number(b_latitude.value(), 10, 6)},

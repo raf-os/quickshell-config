@@ -70,6 +70,8 @@ Item {
     }
   }
 
+  Tooltip {}
+
   component SInfoLabelPair: InfoLabelPair {
     label_color: Colors.primary
     text_color: Colors.primary

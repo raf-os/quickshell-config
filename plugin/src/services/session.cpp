@@ -55,7 +55,6 @@ void SessionManager::wrapped_check_call(
       [this, onSuccess](const QString &resp) {
         if (can_perform_operation(resp)) {
           auto op = (m_interface->*onSuccess)(true);
-          dbus::asyncCallback(op, nullptr, this);
         } else {
           qCWarning(NS_LOG_SERVICES)
               << "SessionManager: User is not allowed to perform action.";

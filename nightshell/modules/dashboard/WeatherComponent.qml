@@ -1,3 +1,4 @@
+import qs.components
 import qs.components.weather
 
 import org.nightshell.Services
@@ -11,6 +12,7 @@ Loader {
   active: Config.modules.enabledModules.weather
 
   Layout.fillWidth: true
+  Layout.rightMargin: Styles.padding_lg
 
   sourceComponent: Item {
     id: weatherWidget
@@ -22,6 +24,8 @@ Loader {
 
       anchors {
         top: parent.top
+        left: parent.left
+        right: parent.right
       }
 
       WeatherIcon {
@@ -36,17 +40,39 @@ Loader {
         color: Colors.primary
       }
 
-      ColumnLayout {
+      RowLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
 
-        InfoLabelPair {
-          label_color: Colors.primary
-          text_color: Colors.primary
-          label: "Current temperature"
+        StyledText {
+          Layout.fillWidth: true
           text: `${WeatherService.currentTemperature} °C`
+
+          font.pointSize: Styles.text_xl * 1.25
+          font.weight: 600
+          color: Colors.primary
+        }
+
+        ColumnLayout {
+          Layout.fillHeight: true
+
+          SInfoLabelPair {
+            label: "Minimum"
+            text: `${WeatherService.dailyMinTemperature} °C`
+          }
+
+          SInfoLabelPair {
+            label: "Maximum"
+            text: `${WeatherService.dailyMaxTemperature} °C`
+          }
         }
       }
     }
+  }
+
+  component SInfoLabelPair: InfoLabelPair {
+    horizontalAlignment: Text.AlignRight
+    text_color: Colors.primary
+    label_color: Colors.primaryMuted
   }
 }

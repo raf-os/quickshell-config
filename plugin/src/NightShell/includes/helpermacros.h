@@ -74,3 +74,7 @@ public:                                                                        \
       qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);           \
     return inst;                                                               \
   }
+
+#define GADGET_PROP(Type, Name)                                                \
+  Q_PROPERTY(Type Name MEMBER Name)                                            \
+  Type Name;

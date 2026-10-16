@@ -3,9 +3,11 @@
 #include <cstdint>
 
 #include <qhashfunctions.h>
+#include <qlist.h>
 #include <qobject.h>
 #include <qproperty.h>
 #include <qqmlintegration.h>
+#include <qqmllist.h>
 #include <qtimer.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>

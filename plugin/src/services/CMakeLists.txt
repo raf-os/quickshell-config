@@ -34,6 +34,11 @@ qt_declare_logging_category(
   DEFAULT_SEVERITY Debug
 )
 
+qt_generate_export_macros(nightshell_services
+  HEADER "ns_services_export.h"
+  NAME "NS_SERVICES"
+)
+
 target_sources(
   nightshell_services
   PRIVATE
@@ -43,6 +48,7 @@ target_sources(
     userdata.cpp
     requests.cpp
     weather.cpp
+    geo_query.cpp
     session.cpp
     ${NM_GENERATED_SOURCES}
     ${LOGIN1_MANAGER_GENERATED_SOURCES}
