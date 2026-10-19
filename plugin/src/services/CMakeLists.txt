@@ -25,6 +25,11 @@ qt_add_dbus_interface(LOGIN1_MANAGER_GENERATED_SOURCES
   login1_manager_interface
 )
 
+qt_add_dbus_interface(LOGIN1_SESSION_GENERATED_SOURCES
+  org.freedesktop.login1.Session.xml
+  login1_session_interface
+)
+
 qt6_add_library(nightshell_services SHARED)
 qt_declare_logging_category(
   nightshell_services
@@ -52,6 +57,7 @@ target_sources(
     session.cpp
     ${NM_GENERATED_SOURCES}
     ${LOGIN1_MANAGER_GENERATED_SOURCES}
+    ${LOGIN1_SESSION_GENERATED_SOURCES}
 )
 
 set_target_properties(

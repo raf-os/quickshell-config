@@ -1,4 +1,5 @@
 import qs.components
+import qs.utils
 
 import org.nightshell.Configs
 import org.nightshell.Utils
@@ -10,6 +11,7 @@ MouseArea {
   id: root
 
   required property bool isActive
+  required property InstanceContext context
 
   readonly property int desiredWidth: 420
   readonly property int resizeAnimationLength: 500
@@ -170,12 +172,38 @@ MouseArea {
         Layout.margins: padding
       }
 
-      WeatherComponent {
-        id: weatherComponent
+      CSeparator {}
+
+      RowLayout {
+        Layout.fillWidth: true
+        Layout.margins: Styles.padding_lg
+        spacing: Styles.spacing_xl
+
+        WeatherComponent {
+          id: weatherComponent
+          Layout.alignment: Qt.AlignVCenter
+        }
+
+        SSeparator {
+          orientation: SSeparator.Orientation.Vertical
+          padding: 0
+          color: Colors.primaryMuted
+          visible: weatherComponent.active ? 1 : 0
+        }
+
+        ClockComponent {
+          id: clockComponent
+          Layout.alignment: Qt.AlignVCenter
+        }
       }
 
       SessionComponent {
         id: sessionComponent
+
+        context: root.context
+
+        tooltipVisualParent: root
+        isActive: root.isActive
 
         onCloseRequested: root.closeRequested()
 

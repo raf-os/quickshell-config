@@ -12,7 +12,6 @@ Loader {
   active: Config.modules.enabledModules.weather
 
   Layout.fillWidth: true
-  Layout.rightMargin: Styles.padding_lg
 
   sourceComponent: Item {
     id: weatherWidget
@@ -21,6 +20,8 @@ Loader {
 
     RowLayout {
       id: mainLayout
+
+      spacing: Styles.spacing_lg
 
       anchors {
         top: parent.top
@@ -32,7 +33,6 @@ Loader {
         id: weatherIcon
 
         Layout.alignment: Qt.AlignVCenter
-        Layout.margins: Styles.padding_lg
 
         weatherCode: WeatherService.weatherType
         size: 64

@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.utils
 
 import org.nightshell.Configs
 import org.nightshell.Services
@@ -12,7 +13,12 @@ import QtQuick.Layouts
 Item {
   id: root
 
+  required property InstanceContext context
+
   readonly property int padding: Styles.padding_md
+  // "Content"'s layerWrapper has its clip property set to true, so the visual parent must be Content itself
+  required property Item tooltipVisualParent
+  required property bool isActive
 
   Layout.fillWidth: true
 
@@ -27,6 +33,7 @@ Item {
 
     Btn {
       icon: "session_power"
+      tooltipContent: "Power Off"
 
       function onSelected() {
         SessionManager.shutdown();
@@ -35,6 +42,7 @@ Item {
 
     Btn {
       icon: "session_reboot"
+      tooltipContent: "Reboot"
 
       function onSelected() {
         SessionManager.reboot();
@@ -43,6 +51,7 @@ Item {
 
     Btn {
       icon: "session_lock"
+      tooltipContent: "Lock Session"
 
       function onSelected() {
         IPCServer.SessionLock();
@@ -51,21 +60,34 @@ Item {
 
     Btn {
       icon: "settings"
+      tooltipContent: "Settings"
     }
 
     Btn {
       icon: "launcher"
+      tooltipContent: "Launcher"
+
+      function onSelected() {
+        root.context.requestToggleLauncher();
+      }
     }
   }
 
   component Btn: SMouseArea {
     id: cBtn
     required property string icon
+    property string tooltipContent
     implicitWidth: 24
     implicitHeight: 24
 
     enabled: !SessionManager.isPending
     hoverEnabled: true
+
+    TooltipTarget {
+      id: tTarget
+      tooltip: _tooltip
+      content: cBtn.tooltipContent
+    }
 
     function onSelected() {
     }
@@ -95,5 +117,14 @@ Item {
         }
       }
     }
+  }
+
+  Tooltip {
+    id: _tooltip
+    parent: root.tooltipVisualParent
+    active: root.isActive
+    offset: 2
+
+    showDelay: 500
   }
 }

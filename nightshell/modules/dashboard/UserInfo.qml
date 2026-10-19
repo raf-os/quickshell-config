@@ -64,13 +64,11 @@ Item {
 
         SInfoLabelPair {
           label: "Uptime"
-          text: "1 century"
+          text: `${SessionManager.uptimeHour}h ${SessionManager.uptimeMinutes % 60}min`
         }
       }
     }
   }
-
-  Tooltip {}
 
   component SInfoLabelPair: InfoLabelPair {
     label_color: Colors.primary

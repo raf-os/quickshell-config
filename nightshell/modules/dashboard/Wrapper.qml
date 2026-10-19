@@ -46,6 +46,7 @@ Item {
       id: content
 
       isActive: root.isActive
+      context: root.context
 
       onExitAnimationFinished: contentLoader.active = false
       onCloseRequested: root.isActive = false
