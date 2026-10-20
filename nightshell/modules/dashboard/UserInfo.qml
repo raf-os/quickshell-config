@@ -64,7 +64,7 @@ Item {
 
         SInfoLabelPair {
           label: "Uptime"
-          text: `${SessionManager.uptimeHour}h ${SessionManager.uptimeMinutes % 60}min`
+          text: `${SessionManager.uptimeHours}h ${SessionManager.uptimeMinutes}min`
         }
       }
     }

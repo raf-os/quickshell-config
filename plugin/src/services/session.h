@@ -29,22 +29,26 @@ class NS_SERVICES_EXPORT SystemdSession : public QObject {
 public:
   explicit SystemdSession(const QString &path, QObject *parent = nullptr);
 
-  [[nodiscard]] bool               isValid() const;
-  [[nodiscard]] QBindable<quint64> bindableUptime() const { return &b_uptime; }
+  [[nodiscard]] bool           isValid() const;
+  [[nodiscard]] QBindable<int> bindableUptime() const { return &b_uptime; }
 
 public slots:
-  void fetchUptime();
+  void fetchTimestampMonotonic();
+
+private slots:
+  void onUptimeTimerTimeout();
 
 signals:
   void uptimeChanged();
 
 private:
-  bool                                  m_isFetching = false;
-  OrgFreedesktopLogin1SessionInterface *m_interface  = nullptr;
-  QTimer                                m_timer;
+  bool                                  m_isFetching         = false;
+  qulonglong                            m_timestampMonotonic = 0;
+  QTimer                                m_uptimeTimer;
+  OrgFreedesktopLogin1SessionInterface *m_interface = nullptr;
 
   Q_OBJECT_BINDABLE_PROPERTY(
-      SystemdSession, quint64, b_uptime, &SystemdSession::uptimeChanged);
+      SystemdSession, int, b_uptime, &SystemdSession::uptimeChanged);
 };
 
 class NS_SERVICES_EXPORT SessionManager : public QObject {
@@ -62,8 +66,8 @@ class NS_SERVICES_EXPORT SessionManager : public QObject {
 
 #define B(Type, Name) AUTO_BINDABLE(SessionManager, Type, Name)
   B(bool, isPending)
-  B(quint64, uptimeHour)
-  B(quint64, uptimeMinutes)
+  B(int, uptimeMinutes)
+  B(int, uptimeHours)
 #undef B
 
 public:

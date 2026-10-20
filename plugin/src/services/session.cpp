@@ -1,5 +1,7 @@
 #include "session.h"
 
+#include <chrono>
+
 #include <qdbusabstractinterface.h>
 #include <qdbusargument.h>
 #include <qdbusconnection.h>
@@ -30,7 +32,7 @@ static bool can_perform_operation(const QString &response) {
   return (response == "yes" || response == "challenge");
 }
 
-static constexpr int UPTIME_FETCH_INTERVAL = 150000;
+static constexpr int UPTIME_UPDATE_INTERVAL = 15000;
 
 namespace ns::services {
 SystemdSession::SystemdSession(const QString &path, QObject *parent)
@@ -52,11 +54,11 @@ SystemdSession::SystemdSession(const QString &path, QObject *parent)
     return;
   }
 
-  m_timer.setInterval(UPTIME_FETCH_INTERVAL);
-  m_timer.setSingleShot(true);
-  QObject::connect(
-      &m_timer, &QTimer::timeout, this, &SystemdSession::fetchUptime);
-  fetchUptime();
+  m_uptimeTimer.setInterval(UPTIME_UPDATE_INTERVAL);
+  QObject::connect(&m_uptimeTimer, &QTimer::timeout, this,
+      &SystemdSession::onUptimeTimerTimeout);
+
+  fetchTimestampMonotonic();
 }
 
 bool SystemdSession::isValid() const {
@@ -64,7 +66,7 @@ bool SystemdSession::isValid() const {
   return m_interface->isValid();
 }
 
-void SystemdSession::fetchUptime() {
+void SystemdSession::fetchTimestampMonotonic() {
   if (m_isFetching) return;
 
   auto msg = QDBusMessage::createMethodCall(m_interface->service(),
@@ -78,13 +80,24 @@ void SystemdSession::fetchUptime() {
       [this](QDBusPendingCallWatcher *w) {
         QDBusPendingReply<QVariant> reply = *w;
         if (!reply.isError()) {
-          b_uptime = qdbus_cast<qulonglong>(reply.value());
+          m_timestampMonotonic = qdbus_cast<qulonglong>(reply.value());
+          onUptimeTimerTimeout();
+          m_uptimeTimer.start();
         } else {
           qCDebug(NS_LOG_SERVICES) << reply.error();
         }
-        m_timer.start();
         w->deleteLater();
       });
+}
+
+void SystemdSession::onUptimeTimerTimeout() {
+  using Clock = std::chrono::steady_clock;
+  const Clock::time_point epoch{std::chrono::duration_cast<Clock::duration>(
+      std::chrono::microseconds{static_cast<qint64>(m_timestampMonotonic)})};
+  const auto              now = Clock::now();
+  const auto              diff =
+      std::chrono::duration_cast<std::chrono::minutes>(now - epoch).count();
+  b_uptime = diff;
 }
 
 AUTO_MEYERS_SINGLETON_QML_IMPL(SessionManager)
@@ -117,13 +130,14 @@ SessionManager::SessionManager(QObject *parent) : QObject(parent) {
 
 void SessionManager::onSessionObjectFetched(const QDBusObjectPath &path) {
   m_sessionInfo = new SystemdSession(path.path(), this);
-  b_uptimeMinutes.setBinding([this] {
-    return (m_sessionInfo->bindableUptime().value()) / (1000 * 60);
-  });
-  b_uptimeHour.setBinding([this] { return b_uptimeMinutes.value() / 60; });
+  b_uptimeMinutes.setBinding(
+      [this] { return m_sessionInfo->bindableUptime().value() % 60; });
+  b_uptimeHours.setBinding(
+      [this] { return m_sessionInfo->bindableUptime().value() / 60; });
+
   QObject::connect(m_sessionInfo, &QObject::destroyed, this, [this] {
     b_uptimeMinutes.takeBinding();
-    b_uptimeHour.takeBinding();
+    b_uptimeHours.takeBinding();
   });
 }
 
