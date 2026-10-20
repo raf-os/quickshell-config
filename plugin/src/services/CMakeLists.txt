@@ -2,6 +2,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Qml DBus Network)
 find_program(XMLLINT xmllint)
 
 add_subdirectory(pam)
+add_subdirectory(pipewire)
 
 if(XMLLINT)
   execute_process(

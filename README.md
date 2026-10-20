@@ -40,6 +40,7 @@ exec-once = quickshell -c myshell
 
 This list is incomplete as of now
 
+* systemd
 * Qt6 version >= 6.10.0
 * [Hyprland](https://hypr.land/)
 * NetworkManager
