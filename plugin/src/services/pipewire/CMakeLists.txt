@@ -30,6 +30,7 @@ target_sources(
     pw_spa_hook.cpp
     pw_metadata.cpp
     pw_device.cpp
+    pw_volume_props.cpp
     pwregistry.cpp
 )
 

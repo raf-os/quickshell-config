@@ -43,6 +43,7 @@ public:
 
   virtual void initProps(const spa_dict * /* props */) {}
   virtual void kill();
+  virtual void onBeforeDestruction() {}
 
   quint32 m_id    = 0;
   quint32 m_perms = 0;

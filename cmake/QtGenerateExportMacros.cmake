@@ -35,6 +35,7 @@ function(qt_generate_export_macros arg_target)
   endif()
 
   set(EXPORT_MACRO "${ARG_NAME}_EXPORT")
+  set(NOEXPORT_MACRO "${ARG_NAME}_PRIVATE")
   set(SHARED_LIB_MACRO "${ARG_NAME}_SHARED_LIB")
 
   if(NOT _QT_GENERATE_EXPORT_MACROS_TEMPLATE_H)

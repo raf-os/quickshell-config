@@ -38,6 +38,7 @@ void PwBindableBase::unbind() {
 }
 
 void PwBindableBase::kill() {
+  onBeforeDestruction();
   unbind();
   m_id = 0;
   delete this;

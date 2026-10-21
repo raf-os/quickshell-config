@@ -8,3 +8,7 @@
 #else
 #define @EXPORT_MACRO@ Q_DECL_IMPORT
 #endif
+
+#ifndef @NOEXPORT_MACRO@
+  #define @NOEXPORT_MACRO@ __attribute__((visibility("hidden")))
+#endif // !@NOEXPORT_MACRO@
