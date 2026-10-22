@@ -6,6 +6,7 @@
 #include <pipewire/proxy.h>
 #include <qdebug.h>
 #include <qobject.h>
+#include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 #include <spa/utils/dict.h>
@@ -49,6 +50,8 @@ public:
   quint32 m_perms = 0;
 
   pw_proxy *proxy();
+  void      ref();
+  void      unref();
 
 protected:
   virtual void bindHooks()   = 0;
@@ -59,6 +62,7 @@ protected:
 
   void bindRegistry(const char *interface, quint32 version);
 
+  qint32      m_refCount = 0;
   pw_proxy   *m_proxy    = nullptr;
   PwRegistry *m_registry = nullptr;
 };
@@ -82,5 +86,33 @@ private:
   PwBindableBase *m_parent;
 
   friend class PwRegistry;
+};
+
+class PwBindableBaseRef : public QObject {
+  Q_OBJECT
+
+public:
+  explicit PwBindableBaseRef(PwBindableBase *object = nullptr);
+  ~PwBindableBaseRef() override;
+  Q_DISABLE_COPY_MOVE(PwBindableBaseRef)
+
+signals:
+  void objectDestroyed();
+
+private slots:
+  void onObjectDestroyed();
+
+protected:
+  void            setObject(PwBindableBase *object);
+  PwBindableBase *m_object = nullptr;
+};
+
+template <typename T> class PwBindableRefCounted : public PwBindableBaseRef {
+public:
+  explicit PwBindableRefCounted(T *object = nullptr)
+      : PwBindableBaseRef(object) {}
+
+  T   *object() { return static_cast<T *>(m_object); }
+  void setObject(T *object) { PwBindableBaseRef::setObject(object); }
 };
 } // namespace ns::services::pipewire

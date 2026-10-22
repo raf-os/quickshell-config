@@ -14,6 +14,8 @@
 namespace ns::services::pipewire {
 class PwCore;
 class PwBindableBase;
+class Device;
+class Node;
 
 class NS_SERVICES_PIPEWIRE_EXPORT PwRegistry : public QObject {
   Q_OBJECT
@@ -34,10 +36,13 @@ public:
   [[nodiscard]] PwCore *core();
 
   QHash<quint32, PwMetadata *> m_metadata;
+  QHash<quint32, Node *>       m_nodes;
+  QHash<quint32, Device *>     m_devices;
 
 signals:
   void initialized();
   void metadataAdded(PwMetadata *metadata);
+  void nodeAdded(Node *node);
 
 private slots:
   void onCoreSync(quint32 id, qint32 seq);

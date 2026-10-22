@@ -123,8 +123,10 @@ void Device::addDeviceIndexPairs(const spa_pod *param) {
       std::make_unique<VolumeProps>(volume_props_from_spa_pod(props));
 
   m_stagingIndexes.append(device);
-  m_routeDevices.insert(
+  auto it = m_routeDevices.insert(
       device, {.index = index, .volumeProps = std::move(volumeProps)});
+
+  emit routeVolumesChanged(device, it.value().volumeProps.get());
 }
 
 bool Device::setRouteProps(qint32                   routeDevice,

@@ -47,6 +47,7 @@ public:
 
 signals:
   void deviceReady();
+  void routeVolumesChanged(qint32 routeDevice, const VolumeProps *volumeProps);
 
 private slots:
   void onCorePolled();

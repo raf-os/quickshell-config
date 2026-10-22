@@ -4,6 +4,7 @@
 #include <qdebug.h>
 #include <qhashfunctions.h>
 #include <qloggingcategory.h>
+#include <qobject.h>
 #include <qtypes.h>
 
 #include "ns_services_pipewire_debug.h"
@@ -27,6 +28,15 @@ void PwBindableBase::bindRegistry(const char *interface, quint32 version) {
 }
 
 pw_proxy *PwBindableBase::proxy() { return m_proxy; }
+
+void PwBindableBase::ref() {
+  m_refCount++;
+  if (m_refCount == 1) bind();
+}
+void PwBindableBase::unref() {
+  m_refCount--;
+  if (m_refCount == 0) unbind();
+}
 
 void PwBindableBase::bind() { bindHooks(); }
 
@@ -55,5 +65,30 @@ QDebug operator<<(QDebug debug, const PwBindableBase *object) {
                     << ", id=" << object->m_id << ")";
   }
   return debug;
+}
+
+PwBindableBaseRef::PwBindableBaseRef(PwBindableBase *object) {
+  setObject(object);
+}
+PwBindableBaseRef::~PwBindableBaseRef() { setObject(nullptr); }
+
+void PwBindableBaseRef::setObject(PwBindableBase *object) {
+  if (m_object) {
+    m_object->unref();
+    QObject::disconnect(m_object, nullptr, this, nullptr);
+  }
+
+  m_object = object;
+
+  if (m_object) {
+    m_object->ref();
+    QObject::connect(m_object, &QObject::destroyed, this,
+        &PwBindableBaseRef::onObjectDestroyed);
+  }
+}
+
+void PwBindableBaseRef::onObjectDestroyed() {
+  emit objectDestroyed();
+  m_object = nullptr;
 }
 } // namespace ns::services::pipewire

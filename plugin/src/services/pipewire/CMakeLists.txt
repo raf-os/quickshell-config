@@ -30,7 +30,11 @@ target_sources(
     pw_spa_hook.cpp
     pw_metadata.cpp
     pw_device.cpp
-    pw_volume_props.cpp
+    pw_common.cpp
+    pw_node.cpp
+    pw_node_bound_audio.cpp
+    pw_connection.cpp
+    pw_defaults.cpp
     pwregistry.cpp
 )
 
@@ -47,7 +51,7 @@ qt6_add_qml_module(
 
 target_link_libraries(
   nightshell_services_pipewire
-  PRIVATE Qt6::Core Qt6::Qml PkgConfig::pipewire
+  PRIVATE Qt6::Core Qt6::Qml PkgConfig::pipewire nightshell_includes
 )
 
 install_qml_module(nightshell_services_pipewire)

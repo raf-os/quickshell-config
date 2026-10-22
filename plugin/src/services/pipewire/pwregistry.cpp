@@ -13,7 +13,9 @@
 #include <qtypes.h>
 #include <spa/utils/dict.h>
 
+#include "pw_device.h"
 #include "pw_metadata.h"
+#include "pw_node.h"
 #include "pwcore.h"
 
 static void pw_registry_on_global(void *data, uint32_t id, uint32_t permissions,
@@ -32,7 +34,16 @@ static void pw_registry_on_global(void *data, uint32_t id, uint32_t permissions,
     emit self->metadataAdded(meta);
   } else if (strcmp(type, PW_TYPE_INTERFACE_Link) == 0) {
   } else if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
+    auto node = new ns::services::pipewire::Node({self, id, permissions});
+    node->initProps(props);
+
+    self->m_nodes.emplace(id, node);
+    emit self->nodeAdded(node);
   } else if (strcmp(type, PW_TYPE_INTERFACE_Device) == 0) {
+    auto device = new ns::services::pipewire::Device({self, id, permissions});
+    device->initProps(props);
+
+    self->m_devices.emplace(id, device);
   }
 }
 
@@ -84,6 +95,16 @@ void PwRegistry::reset() {
     it.value()->kill();
   }
   m_metadata.clear();
+
+  for (auto it = m_nodes.begin(); it != m_nodes.end(); it++) {
+    it.value()->kill();
+  }
+  m_nodes.clear();
+
+  for (auto it = m_devices.begin(); it != m_devices.end(); it++) {
+    it.value()->kill();
+  }
+  m_devices.clear();
 }
 
 PwCore *PwRegistry::core() { return m_core; }
