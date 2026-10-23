@@ -8,7 +8,7 @@
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 
-#include "ns_utils_shared_global.h"
+#include "ns_utils_export.h"
 
 namespace ns::utils {
 class NS_UTILS_EXPORT Paths : public QObject {

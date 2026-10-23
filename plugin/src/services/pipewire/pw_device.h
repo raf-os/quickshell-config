@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 #include <optional>
 
 #include <pipewire/device.h>
@@ -41,8 +40,8 @@ public:
   bool setMuted(qint32 device, bool muted);
 
   struct DeviceProps {
-    qint32                       index;
-    std::unique_ptr<VolumeProps> volumeProps;
+    qint32      index;
+    VolumeProps volumeProps;
   };
 
 signals:

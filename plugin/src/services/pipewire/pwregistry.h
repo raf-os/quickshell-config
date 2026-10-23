@@ -3,11 +3,11 @@
 #include <pipewire/core.h>
 #include <qhash.h>
 #include <qobject.h>
+#include <qstringview.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 
-#include "ns_services_pipewire_export.h"
 #include "pw_metadata.h"
 #include "pw_spa_hook.h"
 
@@ -16,8 +16,9 @@ class PwCore;
 class PwBindableBase;
 class Device;
 class Node;
+class Link;
 
-class NS_SERVICES_PIPEWIRE_EXPORT PwRegistry : public QObject {
+class PwRegistry : public QObject {
   Q_OBJECT
 
 public:
@@ -29,6 +30,7 @@ public:
   using BindableMap = QHash<quint32, PwBindableBase *>;
 
   [[nodiscard]] pw_registry *registry();
+  [[nodiscard]] Node        *findNodeByName(QStringView name) const;
 
   void init(PwCore &core);
   void reset();
@@ -38,11 +40,14 @@ public:
   QHash<quint32, PwMetadata *> m_metadata;
   QHash<quint32, Node *>       m_nodes;
   QHash<quint32, Device *>     m_devices;
+  QHash<quint32, Link *>       m_links;
 
 signals:
   void initialized();
+  void cleared();
   void metadataAdded(PwMetadata *metadata);
   void nodeAdded(Node *node);
+  void linkAdded(Link *link);
 
 private slots:
   void onCoreSync(quint32 id, qint32 seq);

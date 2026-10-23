@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(pipewire REQUIRED IMPORTED_TARGET libpipewire-0.3)
@@ -35,7 +35,9 @@ target_sources(
     pw_node_bound_audio.cpp
     pw_connection.cpp
     pw_defaults.cpp
+    pw_link.cpp
     pwregistry.cpp
+    qml/qml_pipewire.cpp
 )
 
 set_target_properties(
@@ -51,7 +53,7 @@ qt6_add_qml_module(
 
 target_link_libraries(
   nightshell_services_pipewire
-  PRIVATE Qt6::Core Qt6::Qml PkgConfig::pipewire nightshell_includes
+  PRIVATE Qt6::Core Qt6::Qml Qt6::Quick PkgConfig::pipewire nightshell_includes
 )
 
 install_qml_module(nightshell_services_pipewire)

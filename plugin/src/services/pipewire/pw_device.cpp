@@ -1,7 +1,6 @@
 #include "pw_device.h"
 
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <utility>
 
@@ -119,14 +118,13 @@ void Device::addDeviceIndexPairs(const spa_pod *param) {
       SPA_PARAM_ROUTE_device, SPA_POD_Int(&device), SPA_PARAM_ROUTE_index,
       SPA_POD_Int(&index), SPA_PARAM_ROUTE_props, SPA_POD_PodObject(&props));
 
-  auto volumeProps =
-      std::make_unique<VolumeProps>(volume_props_from_spa_pod(props));
+  auto volumeProps = volume_props_from_spa_pod(props);
 
   m_stagingIndexes.append(device);
   auto it = m_routeDevices.insert(
       device, {.index = index, .volumeProps = std::move(volumeProps)});
 
-  emit routeVolumesChanged(device, it.value().volumeProps.get());
+  emit routeVolumesChanged(device, &it.value().volumeProps);
 }
 
 bool Device::setRouteProps(qint32                   routeDevice,
@@ -210,7 +208,8 @@ bool Device::hasRouteDevice(qint32 device) const {
 }
 
 std::optional<const VolumeProps *> Device::getVolumeProps(qint32 device) {
-  if (!m_routeDevices.contains(device)) return {};
-  return m_routeDevices.value(device).volumeProps.get();
+  auto it = m_routeDevices.find(device);
+  if (it == m_routeDevices.end()) return {};
+  return &it.value().volumeProps;
 }
 } // namespace ns::services::pipewire

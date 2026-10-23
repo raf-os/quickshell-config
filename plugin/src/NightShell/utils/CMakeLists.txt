@@ -16,8 +16,13 @@ target_sources(
 set_target_properties(nightshell_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(
   nightshell_utils
-  PRIVATE NS_UTILS_SHARED_LIB
   PUBLIC DATADIR_DEFAULT_PATH="${MYSHELL_INSTALL_DATADIR}"
+)
+
+qt_generate_export_macros(
+  nightshell_utils
+  HEADER "ns_utils_export.h"
+  NAME "NS_UTILS"
 )
 
 target_include_directories(nightshell_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

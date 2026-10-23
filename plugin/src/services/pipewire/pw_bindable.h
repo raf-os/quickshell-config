@@ -53,6 +53,9 @@ public:
   void      ref();
   void      unref();
 
+signals:
+  void destroying(PwBindableBase *self);
+
 protected:
   virtual void bindHooks()   = 0;
   virtual void unbindHooks() = 0;

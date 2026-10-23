@@ -83,6 +83,7 @@ bool PwCore::init(bool retry) {
 
   m_loop = pw_loop_new(nullptr);
   PIPE_EVAL_CREATION(m_loop, "Failed to create pipewire event loop.")
+  pw_loop_enter(m_loop);
 
   m_context = pw_context_new(m_loop, nullptr, 0);
   PIPE_EVAL_CREATION(m_context, "Failed to create pipewire context.")
@@ -117,6 +118,7 @@ void PwCore::shutdown() {
   }
 
   if (m_loop) {
+    pw_loop_leave(m_loop);
     pw_loop_destroy(m_loop);
     m_loop = nullptr;
   }

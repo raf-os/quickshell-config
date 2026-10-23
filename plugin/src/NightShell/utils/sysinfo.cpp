@@ -1,6 +1,5 @@
 #include "sysinfo.h"
 
-#include <qbuffer.h>
 #include <qdir.h>
 #include <qlogging.h>
 #include <qobject.h>

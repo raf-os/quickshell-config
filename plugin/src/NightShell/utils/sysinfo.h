@@ -5,9 +5,10 @@
 #include <qtmetamacros.h>
 
 #include "helpermacros.h"
+#include "ns_utils_export.h"
 
 namespace ns::utils {
-class SysInfo : public QObject {
+class NS_UTILS_EXPORT SysInfo : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON

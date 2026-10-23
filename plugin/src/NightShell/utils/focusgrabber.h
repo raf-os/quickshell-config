@@ -7,7 +7,7 @@
 #include <qtmetamacros.h>
 
 #include "helpermacros.h"
-#include "ns_utils_shared_global.h"
+#include "ns_utils_export.h"
 
 namespace ns::utils {
 class FocusGrabberQML;

@@ -24,7 +24,7 @@ public:
   void setProperty(const char *key, const char *type, const char *value);
 
 signals:
-  void propertyChanged(QString key, QString type, QString value);
+  void propertyChanged(const char *key, const char *type, const char *value);
 
 private:
   SpaHook m_listener;

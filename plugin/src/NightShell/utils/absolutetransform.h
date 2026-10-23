@@ -11,9 +11,11 @@
 #include <qvectornd.h>
 
 #include "helpermacros.h"
+#include "ns_utils_export.h"
 
 namespace ns::utils {
-class AbsoluteTransform : public QObject, public QQmlParserStatus {
+class NS_UTILS_EXPORT AbsoluteTransform : public QObject,
+                                          public QQmlParserStatus {
   Q_OBJECT
   QML_ELEMENT
   Q_INTERFACES(QQmlParserStatus)

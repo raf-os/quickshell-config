@@ -1,7 +1,9 @@
 #include "pwregistry.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <utility>
 
 #include <pipewire/core.h>
 #include <pipewire/device.h>
@@ -9,11 +11,15 @@
 #include <pipewire/link.h>
 #include <pipewire/node.h>
 #include <pipewire/proxy.h>
+#include <qhash.h>
 #include <qobject.h>
+#include <qstringview.h>
 #include <qtypes.h>
 #include <spa/utils/dict.h>
 
+#include "pw_bindable.h"
 #include "pw_device.h"
+#include "pw_link.h"
 #include "pw_metadata.h"
 #include "pw_node.h"
 #include "pwcore.h"
@@ -33,6 +39,11 @@ static void pw_registry_on_global(void *data, uint32_t id, uint32_t permissions,
     self->m_metadata.emplace(id, meta);
     emit self->metadataAdded(meta);
   } else if (strcmp(type, PW_TYPE_INTERFACE_Link) == 0) {
+    auto link = new ns::services::pipewire::Link({self, id, permissions});
+    link->initProps(props);
+
+    self->m_links.emplace(id, link);
+    emit self->linkAdded(link);
   } else if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
     auto node = new ns::services::pipewire::Node({self, id, permissions});
     node->initProps(props);
@@ -68,6 +79,13 @@ PwRegistry::~PwRegistry() {
 
 pw_registry *PwRegistry::registry() { return m_registry; }
 
+Node *PwRegistry::findNodeByName(QStringView name) const {
+  if (name.isEmpty()) return nullptr;
+  auto it = std::ranges::find_if(m_nodes.keyValueBegin(), m_nodes.keyValueEnd(),
+      [name](auto i) { return i.second->name() == name; });
+  return it == m_nodes.keyValueEnd() ? nullptr : it->second;
+}
+
 void PwRegistry::init(PwCore &core) {
   m_core     = &core;
   m_registry = pw_core_get_registry(core.m_core, PW_VERSION_REGISTRY, 0);
@@ -96,6 +114,11 @@ void PwRegistry::reset() {
   }
   m_metadata.clear();
 
+  for (auto it = m_links.begin(); it != m_links.end(); it++) {
+    it.value()->kill();
+  }
+  m_links.clear();
+
   for (auto it = m_nodes.begin(); it != m_nodes.end(); it++) {
     it.value()->kill();
   }
@@ -105,6 +128,12 @@ void PwRegistry::reset() {
     it.value()->kill();
   }
   m_devices.clear();
+
+  m_initState   = InitState::SendingObjects;
+  m_coreSyncSeq = 0;
+  m_core        = nullptr;
+
+  emit cleared();
 }
 
 PwCore *PwRegistry::core() { return m_core; }

@@ -50,6 +50,7 @@ void PwBindableBase::unbind() {
 void PwBindableBase::kill() {
   onBeforeDestruction();
   unbind();
+  emit destroying(this);
   m_id = 0;
   delete this;
 }

@@ -15,8 +15,7 @@
 static int pw_metadata_on_property(void *data, uint32_t subject,
     const char *key, const char *type, const char *value) {
   auto self = static_cast<ns::services::pipewire::PwMetadata *>(data);
-  emit self->propertyChanged(QString::fromUtf8(key), QString::fromUtf8(type),
-      QString::fromUtf8(value));
+  emit self->propertyChanged(key, type, value);
   return 0;
 }
 
