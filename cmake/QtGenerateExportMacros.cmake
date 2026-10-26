@@ -47,6 +47,10 @@ function(qt_generate_export_macros arg_target)
 
   configure_file("${_QT_GENERATE_EXPORT_MACROS_TEMPLATE_H}" "${ARG_HEADER}")
 
-  target_include_directories(${arg_target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+  target_include_directories(
+    ${arg_target}
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
+  )
   target_compile_definitions(${arg_target} PRIVATE ${SHARED_LIB_MACRO})
 endfunction()
