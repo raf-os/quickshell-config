@@ -32,6 +32,12 @@ target_sources(
     pw_spa_hook.cpp
     pw_trackable.cpp
     pw_device.cpp
+    pw_node.cpp
+    pw_node_data.cpp
+    pw_defaults.cpp
+    pw_link.cpp
+    pw_metadata.cpp
+    pw_common.cpp
 )
 
 set_target_properties(

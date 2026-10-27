@@ -31,6 +31,11 @@ TrackedObjectBase::~TrackedObjectBase() {
   pw_proxy_destroy(m_object);
 }
 
+void TrackedObjectBase::kill() {
+  onBeforeDestroy();
+  delete this;
+}
+
 TrackableObjectBase::TrackableObjectBase(quint32 id, quint32 perms)
     : m_id(id), m_perms(perms) {}
 } // namespace ns::pipewire

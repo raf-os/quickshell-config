@@ -1,5 +1,7 @@
 #include "pw_registry.h"
 
+#include <algorithm>
+#include <memory>
 #include <utility>
 
 #include <pipewire/core.h>
@@ -15,6 +17,9 @@
 #include "pw_core.h"
 #include "pw_device.h"
 #include "pw_globals.h"
+#include "pw_link.h"
+#include "pw_metadata.h"
+#include "pw_node.h"
 
 namespace ns::pipewire {
 Registry::Registry(QObject *parent) : QObject(parent) {}
@@ -57,7 +62,21 @@ void Registry::reset() {
     m_registry = nullptr;
   }
 
-  // TODO: clean tracked objects
+  for (auto it = m_metadata.begin(); it != m_metadata.end(); it++) {
+    delete it.value();
+  }
+  m_metadata.clear();
+
+  for (auto it = m_links.begin(); it != m_links.end(); it++) {
+    delete it.value();
+  }
+  m_links.clear();
+
+  for (auto it = m_nodes.begin(); it != m_nodes.end(); it++) {
+    delete it.value();
+  }
+  m_nodes.clear();
+
   for (auto it = m_devices.begin(); it != m_devices.end(); it++) {
     delete it.value();
   }
@@ -90,8 +109,20 @@ void Registry::on_global(void *data, uint32_t id, uint32_t perms,
   auto self = static_cast<Registry *>(data);
 
   if (cstr_equals(type, PW_TYPE_INTERFACE_Metadata)) {
+    auto meta = new TrackableMetadata(id, perms);
+    meta->initProps(props);
+
+    self->m_metadata.insert(id, meta);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Link)) {
+    auto link = new TrackableLink(id, perms);
+    link->initProps(props);
+
+    self->m_links.insert(id, link);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Node)) {
+    auto node = new TrackableNode(id, perms);
+    node->initProps(props);
+
+    self->m_nodes.insert(id, node);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Device)) {
     auto dev = new TrackableDevice(id, perms);
     dev->initProps(props);
@@ -102,5 +133,28 @@ void Registry::on_global(void *data, uint32_t id, uint32_t perms,
 
 void Registry::on_global_remove(void *data, uint32_t id) {
   auto self = static_cast<Registry *>(data);
+
+  if (auto *meta = self->m_metadata.value(id)) {
+    self->m_metadata.remove(id);
+    delete meta;
+  } else if (auto *link = self->m_links.value(id)) {
+    self->m_links.remove(id);
+    delete link;
+  } else if (auto *node = self->m_nodes.value(id)) {
+    self->m_nodes.remove(id);
+    delete node;
+  }
+}
+
+std::shared_ptr<Node> Registry::findNodeByName(QStringView name) {
+  if (name.isEmpty()) return nullptr;
+  auto it = std::ranges::find_if(m_nodes.keyValueBegin(), m_nodes.keyValueEnd(),
+      [name](auto i) { return i.second->name() == name; });
+  return it == m_nodes.keyValueEnd() ? nullptr : it->second->get();
+}
+
+std::shared_ptr<Device> Registry::getDeviceById(quint32 id) {
+  if (!m_devices.contains(id)) return nullptr;
+  return m_devices.value(id)->get();
 }
 } // namespace ns::pipewire

@@ -1,11 +1,13 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include <pipewire/core.h>
 #include <pipewire/device.h>
 #include <qhash.h>
 #include <qobject.h>
+#include <qstringview.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
@@ -13,6 +15,9 @@
 
 #include "pw_core.h"
 #include "pw_device.h"
+#include "pw_link.h"
+#include "pw_metadata.h"
+#include "pw_node.h"
 #include "pw_spa_hook.h"
 #include "pw_trackable.h"
 
@@ -31,9 +36,14 @@ public:
   [[nodiscard]] Core        *core();
   [[nodiscard]] pw_registry *object();
 
+  [[nodiscard]] std::shared_ptr<Node>   findNodeByName(QStringView name);
+  [[nodiscard]] std::shared_ptr<Device> getDeviceById(quint32 id);
+
 signals:
   void cleared();
   void initialized();
+  void metadataAdded(Metadata *metadata);
+  void nodeAdded(Node *node);
 
 private slots:
   void onCoreSynced(quint32 id, qint32 seq);
@@ -49,7 +59,10 @@ private:
 
   pw_registry *m_registry = nullptr;
 
-  QHash<quint32, TrackableDevice *> m_devices;
+  QHash<quint32, TrackableMetadata *> m_metadata;
+  QHash<quint32, TrackableDevice *>   m_devices;
+  QHash<quint32, TrackableNode *>     m_nodes;
+  QHash<quint32, TrackableLink *>     m_links;
 
   enum class InitState : quint8 {
     SendingObjects,

@@ -34,7 +34,8 @@ public:
   ~TrackedObjectBase() override;
   Q_DISABLE_COPY_MOVE(TrackedObjectBase)
 
-  virtual void kill() = 0;
+  virtual void onBeforeDestroy() {}
+  void         kill();
 
   quint32 m_id    = 0;
   quint32 m_perms = 0;
@@ -49,6 +50,9 @@ protected:
 };
 
 template <typename T> class TrackedObject : public TrackedObjectBase {
+protected:
+  using string_map_t = QMap<QString, QString>;
+
 public:
   [[nodiscard]] T *proxy() { return reinterpret_cast<T *>(m_object); }
 
@@ -81,7 +85,7 @@ public:
   static constexpr const char *staticInterfaceName() { return INTERFACE; }
   static constexpr quint32     staticVersion() { return VERSION; }
 
-  void initProps(const spa_dict *props) {
+  virtual void initProps(const spa_dict *props) {
     m_initProps.clear();
     const spa_dict_item *item = nullptr;
     spa_dict_for_each(item, props) {
