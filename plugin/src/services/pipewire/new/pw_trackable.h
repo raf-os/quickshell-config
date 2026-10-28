@@ -1,12 +1,14 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 
 #include <concepts>
 #include <pipewire/proxy.h>
+#include <qdebug.h>
+#include <qhash.h>
 #include <qhashfunctions.h>
-#include <qmap.h>
 #include <qobject.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
@@ -24,13 +26,20 @@ template <std::size_t N> struct TemplateString {
   constexpr operator const char *() const noexcept { return buf; }
 };
 
+struct TrackedObjectProps {
+  quint32                        id;
+  quint32                        perms;
+  quint32                        version;
+  const char                    *interface;
+  const QHash<QString, QString> &initProps;
+};
+
 class TrackedObjectBase : public QObject {
   Q_OBJECT
 
 public:
-  explicit TrackedObjectBase(quint32 id, quint32 perms, const char *interface,
-      quint32 version, const QMap<QString, QString> &initProps,
-      QObject *parent = nullptr);
+  explicit TrackedObjectBase(
+      const TrackedObjectProps &props, QObject *parent = nullptr);
   ~TrackedObjectBase() override;
   Q_DISABLE_COPY_MOVE(TrackedObjectBase)
 
@@ -41,23 +50,27 @@ public:
   quint32 m_perms = 0;
 
 protected:
+  using string_map_t = QHash<QString, QString>;
   pw_proxy *m_object = nullptr;
 
   virtual void bindHooks() {}
   virtual void unbindHooks() {}
 
-  virtual void initProps(const QMap<QString, QString> &props) {}
+  virtual void initProps(const string_map_t &props) {}
 };
 
 template <typename T> class TrackedObject : public TrackedObjectBase {
-protected:
-  using string_map_t = QMap<QString, QString>;
-
 public:
+  explicit TrackedObject(const TrackedObjectProps &props,
+      QObject *parent = nullptr, T *dummy = nullptr)
+      : TrackedObjectBase(props, parent) {}
+  ~TrackedObject() override {}
   [[nodiscard]] T *proxy() { return reinterpret_cast<T *>(m_object); }
 
   friend class Registry;
 };
+
+QDebug operator<<(QDebug debug, const TrackedObjectBase *object);
 
 class TrackableObjectBase {
 public:
@@ -98,15 +111,19 @@ public:
 
   [[nodiscard]] std::shared_ptr<T> get() {
     if (m_object.expired()) {
-      m_object = std::make_shared<T>(
-          m_id, m_perms, staticInterfaceName(), staticVersion(), m_initProps);
+      TrackedObjectProps props{.id = m_id,
+          .perms                   = m_perms,
+          .version                 = staticVersion(),
+          .interface               = staticInterfaceName(),
+          .initProps               = m_initProps};
+      m_object = std::make_shared<T>(props);
       return m_object.lock();
     }
     return m_object.lock();
   }
 
 protected:
-  QMap<QString, QString> m_initProps;
+  QHash<QString, QString> m_initProps;
 
 private:
   std::weak_ptr<T> m_object;

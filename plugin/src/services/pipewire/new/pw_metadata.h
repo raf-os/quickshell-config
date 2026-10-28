@@ -5,6 +5,7 @@
 #include <pipewire/extensions/metadata.h>
 #include <qhashfunctions.h>
 #include <qtmetamacros.h>
+#include <spa/utils/dict.h>
 
 #include "pw_spa_hook.h"
 #include "pw_trackable.h"
@@ -14,6 +15,10 @@ class Metadata : public TrackedObject<pw_metadata> {
   Q_OBJECT
 
 public:
+  explicit Metadata(const TrackedObjectProps &props, QObject *parent = nullptr)
+      : TrackedObject(props, nullptr) {}
+  ~Metadata() override {}
+
   void bindHooks() override;
   void unbindHooks() override;
   void initProps(const string_map_t &props) override;
@@ -35,6 +40,19 @@ private:
       const char *type, const char *value);
 };
 
-using TrackableMetadata =
-    TrackableObject<Metadata, PW_TYPE_INTERFACE_Metadata, PW_VERSION_METADATA>;
+class TrackableMetadata : public TrackableObject<Metadata,
+                              PW_TYPE_INTERFACE_Metadata, PW_VERSION_METADATA> {
+public:
+  explicit TrackableMetadata(
+      quint32 id, quint32 perms, Metadata *dummy = nullptr)
+      : TrackableObject(id, perms, dummy) {}
+
+  [[nodiscard]] QString name() const;
+
+  void initProps(const spa_dict *props) override;
+
+private:
+  QString m_name;
+};
+
 } // namespace ns::pipewire

@@ -6,6 +6,7 @@
 #include <pipewire/device.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <qobject.h>
 #include <qtmetamacros.h>
 #include <spa/pod/builder.h>
 #include <spa/pod/pod.h>
@@ -19,6 +20,10 @@ class Device : public TrackedObject<pw_device> {
   Q_OBJECT
 
 public:
+  explicit Device(const TrackedObjectProps &props, QObject *parent = nullptr)
+      : TrackedObject(props, nullptr) {}
+  ~Device() override {}
+
   void bindHooks() override;
   void unbindHooks() override;
 

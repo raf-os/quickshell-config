@@ -3,9 +3,12 @@
 #include <pipewire/core.h>
 #include <pipewire/extensions/metadata.h>
 #include <pipewire/permission.h>
+#include <qhashfunctions.h>
 #include <qloggingcategory.h>
+#include <spa/utils/dict.h>
 
 #include "ns_pipewire_debug.h"
+#include "pw_trackable.h"
 
 namespace ns::pipewire {
 const struct pw_metadata_events Metadata::METADATA_EVENTS = {
@@ -49,5 +52,14 @@ void Metadata::setProperty(
   }
 
   pw_metadata_set_property(proxy(), PW_ID_CORE, key, type, value);
+}
+
+QString TrackableMetadata::name() const { return m_name; }
+void    TrackableMetadata::initProps(const spa_dict *props) {
+  TrackableObject::initProps(props);
+  if (auto it = m_initProps.find(PW_KEY_METADATA_NAME); it != m_initProps.end())
+  {
+    m_name = it.value();
+  }
 }
 } // namespace ns::pipewire

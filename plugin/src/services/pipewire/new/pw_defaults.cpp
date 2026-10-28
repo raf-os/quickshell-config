@@ -1,6 +1,7 @@
 #include "pw_defaults.h"
 
 #include <cstring>
+#include <memory>
 
 #include <qjsondocument.h>
 #include <qjsonobject.h>
@@ -16,7 +17,7 @@
 #include "pw_registry.h"
 
 namespace ns::pipewire {
-DefaultTracker::DefaultTracker() {
+DefaultTracker::DefaultTracker(QObject *parent) : QObject(parent) {
   auto reg = Globals::instance()->registry();
   QObject::connect(
       reg, &Registry::metadataAdded, this, &DefaultTracker::onMetadataAdded);
@@ -52,8 +53,43 @@ bool DefaultTracker::setConfiguredDefault(
   return true;
 }
 
-void DefaultTracker::onMetadataAdded(Metadata *metadata) {}
-void DefaultTracker::onNodeAdded(Node *node) {}
+void DefaultTracker::onMetadataAdded(TrackableMetadata *metadata) {
+  if (metadata->name() == "default") {
+    if (m_defaultsMetadata) {
+      QObject::disconnect(m_defaultsMetadata.get(), nullptr, this, nullptr);
+    }
+
+    m_defaultsMetadata = metadata->get();
+    QObject::connect(m_defaultsMetadata.get(), &Metadata::propertyChanged, this,
+        &DefaultTracker::onMetadataProperty);
+    QObject::connect(m_defaultsMetadata.get(), &QObject::destroyed, this,
+        [this] { m_defaultsMetadata = nullptr; });
+  }
+}
+
+void DefaultTracker::onNodeAdded(TrackableNode *node) {
+  if (node->name().isEmpty()) return;
+
+  if (!m_defaults.sink.node && node->name() == m_defaults.sink.name) {
+    setDefaultNode(Type::Sink, node->get());
+  }
+
+  if (!m_defaults.source.node && node->name() == m_defaults.source.name) {
+    setDefaultNode(Type::Source, node->get());
+  }
+
+  if (!m_defaults.configuredSink.node &&
+      node->name() == m_defaults.configuredSink.name)
+  {
+    setDefaultNode(Type::ConfiguredSink, node->get());
+  }
+
+  if (!m_defaults.configuredSource.node &&
+      node->name() == m_defaults.configuredSource.name)
+  {
+    setDefaultNode(Type::ConfiguredSource, node->get());
+  }
+}
 
 void DefaultTracker::onMetadataProperty(
     const char *key, const char *type, const char *value) {
@@ -99,7 +135,7 @@ void DefaultTracker::onMetadataProperty(
   if (p) {
     auto reg = Globals::instance()->registry();
     p->name  = name;
-    p->node  = reg->findNodeByName(name).get();
+    p->node  = reg->findNodeByName(name);
   }
 }
 
@@ -120,7 +156,7 @@ const DefaultTracker::DefaultNodeProps *DefaultTracker::getDefaultProps(
 
 Node *DefaultTracker::getNode(Type type) {
   auto p = getDefaultProps(type);
-  if (p) return p->node;
+  if (p) return p->node.get();
   return nullptr;
 }
 
@@ -130,14 +166,21 @@ QString DefaultTracker::getNodeName(Type type) const {
   return {};
 }
 
-void DefaultTracker::setDefaultNode(Type type, Node *node) {
+void DefaultTracker::setDefaultNode(Type type, std::shared_ptr<Node> node) {
   auto p = getDefaultProps(type);
   if (!p) return;
 
   if (p->node == node) return;
-  p->node = node;
+  if (p->onDestroyConnection) {
+    QObject::disconnect(p->onDestroyConnection);
+  }
+
   if (node) {
-    // connect destroy signal
+    p->node                = node;
+    p->onDestroyConnection = QObject::connect(node.get(), &QObject::destroyed,
+        this, [type, this] { onDefaultNodeDestroyed(type); });
+  } else {
+    p->node = nullptr;
   }
   emit defaultNodeChanged(type);
 }
@@ -149,6 +192,18 @@ void DefaultTracker::setDefaultName(Type type, const QString &name) {
   if (p->name == name) return;
 
   p->name = name;
+  emit defaultNodeNameChanged(type);
+}
+
+void DefaultTracker::onDefaultNodeDestroyed(DefaultTracker::Type type) {
+  auto p = getDefaultProps(type);
+  if (!p) return;
+
+  p->name = "";
+  p->node = nullptr;
+  QObject::disconnect(p->onDestroyConnection);
+
+  emit defaultNodeChanged(type);
   emit defaultNodeNameChanged(type);
 }
 } // namespace ns::pipewire

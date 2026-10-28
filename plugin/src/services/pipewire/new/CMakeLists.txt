@@ -38,6 +38,9 @@ target_sources(
     pw_link.cpp
     pw_metadata.cpp
     pw_common.cpp
+    qml/qml_object_interface.cpp
+    qml/qml_pipewire.cpp
+    qml/qml_objects.cpp
 )
 
 set_target_properties(

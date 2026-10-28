@@ -209,11 +209,24 @@ void Node::on_param(void *data, int seq, uint32_t id, uint32_t index,
   }
 }
 
-QString TrackableNode::name() const { return m_name; }
-void    TrackableNode::initProps(const spa_dict *props) {
+QString         TrackableNode::name() const { return m_name; }
+quint32         TrackableNode::id() const { return m_id; }
+NodeType::Flags TrackableNode::type() const { return m_type; }
+
+void TrackableNode::initProps(const spa_dict *props) {
   TrackableObject::initProps(props);
   if (auto it = m_initProps.find(SPA_KEY_NODE_NAME); it != m_initProps.end()) {
     m_name = it.value();
+  }
+
+  if (m_initProps.contains(SPA_KEY_MEDIA_CLASS)) {
+    auto pkey = m_initProps.value(SPA_KEY_MEDIA_CLASS);
+    for (auto [key, value] : MEDIA_CLASS_FLAG_MAP.asKeyValueRange()) {
+      if (pkey == key) {
+        m_type = value;
+        break;
+      }
+    }
   }
 }
 } // namespace ns::pipewire

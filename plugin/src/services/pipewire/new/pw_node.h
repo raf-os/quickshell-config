@@ -23,6 +23,10 @@ class Node : public TrackedObject<pw_node> {
   Q_OBJECT
 
 public:
+  explicit Node(const TrackedObjectProps &props, QObject *parent = nullptr)
+      : TrackedObject(props, nullptr) {}
+  ~Node() override {}
+
   void bindHooks() override;
   void unbindHooks() override;
   void initProps(const string_map_t &props) override;
@@ -44,15 +48,15 @@ private slots:
 private:
   SpaHook m_hook;
 
-  NodeType::Flags m_type = NodeType::Untracked;
-  QString         m_name;
-  QString         m_description;
-  QString         m_nick;
-  bool            m_isMonitor    = false;
-  bool            m_proAudio     = false;
-  bool            m_ready        = false;
-  quint64         m_objectSerial = 0;
-  string_map_t    m_properties;
+  NodeType::Flags        m_type = NodeType::Untracked;
+  QString                m_name;
+  QString                m_description;
+  QString                m_nick;
+  bool                   m_isMonitor    = false;
+  bool                   m_proAudio     = false;
+  bool                   m_ready        = false;
+  quint64                m_objectSerial = 0;
+  QMap<QString, QString> m_properties;
 
   INodeData *m_data;
 
@@ -64,19 +68,26 @@ private:
   static void on_info(void *data, const struct pw_node_info *info);
   static void on_param(void *data, int seq, uint32_t id, uint32_t index,
       uint32_t next, const struct spa_pod *param);
+
+  friend class PwQMLNode;
+  friend class PipewireModel;
 };
 
 class TrackableNode
     : public TrackableObject<Node, PW_TYPE_INTERFACE_Node, PW_VERSION_NODE> {
 public:
   explicit TrackableNode(quint32 id, quint32 perms, Node *dummy = nullptr)
-      : TrackableObject(id, perms, dummy) {}
+      : TrackableObject(id, perms, dummy), m_id(id) {}
 
-  [[nodiscard]] QString name() const;
+  [[nodiscard]] QString         name() const;
+  [[nodiscard]] quint32         id() const;
+  [[nodiscard]] NodeType::Flags type() const;
 
   void initProps(const spa_dict *props) override;
 
 private:
-  QString m_name;
+  quint32         m_id;
+  NodeType::Flags m_type = NodeType::Untracked;
+  QString         m_name;
 };
 } // namespace ns::pipewire

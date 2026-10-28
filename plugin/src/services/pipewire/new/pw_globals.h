@@ -12,6 +12,7 @@
 namespace ns::pipewire {
 class Core;
 class Registry;
+class DefaultTracker;
 
 class Globals : public QObject {
   Q_OBJECT
@@ -19,13 +20,15 @@ class Globals : public QObject {
 
   AUTO_MEYERS_SINGLETON_DECL(Globals)
 
-  [[nodiscard]] Core     *core();
-  [[nodiscard]] Registry *registry();
+  [[nodiscard]] Core           *core();
+  [[nodiscard]] Registry       *registry();
+  [[nodiscard]] DefaultTracker *defaults();
 
 private:
   explicit Globals(QObject *parent = nullptr);
 
-  std::unique_ptr<Core>     m_core;
-  std::unique_ptr<Registry> m_registry;
+  std::unique_ptr<Core>           m_core;
+  std::unique_ptr<Registry>       m_registry;
+  std::unique_ptr<DefaultTracker> m_defaults;
 };
 } // namespace ns::pipewire

@@ -45,7 +45,7 @@ void Registry::init() {
   pw_registry_add_listener(
       m_registry, &m_hook.hook, &Registry::REGISTRY_EVENTS, this);
 
-  QObject::connect(c, &Core::synced, &Registry::onCoreSynced);
+  QObject::connect(c, &Core::synced, this, &Registry::onCoreSynced);
   m_coreSyncSeq = c->sync(PW_ID_CORE);
 }
 
@@ -108,26 +108,36 @@ void Registry::on_global(void *data, uint32_t id, uint32_t perms,
     const char *type, uint32_t version, const struct spa_dict *props) {
   auto self = static_cast<Registry *>(data);
 
+  // auto removeIfExists = [id, self](auto *hashTable) {
+  //   if (auto it = hashTable->find(id); it != hashTable->end()) {
+  //     delete it.value();
+  //     hashTable->erase(it);
+  //   }
+  // };
+
   if (cstr_equals(type, PW_TYPE_INTERFACE_Metadata)) {
     auto meta = new TrackableMetadata(id, perms);
     meta->initProps(props);
 
-    self->m_metadata.insert(id, meta);
+    self->m_metadata.emplace(id, meta);
+    emit self->metadataAdded(meta);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Link)) {
     auto link = new TrackableLink(id, perms);
     link->initProps(props);
 
-    self->m_links.insert(id, link);
+    self->m_links.emplace(id, link);
+    emit self->linkAdded(link);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Node)) {
     auto node = new TrackableNode(id, perms);
     node->initProps(props);
 
-    self->m_nodes.insert(id, node);
+    self->m_nodes.emplace(id, node);
+    emit self->nodeAdded(node);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Device)) {
     auto dev = new TrackableDevice(id, perms);
     dev->initProps(props);
 
-    self->m_devices.insert(id, dev);
+    self->m_devices.emplace(id, dev);
   }
 }
 
@@ -151,6 +161,12 @@ std::shared_ptr<Node> Registry::findNodeByName(QStringView name) {
   auto it = std::ranges::find_if(m_nodes.keyValueBegin(), m_nodes.keyValueEnd(),
       [name](auto i) { return i.second->name() == name; });
   return it == m_nodes.keyValueEnd() ? nullptr : it->second->get();
+}
+
+std::shared_ptr<Node> Registry::getNodeById(quint32 id) {
+  auto it = m_nodes.find(id);
+  if (it == m_nodes.end()) return nullptr;
+  return it.value()->get();
 }
 
 std::shared_ptr<Device> Registry::getDeviceById(quint32 id) {

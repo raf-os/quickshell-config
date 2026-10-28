@@ -37,13 +37,15 @@ public:
   [[nodiscard]] pw_registry *object();
 
   [[nodiscard]] std::shared_ptr<Node>   findNodeByName(QStringView name);
+  [[nodiscard]] std::shared_ptr<Node>   getNodeById(quint32 id);
   [[nodiscard]] std::shared_ptr<Device> getDeviceById(quint32 id);
 
 signals:
   void cleared();
   void initialized();
-  void metadataAdded(Metadata *metadata);
-  void nodeAdded(Node *node);
+  void metadataAdded(TrackableMetadata *metadata);
+  void nodeAdded(TrackableNode *node);
+  void linkAdded(TrackableLink *link);
 
 private slots:
   void onCoreSynced(quint32 id, qint32 seq);
@@ -69,5 +71,7 @@ private:
     Binding,
     Done
   } m_initState = InitState::SendingObjects;
+
+  friend class PipewireModel;
 };
 } // namespace ns::pipewire

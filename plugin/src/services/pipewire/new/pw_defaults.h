@@ -1,6 +1,9 @@
 #pragma once
 
+#include <memory>
+
 #include <qobject.h>
+#include <qobjectdefs.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 
@@ -15,7 +18,7 @@ class DefaultTracker : public QObject {
   using destroy_slot_t  = void (DefaultTracker::*)();
 
 public:
-  explicit DefaultTracker();
+  explicit DefaultTracker(QObject *parent = nullptr);
 
   enum Type : quint8 {
     Sink,
@@ -30,8 +33,9 @@ public:
   bool setConfiguredDefault(const char *key, const QString &value);
 
   struct DefaultNodeProps {
-    QString name;
-    Node   *node;
+    QString                 name;
+    std::shared_ptr<Node>   node;
+    QMetaObject::Connection onDestroyConnection;
   };
 
   [[nodiscard]] Node   *getNode(DefaultTracker::Type type);
@@ -43,9 +47,9 @@ signals:
 
 private slots:
   void onDefaultNodeDestroyed(DefaultTracker::Type type);
-  void onMetadataAdded(Metadata *metadata);
+  void onMetadataAdded(TrackableMetadata *metadata);
   void onMetadataProperty(const char *key, const char *type, const char *value);
-  void onNodeAdded(Node *node);
+  void onNodeAdded(TrackableNode *node);
 
 private:
   std::shared_ptr<Metadata> m_defaultsMetadata;
@@ -60,7 +64,7 @@ private:
   DefaultNodeProps       *getDefaultProps(DefaultTracker::Type type);
   const DefaultNodeProps *getDefaultProps(DefaultTracker::Type type) const;
 
-  void setDefaultNode(DefaultTracker::Type type, Node *node);
+  void setDefaultNode(DefaultTracker::Type type, std::shared_ptr<Node> node);
   void setDefaultName(DefaultTracker::Type type, const QString &name);
 };
 } // namespace ns::pipewire
