@@ -160,6 +160,12 @@ Node *DefaultTracker::getNode(Type type) {
   return nullptr;
 }
 
+std::shared_ptr<Node> DefaultTracker::getNodeSharedPtr(Type type) {
+  auto p = getDefaultProps(type);
+  if (p) return p->node;
+  return nullptr;
+}
+
 QString DefaultTracker::getNodeName(Type type) const {
   auto p = getDefaultProps(type);
   if (p) return p->name;

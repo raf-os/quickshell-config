@@ -39,6 +39,9 @@ class PwTrackedQml : public PwObjectInterface {
   using type_t = std::enable_if_t<std::derived_from<T, TrackedObjectBase>,
       TrackedObjectBase>;
 
+protected:
+  using shared_ptr_t = std::shared_ptr<T>;
+
 public:
   explicit PwTrackedQml(
       std::shared_ptr<type_t> object, QObject *parent = nullptr)
@@ -51,6 +54,6 @@ public:
   [[nodiscard]] T *object() const { return m_object.get(); }
 
 private:
-  std::shared_ptr<T> m_object;
+  shared_ptr_t m_object;
 };
 } // namespace ns::pipewire

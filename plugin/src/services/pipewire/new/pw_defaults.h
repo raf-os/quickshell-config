@@ -38,7 +38,9 @@ public:
     QMetaObject::Connection onDestroyConnection;
   };
 
-  [[nodiscard]] Node   *getNode(DefaultTracker::Type type);
+  [[nodiscard]] Node                 *getNode(DefaultTracker::Type type);
+  [[nodiscard]] std::shared_ptr<Node> getNodeSharedPtr(
+      DefaultTracker::Type type);
   [[nodiscard]] QString getNodeName(DefaultTracker::Type type) const;
 
 signals:

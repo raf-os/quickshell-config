@@ -9,6 +9,9 @@
 
 namespace ns::pipewire {
 // PwQMLNode
+PwQMLNode::PwQMLNode(shared_ptr_t ptr, QObject *parent)
+    : PwTrackedQml<Node>(ptr, parent) {}
+
 quint32     PwQMLNode::id() const { return object()->m_id; }
 QString     PwQMLNode::name() const { return object()->m_name; }
 QString     PwQMLNode::description() const { return object()->m_description; }

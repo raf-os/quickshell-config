@@ -2,17 +2,19 @@
 
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
+#include <qobject.h>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 
+#include "ns_pipewire_export.h"
 #include "pw_common.h"
 #include "pw_link.h"
 #include "pw_node.h"
 #include "qml_object_interface.h"
 
 namespace ns::pipewire {
-class PwQMLNode : public PwTrackedQml<Node> {
+class NS_PIPEWIRE_EXPORT PwQMLNode : public PwTrackedQml<Node> {
   Q_OBJECT
   QML_NAMED_ELEMENT(PwNode)
   QML_UNCREATABLE("")
@@ -24,6 +26,8 @@ class PwQMLNode : public PwTrackedQml<Node> {
   Q_PROPERTY(QVariantMap properties READ properties NOTIFY propertiesChanged)
 
 public:
+  explicit PwQMLNode(shared_ptr_t ptr, QObject *parent = nullptr);
+
   void init() override;
 
   [[nodiscard]] quint32     id() const;
