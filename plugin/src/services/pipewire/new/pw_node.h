@@ -5,7 +5,6 @@
 
 #include <pipewire/node.h>
 #include <qhashfunctions.h>
-#include <qmap.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 #include <spa/pod/pod.h>
@@ -48,15 +47,15 @@ private slots:
 private:
   SpaHook m_hook;
 
-  NodeType::Flags        m_type = NodeType::Untracked;
-  QString                m_name;
-  QString                m_description;
-  QString                m_nick;
-  bool                   m_isMonitor    = false;
-  bool                   m_proAudio     = false;
-  bool                   m_ready        = false;
-  quint64                m_objectSerial = 0;
-  QMap<QString, QString> m_properties;
+  NodeType::Flags m_type = NodeType::Untracked;
+  QString         m_name;
+  QString         m_description;
+  QString         m_nick;
+  bool            m_isMonitor    = false;
+  bool            m_proAudio     = false;
+  bool            m_ready        = false;
+  quint64         m_objectSerial = 0;
+  string_map_t    m_properties;
 
   INodeData *m_data;
 

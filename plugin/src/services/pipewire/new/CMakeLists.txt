@@ -43,6 +43,11 @@ target_sources(
     qml/qml_objects.cpp
 )
 
+target_include_directories(
+  nightshell_services_pipewire
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/qml
+)
+
 set_target_properties(
   nightshell_services_pipewire
   PROPERTIES POSITION_INDEPENDENT_CODE ON

@@ -164,7 +164,7 @@ void PipewireModel::setTrackedTypes(int value) {
       onNodeAdded(v);
     } else if (existing) {
       removeNodeId(k);
-      m_trackedNodes.remove(k);
+      m_trackedNodes.erase(k);
     }
   }
 }
@@ -270,10 +270,10 @@ QVariant PipewireModel::data(const QModelIndex &index, int role) const {
   if (!listPtr) return {};
 
   auto devId = listPtr->at(index.row());
-  auto it    = m_trackedNodes.constFind(devId);
+  auto it    = m_trackedNodes.find(devId);
 
-  if (it == m_trackedNodes.constEnd()) return {};
-  auto node = &it.value();
+  if (it == m_trackedNodes.cend()) return {};
+  auto node = it->second.get();
 
   switch (role) {
   case ModelDataRole:   return QVariant::fromValue(node);
@@ -296,10 +296,13 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
   auto mapped = map_foreign_flag(node->type());
   if (mapped == Type::None) return;
 
-  const auto nodeId = node->id();
-  auto insertIt = m_trackedNodes.insert(nodeId, PwQMLNode(node->get(), this));
+  const auto nodeId   = node->id();
+  auto       newNode  = std::make_unique<PwQMLNode>(node->get(), this);
+  auto       insertIt = m_trackedNodes.emplace(nodeId, std::move(newNode));
 
-  QObject::connect(&insertIt.value(), &PwQMLNode::destroying, this,
+  if (!insertIt.second) return;
+
+  QObject::connect(insertIt.first->second.get(), &PwQMLNode::destroying, this,
       &PipewireModel::onNodeDestroyed);
 
   if (mapped.testFlag(Type::NodeSink)) {
@@ -313,7 +316,7 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
 void PipewireModel::onNodeDestroyed() {
   auto node = static_cast<Node *>(sender());
 
-  m_trackedNodes.remove(node->m_id);
+  m_trackedNodes.erase(node->m_id);
   removeNodeId(node->m_id);
 }
 } // namespace ns::pipewire

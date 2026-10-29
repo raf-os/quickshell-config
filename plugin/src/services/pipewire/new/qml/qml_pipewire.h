@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
 #include <qabstractitemmodel.h>
 #include <qflags.h>
@@ -25,31 +26,30 @@ class Registry;
 
 class QMLPipewireGlobal : public QObject {
   Q_OBJECT
-  QML_NAMED_ELEMENT(Pipewire)
+  QML_NAMED_ELEMENT(PipewireGlobal)
   QML_SINGLETON
 
-private:
   using change_signal_t = void (QMLPipewireGlobal::*)();
   // Pointer to own tracked node (which is also a pointer)
   using member_node_t = PwQMLNode **;
 
   AUTO_MEYERS_SINGLETON_QML_DECL(QMLPipewireGlobal)
 
-#define PROP(Name)                                                             \
-  Q_PROPERTY(PwQMLNode                                                         \
-          *default##Name READ default##Name NOTIFY default##Name##Changed)     \
-public:                                                                        \
-  [[nodiscard]] PwQMLNode *default##Name();                                    \
-  Q_SIGNAL void default##Name##Changed();                                      \
-                                                                               \
-private:                                                                       \
-  PwQMLNode *m_default##Name = nullptr;
+  // Q_PROPERTY(PwQMLNode *defaultSink READ defaultSink NOTIFY
+  // defaultSinkChanged)
 
-  PROP(Sink)
-  PROP(Source)
-  PROP(ConfiguredSink)
-  PROP(ConfiguredSource)
-#undef PROP
+public:
+  [[nodiscard]] PwQMLNode *defaultSink();
+  Q_SIGNAL void            defaultSinkChanged();
+
+  [[nodiscard]] PwQMLNode *defaultSource();
+  Q_SIGNAL void            defaultSourceChanged();
+
+  [[nodiscard]] PwQMLNode *defaultConfiguredSink();
+  Q_SIGNAL void            defaultConfiguredSinkChanged();
+
+  [[nodiscard]] PwQMLNode *defaultConfiguredSource();
+  Q_SIGNAL void            defaultConfiguredSourceChanged();
 
 private slots:
   void onDefaultNodeChanged(DefaultTracker::Type type);
@@ -57,11 +57,16 @@ private slots:
 
 private:
   explicit QMLPipewireGlobal(QObject *parent = nullptr);
+
+  PwQMLNode *m_defaultSink             = nullptr;
+  PwQMLNode *m_defaultSource           = nullptr;
+  PwQMLNode *m_defaultConfiguredSink   = nullptr;
+  PwQMLNode *m_defaultConfiguredSource = nullptr;
 };
 
 class PipewireModel : public QAbstractItemModel {
   Q_OBJECT
-  QML_NAMED_ELEMENT(PipewireModel)
+  QML_ELEMENT
 
   Q_PROPERTY(int trackedTypes READ trackedTypes WRITE setTrackedTypes NOTIFY
           trackedTypesChanged REQUIRED)
@@ -114,9 +119,9 @@ private slots:
   void onNodeDestroyed();
 
 private:
-  Registry                 *m_registry;
-  Types                     m_trackedTypes = Type::None;
-  QHash<quint32, PwQMLNode> m_trackedNodes;
+  Registry *m_registry;
+  Types     m_trackedTypes = Type::None;
+  std::unordered_map<quint32, std::unique_ptr<PwQMLNode>> m_trackedNodes;
 
   [[nodiscard]] int  getListCol(device_list_t *listPtr);
   [[nodiscard]] bool testForeignFlag(NodeType::Flags flag);

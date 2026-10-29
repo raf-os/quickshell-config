@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 #include <concepts>
 #include <qobject.h>
@@ -18,7 +19,6 @@ public:
   explicit PwObjectInterface(
       TrackedObjectBase *object, QObject *parent = nullptr);
   ~PwObjectInterface() override = default;
-  Q_DISABLE_COPY_MOVE(PwObjectInterface)
 
   virtual void                     init() {}
   [[nodiscard]] TrackedObjectBase *trackedObject();
@@ -43,9 +43,8 @@ protected:
   using shared_ptr_t = std::shared_ptr<T>;
 
 public:
-  explicit PwTrackedQml(
-      std::shared_ptr<type_t> object, QObject *parent = nullptr)
-      : PwObjectInterface(object.get(), parent) {
+  explicit PwTrackedQml(shared_ptr_t object, QObject *parent = nullptr)
+      : PwObjectInterface(object.get(), parent), m_object(object) {
     init();
   }
   ~PwTrackedQml() override = default;

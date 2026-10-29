@@ -28,8 +28,6 @@ class NS_PIPEWIRE_EXPORT PwQMLNode : public PwTrackedQml<Node> {
 public:
   explicit PwQMLNode(shared_ptr_t ptr, QObject *parent = nullptr);
 
-  void init() override;
-
   [[nodiscard]] quint32     id() const;
   [[nodiscard]] QString     name() const;
   [[nodiscard]] QString     description() const;
