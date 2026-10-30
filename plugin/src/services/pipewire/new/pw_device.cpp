@@ -181,4 +181,8 @@ std::optional<const VolumeProps *> Device::getVolumeProps(qint32 device) {
   if (it == m_routeDevices.end()) return {};
   return &it.value().volumeProps;
 }
+
+void Device::onCorePolled() {
+  // TODO
+}
 } // namespace ns::pipewire

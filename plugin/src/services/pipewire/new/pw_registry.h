@@ -26,7 +26,7 @@ class Registry : public QObject {
   Q_OBJECT
 
 public:
-  explicit Registry(QObject *parent = nullptr);
+  explicit Registry(Core *core, QObject *parent = nullptr);
   ~Registry() override;
   Q_DISABLE_COPY_MOVE(Registry)
 
@@ -52,6 +52,7 @@ private slots:
 
 private:
   SpaHook m_hook;
+  Core   *m_core;
   qint32  m_coreSyncSeq = 0;
 
   static const struct pw_registry_events REGISTRY_EVENTS;

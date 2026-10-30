@@ -10,9 +10,11 @@
 #include <pipewire/link.h>
 #include <pipewire/node.h>
 #include <pipewire/proxy.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtypes.h>
 
+#include "ns_pipewire_debug.h"
 #include "pw_common.h"
 #include "pw_core.h"
 #include "pw_device.h"
@@ -22,9 +24,11 @@
 #include "pw_node.h"
 
 namespace ns::pipewire {
-Registry::Registry(QObject *parent) : QObject(parent) {}
+Registry::Registry(Core *core, QObject *parent)
+    : QObject(parent), m_core(core) {}
 
 Registry::~Registry() {
+  reset();
   if (m_registry) {
     pw_proxy_destroy(reinterpret_cast<pw_proxy *>(m_registry));
   }
@@ -35,7 +39,7 @@ const struct pw_registry_events Registry::REGISTRY_EVENTS = {
     .global        = &Registry::on_global,
     .global_remove = &Registry::on_global_remove};
 
-Core *Registry::core() { return Globals::instance()->core(); }
+Core *Registry::core() { return m_core; }
 
 pw_registry *Registry::object() { return m_registry; }
 
@@ -107,13 +111,6 @@ void Registry::onCoreSynced(quint32 id, qint32 seq) {
 void Registry::on_global(void *data, uint32_t id, uint32_t perms,
     const char *type, uint32_t version, const struct spa_dict *props) {
   auto self = static_cast<Registry *>(data);
-
-  // auto removeIfExists = [id, self](auto *hashTable) {
-  //   if (auto it = hashTable->find(id); it != hashTable->end()) {
-  //     delete it.value();
-  //     hashTable->erase(it);
-  //   }
-  // };
 
   if (cstr_equals(type, PW_TYPE_INTERFACE_Metadata)) {
     auto meta = new TrackableMetadata(id, perms);

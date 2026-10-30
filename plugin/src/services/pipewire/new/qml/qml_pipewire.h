@@ -35,8 +35,13 @@ class QMLPipewireGlobal : public QObject {
 
   AUTO_MEYERS_SINGLETON_QML_DECL(QMLPipewireGlobal)
 
-  // Q_PROPERTY(PwQMLNode *defaultSink READ defaultSink NOTIFY
-  // defaultSinkChanged)
+  Q_PROPERTY(PwQMLNode *defaultSink READ defaultSink NOTIFY defaultSinkChanged)
+  Q_PROPERTY(
+      PwQMLNode *defaultSource READ defaultSource NOTIFY defaultSourceChanged)
+  Q_PROPERTY(PwQMLNode *defaultConfiguredSink READ defaultConfiguredSink NOTIFY
+          defaultConfiguredSinkChanged)
+  Q_PROPERTY(PwQMLNode *defaultConfiguredSource READ defaultConfiguredSource
+          NOTIFY defaultConfiguredSourceChanged)
 
 public:
   [[nodiscard]] PwQMLNode *defaultSink();

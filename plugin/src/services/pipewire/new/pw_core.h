@@ -28,6 +28,7 @@ public:
 signals:
   void polled();
   void synced(quint32 id, qint32 seq);
+  void fatalError();
 
 private slots:
   void onPoll();
@@ -56,5 +57,6 @@ private:
   void shutdown();
 
   friend class Registry;
+  friend class Globals;
 };
 } // namespace ns::pipewire

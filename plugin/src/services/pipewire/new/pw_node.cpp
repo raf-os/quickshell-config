@@ -3,6 +3,7 @@
 #include <pipewire/keys.h>
 #include <pipewire/node.h>
 #include <qhashfunctions.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtypes.h>
 #include <spa/node/keys.h>

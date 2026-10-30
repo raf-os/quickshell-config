@@ -43,9 +43,8 @@ private:
 class TrackableMetadata : public TrackableObject<Metadata,
                               PW_TYPE_INTERFACE_Metadata, PW_VERSION_METADATA> {
 public:
-  explicit TrackableMetadata(
-      quint32 id, quint32 perms, Metadata *dummy = nullptr)
-      : TrackableObject(id, perms, dummy) {}
+  explicit TrackableMetadata(quint32 id, quint32 perms)
+      : TrackableObject(id, perms) {}
 
   [[nodiscard]] QString name() const;
 

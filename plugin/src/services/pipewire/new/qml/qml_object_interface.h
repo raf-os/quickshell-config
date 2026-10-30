@@ -5,10 +5,12 @@
 #include <utility>
 
 #include <concepts>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
 
+#include "ns_pipewire_debug.h"
 #include "pw_trackable.h"
 
 namespace ns::pipewire {
@@ -44,9 +46,7 @@ protected:
 
 public:
   explicit PwTrackedQml(shared_ptr_t object, QObject *parent = nullptr)
-      : PwObjectInterface(object.get(), parent), m_object(object) {
-    init();
-  }
+      : PwObjectInterface(object.get(), parent), m_object(object) {}
   ~PwTrackedQml() override = default;
 
   [[nodiscard]] T *object() { return m_object.get(); }

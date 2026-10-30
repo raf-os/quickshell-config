@@ -1,5 +1,7 @@
 #include "pw_core.h"
 
+#include <cerrno>
+
 #include <pipewire/context.h>
 #include <pipewire/core.h>
 #include <pipewire/loop.h>
@@ -22,8 +24,17 @@ void Core::on_done(void *data, uint32_t id, int seq) {
 }
 
 void Core::on_error(
-    void *data, uint32_t id, int seq, int res, const char *message) {
-  // TODO
+    void *data, uint32_t id, int /*seq*/, int res, const char *message) {
+  auto self = static_cast<Core *>(data);
+  if (res == -ENOENT) {
+    qCDebug(NS_LOG_PIPEWIRE).nospace()
+        << "ENOENT [" << id << ", code='" << res << "'] error: " << message;
+    return;
+  }
+
+  qCWarning(NS_LOG_PIPEWIRE)
+      << "Pipewire error on object" << id << "(code:" << res << "):" << message;
+  emit self->fatalError();
 }
 
 const struct pw_core_events Core::CORE_EVENTS = {

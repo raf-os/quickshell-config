@@ -15,7 +15,8 @@ PwObjectInterface::PwObjectInterface(TrackedObjectBase *object, QObject *parent)
 
 void PwObjectInterface::onTrackedDestroyed() {
   emit destroying();
-  delete this;
+  m_tracked = nullptr;
+  deleteLater();
 }
 
 TrackedObjectBase *PwObjectInterface::trackedObject() { return m_tracked; }

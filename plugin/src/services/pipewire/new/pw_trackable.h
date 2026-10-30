@@ -9,11 +9,14 @@
 #include <qdebug.h>
 #include <qhash.h>
 #include <qhashfunctions.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 #include <spa/utils/dict.h>
+
+#include "ns_pipewire_debug.h"
 
 namespace ns::pipewire {
 class Registry;
@@ -36,6 +39,8 @@ struct TrackedObjectProps {
 
 class TrackedObjectBase : public QObject {
   Q_OBJECT
+protected:
+  using string_map_t = QHash<QString, QString>;
 
 public:
   explicit TrackedObjectBase(
@@ -49,14 +54,13 @@ public:
   quint32 m_id    = 0;
   quint32 m_perms = 0;
 
+  virtual void initProps(const string_map_t &props) {}
+
 protected:
-  using string_map_t = QHash<QString, QString>;
   pw_proxy *m_object = nullptr;
 
   virtual void bindHooks() {}
   virtual void unbindHooks() {}
-
-  virtual void initProps(const string_map_t &props) {}
 };
 
 template <typename T> class TrackedObject : public TrackedObjectBase {
@@ -81,11 +85,11 @@ protected:
   const quint32 m_perms;
 };
 
-template <std::derived_from<TrackedObjectBase> T, TemplateString INTERFACE,
-    quint32 VERSION>
+template <typename T, TemplateString INTERFACE, quint32 VERSION>
+  requires std::derived_from<T, TrackedObjectBase>
 class TrackableObject : public TrackableObjectBase {
 public:
-  explicit TrackableObject(quint32 id, quint32 perms, T *dummy = nullptr)
+  explicit TrackableObject(quint32 id, quint32 perms)
       : TrackableObjectBase(id, perms) {}
   ~TrackableObject() {
     if (!m_object.expired()) {
@@ -116,8 +120,12 @@ public:
           .version                 = staticVersion(),
           .interface               = staticInterfaceName(),
           .initProps               = m_initProps};
-      m_object = std::make_shared<T>(props);
-      return m_object.lock();
+
+      auto ptr  = std::make_shared<T>(props, nullptr);
+      auto cast = static_cast<TrackedObjectBase *>(ptr.get());
+      cast->initProps(m_initProps);
+      m_object = ptr;
+      return ptr;
     }
     return m_object.lock();
   }

@@ -65,3 +65,5 @@ target_link_libraries(
 )
 
 install_qml_module(nightshell_services_pipewire)
+
+add_subdirectory(manual_test)

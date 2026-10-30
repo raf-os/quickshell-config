@@ -75,8 +75,8 @@ private:
 class TrackableNode
     : public TrackableObject<Node, PW_TYPE_INTERFACE_Node, PW_VERSION_NODE> {
 public:
-  explicit TrackableNode(quint32 id, quint32 perms, Node *dummy = nullptr)
-      : TrackableObject(id, perms, dummy), m_id(id) {}
+  explicit TrackableNode(quint32 id, quint32 perms)
+      : TrackableObject(id, perms), m_id(id) {}
 
   [[nodiscard]] QString         name() const;
   [[nodiscard]] quint32         id() const;

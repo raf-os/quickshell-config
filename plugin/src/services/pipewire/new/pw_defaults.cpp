@@ -1,7 +1,9 @@
 #include "pw_defaults.h"
 
+#include <array>
 #include <cstring>
 #include <memory>
+#include <utility>
 
 #include <qjsondocument.h>
 #include <qjsonobject.h>
@@ -18,11 +20,28 @@
 
 namespace ns::pipewire {
 DefaultTracker::DefaultTracker(QObject *parent) : QObject(parent) {
+  return;
   auto reg = Globals::instance()->registry();
   QObject::connect(
       reg, &Registry::metadataAdded, this, &DefaultTracker::onMetadataAdded);
   QObject::connect(
       reg, &Registry::nodeAdded, this, &DefaultTracker::onNodeAdded);
+}
+
+void DefaultTracker::reset() {
+  if (auto *meta = m_defaultsMetadata.get()) {
+    QObject::disconnect(meta, nullptr, this, nullptr);
+  }
+
+  m_defaultsMetadata.reset();
+  const std::array<Type, 4> types_array{
+      {Sink, Source, ConfiguredSink, ConfiguredSource}
+  };
+
+  for (const auto &t : types_array) {
+    setDefaultName(t, QString());
+    setDefaultNode(t, nullptr);
+  }
 }
 
 bool DefaultTracker::setConfiguredDefault(

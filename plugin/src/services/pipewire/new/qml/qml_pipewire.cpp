@@ -6,6 +6,7 @@
 #include <concepts>
 #include <qabstractitemmodel.h>
 #include <qlist.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qqmlinfo.h>
 #include <qtpreprocessorsupport.h>
@@ -13,6 +14,7 @@
 #include <qvariant.h>
 
 #include "helpermacros.h"
+#include "ns_pipewire_debug.h"
 #include "pw_common.h"
 #include "pw_defaults.h"
 #include "pw_globals.h"
@@ -124,7 +126,10 @@ PwQMLNode *QMLPipewireGlobal::defaultConfiguredSource() {
 }
 
 PipewireModel::PipewireModel(QObject *parent)
-    : QAbstractItemModel(parent), m_registry(Globals::instance()->registry()) {}
+    : QAbstractItemModel(parent), m_registry(Globals::instance()->registry()) {
+  QObject::connect(
+      m_registry, &Registry::nodeAdded, this, &PipewireModel::onNodeAdded);
+}
 
 QVariant PipewireModel::modelIndexFor(Type type) const {
   QModelIndex idx;
@@ -316,7 +321,10 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
 void PipewireModel::onNodeDestroyed() {
   auto node = static_cast<Node *>(sender());
 
-  m_trackedNodes.erase(node->m_id);
-  removeNodeId(node->m_id);
+  // must store the ID before freeing the shared pointers - otherwise a segfault
+  // happens
+  auto id = node->m_id;
+  m_trackedNodes.erase(id);
+  removeNodeId(id);
 }
 } // namespace ns::pipewire
