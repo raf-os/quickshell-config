@@ -9,6 +9,7 @@
 #include <qobject.h>
 #include <qtclasshelpermacros.h>
 #include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "ns_pipewire_debug.h"
 #include "pw_trackable.h"
@@ -20,7 +21,7 @@ class PwObjectInterface : public QObject {
 public:
   explicit PwObjectInterface(
       TrackedObjectBase *object, QObject *parent = nullptr);
-  ~PwObjectInterface() override = default;
+  virtual ~PwObjectInterface() override;
 
   virtual void                     init() {}
   [[nodiscard]] TrackedObjectBase *trackedObject();
@@ -33,6 +34,9 @@ private slots:
 
 protected:
   TrackedObjectBase *m_tracked;
+  virtual void       cleanup() {}
+
+  quint32 m_id = 0;
 };
 
 template <typename T>
@@ -47,10 +51,12 @@ protected:
 public:
   explicit PwTrackedQml(shared_ptr_t object, QObject *parent = nullptr)
       : PwObjectInterface(object.get(), parent), m_object(object) {}
-  ~PwTrackedQml() override = default;
+  virtual ~PwTrackedQml() override = default;
 
   [[nodiscard]] T *object() { return m_object.get(); }
   [[nodiscard]] T *object() const { return m_object.get(); }
+
+  void cleanup() override { m_object.reset(); }
 
 private:
   shared_ptr_t m_object;

@@ -12,11 +12,13 @@ PwObjectInterface::PwObjectInterface(TrackedObjectBase *object, QObject *parent)
   QObject::connect(m_tracked, &QObject::destroyed, this,
       &PwObjectInterface::onTrackedDestroyed);
 }
+PwObjectInterface::~PwObjectInterface() {}
 
 void PwObjectInterface::onTrackedDestroyed() {
   emit destroying();
+  cleanup();
   m_tracked = nullptr;
-  deleteLater();
+  this->deleteLater();
 }
 
 TrackedObjectBase *PwObjectInterface::trackedObject() { return m_tracked; }

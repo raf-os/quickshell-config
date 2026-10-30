@@ -22,11 +22,11 @@ target_compile_definitions(
   PRIVATE PLUGINS_DIR="${CMAKE_BINARY_DIR}/qml"
 )
 
-# target_compile_options(
-#   nightshell_pipewire_manual_tests
-#   PRIVATE -fsanitize=address -fno-omit-frame-pointer -g
-# )
-# target_link_options(nightshell_pipewire_manual_tests PRIVATE -fsanitize=address)
+target_compile_options(
+  nightshell_pipewire_manual_tests
+  PRIVATE -fsanitize=address -fno-omit-frame-pointer -g
+)
+target_link_options(nightshell_pipewire_manual_tests PRIVATE -fsanitize=address)
 
 qt6_add_qml_module(
   nightshell_pipewire_manual_tests

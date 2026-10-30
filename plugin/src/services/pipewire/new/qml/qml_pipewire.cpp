@@ -319,11 +319,8 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
 }
 
 void PipewireModel::onNodeDestroyed() {
-  auto node = static_cast<Node *>(sender());
-
-  // must store the ID before freeing the shared pointers - otherwise a segfault
-  // happens
-  auto id = node->m_id;
+  auto node = static_cast<PwQMLNode *>(sender());
+  auto id   = node->id();
   m_trackedNodes.erase(id);
   removeNodeId(id);
 }

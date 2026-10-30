@@ -49,14 +49,4 @@ private:
   void startSocketWatcher();
   void stopSocketWatcher();
 };
-
-class PwQmlInitializer : public QObject {
-  Q_OBJECT
-  QML_ELEMENT
-
-public:
-  explicit PwQmlInitializer(QObject *parent = nullptr) : QObject(parent) {
-    Globals::instance();
-  }
-};
 } // namespace ns::pipewire

@@ -12,9 +12,12 @@
 namespace ns::pipewire {
 // PwQMLNode
 PwQMLNode::PwQMLNode(shared_ptr_t ptr, QObject *parent)
-    : PwTrackedQml<Node>(ptr, parent) {}
+    : PwTrackedQml<Node>(ptr, parent) {
+  m_id = object()->m_id;
+}
+PwQMLNode::~PwQMLNode() {}
 
-quint32     PwQMLNode::id() const { return object()->m_id; }
+quint32     PwQMLNode::id() const { return m_id; }
 QString     PwQMLNode::name() const { return object()->m_name; }
 QString     PwQMLNode::description() const { return object()->m_description; }
 QString     PwQMLNode::nickname() const { return object()->m_nick; }
