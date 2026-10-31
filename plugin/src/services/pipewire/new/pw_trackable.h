@@ -54,21 +54,18 @@ public:
   quint32 m_id    = 0;
   quint32 m_perms = 0;
 
-  virtual void initProps(const string_map_t &props) {}
-
 protected:
   pw_proxy *m_object = nullptr;
-
-  virtual void bindHooks() {}
-  virtual void unbindHooks() {}
 };
 
 template <typename T> class TrackedObject : public TrackedObjectBase {
 public:
-  explicit TrackedObject(const TrackedObjectProps &props,
-      QObject *parent = nullptr, T *dummy = nullptr)
+  explicit TrackedObject(
+      const TrackedObjectProps &props, QObject *parent = nullptr)
       : TrackedObjectBase(props, parent) {}
-  ~TrackedObject() override {}
+  virtual ~TrackedObject() override {}
+  Q_DISABLE_COPY_MOVE(TrackedObject)
+
   [[nodiscard]] T *proxy() { return reinterpret_cast<T *>(m_object); }
 
   friend class Registry;
@@ -91,9 +88,8 @@ class TrackableObject : public TrackableObjectBase {
 public:
   explicit TrackableObject(quint32 id, quint32 perms)
       : TrackableObjectBase(id, perms) {}
-  ~TrackableObject() {
-    if (!m_object.expired()) {
-      auto sp = m_object.lock();
+  virtual ~TrackableObject() {
+    if (auto sp = m_object.lock()) {
       sp.get()->kill();
     }
   }
@@ -114,20 +110,17 @@ public:
   [[nodiscard]] int32_t refCount() const { return m_object.use_count(); }
 
   [[nodiscard]] std::shared_ptr<T> get() {
-    if (m_object.expired()) {
-      TrackedObjectProps props{.id = m_id,
-          .perms                   = m_perms,
-          .version                 = staticVersion(),
-          .interface               = staticInterfaceName(),
-          .initProps               = m_initProps};
+    if (auto existing = m_object.lock()) return existing;
 
-      auto ptr  = std::make_shared<T>(props, nullptr);
-      auto cast = static_cast<TrackedObjectBase *>(ptr.get());
-      cast->initProps(m_initProps);
-      m_object = ptr;
-      return ptr;
-    }
-    return m_object.lock();
+    TrackedObjectProps props{.id = m_id,
+        .perms                   = m_perms,
+        .version                 = VERSION,
+        .interface               = INTERFACE,
+        .initProps               = m_initProps};
+
+    auto ptr = std::make_shared<T>(props, nullptr);
+    m_object = ptr;
+    return ptr;
   }
 
 protected:

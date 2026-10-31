@@ -11,6 +11,7 @@
 #include "pw_common.h"
 #include "pw_link.h"
 #include "pw_node.h"
+#include "pw_node_data.h"
 #include "qml_object_interface.h"
 
 namespace ns::pipewire {
@@ -20,10 +21,9 @@ class NS_PIPEWIRE_EXPORT PwQMLNode : public PwTrackedQml<Node> {
   QML_UNCREATABLE("")
 
   Q_PROPERTY(quint32 id READ id CONSTANT)
-  Q_PROPERTY(QString name READ name CONSTANT)
-  Q_PROPERTY(QString description READ description CONSTANT)
-  Q_PROPERTY(QString nickname READ nickname CONSTANT)
   Q_PROPERTY(QVariantMap properties READ properties NOTIFY propertiesChanged)
+  Q_PROPERTY(float volume READ averageVolume NOTIFY volumesChanged)
+  Q_PROPERTY(bool muted READ muted NOTIFY mutedChanged)
 
 public:
   explicit PwQMLNode(shared_ptr_t ptr, QObject *parent = nullptr);
@@ -32,18 +32,29 @@ public:
   ~PwQMLNode() override;
 
   [[nodiscard]] quint32     id() const;
-  [[nodiscard]] QString     name() const;
-  [[nodiscard]] QString     description() const;
-  [[nodiscard]] QString     nickname() const;
   [[nodiscard]] QVariantMap properties() const;
+
+  [[nodiscard]] QString name() const;
+  [[nodiscard]] QString description() const;
+  [[nodiscard]] QString nickname() const;
+
+  [[nodiscard]] float averageVolume() const;
+  void                setVolume(float volume);
+
+  [[nodiscard]] bool muted() const;
+  void               setMuted(bool value);
 
   [[nodiscard]] NodeType::Flags type() const;
 
 signals:
   void propertiesChanged();
+  void volumesChanged();
+  void mutedChanged();
 
 private:
   NodeType::Flags m_type = NodeType::Untracked;
+
+  NodeAudioData *m_audioData = nullptr;
 };
 
 class PwQMLLink : public PwTrackedQml<Link> {};

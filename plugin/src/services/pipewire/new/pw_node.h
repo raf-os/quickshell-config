@@ -22,18 +22,15 @@ class Node : public TrackedObject<pw_node> {
   Q_OBJECT
 
 public:
-  explicit Node(const TrackedObjectProps &props, QObject *parent = nullptr)
-      : TrackedObject(props, nullptr) {}
-  ~Node() override {}
+  explicit Node(const TrackedObjectProps &props, QObject *parent = nullptr);
+  ~Node() override;
 
-  void bindHooks() override;
-  void unbindHooks() override;
-  void initProps(const string_map_t &props) override;
+  [[nodiscard]] INodeData *data();
 
   [[nodiscard]] bool    shouldUseDevice() const;
   [[nodiscard]] QString name() const;
 
-  [[nodiscard]] Device *getDevice() const;
+  [[nodiscard]] Device *getDevice();
   [[nodiscard]] qint32  routeDevice() const;
 
 signals:

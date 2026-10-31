@@ -23,7 +23,6 @@ public:
       TrackedObjectBase *object, QObject *parent = nullptr);
   virtual ~PwObjectInterface() override;
 
-  virtual void                     init() {}
   [[nodiscard]] TrackedObjectBase *trackedObject();
 
 signals:

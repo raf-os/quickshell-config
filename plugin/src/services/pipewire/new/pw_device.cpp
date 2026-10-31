@@ -1,5 +1,7 @@
 #include "pw_device.h"
 
+#include <utility>
+
 #include <pipewire/device.h>
 #include <qobject.h>
 #include <spa/param/param.h>
@@ -9,19 +11,16 @@
 #include "ns_pipewire_debug.h"
 #include "pw_core.h"
 #include "pw_globals.h"
+#include "pw_trackable.h"
 
 namespace ns::pipewire {
-void Device::bindHooks() {
+Device::Device(const TrackedObjectProps &props, QObject *parent)
+    : TrackedObject<pw_device>(props, parent) {
   pw_device_add_listener(proxy(), &m_hook.hook, &Device::DEVICE_EVENTS, this);
   auto core = Globals::instance()->core();
   QObject::connect(core, &Core::polled, this, &Device::onCorePolled);
 }
-
-void Device::unbindHooks() {
-  auto core = Globals::instance()->core();
-  QObject::disconnect(core, &Core::polled, this, &Device::onCorePolled);
-  m_hook.remove();
-}
+Device::~Device() { m_hook.remove(); }
 
 const struct pw_device_events Device::DEVICE_EVENTS = {
     .version = PW_VERSION_DEVICE_EVENTS,
@@ -183,6 +182,14 @@ std::optional<const VolumeProps *> Device::getVolumeProps(qint32 device) {
 }
 
 void Device::onCorePolled() {
-  // TODO
+  if (!m_stagingIndexes.isEmpty()) {
+    m_routeDevices.removeIf(
+        [&, this](const std::pair<qint32, DeviceProps &> &entry) {
+          if (!m_stagingIndexes.contains(entry.first)) {
+            return true;
+          }
+          return false;
+        });
+  }
 }
 } // namespace ns::pipewire

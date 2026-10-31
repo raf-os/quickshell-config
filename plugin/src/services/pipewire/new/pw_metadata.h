@@ -15,13 +15,8 @@ class Metadata : public TrackedObject<pw_metadata> {
   Q_OBJECT
 
 public:
-  explicit Metadata(const TrackedObjectProps &props, QObject *parent = nullptr)
-      : TrackedObject(props, nullptr) {}
-  ~Metadata() override {}
-
-  void bindHooks() override;
-  void unbindHooks() override;
-  void initProps(const string_map_t &props) override;
+  explicit Metadata(const TrackedObjectProps &props, QObject *parent = nullptr);
+  ~Metadata() override;
 
   [[nodiscard]] const QString &name() const;
   [[nodiscard]] bool           hasSetPermissions() const;

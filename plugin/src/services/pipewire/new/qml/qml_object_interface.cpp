@@ -18,7 +18,6 @@ void PwObjectInterface::onTrackedDestroyed() {
   emit destroying();
   cleanup();
   m_tracked = nullptr;
-  this->deleteLater();
 }
 
 TrackedObjectBase *PwObjectInterface::trackedObject() { return m_tracked; }

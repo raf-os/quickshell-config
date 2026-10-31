@@ -16,6 +16,7 @@
 #include "pw_globals.h"
 #include "pw_node_data.h"
 #include "pw_registry.h"
+#include "pw_trackable.h"
 
 namespace ns::pipewire {
 namespace {
@@ -30,34 +31,13 @@ const QMap<const char *, NodeType::Flags> MEDIA_CLASS_FLAG_MAP{
 };
 }
 
-void Node::bindHooks() {
+Node::Node(const TrackedObjectProps &props, QObject *parent)
+    : TrackedObject<pw_node>(props, parent) {
   pw_node_add_listener(proxy(), &m_hook.hook, &Node::NODE_EVENTS, this);
-}
 
-void Node::unbindHooks() {
-  if (m_ready) {
-    m_ready = false;
-    emit readyChanged();
-  }
-
-  m_syncSeq = 0;
-  m_hook.remove();
-  m_routeDevice = -1;
-  m_properties.clear();
-
-  if (m_data) {
-    delete m_data;
-    m_data = nullptr;
-  }
-}
-
-Device *Node::getDevice() const { return m_device.get(); }
-qint32  Node::routeDevice() const { return m_routeDevice; }
-
-void Node::initProps(const string_map_t &props) {
   auto registry = Globals::instance()->registry();
-  if (props.contains(SPA_KEY_MEDIA_CLASS)) {
-    auto pkey = props.value(SPA_KEY_MEDIA_CLASS);
+  if (props.initProps.contains(SPA_KEY_MEDIA_CLASS)) {
+    auto pkey = props.initProps.value(SPA_KEY_MEDIA_CLASS);
     for (auto [key, value] : MEDIA_CLASS_FLAG_MAP.asKeyValueRange()) {
       if (pkey == key) {
         m_type = value;
@@ -66,28 +46,28 @@ void Node::initProps(const string_map_t &props) {
     }
   }
 
-  if (props.contains(SPA_KEY_NODE_NAME)) {
-    m_name = props.value(SPA_KEY_NODE_NAME);
+  if (props.initProps.contains(SPA_KEY_NODE_NAME)) {
+    m_name = props.initProps.value(SPA_KEY_NODE_NAME);
   }
 
-  if (props.contains(SPA_KEY_NODE_DESCRIPTION)) {
-    m_description = props.value(SPA_KEY_NODE_DESCRIPTION);
+  if (props.initProps.contains(SPA_KEY_NODE_DESCRIPTION)) {
+    m_description = props.initProps.value(SPA_KEY_NODE_DESCRIPTION);
   }
 
-  if (props.contains(PW_KEY_NODE_NICK)) {
-    m_nick = props.value(PW_KEY_NODE_NICK);
+  if (props.initProps.contains(PW_KEY_NODE_NICK)) {
+    m_nick = props.initProps.value(PW_KEY_NODE_NICK);
   }
 
-  if (props.contains(PW_KEY_MEDIA_CATEGORY)) {
-    auto nodeCategory = props.value(PW_KEY_MEDIA_CATEGORY);
+  if (props.initProps.contains(PW_KEY_MEDIA_CATEGORY)) {
+    auto nodeCategory = props.initProps.value(PW_KEY_MEDIA_CATEGORY);
     if (nodeCategory == "Monitor" || nodeCategory == "Manager") {
       m_isMonitor = true;
     }
   }
 
-  if (props.contains(PW_KEY_OBJECT_SERIAL)) {
+  if (props.initProps.contains(PW_KEY_OBJECT_SERIAL)) {
     auto ok     = false;
-    auto serial = props.value(PW_KEY_OBJECT_SERIAL);
+    auto serial = props.initProps.value(PW_KEY_OBJECT_SERIAL);
     auto value  = serial.toULongLong(&ok);
     if (!ok) {
       qCWarning(NS_LOG_PIPEWIRE)
@@ -97,9 +77,9 @@ void Node::initProps(const string_map_t &props) {
     }
   }
 
-  if (props.contains(PW_KEY_DEVICE_ID)) {
+  if (props.initProps.contains(PW_KEY_DEVICE_ID)) {
     auto ok    = false;
-    auto devId = props.value(PW_KEY_DEVICE_ID);
+    auto devId = props.initProps.value(PW_KEY_DEVICE_ID);
     auto id    = devId.toInt(&ok);
     if (!ok) {
       qCCritical(NS_LOG_PIPEWIRE)
@@ -122,6 +102,18 @@ void Node::initProps(const string_map_t &props) {
     m_data = new NodeAudioData(this);
   }
 }
+
+Node::~Node() {
+  m_hook.remove();
+  if (m_data) {
+    delete m_data;
+  }
+}
+
+Device *Node::getDevice() { return m_device.get(); }
+qint32  Node::routeDevice() const { return m_routeDevice; }
+
+INodeData *Node::data() { return m_data; }
 
 QString Node::name() const { return m_name; }
 

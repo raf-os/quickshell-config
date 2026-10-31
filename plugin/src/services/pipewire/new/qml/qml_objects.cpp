@@ -1,6 +1,7 @@
 #include "qml_objects.h"
 
 #include <qcontainerfwd.h>
+#include <qhashfunctions.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtypes.h>
@@ -8,19 +9,30 @@
 
 #include "ns_pipewire_debug.h"
 #include "pw_common.h"
+#include "pw_node_data.h"
 
 namespace ns::pipewire {
 // PwQMLNode
 PwQMLNode::PwQMLNode(shared_ptr_t ptr, QObject *parent)
     : PwTrackedQml<Node>(ptr, parent) {
   m_id = object()->m_id;
+
+  if (object()->m_type.testFlag(NodeType::Audio)) {
+    m_audioData = static_cast<NodeAudioData *>(object()->data());
+    QObject::connect(m_audioData, &NodeAudioData::volumesChanged, this,
+        &PwQMLNode::volumesChanged);
+  }
+
+  // QObject::connect(m_tracked, &QObject::destroyed, this,
+  // &QObject::deleteLater);
 }
 PwQMLNode::~PwQMLNode() {}
 
-quint32     PwQMLNode::id() const { return m_id; }
-QString     PwQMLNode::name() const { return object()->m_name; }
-QString     PwQMLNode::description() const { return object()->m_description; }
-QString     PwQMLNode::nickname() const { return object()->m_nick; }
+quint32 PwQMLNode::id() const { return m_id; }
+QString PwQMLNode::name() const { return object()->m_name; }
+QString PwQMLNode::description() const { return object()->m_description; }
+QString PwQMLNode::nickname() const { return object()->m_nick; }
+
 QVariantMap PwQMLNode::properties() const {
   QVariantMap map;
   const auto  props = object()->m_properties;
@@ -32,5 +44,23 @@ QVariantMap PwQMLNode::properties() const {
   return map;
 }
 NodeType::Flags PwQMLNode::type() const { return m_type; }
+
+float PwQMLNode::averageVolume() const {
+  if (!m_audioData) return 0;
+  return m_audioData->averageVolume();
+}
+void PwQMLNode::setVolume(float volume) {
+  if (!m_audioData) return;
+  m_audioData->setAverageVolume(volume);
+}
+
+bool PwQMLNode::muted() const {
+  if (!m_audioData) return false;
+  return m_audioData->isMuted();
+}
+void PwQMLNode::setMuted(bool value) {
+  if (!m_audioData) return;
+  m_audioData->setMuted(value);
+}
 // PwQMLNode
 } // namespace ns::pipewire

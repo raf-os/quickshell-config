@@ -5,6 +5,7 @@
 #include <pipewire/permission.h>
 #include <qhashfunctions.h>
 #include <qloggingcategory.h>
+#include <qobject.h>
 #include <spa/utils/dict.h>
 
 #include "ns_pipewire_debug.h"
@@ -21,18 +22,16 @@ int Metadata::on_property(void *data, uint32_t subject, const char *key,
   return 0;
 }
 
-void Metadata::bindHooks() {
+Metadata::Metadata(const TrackedObjectProps &props, QObject *parent)
+    : TrackedObject<pw_metadata>(props, parent) {
   pw_metadata_add_listener(
       proxy(), &m_hook.hook, &Metadata::METADATA_EVENTS, this);
-}
-
-void Metadata::unbindHooks() { m_hook.remove(); }
-
-void Metadata::initProps(const string_map_t &props) {
-  if (props.contains(PW_KEY_METADATA_NAME)) {
-    m_name = props.value(PW_KEY_METADATA_NAME);
+  if (props.initProps.contains(PW_KEY_METADATA_NAME)) {
+    m_name = props.initProps.value(PW_KEY_METADATA_NAME);
   }
 }
+
+Metadata::~Metadata() { m_hook.remove(); }
 
 bool Metadata::hasSetPermissions() const {
   return (m_perms & (PW_PERM_W | PW_PERM_X)) == (PW_PERM_W | PW_PERM_X);

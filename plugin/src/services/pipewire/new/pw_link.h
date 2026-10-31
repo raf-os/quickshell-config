@@ -23,13 +23,8 @@ public:
   };
   Q_ENUM(State)
 
-  explicit Link(const TrackedObjectProps &props, QObject *parent = nullptr)
-      : TrackedObject(props, nullptr) {}
-  ~Link() override {}
-
-  void bindHooks() override;
-  void unbindHooks() override;
-  void initProps(const string_map_t &props) override;
+  explicit Link(const TrackedObjectProps &props, QObject *parent = nullptr);
+  ~Link() override;
 
   [[nodiscard]] QBindable<Link::State> bindableState() const;
   [[nodiscard]] quint32                outputNode() const;

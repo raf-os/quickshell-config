@@ -16,26 +16,18 @@ TrackedObjectBase::TrackedObjectBase(
     const TrackedObjectProps &props, QObject *parent)
     : QObject(parent), m_id(props.id), m_perms(props.perms) {
   auto reg = Globals::instance()->registry();
-  setParent(reg);
 
   auto object =
       pw_registry_bind(reg->object(), m_id, props.interface, props.version, 0);
   m_object = static_cast<pw_proxy *>(object);
-
-  bindHooks();
-  this->initProps(props.initProps);
 }
 
 TrackedObjectBase::~TrackedObjectBase() {
   if (!m_object) return;
-  unbindHooks();
   pw_proxy_destroy(m_object);
 }
 
-void TrackedObjectBase::kill() {
-  onBeforeDestroy();
-  delete this;
-}
+void TrackedObjectBase::kill() { onBeforeDestroy(); }
 
 QDebug operator<<(QDebug debug, const TrackedObjectBase *object) {
   if (object == nullptr) {

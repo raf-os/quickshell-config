@@ -2,6 +2,7 @@
 
 #include <numeric>
 
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <spa/param/props.h>
 

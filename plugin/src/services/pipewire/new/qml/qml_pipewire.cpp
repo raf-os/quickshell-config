@@ -108,8 +108,10 @@ void QMLPipewireGlobal::setDefault(
 
   if (newPtr) {
     *node = new PwQMLNode(newPtr, this);
-    QObject::connect(*node, &PwQMLNode::destroying, this,
-        [this, type] { setDefault(type, nullptr); });
+    QObject::connect(*node, &PwQMLNode::destroying, this, [this, node, type] {
+      setDefault(type, nullptr);
+      (*node)->deleteLater();
+    });
   } else {
     *node = nullptr;
   }
@@ -222,8 +224,8 @@ void PipewireModel::removeNodeId(const quint32 &id) {
 
 QHash<int, QByteArray> PipewireModel::roleNames() const {
   return {
-      {Roles::ModelDataRole,   "modelData"  },
-      {Roles::IdRole,          "id"         },
+      {Roles::InterfaceRole,   "modelData"  },
+      {Roles::IdRole,          "nodeId"     },
       {Roles::NameRole,        "name"       },
       {Roles::DescriptionRole, "description"},
       {Roles::NicknameRole,    "nickname"   },
@@ -274,7 +276,7 @@ QVariant PipewireModel::data(const QModelIndex &index, int role) const {
   auto node = it->second.get();
 
   switch (role) {
-  case ModelDataRole:   return QVariant::fromValue(node);
+  case InterfaceRole:   return QVariant::fromValue(node);
   case IdRole:          return QVariant::fromValue(node->id());
   case NameRole:        return QVariant::fromValue(node->name());
   case DescriptionRole: return QVariant::fromValue(node->description());

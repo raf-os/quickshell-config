@@ -19,7 +19,7 @@
 #include "pw_common.h"
 #include "pw_defaults.h"
 #include "pw_node.h"
-#include "qml/qml_objects.h"
+#include "qml_objects.h"
 
 namespace ns::pipewire {
 class Registry;
@@ -80,7 +80,7 @@ class PipewireModel : public QAbstractItemModel {
 
 public:
   enum Roles {
-    ModelDataRole = Qt::UserRole,
+    InterfaceRole = Qt::UserRole,
     IdRole,
     NameRole,
     DescriptionRole,

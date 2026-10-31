@@ -20,12 +20,8 @@ class Device : public TrackedObject<pw_device> {
   Q_OBJECT
 
 public:
-  explicit Device(const TrackedObjectProps &props, QObject *parent = nullptr)
-      : TrackedObject(props, nullptr) {}
-  ~Device() override {}
-
-  void bindHooks() override;
-  void unbindHooks() override;
+  explicit Device(const TrackedObjectProps &props, QObject *parent = nullptr);
+  ~Device() override;
 
   bool setVolumes(qint32 device, const QList<float> &volumes);
   bool setMuted(qint32 device, bool muted);
