@@ -28,6 +28,7 @@ class NS_PIPEWIRE_EXPORT PwQMLNode : public PwTrackedQml<Node> {
 public:
   explicit PwQMLNode(shared_ptr_t ptr, QObject *parent = nullptr);
   // TODO: Asan reports memory leak via new-delete-type-mismatch. Real?
+  // If true, switch to composition rather than inheritance
   ~PwQMLNode() override;
 
   [[nodiscard]] quint32     id() const;

@@ -87,7 +87,7 @@ public:
     NicknameRole,
   };
 
-  enum Type : quint8 {
+  enum Type {
     None           = 0,
     NodeSink       = 1 << 0,
     NodeSource     = 1 << 1,
@@ -103,7 +103,7 @@ public:
   void              setTrackedTypes(int value);
 
   // To be used with DelegateModel qml type
-  [[nodiscard]] Q_INVOKABLE QVariant modelIndexFor(Type type) const;
+  [[nodiscard]] Q_INVOKABLE QModelIndex modelIndexFor(int type) const;
 
   QHash<int, QByteArray> roleNames() const override;
   int                    rowCount(const QModelIndex &parent) const override;
@@ -128,14 +128,15 @@ private:
   Types     m_trackedTypes = Type::None;
   std::unordered_map<quint32, std::unique_ptr<PwQMLNode>> m_trackedNodes;
 
-  [[nodiscard]] int  getListCol(device_list_t *listPtr);
-  [[nodiscard]] bool testForeignFlag(NodeType::Flags flag);
+  static constexpr quintptr Root = quintptr(-1);
 
-  void insertSorted(device_list_t &list, quint32 value);
-  void insertSorted(device_list_t &list, int col, quint32 value);
+  [[nodiscard]] device_list_t *getListFromType(Type type);
+  [[nodiscard]] bool           testForeignFlag(NodeType::Flags flag);
+  [[nodiscard]] QModelIndex    indexFor(Type type) const;
 
-  void removeAt(device_list_t &list, int row);
-  void removeAt(device_list_t &list, int col, int row);
+  void insertSorted(Type type, quint32 value);
+
+  void removeAt(Type type, int row);
 
   void removeNodeId(const quint32 &id);
 

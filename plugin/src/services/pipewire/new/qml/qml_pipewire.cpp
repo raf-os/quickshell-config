@@ -28,9 +28,9 @@ static DefaultTracker *get_default_tracker() {
 }
 
 namespace {
-constexpr int COL_AUDIO_SINK   = 0;
-constexpr int COL_AUDIO_SOURCE = 1;
-constexpr int COL_MAX          = 2;
+constexpr quintptr ROW_AUDIO_SINK   = 0;
+constexpr quintptr ROW_AUDIO_SOURCE = 1;
+constexpr quintptr ROW_MAX          = 2;
 
 PipewireModel::Types map_foreign_flag(NodeType::Flags type) {
   using Type             = PipewireModel::Type;
@@ -131,15 +131,17 @@ PipewireModel::PipewireModel(QObject *parent)
       m_registry, &Registry::nodeAdded, this, &PipewireModel::onNodeAdded);
 }
 
-QVariant PipewireModel::modelIndexFor(Type type) const {
-  QModelIndex idx;
-  switch (type) {
-  case Type::NodeSink:   idx = createIndex(0, COL_AUDIO_SINK, nullptr); break;
-  case Type::NodeSource: idx = createIndex(0, COL_AUDIO_SOURCE, nullptr); break;
-  default:               break;
-  }
+QModelIndex PipewireModel::modelIndexFor(int type) const {
+  if (type == NodeSink) return index(ROW_AUDIO_SINK, 0, QModelIndex());
+  else if (type == NodeSource) return index(ROW_AUDIO_SOURCE, 0, QModelIndex());
+  return {};
+}
 
-  return QVariant::fromValue(idx);
+QModelIndex PipewireModel::indexFor(Type type) const {
+  if (type == Type::NodeSink) return index(ROW_AUDIO_SINK, 0, QModelIndex());
+  else if (type == Type::NodeSource)
+    return index(ROW_AUDIO_SOURCE, 0, QModelIndex());
+  else return {};
 }
 
 int  PipewireModel::trackedTypes() const { return m_trackedTypes; }
@@ -180,35 +182,29 @@ bool PipewireModel::testForeignFlag(NodeType::Flags flag) {
   return res.testFlags(m_trackedTypes);
 }
 
-void PipewireModel::insertSorted(device_list_t &list, quint32 value) {
-  auto col = getListCol(&list);
-  return insertSorted(list, col, value);
-}
+void PipewireModel::insertSorted(Type type, quint32 value) {
+  auto list = getListFromType(type);
+  if (!list) return;
+  if (list->contains(value)) return;
 
-void PipewireModel::insertSorted(device_list_t &list, int col, quint32 value) {
-  if (col < 0 || col >= COL_MAX) return;
-  if (list.contains(value)) return;
-
-  auto idx = list_sorted_index(&list, value);
-  beginInsertRows(createIndex(0, col, nullptr), idx, idx);
-  list.insert(idx, value);
+  auto idx = list_sorted_index(list, value);
+  beginInsertRows(indexFor(type), idx, idx);
+  list->insert(idx, value);
   endInsertRows();
-  if (col == COL_AUDIO_SINK) emit audioSinksChanged();
-  if (col == COL_AUDIO_SOURCE) emit audioSourcesChanged();
+
+  if (type == NodeSink) emit audioSinksChanged();
+  else if (type == NodeSource) emit audioSourcesChanged();
 }
 
-void PipewireModel::removeAt(device_list_t &list, int row) {
-  auto col = getListCol(&list);
-  return removeAt(list, col, row);
-}
-
-void PipewireModel::removeAt(device_list_t &list, int col, int row) {
-  if (col < 0 || col >= COL_MAX || row < 0 || row > list.size()) return;
-  beginRemoveRows(createIndex(0, col, nullptr), row, row);
-  list.removeAt(row);
+void PipewireModel::removeAt(Type type, int row) {
+  auto list = getListFromType(type);
+  if (!list) return;
+  if (row < 0 || row > list->size()) return;
+  beginRemoveRows(indexFor(type), row, row);
+  list->removeAt(row);
   endRemoveRows();
-  if (col == COL_AUDIO_SINK) emit audioSinksChanged();
-  if (col == COL_AUDIO_SOURCE) emit audioSourcesChanged();
+  if (type == NodeSink) emit audioSinksChanged();
+  else if (type == NodeSource) emit audioSourcesChanged();
 }
 
 void PipewireModel::removeNodeId(const quint32 &id) {
@@ -216,11 +212,11 @@ void PipewireModel::removeNodeId(const quint32 &id) {
   auto sourceIdx = m_audioSources.indexOf(id);
 
   if (sinkIdx != -1) {
-    removeAt(m_audioSinks, sinkIdx);
+    removeAt(NodeSink, sinkIdx);
   }
 
   if (sourceIdx != -1) {
-    removeAt(m_audioSources, sourceIdx);
+    removeAt(NodeSource, sourceIdx);
   }
 }
 
@@ -235,42 +231,39 @@ QHash<int, QByteArray> PipewireModel::roleNames() const {
 }
 
 int PipewireModel::rowCount(const QModelIndex &parent) const {
-  switch (parent.column()) {
-  case COL_AUDIO_SINK:   return m_audioSinks.size();
-  case COL_AUDIO_SOURCE: return m_audioSources.size();
-  default:               return 0;
+  if (!parent.isValid()) return 2;
+  if (parent.column() != 0 || parent.internalId() != Root) return 0;
+  switch (parent.row()) {
+  case ROW_AUDIO_SINK:   return m_audioSinks.size();
+  case ROW_AUDIO_SOURCE: return m_audioSources.size();
   }
+  return 0;
 }
 
 int PipewireModel::columnCount(const QModelIndex &parent) const {
   Q_UNUSED(parent)
-  return 2;
+  return 1;
 }
 
 QModelIndex PipewireModel::index(
     int row, int column, const QModelIndex &parent) const {
   if (!this->hasIndex(row, column, parent)) return {};
-  if (!parent.isValid()) return {};
-
-  return createIndex(row, column, nullptr);
+  if (!parent.isValid()) return createIndex(row, column, Root);
+  return createIndex(row, column, quintptr(parent.row()));
 }
 
 QModelIndex PipewireModel::parent(const QModelIndex &index) const {
-  switch (index.column()) {
-  case COL_AUDIO_SINK:   return createIndex(0, COL_AUDIO_SINK, nullptr);
-  case COL_AUDIO_SOURCE: return createIndex(0, COL_AUDIO_SOURCE, nullptr);
-  }
-  return {};
+  if (!index.isValid() || index.internalId() == Root) return {};
+  return createIndex(static_cast<int>(index.internalId()), 0, Root);
 }
 
 QVariant PipewireModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid()) return {};
+  if (!index.isValid() || index.internalId() == Root) return {};
 
-  const QList<quint32> *listPtr = nullptr;
-  switch (index.column()) {
-  case COL_AUDIO_SINK:   listPtr = const_cast<device_list_t *>(&m_audioSinks);
-  case COL_AUDIO_SOURCE: listPtr = const_cast<device_list_t *>(&m_audioSources);
-  }
+  const device_list_t *listPtr = nullptr;
+  auto                 iid     = index.internalId();
+  if (iid == ROW_AUDIO_SINK) listPtr = &m_audioSinks;
+  else if (iid == ROW_AUDIO_SOURCE) listPtr = &m_audioSources;
 
   if (!listPtr) return {};
 
@@ -291,10 +284,12 @@ QVariant PipewireModel::data(const QModelIndex &index, int role) const {
   return {};
 }
 
-int PipewireModel::getListCol(device_list_t *listPtr) {
-  if (listPtr == &m_audioSinks) return COL_AUDIO_SINK;
-  else if (listPtr == &m_audioSources) return COL_AUDIO_SOURCE;
-  return -1;
+PipewireModel::device_list_t *PipewireModel::getListFromType(Type type) {
+  switch (type) {
+  case NodeSink:   return &m_audioSinks;
+  case NodeSource: return &m_audioSources;
+  default:         return nullptr;
+  }
 }
 
 void PipewireModel::onNodeAdded(TrackableNode *node) {
@@ -311,10 +306,10 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
       &PipewireModel::onNodeDestroyed);
 
   if (mapped.testFlag(Type::NodeSink)) {
-    insertSorted(m_audioSinks, nodeId);
+    insertSorted(NodeSink, nodeId);
   }
   if (mapped.testFlag(Type::NodeSource)) {
-    insertSorted(m_audioSources, nodeId);
+    insertSorted(NodeSource, nodeId);
   }
 }
 
