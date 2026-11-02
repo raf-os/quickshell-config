@@ -57,6 +57,7 @@ qt6_add_qml_module(
   nightshell_services_pipewire
   URI "${ORG_URI_PREFIX}.Services.Pipewire"
   VERSION 0.1
+  DEPENDENCIES QtQml
 )
 
 target_link_libraries(

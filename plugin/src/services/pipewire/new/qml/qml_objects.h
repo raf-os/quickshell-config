@@ -21,6 +21,9 @@ class NS_PIPEWIRE_EXPORT PwQMLNode : public PwTrackedQml<Node> {
   QML_UNCREATABLE("")
 
   Q_PROPERTY(quint32 id READ id CONSTANT)
+  Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QString description READ description CONSTANT)
+  Q_PROPERTY(QString nickname READ nickname CONSTANT)
   Q_PROPERTY(QVariantMap properties READ properties NOTIFY propertiesChanged)
   Q_PROPERTY(float volume READ averageVolume NOTIFY volumesChanged)
   Q_PROPERTY(bool muted READ muted NOTIFY mutedChanged)
@@ -39,14 +42,17 @@ public:
   [[nodiscard]] QString nickname() const;
 
   [[nodiscard]] float averageVolume() const;
-  void                setVolume(float volume);
+  Q_INVOKABLE void    setVolume(float volume);
 
   [[nodiscard]] bool muted() const;
-  void               setMuted(bool value);
+  Q_INVOKABLE void   setMuted(bool value);
+
+  [[nodiscard]] bool ready() const;
 
   [[nodiscard]] NodeType::Flags type() const;
 
 signals:
+  void readyChanged();
   void propertiesChanged();
   void volumesChanged();
   void mutedChanged();

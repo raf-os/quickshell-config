@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include <qhashfunctions.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -15,6 +16,20 @@
 #include "toplevelmodel.h"
 
 namespace ns::hyprland {
+namespace WorkspaceType {
+WorkspaceType::Enum fromString(const QString &str) {
+  if (str == "normal") return Normal;
+  else if (str == "special") return Scratchpad;
+  else return Unknown;
+}
+
+QString toString(const WorkspaceType::Enum val) {
+  if (val == Normal) return "Normal";
+  else if (val == Scratchpad) return "Scratchpad";
+  else return "Unknown";
+}
+}; // namespace WorkspaceType
+
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland) // from hyprland.cpp
 
 HyprWorkspace::HyprWorkspace(int id, QObject *parent)
@@ -36,6 +51,7 @@ void HyprWorkspace::updateData(common::HyprWorkspaceData data) {
 
     if (QString::number(m_id) == data.name) b_name = "";
     else b_name = data.name;
+    b_type         = WorkspaceType::fromString(data.type);
     b_isPersistent = data.isPersistent;
     b_isFullScreen = data.isFullScreen;
     b_monitorId    = data.monitorId;
@@ -127,6 +143,7 @@ void HyprWorkspace::detachToplevel(ToplevelInstance *toplevel) {
 }
 
 QBindable<bool> HyprWorkspace::bindableUrgent() const { return &b_urgent; }
+QBindable<WorkspaceType::Enum> HyprWorkspace::type() const { return &b_type; }
 
 QBindable<bool> HyprWorkspace::bindableIsFullScreen() {
   return &b_isFullScreen;

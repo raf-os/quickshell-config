@@ -32,21 +32,44 @@ ApplicationWindow {
     delegate: nodeComponent
   }
 
-  RowLayout {
+  ColumnLayout {
+    id: mainLayout
+
     anchors.fill: parent
 
-    spacing: 4
-
-    ListView {
+    Label {
       Layout.fillWidth: true
-      Layout.fillHeight: true
-      model: sinkModel
+      text: "Defaults"
     }
 
-    ListView {
+    RowLayout {
+      id: defaultsLayout
       Layout.fillWidth: true
-      Layout.fillHeight: true
-      model: sourceModel
+
+      Label {
+        readonly property PwNode defaultSink: PipewireGlobal.defaultSink
+        text: defaultSink.description
+      }
+    }
+
+    RowLayout {
+      id: nodesLayout
+
+      Layout.fillWidth: true
+
+      spacing: 4
+
+      ListView {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        model: sinkModel
+      }
+
+      ListView {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        model: sourceModel
+      }
     }
   }
 
@@ -88,6 +111,16 @@ ApplicationWindow {
           Layout.fillWidth: true
           elide: Text.ElideRight
 
+          MouseArea {
+            id: tooltipArea
+            anchors.fill: parent
+            hoverEnabled: true
+          }
+
+          ToolTip.delay: 500
+          ToolTip.visible: tooltipArea.containsMouse
+          ToolTip.text: nodeName.text
+
           text: {
             if (nodeItem.description !== "")
               return nodeItem.description;
@@ -97,16 +130,31 @@ ApplicationWindow {
           }
         }
 
+        CheckBox {
+          checked: nodeItem.modelData.muted
+          text: "Muted"
+
+          onToggled: {
+            nodeItem.modelData.setMuted(checked);
+          }
+        }
+
         RowLayout {
           Layout.fillWidth: true
 
           Label {
-            text: nodeItem.modelData.volume * 100
+            text: Math.round(nodeItem.modelData.volume * 100)
           }
           Slider {
             id: volumeSlider
             from: 0
             to: 1
+
+            value: nodeItem.modelData.volume
+
+            onMoved: {
+              nodeItem.modelData.setVolume(value);
+            }
 
             Layout.fillWidth: true
           }

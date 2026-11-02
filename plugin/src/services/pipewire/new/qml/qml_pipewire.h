@@ -35,13 +35,14 @@ class QMLPipewireGlobal : public QObject {
 
   AUTO_MEYERS_SINGLETON_QML_DECL(QMLPipewireGlobal)
 
-  Q_PROPERTY(PwQMLNode *defaultSink READ defaultSink NOTIFY defaultSinkChanged)
-  Q_PROPERTY(
-      PwQMLNode *defaultSource READ defaultSource NOTIFY defaultSourceChanged)
-  Q_PROPERTY(PwQMLNode *defaultConfiguredSink READ defaultConfiguredSink NOTIFY
-          defaultConfiguredSinkChanged)
-  Q_PROPERTY(PwQMLNode *defaultConfiguredSource READ defaultConfiguredSource
-          NOTIFY defaultConfiguredSourceChanged)
+  Q_PROPERTY(ns::pipewire::PwQMLNode *defaultSink READ defaultSink NOTIFY
+          defaultSinkChanged)
+  Q_PROPERTY(ns::pipewire::PwQMLNode *defaultSource READ defaultSource NOTIFY
+          defaultSourceChanged)
+  Q_PROPERTY(ns::pipewire::PwQMLNode *defaultConfiguredSink READ
+          defaultConfiguredSink NOTIFY defaultConfiguredSinkChanged)
+  Q_PROPERTY(ns::pipewire::PwQMLNode *defaultConfiguredSource READ
+          defaultConfiguredSource NOTIFY defaultConfiguredSourceChanged)
 
 public:
   [[nodiscard]] PwQMLNode *defaultSink();
@@ -121,6 +122,7 @@ signals:
 
 private slots:
   void onNodeAdded(TrackableNode *node);
+  void onNodeReady();
   void onNodeDestroyed();
 
 private:

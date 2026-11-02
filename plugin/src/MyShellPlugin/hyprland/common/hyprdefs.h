@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qhashfunctions.h>
 #include <qobject.h>
 #include <qtypes.h>
 
@@ -20,6 +21,7 @@ struct HyprWorkspaceData {
   int     monitorId;
   QString monitorName;
   QString name;
+  QString type;
   quint64 lastWindow;
 };
 

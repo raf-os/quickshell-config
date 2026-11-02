@@ -7,6 +7,7 @@
 
 #include <qjsondocument.h>
 #include <qjsonobject.h>
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <spa/utils/json-core.h>
 #include <spa/utils/json.h>
@@ -19,13 +20,20 @@
 #include "pw_registry.h"
 
 namespace ns::pipewire {
-DefaultTracker::DefaultTracker(QObject *parent) : QObject(parent) {
-  return;
-  auto reg = Globals::instance()->registry();
+DefaultTracker::DefaultTracker(Registry *registry, QObject *parent)
+    : QObject(parent), m_registry(registry) {
+  if (!m_registry) return;
+  QObject::connect(m_registry, &Registry::metadataAdded, this,
+      &DefaultTracker::onMetadataAdded);
   QObject::connect(
-      reg, &Registry::metadataAdded, this, &DefaultTracker::onMetadataAdded);
-  QObject::connect(
-      reg, &Registry::nodeAdded, this, &DefaultTracker::onNodeAdded);
+      m_registry, &Registry::nodeAdded, this, &DefaultTracker::onNodeAdded);
+
+  for (auto [k, meta] : m_registry->m_metadata.asKeyValueRange()) {
+    onMetadataAdded(meta);
+  }
+  for (auto [k, node] : m_registry->m_nodes.asKeyValueRange()) {
+    onNodeAdded(node);
+  }
 }
 
 void DefaultTracker::reset() {
@@ -34,7 +42,7 @@ void DefaultTracker::reset() {
   }
 
   m_defaultsMetadata.reset();
-  const std::array<Type, 4> types_array{
+  constexpr std::array<Type, 4> types_array{
       {Sink, Source, ConfiguredSink, ConfiguredSource}
   };
 
@@ -150,12 +158,8 @@ void DefaultTracker::onMetadataProperty(
     }
   }
 
-  auto p = getDefaultProps(t);
-  if (p) {
-    auto reg = Globals::instance()->registry();
-    p->name  = name;
-    p->node  = reg->findNodeByName(name);
-  }
+  setDefaultName(t, name);
+  setDefaultNode(t, m_registry->findNodeByName(name));
 }
 
 DefaultTracker::DefaultNodeProps *DefaultTracker::getDefaultProps(Type type) {

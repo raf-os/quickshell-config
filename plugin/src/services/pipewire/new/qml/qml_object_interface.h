@@ -21,7 +21,7 @@ class PwObjectInterface : public QObject {
 public:
   explicit PwObjectInterface(
       TrackedObjectBase *object, QObject *parent = nullptr);
-  virtual ~PwObjectInterface() override;
+  ~PwObjectInterface() override;
 
   [[nodiscard]] TrackedObjectBase *trackedObject();
 
@@ -33,7 +33,6 @@ private slots:
 
 protected:
   TrackedObjectBase *m_tracked;
-  virtual void       cleanup() {}
 
   quint32 m_id = 0;
 };
@@ -50,12 +49,10 @@ protected:
 public:
   explicit PwTrackedQml(shared_ptr_t object, QObject *parent = nullptr)
       : PwObjectInterface(object.get(), parent), m_object(object) {}
-  virtual ~PwTrackedQml() override = default;
+  ~PwTrackedQml() override = default;
 
   [[nodiscard]] T *object() { return m_object.get(); }
   [[nodiscard]] T *object() const { return m_object.get(); }
-
-  void cleanup() override { m_object.reset(); }
 
 private:
   shared_ptr_t m_object;

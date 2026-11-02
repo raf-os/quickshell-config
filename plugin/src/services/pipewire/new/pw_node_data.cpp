@@ -1,9 +1,11 @@
 #include "pw_node_data.h"
 
-#include <numeric>
+#include <cmath>
 
+#include <pipewire/node.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
+#include <spa/param/param.h>
 #include <spa/param/props.h>
 
 #include "ns_pipewire_debug.h"
@@ -31,7 +33,12 @@ void NodeAudioData::onDeviceChanged() {
 }
 
 void NodeAudioData::onInfo(const pw_node_info *info) {
-  if (info->change_mask & PW_NODE_CHANGE_MASK_PARAMS) {
+  // Had to check for both of the masks below, otherwise it would fail to update
+  // sometimes, especially on an app like firefox that would conditionally add a
+  // node only if audio was being played
+  if (info->change_mask &
+      (PW_NODE_CHANGE_MASK_PARAMS | PW_NODE_CHANGE_MASK_PROPS))
+  {
     for (quint32 i = 0; i < info->n_params; i++) {
       auto &param = info->params[i];
 
@@ -68,7 +75,10 @@ QList<AudioChannel::Enum> NodeAudioData::channels() const { return m_channels; }
 float NodeAudioData::averageVolume() const {
   if (m_volumes.isEmpty()) return 0.0f;
 
-  float total = std::accumulate(m_volumes.begin(), m_volumes.end(), 0);
+  float total = 0;
+  for (const auto &volume : m_volumes) {
+    total += volume;
+  }
   return total / static_cast<float>(m_volumes.size());
 }
 
@@ -84,7 +94,7 @@ void NodeAudioData::setAverageVolume(float value) {
 
 QList<float> NodeAudioData::volumes() const { return m_volumes; }
 void         NodeAudioData::setVolumes(const QList<float> &values) {
-  if (m_parent->proxy()) {
+  if (!m_parent->proxy()) {
     qCCritical(NS_LOG_PIPEWIRE)
         << "Tried to change node volumes for unbound node:" << m_parent;
     return;
@@ -149,6 +159,9 @@ void         NodeAudioData::setVolumes(const QList<float> &values) {
         SPA_PARAM_Props, SPA_PROP_channelVolumes,
         SPA_POD_Array(sizeof(float), SPA_TYPE_Float, cubedVolumes.size(),
             cubedVolumes.data()));
+
+    pw_node_set_param(
+        m_parent->proxy(), SPA_PARAM_Props, 0, static_cast<spa_pod *>(pod));
   }
 
   m_volumes = realVolumes;

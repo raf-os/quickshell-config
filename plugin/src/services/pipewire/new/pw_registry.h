@@ -74,5 +74,6 @@ private:
   } m_initState = InitState::SendingObjects;
 
   friend class PipewireModel;
+  friend class DefaultTracker;
 };
 } // namespace ns::pipewire

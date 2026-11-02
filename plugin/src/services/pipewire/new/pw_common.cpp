@@ -2,9 +2,12 @@
 
 #include <cmath>
 
+#include <qloggingcategory.h>
 #include <spa/param/props.h>
 #include <spa/pod/iter.h>
 #include <spa/pod/pod.h>
+
+#include "ns_pipewire_debug.h"
 
 namespace ns::pipewire {
 VolumeProps volume_props_from_spa_pod(const spa_pod *param) {
@@ -25,7 +28,7 @@ VolumeProps volume_props_from_spa_pod(const spa_pod *param) {
     SPA_POD_ARRAY_FOREACH(volumes, iter) {
       auto linear = *reinterpret_cast<float *>(iter);
       auto visual = std::cbrt(linear);
-      props.volumes.push_back(visual);
+      props.volumes.append(visual);
     }
   }
 

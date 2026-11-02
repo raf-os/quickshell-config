@@ -4,6 +4,7 @@
 #include <memory>
 #include <utility>
 
+#include <pipewire/client.h>
 #include <pipewire/core.h>
 #include <pipewire/device.h>
 #include <pipewire/extensions/metadata.h>
@@ -13,6 +14,7 @@
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtypes.h>
+#include <spa/utils/dict.h>
 
 #include "ns_pipewire_debug.h"
 #include "pw_common.h"
@@ -116,25 +118,25 @@ void Registry::on_global(void *data, uint32_t id, uint32_t perms,
     auto meta = new TrackableMetadata(id, perms);
     meta->initProps(props);
 
-    self->m_metadata.emplace(id, meta);
+    self->m_metadata.insert(id, meta);
     emit self->metadataAdded(meta);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Link)) {
     auto link = new TrackableLink(id, perms);
     link->initProps(props);
 
-    self->m_links.emplace(id, link);
+    self->m_links.insert(id, link);
     emit self->linkAdded(link);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Node)) {
     auto node = new TrackableNode(id, perms);
     node->initProps(props);
 
-    self->m_nodes.emplace(id, node);
+    self->m_nodes.insert(id, node);
     emit self->nodeAdded(node);
   } else if (cstr_equals(type, PW_TYPE_INTERFACE_Device)) {
     auto dev = new TrackableDevice(id, perms);
     dev->initProps(props);
 
-    self->m_devices.emplace(id, dev);
+    self->m_devices.insert(id, dev);
   }
 }
 

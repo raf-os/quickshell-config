@@ -27,7 +27,7 @@ TrackedObjectBase::~TrackedObjectBase() {
   pw_proxy_destroy(m_object);
 }
 
-void TrackedObjectBase::kill() { onBeforeDestroy(); }
+void TrackedObjectBase::kill() { emit destroying(); }
 
 QDebug operator<<(QDebug debug, const TrackedObjectBase *object) {
   if (object == nullptr) {

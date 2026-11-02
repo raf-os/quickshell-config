@@ -17,17 +17,20 @@ PwQMLNode::PwQMLNode(shared_ptr_t ptr, QObject *parent)
     : PwTrackedQml<Node>(ptr, parent) {
   m_id = object()->m_id;
 
+  QObject::connect(
+      object(), &Node::readyChanged, this, &PwQMLNode::readyChanged);
+
   if (object()->m_type.testFlag(NodeType::Audio)) {
-    m_audioData = static_cast<NodeAudioData *>(object()->data());
+    m_audioData = dynamic_cast<NodeAudioData *>(object()->data());
     QObject::connect(m_audioData, &NodeAudioData::volumesChanged, this,
         &PwQMLNode::volumesChanged);
+    QObject::connect(m_audioData, &NodeAudioData::mutedChanged, this,
+        &PwQMLNode::mutedChanged);
   }
-
-  // QObject::connect(m_tracked, &QObject::destroyed, this,
-  // &QObject::deleteLater);
 }
 PwQMLNode::~PwQMLNode() {}
 
+bool    PwQMLNode::ready() const { return object()->m_ready; }
 quint32 PwQMLNode::id() const { return m_id; }
 QString PwQMLNode::name() const { return object()->m_name; }
 QString PwQMLNode::description() const { return object()->m_description; }

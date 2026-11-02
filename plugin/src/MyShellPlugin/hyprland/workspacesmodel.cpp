@@ -53,7 +53,7 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
 
     if (obj.isEmpty()) continue;
 
-    const auto id = obj.value("id").toInt(-1);
+    const auto id = obj.value("address").toInt(-1);
     if (id == -1) continue;
     const auto name = obj.value("name").toString();
     if (name.isEmpty()) continue;
@@ -78,6 +78,7 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
     wpdata.isPersistent = obj.value("ispersistent").toBool(false);
     wpdata.monitorId    = obj.value("monitorID").toInt(-1);
     wpdata.monitorName  = obj.value("monitor").toString();
+    wpdata.type         = obj.value("type").toString();
     wpdata.isFullScreen = obj.value("hasfullscreen").toBool(false);
 
     bool isOk;

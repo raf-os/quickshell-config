@@ -49,7 +49,7 @@ Globals::Globals(QObject *parent) : QObject(parent) {
 
   m_core     = new Core(this);
   m_registry = new Registry(m_core, this);
-  m_defaults = new DefaultTracker(this);
+  m_defaults = new DefaultTracker(m_registry, this);
 
   QObject::connect(m_core, &Core::fatalError, this, &Globals::queueFatalError);
 

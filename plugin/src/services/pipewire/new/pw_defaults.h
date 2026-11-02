@@ -11,6 +11,8 @@
 #include "pw_node.h"
 
 namespace ns::pipewire {
+class Registry;
+
 class DefaultTracker : public QObject {
   Q_OBJECT
 
@@ -18,7 +20,7 @@ class DefaultTracker : public QObject {
   using destroy_slot_t  = void (DefaultTracker::*)();
 
 public:
-  explicit DefaultTracker(QObject *parent = nullptr);
+  explicit DefaultTracker(Registry *registry, QObject *parent = nullptr);
 
   enum Type : quint8 {
     Sink,
@@ -54,6 +56,7 @@ private slots:
   void onNodeAdded(TrackableNode *node);
 
 private:
+  Registry                 *m_registry;
   std::shared_ptr<Metadata> m_defaultsMetadata;
 
   struct {

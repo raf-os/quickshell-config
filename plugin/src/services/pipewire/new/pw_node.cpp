@@ -1,12 +1,19 @@
 #include "pw_node.h"
 
+#include <cmath>
+#include <cstdint>
+
 #include <pipewire/keys.h>
 #include <pipewire/node.h>
 #include <qhashfunctions.h>
+#include <qlist.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
 #include <qtypes.h>
 #include <spa/node/keys.h>
+#include <spa/param/props.h>
+#include <spa/pod/iter.h>
+#include <spa/pod/pod.h>
 #include <spa/utils/dict.h>
 #include <spa/utils/keys.h>
 
@@ -116,6 +123,7 @@ qint32  Node::routeDevice() const { return m_routeDevice; }
 INodeData *Node::data() { return m_data; }
 
 QString Node::name() const { return m_name; }
+bool    Node::ready() const { return m_ready; }
 
 void Node::onDeviceDestroyed() { m_device = nullptr; }
 
@@ -138,6 +146,10 @@ const struct pw_node_events Node::NODE_EVENTS = {
 
 void Node::on_info(void *data, const struct pw_node_info *info) {
   auto *self = static_cast<Node *>(data);
+
+  if ((info->change_mask & PW_NODE_CHANGE_MASK_STATE)) {
+    self->m_state = static_cast<NodeState::Enum>(info->state);
+  }
 
   if ((info->change_mask & PW_NODE_CHANGE_MASK_PROPS)) {
     string_map_t properties;

@@ -18,6 +18,20 @@
 namespace ns::pipewire {
 class Device;
 
+namespace NodeState {
+Q_NAMESPACE
+
+enum Enum {
+  Error     = PW_NODE_STATE_ERROR,
+  Creating  = PW_NODE_STATE_CREATING,
+  Suspended = PW_NODE_STATE_SUSPENDED,
+  Idle      = PW_NODE_STATE_IDLE,
+  Running   = PW_NODE_STATE_RUNNING
+};
+
+Q_ENUM_NS(Enum)
+} // namespace NodeState
+
 class Node : public TrackedObject<pw_node> {
   Q_OBJECT
 
@@ -26,6 +40,7 @@ public:
   ~Node() override;
 
   [[nodiscard]] INodeData *data();
+  [[nodiscard]] bool       ready() const;
 
   [[nodiscard]] bool    shouldUseDevice() const;
   [[nodiscard]] QString name() const;
@@ -44,7 +59,8 @@ private slots:
 private:
   SpaHook m_hook;
 
-  NodeType::Flags m_type = NodeType::Untracked;
+  NodeState::Enum m_state = NodeState::Error;
+  NodeType::Flags m_type  = NodeType::Untracked;
   QString         m_name;
   QString         m_description;
   QString         m_nick;
@@ -54,7 +70,7 @@ private:
   quint64         m_objectSerial = 0;
   string_map_t    m_properties;
 
-  INodeData *m_data;
+  INodeData *m_data = nullptr;
 
   std::shared_ptr<Device> m_device      = nullptr;
   qint32                  m_routeDevice = -1;

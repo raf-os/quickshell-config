@@ -48,11 +48,13 @@ public:
   ~TrackedObjectBase() override;
   Q_DISABLE_COPY_MOVE(TrackedObjectBase)
 
-  virtual void onBeforeDestroy() {}
-  void         kill();
+  void kill();
 
   quint32 m_id    = 0;
   quint32 m_perms = 0;
+
+signals:
+  void destroying();
 
 protected:
   pw_proxy *m_object = nullptr;

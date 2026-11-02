@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qhashfunctions.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qpointer.h>
@@ -13,6 +14,18 @@
 #include "toplevelmodel.h"
 
 namespace ns::hyprland {
+namespace WorkspaceType {
+Q_NAMESPACE
+QML_NAMED_ELEMENT(WorkspaceType)
+
+enum Enum { Unknown, Normal, Scratchpad };
+
+WorkspaceType::Enum fromString(const QString &str);
+QString             toString(const WorkspaceType::Enum val);
+
+Q_ENUM_NS(Enum)
+}; // namespace WorkspaceType
+
 class HyprWorkspace : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -34,6 +47,8 @@ class HyprWorkspace : public QObject {
           toplevels NOTIFY toplevelsChanged)
   Q_PROPERTY(ns::hyprland::ToplevelInstance *activeToplevel READ activeToplevel
           NOTIFY activeToplevelChanged)
+  Q_PROPERTY(
+      ns::hyprland::WorkspaceType::Enum type READ default NOTIFY typeChanged)
 
 public:
   explicit HyprWorkspace(int id, QObject *parent = nullptr);
@@ -49,7 +64,9 @@ public:
   [[nodiscard]] QBindable<QString> bindableMonitorName() {
     return &b_monitorName;
   }
-  [[nodiscard]] QBindable<bool>                    bindableUrgent() const;
+  [[nodiscard]] QBindable<bool>                bindableUrgent() const;
+  [[nodiscard]] QBindable<WorkspaceType::Enum> type() const;
+
   [[nodiscard]] QQmlListProperty<ToplevelInstance> toplevels();
   [[nodiscard]] ToplevelInstance                  *activeToplevel();
   void setActiveToplevel(quint64 address);
@@ -68,6 +85,7 @@ signals:
   void urgentChanged();
   void toplevelsChanged();
   void activeToplevelChanged();
+  void typeChanged();
 
 private slots:
   void onAddressActivated(quint64 address);
@@ -92,5 +110,7 @@ private:
       HyprWorkspace, int, b_monitorId, &HyprWorkspace::monitorIdChanged)
   Q_OBJECT_BINDABLE_PROPERTY(
       HyprWorkspace, QString, b_monitorName, &HyprWorkspace::monitorNameChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(
+      HyprWorkspace, WorkspaceType::Enum, b_type, &HyprWorkspace::typeChanged)
 };
 } // namespace ns::hyprland

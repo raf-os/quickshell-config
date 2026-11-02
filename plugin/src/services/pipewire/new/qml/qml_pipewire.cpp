@@ -1,5 +1,6 @@
 #include "qml_pipewire.h"
 
+#include <array>
 #include <cstddef>
 #include <memory>
 
@@ -58,10 +59,20 @@ template <Comparable T> int list_sorted_index(QList<T> *list, T value) {
 AUTO_MEYERS_SINGLETON_QML_IMPL(QMLPipewireGlobal)
 
 QMLPipewireGlobal::QMLPipewireGlobal(QObject *parent) : QObject(parent) {
+  using Type   = DefaultTracker::Type;
   auto tracker = get_default_tracker();
 
   QObject::connect(tracker, &DefaultTracker::defaultNodeChanged, this,
       &QMLPipewireGlobal::onDefaultNodeChanged);
+
+  constexpr std::array<Type, 4> types{
+      Type::Sink, Type::Source, Type::ConfiguredSink, Type::ConfiguredSource};
+  for (const auto &type : types) {
+    auto ptr = tracker->getNodeSharedPtr(type);
+    if (!ptr) continue;
+
+    setDefault(type, tracker->getNodeSharedPtr(type));
+  }
 }
 
 void QMLPipewireGlobal::onDefaultNodeChanged(DefaultTracker::Type type) {
@@ -101,8 +112,11 @@ void QMLPipewireGlobal::setDefault(
     if ((*node)->object() != newPtr.get()) {
       (*node)->deleteLater();
       *node = nullptr;
+    } else {
+      return;
     }
   } else {
+    // both node and newPtr are nullptr
     if (!newPtr) return;
   }
 
@@ -304,8 +318,16 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
 
   if (!insertIt.second) return;
 
-  QObject::connect(insertIt.first->second.get(), &PwQMLNode::destroying, this,
-      &PipewireModel::onNodeDestroyed);
+  auto nodePtr = insertIt.first->second.get();
+
+  QObject::connect(
+      nodePtr, &PwQMLNode::destroying, this, &PipewireModel::onNodeDestroyed);
+
+  if (!nodePtr->ready()) {
+    QObject::connect(
+        nodePtr, &PwQMLNode::readyChanged, this, &PipewireModel::onNodeReady);
+    return;
+  }
 
   if (mapped.testFlag(Type::NodeSink)) {
     insertSorted(NodeSink, nodeId);
@@ -315,10 +337,20 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
   }
 }
 
+void PipewireModel::onNodeReady() {
+  auto node = static_cast<PwQMLNode *>(sender());
+  if (node->type().testFlag(NodeType::AudioSink)) {
+    insertSorted(NodeSink, node->id());
+  }
+  if (node->type().testFlag(NodeType::AudioSource)) {
+    insertSorted(NodeSource, node->id());
+  }
+}
+
 void PipewireModel::onNodeDestroyed() {
   auto node = static_cast<PwQMLNode *>(sender());
   auto id   = node->id();
-  m_trackedNodes.erase(id);
   removeNodeId(id);
+  m_trackedNodes.erase(id);
 }
 } // namespace ns::pipewire
