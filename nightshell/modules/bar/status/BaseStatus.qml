@@ -1,28 +1,30 @@
 pragma ComponentBehavior: Bound
+
 import qs.modules.bar
 
 import QtQuick
 
 BaseWidget {
-	id: root
+  id: root
 
-	required property string name
+  required property string name
+  property Component popoutComponent: null
 
-	signal clicked(ev: MouseEvent)
+  signal clicked(ev: MouseEvent)
 
-	anchors {
-		top: parent.top
-		bottom: parent.bottom
-	}
+  anchors {
+    top: parent.top
+    bottom: parent.bottom
+  }
 
-	implicitWidth: height
+  implicitWidth: height
 
-	MouseArea {
-		id: mouseArea
-		anchors.fill: parent
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
 
-		onClicked: ev => root.clicked(ev)
-		enabled: root.enabled
-		cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-	}
+    onClicked: ev => root.clicked(ev)
+    enabled: root.enabled
+    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+  }
 }

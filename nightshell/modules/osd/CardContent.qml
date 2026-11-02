@@ -34,6 +34,7 @@ ColumnLayout {
     Layout.fillWidth: true
 
     active: root.content !== ""
+    visible: active
 
     sourceComponent: StyledText {
       id: contentComponent

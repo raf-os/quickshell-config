@@ -32,6 +32,8 @@ Item {
     switch (type) {
     case OSD.Type.GameMode:
       return gamemodeCard;
+    case OSD.Type.Audio:
+      return audioCard;
     default:
       return null;
     }
@@ -106,5 +108,10 @@ Item {
   Component {
     id: gamemodeCard
     GamemodeCard {}
+  }
+
+  Component {
+    id: audioCard
+    AudioCard {}
   }
 }

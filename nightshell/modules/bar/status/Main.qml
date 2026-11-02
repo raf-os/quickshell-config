@@ -5,72 +5,85 @@ import QtQuick
 import QtQuick.Layouts
 
 Item {
-	id: root
+  id: root
 
-	property BaseStatus currentActive: null
+  property BaseStatus currentActive: null
 
-	implicitWidth: mainLayout.width
-	Layout.fillHeight: true
+  implicitWidth: mainLayout.width
+  Layout.fillHeight: true
 
-	function toggleActive(item: BaseStatus) {
-		if (currentActive === item) {
-			currentActive = null;
-		} else {
-			currentActive = item;
-		}
-	}
+  function toggleActive(item: BaseStatus) {
+    if (currentActive === item) {
+      currentActive = null;
+    } else {
+      currentActive = item;
+    }
+  }
 
-	function clearActive() {
-		root.currentActive = null;
-	}
+  function clearActive() {
+    root.currentActive = null;
+  }
 
-	RowLayout {
-		id: mainLayout
+  RowLayout {
+    id: mainLayout
 
-		anchors {
-			top: parent.top
-			topMargin: 2
-			bottom: parent.bottom
-			bottomMargin: 2
-			horizontalCenter: parent.horizontalCenter
-		}
+    anchors {
+      top: parent.top
+      topMargin: 2
+      bottom: parent.bottom
+      bottomMargin: 2
+      horizontalCenter: parent.horizontalCenter
+    }
 
-		WrappedStatus {
-			id: languageStatus
-			sourceComponent: Language {}
-		}
+    WrappedStatus {
+      id: languageStatus
+      sourceComponent: Language {}
+    }
 
-		WrappedStatus {
-			id: networkStatus
-			sourceComponent: Network {}
-		}
+    WrappedStatus {
+      id: networkStatus
+      sourceComponent: Network {}
+    }
 
-		WrappedStatus {
-			id: gamemodeStatus
-			active: Config.modules.enabledModules.gamemode
-			sourceComponent: Gamemode {}
-		}
+    WrappedStatus {
+      id: gamemodeStatus
+      active: Config.modules.enabledModules.gamemode
+      sourceComponent: Gamemode {}
+    }
 
-		WrappedStatus {
-			id: audioStatus
-			sourceComponent: Audio {}
-		}
+    WrappedStatus {
+      id: audioStatus
+      sourceComponent: Audio {
+        id: audioStatusComp
+        onClicked: {
+          root.toggleActive(audioStatusComp);
+        }
+      }
+    }
 
-		WrappedStatus {
-			id: notificationStatus
-			active: Config.modules.enabledModules.notifications
-			sourceComponent: Notifications {
-				id: notifStatus
-				onClicked: {
-					root.toggleActive(notifStatus);
-				}
-			}
-		}
-	}
+    WrappedStatus {
+      id: notificationStatus
+      active: Config.modules.enabledModules.notifications
+      sourceComponent: Notifications {
+        id: notifStatus
+        onClicked: {
+          root.toggleActive(notifStatus);
+        }
+      }
+    }
+  }
 
-	component WrappedStatus: Loader {
-		active: true
-		asynchronous: true
-		Layout.fillHeight: true
-	}
+  Popout {
+    statusWrapper: root
+
+    onClosed: {
+      root.clearActive();
+    }
+  }
+
+  component WrappedStatus: Loader {
+    active: true
+    asynchronous: true
+    Layout.fillHeight: true
+  }
 }

@@ -7,41 +7,41 @@ import Quickshell
 import QtQuick
 
 Region {
-	id: root
+  id: root
 
-	required property Bar bar
-	required property QsWindow win
-	required property Content content
+  required property Bar bar
+  required property QsWindow win
+  required property Content content
 
-	intersection: Intersection.Xor
+  intersection: Intersection.Xor
 
-	x: bar.x
-	y: bar.y + bar.implicitHeight
-	width: win.width - x
-	height: win.height - y
+  x: bar.x
+  y: bar.y + bar.implicitHeight
+  width: win.width - x
+  height: win.height - y
 
-	Region {
-		id: focusBlock
+  Region {
+    id: focusBlock
 
-		intersection: Intersection.Subtract
+    intersection: Intersection.Subtract
 
-		x: root.x
-		y: root.y
-		width: root.width
-		height: FocusGrabberManager.active ? root.height : 0
-	}
+    x: root.x
+    y: root.y
+    width: root.width
+    height: FocusGrabberManager.active ? root.height : 0
+  }
 
-	ContentRegion {
-		surface: root.content.notificationsOverlay
-	}
+  ContentRegion {
+    surface: root.content.notificationsOverlay
+  }
 
-	component ContentRegion: Region {
-		required property Item surface
+  component ContentRegion: Region {
+    required property Item surface
 
-		x: root.x + surface.x
-		y: root.y + surface.y
-		width: surface.width
-		height: surface.height
-		intersection: Intersection.Subtract
-	}
+    x: root.x + surface.x
+    y: root.y + surface.y
+    width: surface.width
+    height: surface.height
+    intersection: Intersection.Subtract
+  }
 }

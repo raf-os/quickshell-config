@@ -24,11 +24,11 @@ Variants {
 
     Exclusions {
       screen: scope.modelData
-      bar: bar
+      bar: barComp
     }
 
     BasePanelWindow {
-      id: win
+      id: winComp
 
       name: "main-shell"
       screen: scope.modelData
@@ -39,9 +39,9 @@ Variants {
       mask: MaskRegions {
         id: windowMask
 
-        bar: bar
-        win: win
-        content: content
+        bar: barComp
+        win: winComp
+        content: contentComp
       }
 
       anchors {
@@ -54,29 +54,22 @@ Variants {
       N_WAYLAND.EagerBufferInitializer {}
 
       InstanceContext {
-        id: context
+        id: contextComp
 
         hyprMonitor: N_HYPRLAND.Hyprland.monitorsModel.values.find(m => m.name === scope.modelData.name)
-        win: win
+        win: winComp
         shellScreen: scope.modelData
-        bar: bar
-        content: content // qmllint disable incompatible-type
+        bar: barComp
+        content: contentComp // qmllint disable incompatible-type
       }
 
       RootInteractionHandler {
         anchors.fill: parent
 
-        // Shapes.Main {
-        // 	id: bgShapes
-        //
-        // 	screen: scope.modelData
-        // 	bar: bar
-        // }
-
         Bar {
-          id: bar
-          panelWindow: win
-          context: context
+          id: barComp
+          panelWindow: winComp
+          context: contextComp
 
           anchors {
             top: parent.top
@@ -86,8 +79,8 @@ Variants {
         }
 
         Content {
-          id: content
-          context: context
+          id: contentComp
+          context: contextComp
 
           anchors {
             top: bar.bottom
