@@ -122,7 +122,6 @@ signals:
 
 private slots:
   void onNodeAdded(TrackableNode *node);
-  void onNodeReady();
   void onNodeDestroyed();
 
 private:

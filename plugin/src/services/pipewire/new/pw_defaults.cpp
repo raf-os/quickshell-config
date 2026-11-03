@@ -14,6 +14,7 @@
 
 #include "ns_pipewire_debug.h"
 #include "pw_common.h"
+#include "pw_device.h"
 #include "pw_globals.h"
 #include "pw_metadata.h"
 #include "pw_node.h"
@@ -27,7 +28,12 @@ DefaultTracker::DefaultTracker(Registry *registry, QObject *parent)
       &DefaultTracker::onMetadataAdded);
   QObject::connect(
       m_registry, &Registry::nodeAdded, this, &DefaultTracker::onNodeAdded);
+  QObject::connect(
+      m_registry, &Registry::deviceAdded, this, &DefaultTracker::onDeviceAdded);
 
+  for (auto [k, device] : m_registry->m_devices.asKeyValueRange()) {
+    m_devices.emplace(k, device->get());
+  }
   for (auto [k, meta] : m_registry->m_metadata.asKeyValueRange()) {
     onMetadataAdded(meta);
   }
@@ -92,6 +98,10 @@ void DefaultTracker::onMetadataAdded(TrackableMetadata *metadata) {
     QObject::connect(m_defaultsMetadata.get(), &QObject::destroyed, this,
         [this] { m_defaultsMetadata = nullptr; });
   }
+}
+
+void DefaultTracker::onDeviceAdded(TrackableDevice *device) {
+  m_devices.emplace(device->id(), device->get());
 }
 
 void DefaultTracker::onNodeAdded(TrackableNode *node) {

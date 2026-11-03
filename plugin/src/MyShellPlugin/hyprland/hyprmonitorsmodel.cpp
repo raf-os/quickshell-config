@@ -126,7 +126,7 @@ void HyprMonitorsModel::processMonitorData(QByteArray data) {
 
     if (jObj.value("activeWorkspace").isObject()) {
       auto aw                   = jObj.value("activeWorkspace").toObject();
-      data.activeWorkspace.id   = aw.value("id").toInt(-1);
+      data.activeWorkspace.id   = aw.value("address").toString().toInt();
       data.activeWorkspace.name = aw.value("name").toString();
     }
 

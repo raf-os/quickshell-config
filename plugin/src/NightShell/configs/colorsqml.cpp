@@ -1,6 +1,7 @@
 #include "colorsqml.h"
 
 #include <qcolor.h>
+#include <qlogging.h>
 #include <qobject.h>
 
 #include "colors.h"

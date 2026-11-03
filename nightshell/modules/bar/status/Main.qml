@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import org.nightshell.Configs
+
 import QtQuick
 import QtQuick.Layouts
 
@@ -8,16 +9,30 @@ Item {
   id: root
 
   property BaseStatus currentActive: null
+  property string activeName: ""
 
   implicitWidth: mainLayout.width
   Layout.fillHeight: true
 
   function toggleActive(item: BaseStatus) {
-    if (currentActive === item) {
+    if (item.name === "")
+      return;
+
+    if (currentActive === item && activeName === item.name) {
       currentActive = null;
     } else {
       currentActive = item;
+      activeName = item.name;
     }
+  }
+
+  function requestCloseByName(name: string): void {
+    if (!currentActive)
+      return;
+    if (currentActive.name !== name)
+      return;
+
+    currentActive = null;
   }
 
   function clearActive() {
@@ -70,14 +85,6 @@ Item {
           root.toggleActive(notifStatus);
         }
       }
-    }
-  }
-
-  Popout {
-    statusWrapper: root
-
-    onClosed: {
-      root.clearActive();
     }
   }
 

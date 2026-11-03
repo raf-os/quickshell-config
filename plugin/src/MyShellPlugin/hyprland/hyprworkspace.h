@@ -47,8 +47,8 @@ class HyprWorkspace : public QObject {
           toplevels NOTIFY toplevelsChanged)
   Q_PROPERTY(ns::hyprland::ToplevelInstance *activeToplevel READ activeToplevel
           NOTIFY activeToplevelChanged)
-  Q_PROPERTY(
-      ns::hyprland::WorkspaceType::Enum type READ default NOTIFY typeChanged)
+  Q_PROPERTY(ns::hyprland::WorkspaceType::Enum type
+          READ default NOTIFY typeChanged BINDABLE bindableType)
 
 public:
   explicit HyprWorkspace(int id, QObject *parent = nullptr);
@@ -65,7 +65,7 @@ public:
     return &b_monitorName;
   }
   [[nodiscard]] QBindable<bool>                bindableUrgent() const;
-  [[nodiscard]] QBindable<WorkspaceType::Enum> type() const;
+  [[nodiscard]] QBindable<WorkspaceType::Enum> bindableType() const;
 
   [[nodiscard]] QQmlListProperty<ToplevelInstance> toplevels();
   [[nodiscard]] ToplevelInstance                  *activeToplevel();

@@ -137,6 +137,7 @@ void Registry::on_global(void *data, uint32_t id, uint32_t perms,
     dev->initProps(props);
 
     self->m_devices.insert(id, dev);
+    emit self->deviceAdded(dev);
   }
 }
 

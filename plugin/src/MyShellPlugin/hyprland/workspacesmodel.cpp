@@ -53,8 +53,9 @@ void WorkspacesModel::updateFromPayload(const QByteArray &data) {
 
     if (obj.isEmpty()) continue;
 
-    const auto id = obj.value("address").toInt(-1);
-    if (id == -1) continue;
+    bool       ok = false;
+    const auto id = obj.value("address").toString().toInt(&ok);
+    if (!ok) continue;
     const auto name = obj.value("name").toString();
     if (name.isEmpty()) continue;
 

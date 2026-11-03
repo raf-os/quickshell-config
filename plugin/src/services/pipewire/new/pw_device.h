@@ -8,6 +8,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
+#include <qtypes.h>
 #include <spa/pod/builder.h>
 #include <spa/pod/pod.h>
 
@@ -63,6 +64,15 @@ private:
       const std::function<void *(spa_pod_builder *)> &propsCallback);
 };
 
-using TrackableDevice =
-    TrackableObject<Device, PW_TYPE_INTERFACE_Device, PW_VERSION_DEVICE>;
+class TrackableDevice : public TrackableObject<Device, PW_TYPE_INTERFACE_Device,
+                            PW_VERSION_DEVICE> {
+public:
+  explicit TrackableDevice(quint32 id, quint32 perms)
+      : TrackableObject(id, perms), m_id(id) {}
+
+  [[nodiscard]] quint32 id() const;
+
+private:
+  quint32 m_id;
+};
 } // namespace ns::pipewire

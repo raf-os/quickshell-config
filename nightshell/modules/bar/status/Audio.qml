@@ -1,3 +1,5 @@
+import "popouts"
+
 import qs.services
 import qs.components
 
@@ -11,10 +13,7 @@ BaseStatus {
 
   readonly property bool isMuted: AudioService.defaultSinkMuted
 
-  popoutComponent: Item {
-    // implicitWidth: 256
-    implicitHeight: 512
-  }
+  popoutComponent: AudioPopout {}
 
   ShellIcon {
     id: icon

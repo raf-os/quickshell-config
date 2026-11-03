@@ -4,6 +4,7 @@
 
 #include <pipewire/device.h>
 #include <qobject.h>
+#include <qtypes.h>
 #include <spa/param/param.h>
 #include <spa/param/props.h>
 #include <spa/pod/parser.h>
@@ -192,4 +193,6 @@ void Device::onCorePolled() {
         });
   }
 }
+
+quint32 TrackableDevice::id() const { return m_id; }
 } // namespace ns::pipewire

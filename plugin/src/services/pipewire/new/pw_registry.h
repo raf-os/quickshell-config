@@ -46,6 +46,7 @@ signals:
   void metadataAdded(TrackableMetadata *metadata);
   void nodeAdded(TrackableNode *node);
   void linkAdded(TrackableLink *link);
+  void deviceAdded(TrackableDevice *device);
 
 private slots:
   void onCoreSynced(quint32 id, qint32 seq);

@@ -143,7 +143,9 @@ void HyprWorkspace::detachToplevel(ToplevelInstance *toplevel) {
 }
 
 QBindable<bool> HyprWorkspace::bindableUrgent() const { return &b_urgent; }
-QBindable<WorkspaceType::Enum> HyprWorkspace::type() const { return &b_type; }
+QBindable<WorkspaceType::Enum> HyprWorkspace::bindableType() const {
+  return &b_type;
+}
 
 QBindable<bool> HyprWorkspace::bindableIsFullScreen() {
   return &b_isFullScreen;

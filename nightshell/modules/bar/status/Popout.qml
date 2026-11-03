@@ -1,4 +1,5 @@
 import qs.components
+import qs.utils
 
 import org.nightshell.Configs
 import org.nightshell.Utils
@@ -9,9 +10,11 @@ import QtQuick.Controls
 Item {
   id: root
 
+  required property InstanceContext context
   required property Main statusWrapper
   readonly property BaseStatus current: statusWrapper.currentActive
   readonly property bool hasPopout: current ? current.popoutComponent : false
+  property string currentName
 
   signal closed
 
@@ -28,14 +31,16 @@ Item {
     target: root.statusWrapper
     function onCurrentActiveChanged() {
       const cur = root.current;
-      if (cur) {
-        const pos = cur.mapToItem(root.statusWrapper, cur.width / 2, cur.height);
+      if (cur && root.hasPopout) {
+        root.currentName = cur.name;
+        const pos = cur.mapToItem(root.context.content, cur.width / 2, cur.height);
         root.x = pos.x;
-        root.y = pos.y;
+        // root.y = pos.y;
         if (root.hasPopout) {
           root.openPopout(cur.popoutComponent);
         }
       } else {
+        root.currentName = "";
         root.closePopout();
       }
     }
@@ -47,30 +52,49 @@ Item {
       return false;
     }
 
-    stack.replaceCurrentItem(comp, {}, StackView.ReplaceTransition);
+    const hadPrevious = stack.currentItem !== null && stack.currentItem !== undefined;
+
+    stack.replaceCurrentItem(comp, {}, hadPrevious ? StackView.ReplaceTransition : StackView.PopTransition);
     return true;
   }
 
   function closePopout() {
-    root.closed();
+    root.statusWrapper.requestCloseByName(root.currentName);
     stack.clear(StackView.PopTransition);
   }
 
-  Item {
+  MouseArea {
     id: content
+
+    property real bufferedWidth: 320
+    enabled: root.hasPopout
 
     anchors {
       top: parent.bottom
       horizontalCenter: parent.horizontalCenter
     }
 
-    implicitWidth: 320
-    implicitHeight: stack.currentItem ? stack.currentItem.implicitHeight : 0
+    implicitWidth: bufferedWidth
+    implicitHeight: stack.currentItem ? Math.max(96, stack.currentItem.implicitHeight) : 0
 
     clip: true
 
     Behavior on implicitHeight {
       NAnim {}
+    }
+
+    Connections {
+      target: stack
+      function onCurrentItemChanged() {
+        const item = stack.currentItem;
+        if (!item)
+          return;
+
+        if (item.implicitWidth === 0)
+          content.bufferedWidth = 320;
+        else
+          content.bufferedWidth = item.implicitWidth;
+      }
     }
 
     Rectangle {

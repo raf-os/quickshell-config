@@ -12,8 +12,7 @@
 #include "pw_registry.h"
 
 namespace ns::pipewire {
-TrackedObjectBase::TrackedObjectBase(
-    const TrackedObjectProps &props, QObject *parent)
+TrackedObjectBase::TrackedObjectBase(TrackedObjectProps props, QObject *parent)
     : QObject(parent), m_id(props.id), m_perms(props.perms) {
   auto reg = Globals::instance()->registry();
 

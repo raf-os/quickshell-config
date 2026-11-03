@@ -54,10 +54,10 @@ HyprWorkspace *HyprMonitor::activeWorkspace() { return m_activeWorkspace; }
 
 void HyprMonitor::tryAssignActiveWorkspace() {
   auto allWorkspaces = Hyprland::instance()->workspacesModel()->valueList();
-  auto it = std::ranges::find_if(allWorkspaces.cbegin(), allWorkspaces.cend(),
+  auto it = std::ranges::find_if(allWorkspaces.begin(), allWorkspaces.end(),
       [this](HyprWorkspace *w) { return w->id() == m_activeWorkspaceData.id; });
 
-  if (it != allWorkspaces.cend()) {
+  if (it != allWorkspaces.end()) {
     if (m_activeWorkspace == *it) return;
 
     if (m_activeWorkspace) {

@@ -44,7 +44,7 @@ protected:
 
 public:
   explicit TrackedObjectBase(
-      const TrackedObjectProps &props, QObject *parent = nullptr);
+      TrackedObjectProps props, QObject *parent = nullptr);
   ~TrackedObjectBase() override;
   Q_DISABLE_COPY_MOVE(TrackedObjectBase)
 
@@ -62,8 +62,7 @@ protected:
 
 template <typename T> class TrackedObject : public TrackedObjectBase {
 public:
-  explicit TrackedObject(
-      const TrackedObjectProps &props, QObject *parent = nullptr)
+  explicit TrackedObject(TrackedObjectProps props, QObject *parent = nullptr)
       : TrackedObjectBase(props, parent) {}
   virtual ~TrackedObject() override {}
   Q_DISABLE_COPY_MOVE(TrackedObject)

@@ -1,12 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qtmetamacros.h>
 #include <qtypes.h>
 
+#include "pw_device.h"
 #include "pw_metadata.h"
 #include "pw_node.h"
 
@@ -54,6 +56,7 @@ private slots:
   void onMetadataAdded(TrackableMetadata *metadata);
   void onMetadataProperty(const char *key, const char *type, const char *value);
   void onNodeAdded(TrackableNode *node);
+  void onDeviceAdded(TrackableDevice *device);
 
 private:
   Registry                 *m_registry;
@@ -65,6 +68,12 @@ private:
     DefaultNodeProps configuredSink;
     DefaultNodeProps configuredSource;
   } m_defaults;
+
+  // WARNING: current implementation causes undefined behavior if devices are
+  // not tracked at all times, likely due to timing of creation / destruction of
+  // shared pointers. Nodes depend on a device object, and if they try to access
+  // an invalid one, a segfault or illegal instruction happens
+  std::unordered_map<quint32, std::shared_ptr<Device>> m_devices;
 
   DefaultNodeProps       *getDefaultProps(DefaultTracker::Type type);
   const DefaultNodeProps *getDefaultProps(DefaultTracker::Type type) const;

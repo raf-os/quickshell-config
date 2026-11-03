@@ -8,53 +8,53 @@ import org.nightshell.Configs
 import QtQuick
 
 Item {
-	id: root
+  id: root
 
-	required property STATUSMODULE.Main statusModule
-	readonly property bool isActive: statusModule.currentActive && statusModule.currentActive.name === "notifications"
+  required property STATUSMODULE.Main statusModule
+  readonly property bool isActive: statusModule.currentActive?.name === "notifications" ?? false
 
-	FocusGrabber {
-		active: root.isActive
-		onFocusLost: {
-			root.statusModule.clearActive();
-		}
-	}
+  FocusGrabber {
+    active: root.isActive
+    onFocusLost: {
+      root.statusModule.requestCloseByName("notifications");
+    }
+  }
 
-	anchors {
-		top: parent.top
-		right: parent.right
-		bottom: parent.bottom
-	}
+  anchors {
+    top: parent.top
+    right: parent.right
+    bottom: parent.bottom
+  }
 
-	implicitWidth: isActive ? sidebarLoader.width : 0
+  implicitWidth: isActive ? sidebarLoader.width : 0
 
-	Loader {
-		id: sidebarLoader
-		asynchronous: true
+  Loader {
+    id: sidebarLoader
+    asynchronous: true
 
-		anchors {
-			top: parent.top
-			bottom: parent.bottom
-			right: parent.right
-		}
+    anchors {
+      top: parent.top
+      bottom: parent.bottom
+      right: parent.right
+    }
 
-		readonly property bool shouldBeActive: root.isActive
-		active: false
+    readonly property bool shouldBeActive: root.isActive
+    active: false
 
-		onShouldBeActiveChanged: {
-			if (shouldBeActive) {
-				TempNotifications.clear();
-				active = true;
-			}
-		}
+    onShouldBeActiveChanged: {
+      if (shouldBeActive) {
+        TempNotifications.clear();
+        active = true;
+      }
+    }
 
-		sourceComponent: PanelContent {
-			id: panelContent
-			isActive: root.isActive
+    sourceComponent: PanelContent {
+      id: panelContent
+      isActive: root.isActive
 
-			onExitAnimationComplete: {
-				sidebarLoader.active = false;
-			}
-		}
-	}
+      onExitAnimationComplete: {
+        sidebarLoader.active = false;
+      }
+    }
+  }
 }

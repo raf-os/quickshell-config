@@ -143,6 +143,7 @@ PwQMLNode *QMLPipewireGlobal::defaultConfiguredSource() {
 
 PipewireModel::PipewireModel(QObject *parent)
     : QAbstractItemModel(parent), m_registry(Globals::instance()->registry()) {
+  QMLPipewireGlobal::instance();
   QObject::connect(
       m_registry, &Registry::nodeAdded, this, &PipewireModel::onNodeAdded);
 }
@@ -166,9 +167,10 @@ void PipewireModel::setTrackedTypes(int value) {
     qmlWarning(this) << "Tracked type is not valid.";
     return;
   }
-  if (m_trackedTypes == value) return;
+  auto cval = static_cast<Type>(value);
+  if (m_trackedTypes == cval) return;
 
-  m_trackedTypes = static_cast<Type>(value);
+  m_trackedTypes = cval;
   emit trackedTypesChanged();
 
   if (m_trackedTypes == Type::None) {
@@ -195,7 +197,7 @@ void PipewireModel::setTrackedTypes(int value) {
 bool PipewireModel::testForeignFlag(NodeType::Flags flag) {
   auto res = map_foreign_flag(flag);
   if (res == Type::None) return false;
-  return res.testFlags(m_trackedTypes);
+  return m_trackedTypes.testFlags(res);
 }
 
 void PipewireModel::insertSorted(Type type, quint32 value) {
@@ -312,6 +314,8 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
   auto mapped = map_foreign_flag(node->type());
   if (mapped == Type::None) return;
 
+  if (!m_trackedTypes.testFlags(mapped)) return;
+
   const auto nodeId   = node->id();
   auto       newNode  = std::make_unique<PwQMLNode>(node->get(), this);
   auto       insertIt = m_trackedNodes.emplace(nodeId, std::move(newNode));
@@ -323,27 +327,11 @@ void PipewireModel::onNodeAdded(TrackableNode *node) {
   QObject::connect(
       nodePtr, &PwQMLNode::destroying, this, &PipewireModel::onNodeDestroyed);
 
-  if (!nodePtr->ready()) {
-    QObject::connect(
-        nodePtr, &PwQMLNode::readyChanged, this, &PipewireModel::onNodeReady);
-    return;
-  }
-
   if (mapped.testFlag(Type::NodeSink)) {
     insertSorted(NodeSink, nodeId);
   }
   if (mapped.testFlag(Type::NodeSource)) {
     insertSorted(NodeSource, nodeId);
-  }
-}
-
-void PipewireModel::onNodeReady() {
-  auto node = static_cast<PwQMLNode *>(sender());
-  if (node->type().testFlag(NodeType::AudioSink)) {
-    insertSorted(NodeSink, node->id());
-  }
-  if (node->type().testFlag(NodeType::AudioSource)) {
-    insertSorted(NodeSource, node->id());
   }
 }
 

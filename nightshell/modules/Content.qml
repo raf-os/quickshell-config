@@ -1,5 +1,6 @@
 import qs.utils
 import qs.modules.bar
+import qs.modules.bar.status as STATUS
 import qs.modules.notifications as NOTIFICATIONS
 import qs.modules.launcher as LAUNCHER
 import qs.modules.osd as OSD
@@ -57,6 +58,12 @@ Item {
       bottom: parent.bottom
       right: parent.right
     }
+  }
+
+  STATUS.Popout {
+    id: statusPopouts
+    statusWrapper: root.bar.statusItems
+    context: root.context
   }
 
   NOTIFICATIONS.Overlay {

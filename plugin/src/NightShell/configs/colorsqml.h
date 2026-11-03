@@ -15,7 +15,8 @@ class ColorsQML : public QObject {
 
   AUTO_MEYERS_SINGLETON_QML_DECL(ColorsQML)
 
-#define C(Name, Value) AUTO_BINDABLE_DEFAULT(ColorsQML, QColor, Name, Value)
+#define C(Name, Value)                                                         \
+  AUTO_BINDABLE_WRITABLE_DEFAULT(ColorsQML, QColor, Name, Value)
 #include "colors.def"
 #undef C
 

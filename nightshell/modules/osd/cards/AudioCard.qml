@@ -18,17 +18,7 @@ CardBase {
   readonly property real volume: AudioService.defaultSinkVolume
 
   CardIcon {
-    icon: {
-      if (!PipewireGlobal.defaultSink)
-        return "volume_off";
-      else if (root.isMuted)
-        return "volume_off";
-      else if (root.volume > 0.75)
-        return "volume_up";
-      else if (root.volume > 0.4)
-        return "volume_down";
-      return "volume_low";
-    }
+    icon: AudioService.sinkIcon
   }
 
   CardContent {
