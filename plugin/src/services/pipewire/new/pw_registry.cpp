@@ -17,6 +17,7 @@
 #include <spa/utils/dict.h>
 
 #include "ns_pipewire_debug.h"
+#include "pw_client.h"
 #include "pw_common.h"
 #include "pw_core.h"
 #include "pw_device.h"
@@ -83,6 +84,11 @@ void Registry::reset() {
   }
   m_nodes.clear();
 
+  for (auto it = m_clients.begin(); it != m_clients.end(); it++) {
+    delete it.value();
+  }
+  m_clients.clear();
+
   for (auto it = m_devices.begin(); it != m_devices.end(); it++) {
     delete it.value();
   }
@@ -138,6 +144,12 @@ void Registry::on_global(void *data, uint32_t id, uint32_t perms,
 
     self->m_devices.insert(id, dev);
     emit self->deviceAdded(dev);
+  } else if (cstr_equals(type, PW_TYPE_INTERFACE_Client)) {
+    auto client = new TrackableClient(id, perms);
+    client->initProps(props);
+
+    self->m_clients.insert(id, client);
+    emit self->clientAdded(client);
   }
 }
 
@@ -172,5 +184,10 @@ std::shared_ptr<Node> Registry::getNodeById(quint32 id) {
 std::shared_ptr<Device> Registry::getDeviceById(quint32 id) {
   if (!m_devices.contains(id)) return nullptr;
   return m_devices.value(id)->get();
+}
+
+std::shared_ptr<Client> Registry::getClientById(quint32 id) {
+  if (!m_clients.contains(id)) return nullptr;
+  return m_clients.value(id)->get();
 }
 } // namespace ns::pipewire

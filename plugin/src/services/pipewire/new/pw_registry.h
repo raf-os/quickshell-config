@@ -13,6 +13,7 @@
 #include <qtypes.h>
 #include <spa/utils/dict.h>
 
+#include "pw_client.h"
 #include "pw_core.h"
 #include "pw_device.h"
 #include "pw_link.h"
@@ -39,6 +40,7 @@ public:
   [[nodiscard]] std::shared_ptr<Node>   findNodeByName(QStringView name);
   [[nodiscard]] std::shared_ptr<Node>   getNodeById(quint32 id);
   [[nodiscard]] std::shared_ptr<Device> getDeviceById(quint32 id);
+  [[nodiscard]] std::shared_ptr<Client> getClientById(quint32 id);
 
 signals:
   void cleared();
@@ -47,6 +49,7 @@ signals:
   void nodeAdded(TrackableNode *node);
   void linkAdded(TrackableLink *link);
   void deviceAdded(TrackableDevice *device);
+  void clientAdded(TrackableClient *client);
 
 private slots:
   void onCoreSynced(quint32 id, qint32 seq);
@@ -66,6 +69,7 @@ private:
   QHash<quint32, TrackableMetadata *> m_metadata;
   QHash<quint32, TrackableDevice *>   m_devices;
   QHash<quint32, TrackableNode *>     m_nodes;
+  QHash<quint32, TrackableClient *>   m_clients;
   QHash<quint32, TrackableLink *>     m_links;
 
   enum class InitState : quint8 {

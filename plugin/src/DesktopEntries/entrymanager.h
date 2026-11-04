@@ -26,17 +26,8 @@ class NS_DESKTOPENTRIES_EXPORT EntryManager : public QObject {
   QML_SINGLETON
 
 public:
-  static EntryManager *instance() {
-    static EntryManager *s_instance = new EntryManager();
-    return s_instance;
-  }
-
-  static EntryManager *create(QQmlEngine *qmlEngine, QJSEngine * /* unused */) {
-    auto inst = instance();
-    if (qmlEngine)
-      qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
-    return inst;
-  }
+  static EntryManager *instance();
+  static EntryManager *create(QQmlEngine *qmlEngine, QJSEngine * /* unused */);
 
   QHash<QString, DesktopEntry *> getEntries() const;
 

@@ -18,6 +18,7 @@
 #include <spa/utils/keys.h>
 
 #include "ns_pipewire_debug.h"
+#include "pw_client.h"
 #include "pw_common.h"
 #include "pw_device.h"
 #include "pw_globals.h"
@@ -59,6 +60,26 @@ Node::Node(const TrackedObjectProps &props, QObject *parent)
 
   if (props.initProps.contains(SPA_KEY_NODE_DESCRIPTION)) {
     m_description = props.initProps.value(SPA_KEY_NODE_DESCRIPTION);
+  }
+
+  if (props.initProps.contains(PW_KEY_CLIENT_ID)) {
+    bool       ok  = false;
+    const auto cid = props.initProps.value(PW_KEY_CLIENT_ID).toInt(&ok);
+    if (ok) {
+      m_client = registry->getClientById(cid);
+      if (m_client) {
+        QObject::connect(m_client.get(), &Client::appDataChanged, this,
+            &Node::clientAppDataChanged);
+        qCDebug(NS_LOG_PIPEWIRE)
+            << "Assigned client ID" << cid << "to node" << this;
+      } else {
+        qCWarning(NS_LOG_PIPEWIRE)
+            << "Could not find client ID" << cid << "for node" << this;
+      }
+    } else {
+      qCWarning(NS_LOG_PIPEWIRE)
+          << "Unable to parse client ID for node" << this;
+    }
   }
 
   if (props.initProps.contains(PW_KEY_NODE_NICK)) {
@@ -122,8 +143,22 @@ qint32  Node::routeDevice() const { return m_routeDevice; }
 
 INodeData *Node::data() { return m_data; }
 
-QString Node::name() const { return m_name; }
-bool    Node::ready() const { return m_ready; }
+QString            Node::name() const { return m_name; }
+bool               Node::ready() const { return m_ready; }
+Node::string_map_t Node::properties() const { return m_properties; }
+
+QString Node::clientName() const {
+  if (!m_client) return QString();
+  return m_client->name();
+}
+QString Node::clientIconName() const {
+  if (!m_client) return QString();
+  return m_client->iconName();
+}
+QString Node::clientBinary() const {
+  if (!m_client) return QString();
+  return m_client->binary();
+}
 
 void Node::onDeviceDestroyed() { m_device = nullptr; }
 
@@ -148,7 +183,11 @@ void Node::on_info(void *data, const struct pw_node_info *info) {
   auto *self = static_cast<Node *>(data);
 
   if ((info->change_mask & PW_NODE_CHANGE_MASK_STATE)) {
-    self->m_state = static_cast<NodeState::Enum>(info->state);
+    auto state = static_cast<NodeState::Enum>(info->state);
+    if (state != self->m_state) {
+      self->m_state = state;
+      emit self->stateChanged();
+    }
   }
 
   if ((info->change_mask & PW_NODE_CHANGE_MASK_PROPS)) {
@@ -194,7 +233,7 @@ void Node::on_info(void *data, const struct pw_node_info *info) {
     }
 
     self->m_properties.clear();
-    self->m_properties = std::move(properties);
+    self->m_properties = properties;
     emit self->propertiesChanged();
 
     if (self->m_data) self->m_data->onInfo(info);

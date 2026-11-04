@@ -127,6 +127,15 @@ Item {
         }
       }
 
+      popEnter: Transition {
+        NAnim {
+          property: "opacity"
+          from: 0
+          to: 1
+          duration: 400
+        }
+      }
+
       popExit: Transition {
         NAnim {
           property: "opacity"

@@ -82,6 +82,18 @@ EntryManager::EntryManager(QObject *parent)
   }
 }
 
+EntryManager *EntryManager::instance() {
+  static EntryManager *s_instance = new EntryManager();
+  return s_instance;
+}
+
+EntryManager *EntryManager::create(
+    QQmlEngine *qmlEngine, QJSEngine * /* unused */) {
+  auto inst = instance();
+  if (qmlEngine) qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
+  return inst;
+}
+
 void EntryManager::init() {}
 
 QSqlError EntryManager::initDb() {

@@ -27,6 +27,8 @@ Item {
   property alias handle: control.handle
 
   readonly property bool isHorizontal: width >= height
+  // Use this to undo the rotation
+  readonly property int rotationAngle: isHorizontal ? (mirror ? 180 : 0) : (mirror ? 270 : 90)
 
   implicitWidth: handleSize
   implicitHeight: handleSize
@@ -45,7 +47,7 @@ Item {
       Rotation {
         origin.x: root.mirror ? 0 : control.height / 2
         origin.y: root.mirror ? 0 : control.height / 2
-        angle: root.isHorizontal ? (root.mirror ? 180 : 0) : (root.mirror ? 270 : 90)
+        angle: root.rotationAngle
       },
       Translate {
         x: root.isHorizontal ? (root.mirror ? control.width : 0) : 0

@@ -3,10 +3,12 @@ pragma ComponentBehavior: Bound
 import qs.services
 import qs.components
 
+import org.nightshell.DesktopEntries
 import org.nightshell.Services.Pipewire
 import org.nightshell.Configs
 
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 
 BasePopout {
@@ -53,12 +55,22 @@ BasePopout {
       iconOff: "mic_off"
     }
 
+    Rectangle {
+      property int margin: Styles.spacing_md
+      Layout.topMargin: margin
+      Layout.bottomMargin: margin
+      Layout.fillWidth: true
+
+      implicitHeight: 1
+      color: Colors.primaryMuted
+    }
+
     ListView {
       id: nodeList
 
       Layout.fillWidth: true
 
-      implicitHeight: 256
+      implicitHeight: 200
 
       orientation: ListView.Horizontal
       model: sinksModel
@@ -69,9 +81,13 @@ BasePopout {
     id: ncRoot
 
     required property PwNode modelData
+    readonly property string deviceIcon: modelData.properties["device.icon-name"] ?? ""
 
     implicitWidth: 32
     implicitHeight: ListView.view ? ListView.view.height : 0
+
+    // TEMPORARY HACK
+    visible: modelData.id !== PipewireGlobal.defaultSink.id
 
     ColumnLayout {
       id: nodeLayout
@@ -81,17 +97,98 @@ BasePopout {
       MouseArea {
         id: appIconWrapper
 
-        implicitWidth: 24
+        Layout.fillWidth: true
         implicitHeight: 24
+
+        XDGIcon {
+          anchors.centerIn: parent
+          size: 24
+          icon: {
+            if (ncRoot.modelData.iconName !== "") {
+              return ncRoot.modelData.iconName;
+            } else if (ncRoot.modelData.properties["device.icon-name"]) {
+              return ncRoot.modelData.properties["device.icon-name"];
+            } else if (ncRoot.modelData.binary !== "") {
+              return EntryManager.findEntry(ncRoot.modelData.binary)?.icon ?? "application-octet-stream";
+            } else {
+              return "application-octet-stream";
+            }
+          }
+          fallback: "application-octet-stream"
+
+          layer.enabled: true
+          layer.effect: MultiEffect {
+            colorization: 0.9
+            colorizationColor: Colors.primary
+            brightness: 0.2
+            contrast: 0.5
+          }
+        }
       }
 
       SSlider {
+        id: vSlider
+        Layout.alignment: Qt.AlignHCenter
         Layout.fillHeight: true
         mirror: true
 
         from: 0
         to: 1
         value: ncRoot.modelData.volume
+
+        onMoved: {
+          if (!ncRoot.modelData)
+            return;
+          ncRoot.modelData.setVolume(Math.round(value * 100) / 100);
+        }
+
+        Item {
+          id: tooltip
+          parent: vSlider.handle
+
+          opacity: vSlider.pressed ? 1 : 0
+          visible: opacity > 0
+
+          Behavior on opacity {
+            NAnim {
+              duration: 300
+            }
+          }
+
+          anchors.centerIn: parent
+
+          implicitWidth: tooltipText.width
+          implicitHeight: tooltipText.height
+
+          // Slider applies a transform, so it must be undone
+          // I believe qml evaluates these transforms bottom to top, so translation is done first
+          transform: [
+            Translate {
+              y: ((vSlider.handleSize / 2) + (tooltipText.height / 2) + Styles.spacing_sm) * -1
+            },
+            Rotation {
+              origin.x: tooltip.width / 2
+              origin.y: tooltip.height / 2
+              angle: -vSlider.rotationAngle
+            }
+          ]
+
+          Rectangle {
+            anchors.fill: parent
+            color: Colors.primaryContent
+            border.width: 1
+            border.color: Colors.primary
+          }
+
+          StyledText {
+            id: tooltipText
+            padding: Styles.padding_sm
+            text: `${Math.round(vSlider.value * 100)} %`
+            color: Colors.primary
+            font.pointSize: Styles.text_xs
+            font.weight: 600
+          }
+        }
       }
     }
   }

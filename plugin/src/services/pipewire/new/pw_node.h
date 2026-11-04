@@ -10,6 +10,7 @@
 #include <spa/pod/pod.h>
 #include <spa/utils/dict.h>
 
+#include "pw_client.h"
 #include "pw_common.h"
 #include "pw_node_data.h"
 #include "pw_spa_hook.h"
@@ -42,15 +43,23 @@ public:
   [[nodiscard]] INodeData *data();
   [[nodiscard]] bool       ready() const;
 
+  [[nodiscard]] string_map_t properties() const;
+
   [[nodiscard]] bool    shouldUseDevice() const;
   [[nodiscard]] QString name() const;
 
   [[nodiscard]] Device *getDevice();
   [[nodiscard]] qint32  routeDevice() const;
 
+  [[nodiscard]] QString clientName() const;
+  [[nodiscard]] QString clientBinary() const;
+  [[nodiscard]] QString clientIconName() const;
+
 signals:
   void readyChanged();
+  void stateChanged();
   void propertiesChanged();
+  void clientAppDataChanged();
 
 private slots:
   void onCoreSync(quint32 id, qint32 seq);
@@ -72,9 +81,11 @@ private:
 
   INodeData *m_data = nullptr;
 
-  std::shared_ptr<Device> m_device      = nullptr;
-  qint32                  m_routeDevice = -1;
-  qint32                  m_syncSeq     = 0;
+  std::shared_ptr<Device> m_device = nullptr;
+  std::shared_ptr<Client> m_client = nullptr;
+
+  qint32 m_routeDevice = -1;
+  qint32 m_syncSeq     = 0;
 
   static const struct pw_node_events NODE_EVENTS;
   static void on_info(void *data, const struct pw_node_info *info);

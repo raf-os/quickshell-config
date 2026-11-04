@@ -19,6 +19,10 @@ PwQMLNode::PwQMLNode(shared_ptr_t ptr, QObject *parent)
 
   QObject::connect(
       object(), &Node::readyChanged, this, &PwQMLNode::readyChanged);
+  QObject::connect(
+      object(), &Node::propertiesChanged, this, &PwQMLNode::propertiesChanged);
+  QObject::connect(
+      object(), &Node::clientAppDataChanged, this, &PwQMLNode::appDataChanged);
 
   if (object()->m_type.testFlag(NodeType::Audio)) {
     m_audioData = dynamic_cast<NodeAudioData *>(object()->data());
@@ -36,9 +40,12 @@ QString PwQMLNode::name() const { return object()->m_name; }
 QString PwQMLNode::description() const { return object()->m_description; }
 QString PwQMLNode::nickname() const { return object()->m_nick; }
 
+QString PwQMLNode::binary() const { return object()->clientBinary(); }
+QString PwQMLNode::iconName() const { return object()->clientIconName(); }
+
 QVariantMap PwQMLNode::properties() const {
   QVariantMap map;
-  const auto  props = object()->m_properties;
+  const auto  props = object()->properties();
   for (auto it = props.constKeyValueBegin(); it != props.constKeyValueEnd();
       it++)
   {
