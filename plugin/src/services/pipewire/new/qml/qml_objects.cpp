@@ -4,11 +4,13 @@
 #include <qhashfunctions.h>
 #include <qloggingcategory.h>
 #include <qobject.h>
+#include <qproperty.h>
 #include <qtypes.h>
 #include <qvariant.h>
 
 #include "ns_pipewire_debug.h"
 #include "pw_common.h"
+#include "pw_node.h"
 #include "pw_node_data.h"
 
 namespace ns::pipewire {
@@ -23,6 +25,10 @@ PwQMLNode::PwQMLNode(shared_ptr_t ptr, QObject *parent)
       object(), &Node::propertiesChanged, this, &PwQMLNode::propertiesChanged);
   QObject::connect(
       object(), &Node::clientAppDataChanged, this, &PwQMLNode::appDataChanged);
+  QObject::connect(object(), &Node::stateChanged, this, [this] {
+    auto n   = static_cast<Node *>(sender());
+    b_active = n->state() == NodeState::Running;
+  });
 
   if (object()->m_type.testFlag(NodeType::Audio)) {
     m_audioData = dynamic_cast<NodeAudioData *>(object()->data());
@@ -39,6 +45,7 @@ quint32 PwQMLNode::id() const { return m_id; }
 QString PwQMLNode::name() const { return object()->m_name; }
 QString PwQMLNode::description() const { return object()->m_description; }
 QString PwQMLNode::nickname() const { return object()->m_nick; }
+QBindable<bool> PwQMLNode::bindableActive() const { return &b_active; }
 
 QString PwQMLNode::binary() const { return object()->clientBinary(); }
 QString PwQMLNode::iconName() const { return object()->clientIconName(); }

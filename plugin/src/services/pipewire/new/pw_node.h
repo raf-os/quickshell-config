@@ -45,8 +45,9 @@ public:
 
   [[nodiscard]] string_map_t properties() const;
 
-  [[nodiscard]] bool    shouldUseDevice() const;
-  [[nodiscard]] QString name() const;
+  [[nodiscard]] bool            shouldUseDevice() const;
+  [[nodiscard]] QString         name() const;
+  [[nodiscard]] NodeState::Enum state() const;
 
   [[nodiscard]] Device *getDevice();
   [[nodiscard]] qint32  routeDevice() const;

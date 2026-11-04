@@ -146,6 +146,7 @@ INodeData *Node::data() { return m_data; }
 QString            Node::name() const { return m_name; }
 bool               Node::ready() const { return m_ready; }
 Node::string_map_t Node::properties() const { return m_properties; }
+NodeState::Enum    Node::state() const { return m_state; }
 
 QString Node::clientName() const {
   if (!m_client) return QString();

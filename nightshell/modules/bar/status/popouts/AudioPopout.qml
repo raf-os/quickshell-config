@@ -86,7 +86,7 @@ BasePopout {
     implicitWidth: 32
     implicitHeight: ListView.view ? ListView.view.height : 0
 
-    // TEMPORARY HACK
+    // TEMPORARY HACK: use filtering instead
     visible: modelData.id !== PipewireGlobal.defaultSink.id
 
     ColumnLayout {
@@ -119,7 +119,7 @@ BasePopout {
           layer.enabled: true
           layer.effect: MultiEffect {
             colorization: 0.9
-            colorizationColor: Colors.primary
+            colorizationColor: ncRoot.modelData.active ? Colors.secondary : Colors.primary
             brightness: 0.2
             contrast: 0.5
           }
