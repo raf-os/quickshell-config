@@ -82,8 +82,11 @@ Hyprland::Hyprland(QObject *parent)
       });
   QObject::connect(m_eventHandler, &HyprEvents::activeWindowChanged,
       m_toplevelModel, &ToplevelModel::onAddressActivated);
+  QObject::connect(m_eventHandler, &HyprEvents::windowOpened, m_toplevelModel,
+      &ToplevelModel::onHyprWindowOpened);
   QObject::connect(m_eventHandler, &HyprEvents::windowMoved, m_toplevelModel,
       &ToplevelModel::onWindowMoveWorkspace);
+
   QObject::connect(m_eventHandler, &HyprEvents::workspacesChanged, this,
       &Hyprland::queryWorkspaces);
   QObject::connect(m_eventHandler, &HyprEvents::windowFullscreen, this,

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs.services
 import qs.components
 
+import org.nightshell.Components
 import org.nightshell.DesktopEntries
 import org.nightshell.Services.Pipewire
 import org.nightshell.Configs
@@ -86,9 +87,6 @@ BasePopout {
     implicitWidth: 32
     implicitHeight: ListView.view ? ListView.view.height : 0
 
-    // TEMPORARY HACK: use filtering instead
-    visible: modelData.id !== PipewireGlobal.defaultSink.id
-
     ColumnLayout {
       id: nodeLayout
 
@@ -97,8 +95,17 @@ BasePopout {
       MouseArea {
         id: appIconWrapper
 
+        hoverEnabled: true
+
         Layout.fillWidth: true
         implicitHeight: 24
+
+        SToolTip {
+          active: appIconWrapper.containsMouse
+          text: ncRoot.modelData.nickname
+
+          delay: 200
+        }
 
         XDGIcon {
           anchors.centerIn: parent

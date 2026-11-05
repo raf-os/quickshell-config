@@ -154,6 +154,14 @@ void HyprEvents::dispatchEvent(const QString &event, const QString &data) {
     if (isOk) {
       emit windowUrgent(addr);
     }
+  } else if (event == "openwindow") {
+    auto params  = data.split(',');
+    bool ok      = false;
+    auto winAddr = params.at(0).toULongLong(&ok, 16);
+    if (!ok) return;
+    auto wpAddr = params.at(1).toInt(&ok);
+    if (!ok) return;
+    emit windowOpened(winAddr, wpAddr);
   }
 }
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <unordered_map>
 
 #include <qhash.h>
@@ -111,13 +110,14 @@ public slots:
   void onAddressActivated(quint64 address);
   void handleHyprClientsPayload(const QByteArray &data);
   void onWindowMoveWorkspace(const quint64 &address, int workspaceId);
+  void onHyprWindowOpened(quint64 address, int workspaceId);
 
 private slots:
   void onActiveToplevelDestroyed();
 
 private:
   struct PendingToplevel {
-    int     workspaceId;
+    int     workspaceId        = -1;
     int     assignmentAttempts = 0;
     quint64 address;
   };
@@ -127,10 +127,7 @@ private:
   QList<ToplevelInstance *> m_filteredToplevels;
   ToplevelInstance         *m_activeToplevel = nullptr;
 
-  // QHash doesn't allow a non-const argument for its removeIf function, so
-  // std::unordered_map it is.
-  std::unordered_map<quint64, std::unique_ptr<PendingToplevel>>
-      m_pendingAssignments;
+  std::unordered_map<quint64, PendingToplevel> m_pendingAssignments;
 
   QString m_searchQuery;
 

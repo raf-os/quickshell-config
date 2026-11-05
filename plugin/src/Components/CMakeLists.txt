@@ -13,7 +13,11 @@ target_include_directories(
 
 target_sources(
   nightshell_components
-  PRIVATE chamferrectshader.cpp chamferrectmaterial.cpp chamferrect.cpp
+  PRIVATE
+    chamferrectshader.cpp
+    chamferrectmaterial.cpp
+    chamferrect.cpp
+    stooltip.cpp
 )
 
 set_target_properties(

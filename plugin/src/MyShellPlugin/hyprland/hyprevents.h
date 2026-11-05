@@ -33,6 +33,7 @@ signals:
   void bellRang();
   void keyboardLayoutChanged(QString keyboardName, QString layoutName);
   void activeWindowChanged(quint64 address);
+  void windowOpened(quint64 address, int workspaceAddress);
   void workspacesChanged();
   void workspaceRenamed(int workspaceId, QString workspaceName);
   void userWorkspaceChanged(int workspaceId, QString workspaceName);

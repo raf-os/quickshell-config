@@ -70,8 +70,6 @@ Node::Node(const TrackedObjectProps &props, QObject *parent)
       if (m_client) {
         QObject::connect(m_client.get(), &Client::appDataChanged, this,
             &Node::clientAppDataChanged);
-        qCDebug(NS_LOG_PIPEWIRE)
-            << "Assigned client ID" << cid << "to node" << this;
       } else {
         qCWarning(NS_LOG_PIPEWIRE)
             << "Could not find client ID" << cid << "for node" << this;

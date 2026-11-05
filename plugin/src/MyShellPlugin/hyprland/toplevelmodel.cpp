@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <iterator>
-#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -403,9 +402,10 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
             << "Could not match address" << address
             << "to any wayland toplevels. Adding to pending list.";
         const auto contains = m_pendingAssignments.contains(address);
-        if (!contains)
-          m_pendingAssignments.insert(std::make_pair(
-              address, std::make_unique<PendingToplevel>(0, 0, address)));
+        if (!contains) {
+          PendingToplevel pending{.address = address};
+          m_pendingAssignments.emplace(address, std::move(pending));
+        }
         continue;
       }
 
@@ -431,23 +431,26 @@ void ToplevelModel::handlePendingAssignments() {
 
   std::erase_if(m_pendingAssignments, [this](auto &item) {
     auto &[key, value] = item;
-    auto p             = static_cast<PendingToplevel *>(value.get());
+    auto p             = static_cast<PendingToplevel>(value);
     auto handle        = toplevels::HyprlandToplevelMappingManager::instance()
-                             ->getHandleForAddress(p->address);
+                             ->getHandleForAddress(p.address);
     if (handle == nullptr) {
-      p->assignmentAttempts++;
-      if (p->assignmentAttempts < 2) return false;
+      p.assignmentAttempts++;
+      if (p.assignmentAttempts < 2) return false;
     } else {
       auto it = std::find_if(m_allTopLevels.begin(), m_allTopLevels.end(),
           [this, handle](
               ToplevelInstance *inst) { return inst->handle() == handle; });
       if (it == m_allTopLevels.end()) {
-        p->assignmentAttempts++;
-        if (p->assignmentAttempts < 2) return false;
+        p.assignmentAttempts++;
+        if (p.assignmentAttempts < 2) return false;
       }
-      (*it)->setAddress(p->address);
+      (*it)->setAddress(p.address);
+      if (p.workspaceId != -1) {
+        (*it)->setWorkspaceId(p.workspaceId);
+      }
       qCDebug(logNSHyprland)
-          << "Found pending address" << p->address << "for toplevel" << *it;
+          << "Found pending address" << p.address << "for toplevel" << *it;
     }
     return true;
   });
@@ -462,6 +465,26 @@ void ToplevelModel::onWindowMoveWorkspace(
   if (it != m_readyToplevels.end()) {
     (*it)->setWorkspaceId(workspaceId);
     emit windowMoved(*it);
+  }
+}
+
+void ToplevelModel::onHyprWindowOpened(quint64 address, int workspaceId) {
+  auto it = std::ranges::find_if(m_readyToplevels.begin(),
+      m_readyToplevels.end(), [&address](ToplevelInstance *inst) {
+        return inst->address() == address;
+      });
+
+  if (it != m_readyToplevels.end()) {
+    (*it)->setWorkspaceId(workspaceId);
+    emit windowMoved(*it);
+  } else {
+    auto it = m_pendingAssignments.find(address);
+    if (it != m_pendingAssignments.end()) {
+      (*it).second.workspaceId = workspaceId;
+    } else {
+      PendingToplevel pending{.workspaceId = workspaceId, .address = address};
+      m_pendingAssignments.emplace(address, std::move(pending));
+    }
   }
 }
 
