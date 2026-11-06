@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import org.nightshell.Utils
-import org.nightshell.Components
 import org.nightshell.Hyprland as N_HYPRLAND
 import org.nightshell.Wayland as N_WAYLAND
 
@@ -33,27 +32,6 @@ Variants {
 
       name: "main-shell"
       screen: scope.modelData
-
-      TooltipProvider {
-        delegate: Item {
-          id: tooltipItem
-          required property string text
-
-          anchors.centerIn: parent
-
-          implicitWidth: tooltipText.width
-          implicitHeight: tooltipText.height
-
-          Rectangle {
-            anchors.fill: parent
-          }
-
-          Text {
-            id: tooltipText
-            text: tooltipItem.text
-          }
-        }
-      }
 
       // WlrLayershell.keyboardFocus: FocusGrabberManager.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 

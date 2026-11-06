@@ -102,9 +102,14 @@ BasePopout {
 
         SToolTip {
           active: appIconWrapper.containsMouse
-          text: ncRoot.modelData.nickname
-
+          text: {
+            if (ncRoot.modelData.nickname !== "")
+              return ncRoot.modelData.nickname;
+            else
+              return ncRoot.modelData.name;
+          }
           delay: 200
+          offset: 12
         }
 
         XDGIcon {
