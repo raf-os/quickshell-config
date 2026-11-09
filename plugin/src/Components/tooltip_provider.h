@@ -19,6 +19,7 @@ namespace TooltipAnchor {
 Q_NAMESPACE
 QML_NAMED_ELEMENT(TooltipAnchor)
 
+// Do not reorganize
 enum Enum { Right = 0, Bottom, Left, Top };
 
 Q_ENUM_NS(Enum)

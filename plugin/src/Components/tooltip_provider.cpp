@@ -1,5 +1,6 @@
 #include "tooltip_provider.h"
 
+#include <algorithm>
 #include <array>
 
 #include <qjsengine.h>
@@ -197,6 +198,7 @@ void TooltipProvider::onOwnerDestroyed() {
 }
 
 void TooltipProvider::mapPosition() {
+  // Pardon the shitty attempts at vector math and linear algebra
   if (!m_owner || !m_referenceWindow) return;
 
   auto item = m_owner->parentItem();
@@ -212,6 +214,8 @@ void TooltipProvider::mapPosition() {
   QMatrix4x4 transform;
   if (horizontal) transform.rotate(90, QVector3D(0.0f, 0.0f, 1.0f));
 
+  // Vector below will only have its X or Y component depending on the
+  // orientation
   QVector3D axisVector = transform.mapVector(QVector3D(1.0f, 0.0f, 0.0f)) *
                          QVector3D(item->width(), item->height(), 0.0f);
 
@@ -221,38 +225,82 @@ void TooltipProvider::mapPosition() {
   case TooltipAlignment::End:    break;
   }
 
+  const auto xOffset = anc == TooltipAnchor::Right ? item->width() : 0;
+  const auto yOffset = anc == TooltipAnchor::Bottom ? item->height() : 0;
+
+  // Shift it to the correct side
+  axisVector += QVector3D(xOffset, yOffset, 0.0f);
+
   transform = QMatrix4x4();
   transform.rotate((anc * 90) % 360, QVector3D(0.0f, 0.0f, 1.0f));
 
-  QVector3D offsetVector = transform.mapVector(QVector3D(offset, 0.0f, 0.0f));
+  // This is the gap between the item and the tooltip
+  // Moves the vector away by *offset* in the relative X axis
+  // If the anchor is set to right, this means a positive movement on the global
+  // X axis. If set to top, a negative movement on the global Y axis.
+  const QVector3D offsetVector =
+      transform.mapVector(QVector3D(offset, 0.0f, 0.0f));
 
-  auto itemAbsPos =
-      m_owner->parentItem()->mapToItem(m_referenceWindow->contentItem(), 0, 0);
+  const auto itemAbsPos =
+      item->mapToItem(m_referenceWindow->contentItem(), 0, 0);
 
-  QVector3D posVector = QVector3D(static_cast<float>(itemAbsPos.x()),
-                            static_cast<float>(itemAbsPos.y()), 0.0f) +
-                        axisVector + offsetVector;
+  // Final position
+  const QVector3D posVector = QVector3D(static_cast<float>(itemAbsPos.x()),
+                                  static_cast<float>(itemAbsPos.y()), 0.0f) +
+                              axisVector + offsetVector;
 
   m_mappedPosition = QVector2D(posVector.x(), posVector.y());
 }
 
 void TooltipProvider::refit() {
+  // The mapPosition() function is not aware of the dimensions of the tooltip -
+  // it simply returns a point close to the desired anchoring position.
+  //
+  // This one simply calculates the correct start position, as the width and
+  // height are always going to be the exact ones from the tooltip QML item.
+
   if (!m_owner || !m_referenceWindow) return;
 
-  const auto anc = m_owner->bindableAnchor().value();
+  const auto anc   = m_owner->bindableAnchor().value();
+  const auto align = m_owner->bindableAlignment().value();
 
-  qreal offX = m_tooltip->width() / 2;
-  qreal offY = m_tooltip->height() / 2;
+  const auto horizontal = anc % 2 == 0;
 
+  // The X axis is a factor related to alignment: left aligned means nothing's
+  // done, middle means we shift by half the axis' side, and right means shift
+  // by full length.
+  //
+  // The Y axis instead anchors the tooltip to it's desired side. For instance,
+  // if anchored to the left, the tooltip's RIGHT side is anchored to the
+  // object's LEFT - which means the text is aligned right-to-left.
+  QVector2D multVec{0.0f, 0.0f};
+  switch (align) {
+  case TooltipAlignment::Start:  break;
+  case TooltipAlignment::Middle: multVec.setX(-0.5f); break;
+  case TooltipAlignment::End:    multVec.setX(-1.0f); break;
+  }
   switch (anc) {
-  case TooltipAnchor::Right:  offX = -m_tooltip->width(); break;
-  case TooltipAnchor::Bottom: offY = -m_tooltip->height(); break;
-  case TooltipAnchor::Left:   offX = m_tooltip->width(); break;
-  case TooltipAnchor::Top:    offY = m_tooltip->height(); break;
+  case TooltipAnchor::Right:
+  case TooltipAnchor::Bottom: multVec.setY(0.0f); break;
+  case TooltipAnchor::Left:
+  case TooltipAnchor::Top:
+    multVec.setY(-1.0f); // this is what does the "opposite" anchoring
+    break;
   }
 
-  m_window->setX(m_mappedPosition.x() - offX);
-  m_window->setY(m_mappedPosition.y() - offY);
+  // Swap X and Y axis if anchors are either left or right
+  if (horizontal) {
+    multVec = QVector2D(multVec.y(), multVec.x());
+  }
+
+  // The positioning on the X and Y axis are always a multiple of the tooltip's
+  // respective width and height values. So now we multiply our previous vector
+  // with these dimensions.
+  auto fpos = multVec * QVector2D(static_cast<float>(m_tooltip->width()),
+                            static_cast<float>(m_tooltip->height()));
+
+  m_window->setX(m_mappedPosition.x() + fpos.x());
+  m_window->setY(m_mappedPosition.y() + fpos.y());
   m_window->setWidth(m_tooltip->width());
   m_window->setHeight(m_tooltip->height());
 }

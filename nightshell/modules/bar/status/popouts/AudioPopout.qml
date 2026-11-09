@@ -109,7 +109,7 @@ BasePopout {
               return ncRoot.modelData.name;
           }
           delay: 200
-          offset: 12
+          offset: 4
         }
 
         XDGIcon {
