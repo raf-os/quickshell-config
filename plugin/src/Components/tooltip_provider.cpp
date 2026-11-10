@@ -1,7 +1,7 @@
 #include "tooltip_provider.h"
 
-#include <algorithm>
 #include <array>
+#include <cmath>
 
 #include <qjsengine.h>
 #include <qlogging.h>
@@ -299,10 +299,10 @@ void TooltipProvider::refit() {
   auto fpos = multVec * QVector2D(static_cast<float>(m_tooltip->width()),
                             static_cast<float>(m_tooltip->height()));
 
-  m_window->setX(m_mappedPosition.x() + fpos.x());
-  m_window->setY(m_mappedPosition.y() + fpos.y());
-  m_window->setWidth(m_tooltip->width());
-  m_window->setHeight(m_tooltip->height());
+  m_window->setX(std::floor(m_mappedPosition.x() + fpos.x()));
+  m_window->setY(std::floor(m_mappedPosition.y() + fpos.y()));
+  m_window->setWidth(std::ceil(m_tooltip->width()));
+  m_window->setHeight(std::ceil(m_tooltip->height()));
 }
 
 void TooltipProvider::updatePosition() {

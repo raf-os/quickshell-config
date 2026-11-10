@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import qs.components
 
 import org.nightshell.Services
@@ -7,41 +9,40 @@ import QtQuick
 import QtQuick.Effects
 
 BaseStatus {
-	id: root
+  id: root
 
-	name: "network"
+  name: "network"
 
-	readonly property bool isConnected: NetworkService.isConnected
-	readonly property bool isUncertain: NetworkService.isConnecting || NetworkService.isLimitedConnection
-	readonly property bool isDisconnected: !isConnected && !isUncertain
+  readonly property bool isConnected: NetworkService.isConnected
+  readonly property bool isUncertain: NetworkService.isConnecting || NetworkService.isLimitedConnection
+  readonly property bool isDisconnected: !isConnected && !isUncertain
 
-	enabled: false
+  enabled: false
 
-	Item {
-		id: iconWrapper
-		anchors.fill: parent
+  Item {
+    id: iconWrapper
+    anchors.fill: parent
 
-		StatusIcon {
-			icon: "network_disconnected"
-			visible: root.isDisconnected
-		}
+    layer.enabled: true
+    layer.effect: SimpleGlowEffect {
+      colorization: 1
+      colorizationColor: root.isConnected ? Colors.secondary : Colors.primary
+      shadowColor: colorizationColor
+    }
 
-		StatusIcon {
-			icon: "network_uncertain"
-			visible: root.isUncertain
-		}
+    StatusIcon {
+      icon: "network_disconnected"
+      visible: root.isDisconnected
+    }
 
-		StatusIcon {
-			icon: "network_ethernet"
-			visible: root.isConnected
-		}
-	}
+    StatusIcon {
+      icon: "network_uncertain"
+      visible: root.isUncertain
+    }
 
-	SimpleGlowEffect {
-		source: iconWrapper
-		anchors.fill: iconWrapper
-		colorization: 1
-		colorizationColor: root.isConnected ? Colors.secondary : Colors.primary
-		shadowColor: colorizationColor
-	}
+    StatusIcon {
+      icon: "network_ethernet"
+      visible: root.isConnected
+    }
+  }
 }

@@ -239,6 +239,7 @@ HyprEvents        *Hyprland::eventHandler() { return m_eventHandler; }
 ToplevelModel     *Hyprland::toplevelModel() { return m_toplevelModel; }
 WorkspacesModel   *Hyprland::workspacesModel() { return m_workspacesModel; }
 HyprMonitorsModel *Hyprland::monitorsModel() { return m_monitorsModel; }
+HyprInputConfig   *Hyprland::inputConfig() { return m_inputConfig; }
 
 int  Hyprland::keyboardLayoutIndex() const { return m_keyboardLayoutIndex; }
 void Hyprland::setKeyboardLayoutIndex(const int &value) {

@@ -62,7 +62,8 @@ public:                                                                        \
 
 #define AUTO_MEYERS_SINGLETON_IMPL(Class)                                      \
   Class *Class::instance() {                                                   \
-    static Class *s_instance = new Class();                                    \
+    static Class *s_instance = nullptr;                                        \
+    if (!s_instance) s_instance = new Class();                                 \
     return s_instance;                                                         \
   }
 

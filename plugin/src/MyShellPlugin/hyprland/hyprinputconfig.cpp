@@ -14,7 +14,7 @@
 #include <qtypes.h>
 
 #include "hyprkeyboardlayout.h"
-#include "kbdlayouts.h"
+#include "utils_singletons.h"
 
 namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland) // from hyprland.cpp
@@ -25,8 +25,7 @@ HyprInputConfig::HyprInputConfig(QObject *parent) : QObject(parent) {}
 
 QQmlListProperty<HyprKeyboardLayout> HyprInputConfig::layouts() {
   return QQmlListProperty<HyprKeyboardLayout>(
-      this,
-      &m_layouts,
+      this, &m_layouts,
       [](QQmlListProperty<HyprKeyboardLayout> *property) {
         auto *list = static_cast<QList<HyprKeyboardLayout *> *>(property->data);
         return list->count();
@@ -41,8 +40,7 @@ QList<HyprKeyboardLayout *> HyprInputConfig::layoutList() const {
   return m_layouts;
 }
 
-void HyprInputConfig::setLayouts(QStringList &layouts,
-                                 QStringList &variants) {
+void HyprInputConfig::setLayouts(QStringList &layouts, QStringList &variants) {
   QList<STRING_PAIR> pairList(layouts.size());
   pairList.reserve(layouts.size());
   variants.resize(layouts.size());
@@ -67,15 +65,13 @@ void HyprInputConfig::setLayouts(const QList<STRING_PAIR> &layouts) {
       old.erase(oldIt);
       newLayouts.append(*oldIt);
     } else {
-      auto l = utils::KeyboardLayouts::instance()->fetchLayoutMetadata(
+      auto l = utils::UtilsSingleton::keyboardLayoutSerializer()->getConfigItem(
           layout.first, layout.second);
       if (!l.has_value()) continue;
 
       auto lmeta   = l.value();
-      auto klayout = new HyprKeyboardLayout(std::move(lmeta.name),
-                                            std::move(lmeta.variant),
-                                            std::move(lmeta.description),
-                                            this);
+      auto klayout = new HyprKeyboardLayout(
+          lmeta.name, lmeta.variant, lmeta.description, this);
       newLayouts.append(klayout);
     }
   }
@@ -115,11 +111,8 @@ bool HyprInputConfig::saveToConfigFile(QStringView filePath) {
                              "\t\tkb_options = \"%3\"\n"
                              "\t\tkb_rules = \"%4\"\n"
                              "\t}\n})")
-                         .arg(layouts.join(","),
-                              variants.join(","),
-                              m_kbModel,
-                              m_kbOptions,
-                              m_kbRules);
+                         .arg(layouts.join(","), variants.join(","), m_kbModel,
+                             m_kbOptions, m_kbRules);
 
   QSaveFile file(filePath.toString(), this);
   if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {

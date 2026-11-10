@@ -38,6 +38,8 @@ class Hyprland : public QObject {
           CONSTANT)
   Q_PROPERTY(ns::hyprland::HyprMonitorsModel *monitorsModel READ monitorsModel
           CONSTANT)
+  Q_PROPERTY(
+      ns::hyprland::HyprInputConfig *inputConfig READ inputConfig CONSTANT)
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
           keyboardLayoutIndexChanged)
 
@@ -56,6 +58,7 @@ public:
   [[nodiscard]] ToplevelModel     *toplevelModel();
   [[nodiscard]] WorkspacesModel   *workspacesModel();
   [[nodiscard]] HyprMonitorsModel *monitorsModel();
+  [[nodiscard]] HyprInputConfig   *inputConfig();
   [[nodiscard]] int                keyboardLayoutIndex() const;
   void                             setKeyboardLayoutIndex(const int &value);
 

@@ -1,17 +1,56 @@
+import "popouts"
 import qs.components
+
+import org.nightshell.Configs
+
 import QtQuick
+import QtQuick.Effects
+import QtQuick.Layouts
 
 BaseStatus {
-	id: root
-	name: "language"
+  id: root
+  name: "language"
 
-	StyledText {
-		anchors.fill: parent
+  readonly property int hPadding: Styles.padding_xs
+  readonly property int vPadding: Styles.padding_xs
 
-		font.weight: 700
-		font.pixelSize: parent.height * 0.6
-		text: "us"
+  tooltipText: "Keyboard Layout"
 
-		verticalAlignment: Text.AlignVCenter
-	}
+  popoutComponent: LanguagePopout {}
+
+  implicitWidth: langText.width
+  Layout.fillHeight: true
+
+  StyledText {
+    id: langText
+
+    anchors {
+      top: parent.top
+      bottom: parent.bottom
+      horizontalCenter: parent.horizontalCenter
+    }
+
+    leftPadding: root.hPadding
+    rightPadding: root.hPadding
+
+    font.weight: 700
+    font.pixelSize: parent.height * 0.75
+    text: "us"
+
+    color: root.isActive ? Colors.accent : Colors.primary
+    Behavior on color {
+      CAnim {
+        duration: 400
+      }
+    }
+
+    verticalAlignment: Text.AlignVCenter
+  }
+
+  SimpleGlowEffect {
+    source: langText
+    anchors.fill: langText
+    colorizationColor: langText.color
+    shadowColor: langText.color
+  }
 }

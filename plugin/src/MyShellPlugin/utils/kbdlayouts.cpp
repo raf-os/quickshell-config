@@ -15,12 +15,10 @@
 #include <qxmlstream.h>
 
 namespace ns::utils {
-Q_LOGGING_CATEGORY(logNSUtilsKeyboard,
-                   "nightshell.utils.keyboards")
+Q_LOGGING_CATEGORY(logNSUtilsKeyboard, "nightshell.utils.keyboards")
 
 namespace {
-void xmlReadList(QXmlStreamReader &xml,
-                 QStringList      &target) {
+void xmlReadList(QXmlStreamReader &xml, QStringList &target) {
   while (xml.readNextStartElement()) {
     auto content = xml.readElementText();
     if (!xml.hasError() && !content.isEmpty()) {
@@ -32,10 +30,8 @@ void xmlReadList(QXmlStreamReader &xml,
 };
 } // namespace
 
-CKeyboardVariant::CKeyboardVariant(SKeyboardVariant payload,
-                                   QObject         *parent)
-    : QObject(parent),
-      data(std::move(payload)) {}
+CKeyboardVariant::CKeyboardVariant(SKeyboardVariant payload, QObject *parent)
+    : QObject(parent), data(std::move(payload)) {}
 
 QString CKeyboardVariant::name() const { return this->data.name; }
 QString CKeyboardVariant::shortDescription() const {
@@ -46,10 +42,8 @@ QStringList CKeyboardVariant::languageList() const {
   return this->data.languageList;
 }
 
-CKeyboardLayout::CKeyboardLayout(SKeyboardLayout payload,
-                                 QObject        *parent)
-    : QObject(parent),
-      data(std::move(payload)) {
+CKeyboardLayout::CKeyboardLayout(SKeyboardLayout payload, QObject *parent)
+    : QObject(parent), data(std::move(payload)) {
   if (!this->data.variants.isEmpty()) {
     this->setVariants(this->data.variants);
   }
@@ -69,8 +63,7 @@ QStringList CKeyboardLayout::languageList() const {
 
 QQmlListProperty<CKeyboardVariant> CKeyboardLayout::variants() {
   return QQmlListProperty<CKeyboardVariant>(
-      this,
-      &m_variantList,
+      this, &m_variantList,
       [](QQmlListProperty<CKeyboardVariant> *property) {
         auto *list = static_cast<QList<CKeyboardVariant *> *>(property->data);
         return list->count();
@@ -101,11 +94,10 @@ void CKeyboardLayout::setVariants(QList<SKeyboardVariant> &variants) {
   variants.clear();
 
   auto vlist = m_variants.values();
-  std::sort(m_variantList.begin(),
-            m_variantList.end(),
-            [](CKeyboardVariant *a, CKeyboardVariant *b) {
-              return a->name().localeAwareCompare(b->name()) < 0;
-            });
+  std::sort(m_variantList.begin(), m_variantList.end(),
+      [](CKeyboardVariant *a, CKeyboardVariant *b) {
+        return a->name().localeAwareCompare(b->name()) < 0;
+      });
 
   if (vlist != m_variantList) {
     m_variantList = vlist;
@@ -122,10 +114,21 @@ KeyboardLayouts::KeyboardLayouts(QObject *parent) : QObject(parent) {
   this->buildDatabase();
 }
 
+KeyboardLayouts *KeyboardLayouts::instance() {
+  static KeyboardLayouts *s_instance = new KeyboardLayouts();
+  return s_instance;
+}
+
+KeyboardLayouts *KeyboardLayouts::create(
+    QQmlEngine *qmlEngine, QJSEngine * /* unused */) {
+  auto inst = instance();
+  if (qmlEngine) qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
+  return inst;
+}
+
 QQmlListProperty<CKeyboardLayout> KeyboardLayouts::layouts() {
   return QQmlListProperty<CKeyboardLayout>(
-      this,
-      &m_sortedLayoutList,
+      this, &m_sortedLayoutList,
       [](QQmlListProperty<CKeyboardLayout> *property) {
         auto *list = static_cast<QList<CKeyboardLayout *> *>(property->data);
         return list->count();
@@ -170,11 +173,10 @@ void KeyboardLayouts::buildDatabase() {
   file.close();
 
   m_sortedLayoutList = m_layouts.values();
-  std::sort(m_sortedLayoutList.begin(),
-            m_sortedLayoutList.end(),
-            [](CKeyboardLayout *a, CKeyboardLayout *b) {
-              return a->name().localeAwareCompare(b->name()) < 0;
-            });
+  std::sort(m_sortedLayoutList.begin(), m_sortedLayoutList.end(),
+      [](CKeyboardLayout *a, CKeyboardLayout *b) {
+        return a->name().localeAwareCompare(b->name()) < 0;
+      });
 }
 
 void KeyboardLayouts::readXmlBody(QXmlStreamReader &xml) {
@@ -199,10 +201,12 @@ void KeyboardLayouts::readXmlLayoutList(QXmlStreamReader &xml) {
           readXmlVariantList(xml, cLayout);
         } else {
           xml.skipCurrentElement();
+          continue;
         }
 
         if (!cLayout.name.isEmpty() &&
-            m_layouts.constFind(cLayout.name) == m_layouts.constEnd()) {
+            m_layouts.constFind(cLayout.name) == m_layouts.constEnd())
+        {
           auto l = new CKeyboardLayout(cLayout, this);
           m_layouts.insert(l->name(), l);
         }
@@ -215,8 +219,8 @@ void KeyboardLayouts::readXmlLayoutList(QXmlStreamReader &xml) {
   }
 }
 
-void KeyboardLayouts::readXmlConfigItem(QXmlStreamReader &xml,
-                                        SKeyboardLayout  &layout) {
+void KeyboardLayouts::readXmlConfigItem(
+    QXmlStreamReader &xml, SKeyboardLayout &layout) {
   while (xml.readNextStartElement()) {
     if (xml.name() == "name") layout.name = xml.readElementText();
     else if (xml.name() == "shortDescription")
@@ -232,8 +236,8 @@ void KeyboardLayouts::readXmlConfigItem(QXmlStreamReader &xml,
   }
 }
 
-void KeyboardLayouts::readXmlVariantList(QXmlStreamReader &xml,
-                                         SKeyboardLayout  &layout) {
+void KeyboardLayouts::readXmlVariantList(
+    QXmlStreamReader &xml, SKeyboardLayout &layout) {
   while (xml.readNextStartElement()) {
     if (xml.name() == "variant") {
       while (xml.readNextStartElement()) {
@@ -265,9 +269,8 @@ void KeyboardLayouts::readXmlVariantList(QXmlStreamReader &xml,
   }
 }
 
-std::optional<SLayoutMetadata>
-KeyboardLayouts::fetchLayoutMetadata(QStringView layout,
-                                     QStringView variant) {
+std::optional<SLayoutMetadata> KeyboardLayouts::fetchLayoutMetadata(
+    QStringView layout, QStringView variant) {
   auto it = m_layouts.constFind(layout);
   if (it == m_layouts.constEnd()) {
     return std::nullopt;
@@ -281,10 +284,9 @@ KeyboardLayouts::fetchLayoutMetadata(QStringView layout,
   }
 
   auto vit = std::ranges::find_if(foundLayout->variantList().begin(),
-                                  foundLayout->variantList().end(),
-                                  [variant](CKeyboardVariant *itPred) {
-                                    return itPred->name() == variant;
-                                  });
+      foundLayout->variantList().end(), [variant](CKeyboardVariant *itPred) {
+        return itPred->name() == variant;
+      });
   if (vit == foundLayout->variantList().end()) {
     return std::nullopt;
   }

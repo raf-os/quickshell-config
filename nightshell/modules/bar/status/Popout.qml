@@ -75,12 +75,14 @@ Item {
     }
 
     implicitWidth: bufferedWidth
-    implicitHeight: stack.currentItem ? Math.max(96, stack.currentItem.implicitHeight) : 0
+    implicitHeight: stack.currentItem ? Math.max(64, stack.currentItem.implicitHeight) : 0
 
     clip: true
 
     Behavior on implicitHeight {
-      NAnim {}
+      NAnim {
+        duration: 600
+      }
     }
 
     Connections {
@@ -110,29 +112,35 @@ Item {
       anchors.fill: parent
 
       replaceEnter: Transition {
-        NAnim {
-          property: "x"
-          from: -32
-          to: 0
-          duration: 400
+        NumberAnimation {
+          property: "opacity"
+          from: 0
+          to: 1
+          easing.type: Easing.InElastic
+          easing.amplitude: 0.5
+          easing.period: 0.4
+          duration: 500
         }
       }
 
       replaceExit: Transition {
-        NAnim {
-          property: "x"
-          from: 0
-          to: 32
-          duration: 400
+        NumberAnimation {
+          property: "opacity"
+          from: 1
+          to: 0
+          duration: 200
         }
       }
 
       popEnter: Transition {
-        NAnim {
+        NumberAnimation {
           property: "opacity"
           from: 0
           to: 1
-          duration: 400
+          easing.type: Easing.InElastic
+          easing.amplitude: 0.5
+          easing.period: 0.4
+          duration: 500
         }
       }
 
@@ -141,7 +149,7 @@ Item {
           property: "opacity"
           from: 1
           to: 0
-          duration: 400
+          duration: 500
         }
       }
     }

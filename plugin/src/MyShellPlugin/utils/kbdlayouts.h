@@ -48,8 +48,8 @@ class CKeyboardVariant : public QObject {
   Q_PROPERTY(QStringList languageList READ languageList CONSTANT)
 
 public:
-  explicit CKeyboardVariant(SKeyboardVariant payload,
-                            QObject         *parent = nullptr);
+  explicit CKeyboardVariant(
+      SKeyboardVariant payload, QObject *parent = nullptr);
 
   [[nodiscard]] QString     name() const;
   [[nodiscard]] QString     description() const;
@@ -71,11 +71,10 @@ class CKeyboardLayout : public QObject {
   Q_PROPERTY(QStringList countryList READ countryList CONSTANT)
   Q_PROPERTY(QStringList languageList READ languageList CONSTANT)
   Q_PROPERTY(QQmlListProperty<CKeyboardVariant> variants READ variants NOTIFY
-                 variantsChanged)
+          variantsChanged)
 
 public:
-  explicit CKeyboardLayout(SKeyboardLayout payload,
-                           QObject        *parent = nullptr);
+  explicit CKeyboardLayout(SKeyboardLayout payload, QObject *parent = nullptr);
 
   [[nodiscard]] QString     name() const;
   [[nodiscard]] QString     shortDescription() const;
@@ -104,21 +103,13 @@ class KeyboardLayouts : public QObject {
   Q_PROPERTY(QQmlListProperty<CKeyboardLayout> layouts READ layouts CONSTANT)
 
 public:
-  static KeyboardLayouts *instance() {
-    static KeyboardLayouts *s_instance = new KeyboardLayouts();
-    return s_instance;
-  }
+  static KeyboardLayouts *instance();
 
-  static KeyboardLayouts *create(QQmlEngine *qmlEngine,
-                                 QJSEngine * /* unused */) {
-    auto inst = instance();
-    if (qmlEngine)
-      qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
-    return inst;
-  }
+  static KeyboardLayouts *create(
+      QQmlEngine *qmlEngine, QJSEngine * /* unused */);
 
-  std::optional<SLayoutMetadata> fetchLayoutMetadata(QStringView layout,
-                                                     QStringView variant);
+  std::optional<SLayoutMetadata> fetchLayoutMetadata(
+      QStringView layout, QStringView variant);
 
   QQmlListProperty<CKeyboardLayout> layouts();
   QList<CKeyboardLayout *>          getSortedLayoutList() const;
@@ -134,9 +125,7 @@ private:
 
   void readXmlBody(QXmlStreamReader &xml);
   void readXmlLayoutList(QXmlStreamReader &xml);
-  void readXmlConfigItem(QXmlStreamReader &xml,
-                         SKeyboardLayout  &layout);
-  void readXmlVariantList(QXmlStreamReader &xml,
-                          SKeyboardLayout  &layout);
+  void readXmlConfigItem(QXmlStreamReader &xml, SKeyboardLayout &layout);
+  void readXmlVariantList(QXmlStreamReader &xml, SKeyboardLayout &layout);
 };
 } // namespace ns::utils

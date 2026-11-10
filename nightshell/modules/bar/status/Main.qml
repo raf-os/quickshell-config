@@ -1,5 +1,8 @@
 pragma ComponentBehavior: Bound
 
+import qs.components
+
+import org.nightshell.Components
 import org.nightshell.Configs
 
 import QtQuick
@@ -11,8 +14,17 @@ Item {
   property BaseStatus currentActive: null
   property string activeName: ""
 
-  implicitWidth: mainLayout.width
+  readonly property int hPadding: Styles.padding_md
+  readonly property int vPadding: Styles.padding_sm
+
+  implicitWidth: mainLayout.width + hPadding * 2 + Math.max(0, ((height - vPadding * 2) / 3))
   Layout.fillHeight: true
+
+  Behavior on implicitWidth {
+    NAnim {
+      duration: 300
+    }
+  }
 
   function toggleActive(item: BaseStatus) {
     if (item.name === "")
@@ -39,50 +51,76 @@ Item {
     root.currentActive = null;
   }
 
-  RowLayout {
-    id: mainLayout
+  ChamferRect {
+    id: bgRect
+    anchors.fill: parent
 
-    anchors {
-      top: parent.top
-      topMargin: 2
-      bottom: parent.bottom
-      bottomMargin: 2
-      horizontalCenter: parent.horizontalCenter
-    }
+    color: Colors.primaryContent
+    borderWidth: 1
+    borderColor: Colors.primary
 
-    WrappedStatus {
-      id: languageStatus
-      sourceComponent: Language {}
-    }
+    bottomLeftChamfer: Math.round(height / 3)
+  }
 
-    WrappedStatus {
-      id: networkStatus
-      sourceComponent: Network {}
-    }
+  Item {
+    id: wrapper
+    anchors.fill: parent
+    clip: true
 
-    WrappedStatus {
-      id: gamemodeStatus
-      active: Config.modules.enabledModules.gamemode
-      sourceComponent: Gamemode {}
-    }
+    RowLayout {
+      id: mainLayout
 
-    WrappedStatus {
-      id: audioStatus
-      sourceComponent: Audio {
-        id: audioStatusComp
-        onClicked: {
-          root.toggleActive(audioStatusComp);
+      anchors {
+        top: parent.top
+        topMargin: root.vPadding
+        bottom: parent.bottom
+        bottomMargin: root.vPadding
+        right: parent.right
+        rightMargin: root.hPadding
+      }
+
+      WrappedStatus {
+        id: languageStatus
+        sourceComponent: Language {
+          id: languageStatusComp
+          isActive: root.currentActive === languageStatusComp
+          onClicked: {
+            root.toggleActive(languageStatusComp);
+          }
         }
       }
-    }
 
-    WrappedStatus {
-      id: notificationStatus
-      active: Config.modules.enabledModules.notifications
-      sourceComponent: Notifications {
-        id: notifStatus
-        onClicked: {
-          root.toggleActive(notifStatus);
+      WrappedStatus {
+        id: networkStatus
+        sourceComponent: Network {}
+      }
+
+      WrappedStatus {
+        id: gamemodeStatus
+        active: Config.modules.enabledModules.gamemode
+        sourceComponent: Gamemode {}
+      }
+
+      WrappedStatus {
+        id: audioStatus
+        sourceComponent: Audio {
+          id: audioStatusComp
+          isActive: root.currentActive === audioStatusComp
+          onClicked: {
+            root.toggleActive(audioStatusComp);
+          }
+        }
+      }
+
+      WrappedStatus {
+        id: notificationStatus
+        active: Config.modules.enabledModules.notifications
+        sourceComponent: Notifications {
+          id: notifStatus
+          isActive: root.currentActive === notifStatus
+          onClicked: {
+            root.toggleActive(notifStatus);
+          }
         }
       }
     }

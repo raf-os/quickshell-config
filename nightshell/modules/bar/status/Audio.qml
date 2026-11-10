@@ -12,6 +12,7 @@ BaseStatus {
   name: "audio"
 
   readonly property bool isMuted: AudioService.defaultSinkMuted
+  tooltipText: "Audio Settings"
 
   popoutComponent: AudioPopout {}
 
@@ -20,7 +21,7 @@ BaseStatus {
     size: 24
     colorize: true
     glow: true
-    color: root.isMuted ? Colors.primary : Colors.secondary
+    color: root.isActive ? Colors.accent : (root.isMuted ? Colors.primary : Colors.secondary)
     anchors.fill: parent
     icon: AudioService.sinkIcon
   }

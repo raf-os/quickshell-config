@@ -6,24 +6,26 @@ import org.nightshell.Configs
 import QtQuick
 
 BaseStatus {
-	id: root
-	name: "gamemode"
+  id: root
+  name: "gamemode"
 
-	StatusIcon {
-		id: icon
-		visible: false
-		icon: GameMode.isActive ? "gamemode_on" : "gamemode_off"
-	}
+  tooltipText: "Game Mode"
 
-	SimpleGlowEffect {
-		source: icon
-		anchors.fill: icon
-		colorization: 1
-		colorizationColor: GameMode.isActive ? Colors.secondary : Colors.primary
-		shadowColor: Colors.primary
-	}
+  StatusIcon {
+    id: icon
+    visible: false
+    icon: GameMode.isActive ? "gamemode_on" : "gamemode_off"
+  }
 
-	onClicked: {
-		GameMode.toggleGamemode();
-	}
+  SimpleGlowEffect {
+    source: icon
+    anchors.fill: icon
+    colorization: 1
+    colorizationColor: GameMode.isActive ? Colors.secondary : Colors.primary
+    shadowColor: Colors.primary
+  }
+
+  onClicked: {
+    GameMode.toggleGamemode();
+  }
 }

@@ -1,4 +1,8 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+find_package(
+  Qt6
+  REQUIRED
+  COMPONENTS Core Gui Qml Quick Xml
+)
 
 qt6_add_library(nightshell_utils SHARED)
 
@@ -11,6 +15,9 @@ target_sources(
     sysinfo.cpp
     serializableobject.cpp
     statemanager.cpp
+    keyboard_layout_serializer.cpp
+    kbd_layouts_model.cpp
+    utils_singletons.cpp
 )
 
 set_target_properties(nightshell_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -25,13 +32,21 @@ qt_generate_export_macros(
   NAME "NS_UTILS"
 )
 
+qt_declare_logging_category(
+  nightshell_utils
+  IDENTIFIER "ns::utils::NS_LOG_UTILS"
+  HEADER "ns_utils_debug.h"
+  CATEGORY_NAME "ns.utils"
+  DEFAULT_SEVERITY Debug
+)
+
 target_include_directories(nightshell_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 qt6_add_qml_module(nightshell_utils URI "${ORG_URI_PREFIX}.Utils" VERSION 0.1)
 
 target_link_libraries(
   nightshell_utils
-  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick
+  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Xml
   PUBLIC nightshell_includes
 )
 

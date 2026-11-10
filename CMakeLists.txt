@@ -97,3 +97,5 @@ add_subdirectory(apps)
 add_subdirectory(assets)
 
 add_subdirectory(ipc)
+
+add_subdirectory(tests)
