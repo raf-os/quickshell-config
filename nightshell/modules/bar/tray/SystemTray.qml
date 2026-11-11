@@ -4,64 +4,86 @@ import qs.components
 
 import org.nightshell.SystemTray
 import org.nightshell.Configs
+import org.nightshell.Components
+
 import QtQuick
 import QtQuick.Layouts
 
 Item {
-	id: root
+  id: root
 
-	readonly property bool hasItems: SystemTrayQML.items.values.length > 0
-	property SystemTrayItem current: null
-	readonly property int padding: 4
+  readonly property bool hasItems: SystemTrayQML.items.values.length > 0
+  property SystemTrayItem current: null
+  readonly property int padding: 4
 
-	implicitWidth: trayContents.implicitWidth
-	Layout.fillHeight: true
+  readonly property int vPadding: 1
+  readonly property int hPadding: Styles.padding_sm
 
-	function toggleItem(item: SystemTrayItem): void {
-		activationCooldown.running = true;
-		if (root.current === item) {
-			root.current = null;
-		} else {
-			root.current = item;
-		}
-	}
+  implicitWidth: trayContents.implicitWidth + (hasItems ? hPadding + height / 6 : 0)
+  Layout.fillHeight: true
 
-	function closePopup() {
-		root.current = null;
-	}
+  function toggleItem(item: SystemTrayItem): void {
+    activationCooldown.running = true;
+    if (root.current === item) {
+      root.current = null;
+    } else {
+      root.current = item;
+    }
+  }
 
-	Timer {
-		id: activationCooldown
-		interval: 500
-	}
+  function closePopup() {
+    root.current = null;
+  }
 
-	ListView {
-		id: trayContents
+  Timer {
+    id: activationCooldown
+    interval: 500
+  }
 
-		acceptedButtons: Qt.NoButton
-		orientation: ListView.Horizontal
+  ChamferRect {
+    anchors.fill: root
 
-		implicitWidth: contentWidth
+    color: Colors.primaryContent
+    borderWidth: 1
+    borderColor: Colors.primary
 
-		anchors {
-			top: parent.top
-			bottom: parent.bottom
-			right: parent.right
-		}
+    bottomRightChamfer: Math.round(height / 3)
+  }
 
-		model: SystemTrayQML.items
-		delegate: SystemTrayItem {
-			id: sysTrayItem
-			isActive: root.current === this
+  ListView {
+    id: trayContents
 
-			implicitHeight: ListView.view ? ListView.view.height : 0
-			padding: root.padding
+    acceptedButtons: Qt.NoButton
+    orientation: ListView.Horizontal
 
-			onOpenAttachedMenu: {
-				if (activationCooldown.running)
-					return;
-				root.toggleItem(sysTrayItem);
-			}
-		}
-	}
+    implicitWidth: contentWidth
+
+    anchors {
+      top: parent.top
+      bottom: parent.bottom
+      left: parent.left
+      topMargin: root.vPadding
+      bottomMargin: root.vPadding
+      leftMargin: root.hPadding
+    }
+
+    model: SystemTrayQML.items
+    delegate: SystemTrayItem {
+      id: sysTrayItem
+      isActive: root.current === this
+
+      implicitHeight: ListView.view ? ListView.view.height : 0
+      padding: root.padding
+
+      onOpenAttachedMenu: {
+        if (activationCooldown.running)
+          return;
+        root.toggleItem(sysTrayItem);
+      }
+
+      onRequestClose: {
+        root.closePopup();
+      }
+    }
+  }
 }

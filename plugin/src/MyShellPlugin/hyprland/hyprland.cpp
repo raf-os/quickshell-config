@@ -8,6 +8,7 @@
 #include <qcontainerfwd.h>
 #include <qfileinfo.h>
 #include <qhash.h>
+#include <qhashfunctions.h>
 #include <qjsengine.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
@@ -36,6 +37,10 @@
 namespace ns::hyprland {
 Q_LOGGING_CATEGORY(logNSHyprland, "nightshell.hyprland", QtWarningMsg)
 
+namespace {
+constexpr int KEYBOARD_LAYOUT_SWITCH_COOLDOWN = 1000; // ms
+}
+
 AUTO_MEYERS_SINGLETON_QML_IMPL(Hyprland)
 
 Hyprland::Hyprland(QObject *parent)
@@ -43,7 +48,14 @@ Hyprland::Hyprland(QObject *parent)
       m_toplevelModel(new ToplevelModel(this)),
       m_monitorsModel(new HyprMonitorsModel(this)),
       m_workspacesModel(new WorkspacesModel(this)),
-      m_inputConfig(new HyprInputConfig(this)) {
+      m_inputConfig(new HyprInputConfig(this)),
+      m_keyboardSwitchCooldownTimer(new QTimer(this)) {
+  m_keyboardSwitchCooldownTimer->setSingleShot(true);
+  m_keyboardSwitchCooldownTimer->setInterval(KEYBOARD_LAYOUT_SWITCH_COOLDOWN);
+  b_xkbSwitchOnCooldown.setBinding([this] {
+    return m_keyboardSwitchCooldownTimer->bindableActive().value();
+  });
+
   auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
   if (his.isEmpty()) {
     qCWarning(logNSHyprland) << "$HYPRLAND_INSTANCE_SIGNATURE is unset, unable "
@@ -225,11 +237,14 @@ void Hyprland::reloadOptions() {
   hyprctl("reload", [](bool /*unused*/, const QByteArray & /*unused*/) {});
 }
 
-void Hyprland::switchKeyboardLayout(const QString &cmd) {
-  if (m_switchingKeyboardLayout) return;
+void Hyprland::switchKeyboardLayout(const QString &cmd, const QString &device) {
+  if (m_switchingKeyboardLayout || b_xkbSwitchOnCooldown.value()) return;
   m_switchingKeyboardLayout = true;
+  m_keyboardSwitchCooldownTimer->start();
 
-  hyprctl(cmd.toLocal8Bit(),
+  const auto command = QString("switchxkblayout %1 %2").arg(device).arg(cmd);
+
+  hyprctl(command.toLocal8Bit(),
       [this](bool /*unused*/, const QByteArray & /*unused*/) {
         m_switchingKeyboardLayout = false;
       });

@@ -34,6 +34,8 @@ Item {
       return gamemodeCard;
     case OSD.Type.Audio:
       return audioCard;
+    case OSD.Type.KeyboardLayout:
+      return keyboardLayoutCard;
     default:
       return null;
     }
@@ -113,5 +115,10 @@ Item {
   Component {
     id: audioCard
     AudioCard {}
+  }
+
+  Component {
+    id: keyboardLayoutCard
+    KeyboardCard {}
   }
 }

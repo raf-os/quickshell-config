@@ -11,6 +11,12 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+qt_generate_export_macros(
+  nightshell_hyprland
+  HEADER "ns_hyprland_export.h"
+  NAME "NS_HYPRLAND"
+)
+
 target_sources(
   nightshell_hyprland
   PRIVATE

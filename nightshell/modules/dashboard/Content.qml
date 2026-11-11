@@ -1,4 +1,5 @@
 import qs.components
+import qs.components.animations
 import qs.utils
 
 import org.nightshell.Configs
@@ -50,13 +51,16 @@ MouseArea {
       to: 1
       duration: root.resizeAnimationLength * 0.5
     }
-    NumberAnimation {
-      target: layerWrapper
-      property: "opacity"
-      from: 0
-      to: 1
-      duration: root.fadeAnimationLength
-      easing.type: Easing.InOutExpo
+    SequentialAnimation {
+      PauseAnimation {
+        duration: root.fadeAnimationLength * 0.4
+      }
+      FlickerPopIn {
+        target: layerWrapper
+        from: 0
+        to: 1
+        duration: root.fadeAnimationLength * 0.6
+      }
     }
   }
 

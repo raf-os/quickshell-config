@@ -1,6 +1,7 @@
 #include "toplevelmodel.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -367,60 +368,83 @@ void ToplevelModel::handleHyprClientsPayload(const QByteArray &data) {
     return;
   }
 
-  const auto &tlist = m_allTopLevels;
+  m_hyprClients.clear();
 
   auto jArray = jDoc.array();
   for (auto entry : jArray) {
+    HyprClientData cData;
+
     auto jObj = entry.toObject();
 
-    bool isOk    = false;
-    auto address = jObj.value("address").toString().toULongLong(&isOk, 16);
+    bool isOk     = false;
+    cData.address = jObj.value("address").toString().toULongLong(&isOk, 16);
     if (!isOk) {
       qCWarning(logNSHyprland)
           << "Invalid address received from hyprland's j/clients!";
       continue;
     }
 
-    auto it = std::ranges::find_if(
-        tlist.begin(), tlist.end(), [address](ToplevelInstance *inst) {
-          return inst->address() == address;
+    auto it = std::ranges::find_if(m_allTopLevels.begin(), m_allTopLevels.end(),
+        [&cData](ToplevelInstance *inst) {
+          return inst->address() == cData.address;
         });
 
-    ToplevelInstance *toplevel = it == tlist.end() ? nullptr : *it;
+    ToplevelInstance *toplevel = it == m_allTopLevels.end() ? nullptr : *it;
     bool              exists   = toplevel != nullptr;
 
     auto workspaceObj = jObj.value("workspace").toObject();
+    if (!workspaceObj.isEmpty()) {
+      cData.workspaceId = workspaceObj.value("id").toInt(-1);
+    }
+
+    cData.monitor       = jObj.value("monitor").toInt(-1);
+    cData.pid           = jObj.value("pid").toInt(-1);
+    auto _ident_strview = jObj.value("stableId").toStringView();
+
+    if (!_ident_strview.isEmpty()) {
+      auto _ident_size = std::min<qsizetype>(32, _ident_strview.size_bytes());
+      std::memcpy(cData.identifier.data(), _ident_strview.data(), _ident_size);
+    }
+
+    cData.fullscreen = jObj.value("fullscreen").toBool();
+    cData.pinned     = jObj.value("pinned").toBool();
 
     // if (!exists) toplevel = createNewInstance(address);
 
     if (!exists) {
       auto addr = toplevels::HyprlandToplevelMappingManager::instance()
-                      ->getHandleForAddress(address);
+                      ->getHandleForAddress(cData.address);
 
       if (addr == nullptr) {
         qCDebug(logNSHyprland)
-            << "Could not match address" << address
+            << "Could not match address" << cData.address
             << "to any wayland toplevels. Adding to pending list.";
-        const auto contains = m_pendingAssignments.contains(address);
+        const auto contains = m_pendingAssignments.contains(cData.address);
         if (!contains) {
-          PendingToplevel pending{.address = address};
-          m_pendingAssignments.emplace(address, std::move(pending));
+          PendingToplevel pending{.address = cData.address};
+          if (cData.workspaceId != -1) {
+            pending.workspaceId = cData.workspaceId;
+          }
+          m_pendingAssignments.emplace(cData.address, std::move(pending));
         }
         continue;
       }
 
-      auto iit = std::ranges::find_if(tlist.begin(), tlist.end(),
+      auto iit = std::ranges::find_if(m_allTopLevels.begin(),
+          m_allTopLevels.end(),
           [addr](ToplevelInstance *inst) { return inst->handle() == addr; });
 
-      if (iit == tlist.end()) continue;
+      if (iit == m_allTopLevels.end()) continue;
 
       toplevel = *iit;
-      toplevel->setAddress(address);
+      toplevel->setAddress(cData.address);
     }
 
-    if (!workspaceObj.isEmpty()) {
-      toplevel->setWorkspaceId(workspaceObj.value("id").toInt(0));
+    if (cData.workspaceId != -1) {
+      toplevel->setWorkspaceId(cData.workspaceId);
     }
+
+    m_hyprClients.insert(cData.address, std::move(cData));
   }
 
   emit readyToplevelsChanged(m_readyToplevels);

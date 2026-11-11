@@ -1,9 +1,11 @@
 #pragma once
 
+#include <array>
 #include <unordered_map>
 
 #include <qhash.h>
 #include <qlist.h>
+#include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qproperty.h>
@@ -18,6 +20,19 @@
 #include "wl_toplevel_handle.h"
 
 namespace ns::hyprland {
+struct HyprClientData {
+  quint64 address     = 0;
+  qint32  workspaceId = -1;
+  qint32  monitor     = -1;
+  qint32  pid         = -1;
+  // Same identifier as the one in the ext_foreign_toplevel_handle_v1 spec
+  std::array<char, 32> identifier;
+  bool                 fullscreen = false;
+  bool                 pinned     = false;
+};
+
+using HyprClientMap = QMap<quint64, HyprClientData>;
+
 class ToplevelInstance : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -126,6 +141,8 @@ private:
   QList<ToplevelInstance *> m_readyToplevels;
   QList<ToplevelInstance *> m_filteredToplevels;
   ToplevelInstance         *m_activeToplevel = nullptr;
+
+  HyprClientMap m_hyprClients;
 
   std::unordered_map<quint64, PendingToplevel> m_pendingAssignments;
 

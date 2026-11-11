@@ -18,7 +18,7 @@
 namespace ns::systemtray {
 namespace Status {
 Q_NAMESPACE
-QML_ELEMENT
+QML_NAMED_ELEMENT(StatusStatus)
 
 enum Enum : quint8 { Passive = 0, Active = 1, NeedsAttention = 2 };
 
@@ -29,7 +29,7 @@ Status::Enum fromString(const QString &value);
 
 namespace Category {
 Q_NAMESPACE
-QML_ELEMENT
+QML_NAMED_ELEMENT(StatusCategory)
 
 enum Enum : quint8 {
   Hardware          = 0,

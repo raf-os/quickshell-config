@@ -25,6 +25,9 @@ ColumnLayout {
     text: root.title
     color: Colors.primary
 
+    style: Text.Raised
+    styleColor: Colors.primaryContent
+
     font.pointSize: Styles.text_md
     font.weight: 600
   }

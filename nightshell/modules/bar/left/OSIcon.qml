@@ -1,4 +1,7 @@
+pragma ComponentBehavior: Bound
+
 import qs.components
+import qs.services
 
 import org.nightshell.Components
 import org.nightshell.Configs
@@ -25,10 +28,17 @@ MouseArea {
     }
   }
 
-  SimpleGlowEffect {
-    source: bgRect
+  RectangularShadow {
     anchors.fill: bgRect
-    shadowColor: root.isActive ? root.bgCol : Colors.primary
+    blur: 18
+    spread: -4
+    color: Colors.secondary
+    opacity: root.isActive ? 1 : 0
+    Behavior on opacity {
+      NAnim {
+        duration: 400
+      }
+    }
   }
 
   ChamferRect {

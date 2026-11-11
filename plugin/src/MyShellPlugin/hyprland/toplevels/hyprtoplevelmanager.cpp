@@ -22,34 +22,34 @@ HyprlandToplevelMappingManager::HyprlandToplevelMappingManager()
   }
 
   QObject::connect(wayland::wlr::toplevels::ToplevelManager::instance(),
-                   &wayland::wlr::toplevels::ToplevelManager::toplevelReady,
-                   this,
-                   &HyprlandToplevelMappingManager::onToplevelReady);
+      &wayland::wlr::toplevels::ToplevelManager::toplevelReady, this,
+      &HyprlandToplevelMappingManager::onToplevelReady);
 
   QObject::connect(wayland::toplevels::WLToplevelManager::instance(),
-                   &wayland::toplevels::WLToplevelManager::toplevelReady,
-                   this,
-                   &HyprlandToplevelMappingManager::onWlExtToplevelReady);
+      &wayland::toplevels::WLToplevelManager::toplevelReady, this,
+      &HyprlandToplevelMappingManager::onWlExtToplevelReady);
 
   for (auto *toplevel :
-       wayland::wlr::toplevels::ToplevelManager::instance()->readyToplevels()) {
+      wayland::wlr::toplevels::ToplevelManager::instance()->readyToplevels())
+  {
     this->onToplevelReady(toplevel);
   }
 
   for (auto *wlToplevel :
-       wayland::toplevels::WLToplevelManager::instance()->toplevels()) {
+      wayland::toplevels::WLToplevelManager::instance()->toplevels())
+  {
     this->onWlExtToplevelReady(wlToplevel);
   }
 }
 
 HyprlandToplevelMappingManager *HyprlandToplevelMappingManager::instance() {
-  static auto *s_instance = new HyprlandToplevelMappingManager();
+  static HyprlandToplevelMappingManager *s_instance = nullptr;
+  if (!s_instance) s_instance = new HyprlandToplevelMappingManager();
   return s_instance;
 }
 
-HyprlandToplevelMappingManager *
-HyprlandToplevelMappingManager::create(QQmlEngine *qmlEngine,
-                                       QJSEngine * /* unused */) {
+HyprlandToplevelMappingManager *HyprlandToplevelMappingManager::create(
+    QQmlEngine *qmlEngine, QJSEngine * /* unused */) {
   auto inst = instance();
   if (qmlEngine) qmlEngine->setObjectOwnership(inst, QQmlEngine::CppOwnership);
   return inst;
@@ -57,18 +57,15 @@ HyprlandToplevelMappingManager::create(QQmlEngine *qmlEngine,
 
 void HyprlandToplevelMappingManager::onToplevelReady(
     wayland::wlr::toplevels::ToplevelHandle *handle) {
-  QObject::connect(handle,
-                   &QObject::destroyed,
-                   this,
-                   &HyprlandToplevelMappingManager::onToplevelDestroyed);
+  QObject::connect(handle, &QObject::destroyed, this,
+      &HyprlandToplevelMappingManager::onToplevelDestroyed);
 
   auto hyprHandle = new HyprlandToplevelMappingHandle(
       [this](void *handle, quint64 address) {
         auto h = static_cast<wayland::wlr::toplevels::ToplevelHandle *>(handle);
         this->assignAddressWlr(h, address);
       },
-      handle,
-      this->get_window_for_toplevel_wlr(handle->object()));
+      handle, this->get_window_for_toplevel_wlr(handle->object()));
 }
 
 void HyprlandToplevelMappingManager::onWlExtToplevelReady(
@@ -85,8 +82,7 @@ void HyprlandToplevelMappingManager::onWlExtToplevelReady(
         auto h = static_cast<wayland::toplevels::WLToplevelHandle *>(handle);
         this->assignAddressWlExt(h, address);
       },
-      handle,
-      this->get_window_for_toplevel(handle->object()));
+      handle, this->get_window_for_toplevel(handle->object()));
 }
 
 void HyprlandToplevelMappingManager::onToplevelDestroyed(QObject *object) {
@@ -95,8 +91,7 @@ void HyprlandToplevelMappingManager::onToplevelDestroyed(QObject *object) {
 }
 
 void HyprlandToplevelMappingManager::assignAddressWlr(
-    wayland::wlr::toplevels::ToplevelHandle *handle,
-    quint64                                  address) {
+    wayland::wlr::toplevels::ToplevelHandle *handle, quint64 address) {
   if (m_pendingMappings.contains(address)) {
     auto p = m_pendingMappings.take(address);
     handle->mapWaylandExtHandle(p);
@@ -106,8 +101,7 @@ void HyprlandToplevelMappingManager::assignAddressWlr(
 }
 
 void HyprlandToplevelMappingManager::assignAddressWlExt(
-    wayland::toplevels::WLToplevelHandle *handle,
-    quint64                               address) {
+    wayland::toplevels::WLToplevelHandle *handle, quint64 address) {
   auto existingKey = m_addresses.key(address, nullptr);
   if (existingKey) {
     existingKey->mapWaylandExtHandle(handle);

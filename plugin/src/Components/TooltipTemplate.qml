@@ -7,8 +7,8 @@ Item {
 
   property string text
 
-  width: Math.max(1, tooltipText.width)
-  height: Math.max(1, tooltipText.height)
+  implicitWidth: Math.max(1, tooltipText.width)
+  implicitHeight: Math.max(1, tooltipText.height)
 
   Rectangle {
     anchors.fill: parent

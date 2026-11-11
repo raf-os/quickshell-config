@@ -49,7 +49,8 @@ TooltipProvider *TooltipProvider::create(
 TooltipProvider::TooltipProvider(QQmlEngine *engine, QObject *parent)
     : QObject(parent), m_graceTimer(new QTimer(this)),
       m_window(new QQuickWindow()) {
-  m_window->setFlag(Qt::ToolTip);
+  m_window->setFlags(Qt::ToolTip | Qt::WindowTransparentForInput |
+                     Qt::WindowDoesNotAcceptFocus);
   m_windowContent = m_window->contentItem();
   m_window->setColor("transparent");
 

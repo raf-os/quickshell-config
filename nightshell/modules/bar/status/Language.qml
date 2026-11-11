@@ -2,9 +2,9 @@ import "popouts"
 import qs.components
 
 import org.nightshell.Configs
+import org.nightshell.Hyprland
 
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 
 BaseStatus {
@@ -18,24 +18,32 @@ BaseStatus {
 
   popoutComponent: LanguagePopout {}
 
-  implicitWidth: langText.width
+  implicitWidth: fontMetrics.averageCharacterWidth * 2 + hPadding * 2
   Layout.fillHeight: true
+
+  FontMetrics {
+    id: fontMetrics
+    font: langText.font
+  }
 
   StyledText {
     id: langText
 
-    anchors {
-      top: parent.top
-      bottom: parent.bottom
-      horizontalCenter: parent.horizontalCenter
-    }
+    anchors.fill: parent
 
-    leftPadding: root.hPadding
-    rightPadding: root.hPadding
+    // leftPadding: root.hPadding
+    // rightPadding: root.hPadding
 
     font.weight: 700
     font.pixelSize: parent.height * 0.75
-    text: "us"
+    text: {
+      const layout = Hyprland.inputConfig.layouts[Hyprland.keyboardLayoutIndex];
+      if (!layout)
+        return "n/a";
+      if (layout.variant !== "")
+        return layout.variant;
+      return layout.layout;
+    }
 
     color: root.isActive ? Colors.accent : Colors.primary
     Behavior on color {

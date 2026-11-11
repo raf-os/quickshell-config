@@ -10,6 +10,7 @@
 #include <qobject.h>
 #include <qpointer.h>
 #include <qprocess.h>
+#include <qproperty.h>
 #include <qqmlengine.h>
 #include <qqmlintegration.h>
 #include <qstringview.h>
@@ -20,13 +21,14 @@
 #include "hyprevents.h"
 #include "hyprinputconfig.h"
 #include "hyprmonitorsmodel.h"
+#include "ns_hyprland_export.h"
 #include "toplevelmodel.h"
 #include "workspacesmodel.h"
 
 namespace ns::hyprland {
 Q_DECLARE_LOGGING_CATEGORY(logNSHyprland)
 
-class Hyprland : public QObject {
+class NS_HYPRLAND_EXPORT Hyprland : public QObject {
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
@@ -42,6 +44,8 @@ class Hyprland : public QObject {
       ns::hyprland::HyprInputConfig *inputConfig READ inputConfig CONSTANT)
   Q_PROPERTY(int keyboardLayoutIndex READ keyboardLayoutIndex NOTIFY
           keyboardLayoutIndexChanged)
+  Q_PROPERTY(bool xkbSwitchCooldown READ default NOTIFY xkbSwitchCooldownChanged
+          BINDABLE bindableXkbSwitchCooldown)
 
   AUTO_MEYERS_SINGLETON_QML_DECL(Hyprland)
 
@@ -62,6 +66,10 @@ public:
   [[nodiscard]] int                keyboardLayoutIndex() const;
   void                             setKeyboardLayoutIndex(const int &value);
 
+  [[nodiscard]] QBindable<bool> bindableXkbSwitchCooldown() const {
+    return &b_xkbSwitchOnCooldown;
+  }
+
   void             hyprctl(const QByteArray                           &request,
       const std::function<void(bool, const QByteArray &)> &callback);
   Q_INVOKABLE void dispatch(const QString &request);
@@ -69,7 +77,8 @@ public:
   Q_INVOKABLE void reloadOptions();
 
 public slots:
-  void switchKeyboardLayout(const QString &cmd);
+  void switchKeyboardLayout(
+      const QString &cmd, const QString &device = "current");
 
 private slots:
   void queryHyprInputConfigs();
@@ -81,6 +90,7 @@ private slots:
 
 signals:
   void keyboardLayoutIndexChanged();
+  void xkbSwitchCooldownChanged();
 
 private:
   explicit Hyprland(QObject *parent = nullptr);
@@ -94,6 +104,8 @@ private:
   bool m_requestingWorkspaces    = false;
   bool m_requestingMonitors      = false;
 
+  QTimer *m_keyboardSwitchCooldownTimer;
+
   HyprEvents        *m_eventHandler    = nullptr;
   ToplevelModel     *m_toplevelModel   = nullptr;
   WorkspacesModel   *m_workspacesModel = nullptr;
@@ -101,5 +113,8 @@ private:
   int                m_keyboardLayoutIndex;
 
   HyprInputConfig *m_inputConfig;
+
+  Q_OBJECT_BINDABLE_PROPERTY(Hyprland, bool, b_xkbSwitchOnCooldown,
+      &Hyprland::xkbSwitchCooldownChanged)
 };
 } // namespace ns::hyprland

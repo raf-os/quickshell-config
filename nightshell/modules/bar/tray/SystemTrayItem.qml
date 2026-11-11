@@ -1,63 +1,74 @@
 import org.nightshell.Configs
 import org.nightshell.SystemTray
+import org.nightshell.Components
+
 import QtQuick
 import QtQuick.Effects
 
 MouseArea {
-	id: root
+  id: root
 
-	required property StatusNotifierItem modelData
-	required property bool isActive
-	property int padding: 4
+  required property StatusNotifierItem modelData
+  required property bool isActive
+  readonly property bool isUrgent: modelData.status === StatusStatus.NeedsAttention
+  property int padding: 4
 
-	acceptedButtons: Qt.AllButtons
-	hoverEnabled: true
-	cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+  acceptedButtons: Qt.AllButtons
+  hoverEnabled: true
+  cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-	implicitWidth: implicitHeight
+  implicitWidth: implicitHeight
 
-	signal openAttachedMenu
-	signal requestClose
+  signal openAttachedMenu
+  signal requestClose
 
-	onClicked: ev => {
-		if (ev.button === Qt.LeftButton) {
-			if (root.modelData.isMenuOnly) {
-				root.openAttachedMenu();
-			} else {
-				root.modelData.activate();
-			}
-		} else if (ev.button === Qt.MiddleButton) {
-			if (root.modelData.isMenuOnly)
-				return;
-			root.modelData.secondaryActivate();
-		} else if (ev.button === Qt.RightButton) {
-			root.openAttachedMenu();
-		}
-	}
+  SToolTip {
+    active: !root.isActive && root.containsMouse
+    text: root.modelData.tooltipTitle !== "" ? root.modelData.tooltipTitle : root.modelData.title
+    offset: 4
+  }
 
-	onModelDataChanged: {
-		if (!modelData)
-			root.requestClose();
-	}
+  onClicked: ev => {
+    if (ev.button === Qt.LeftButton) {
+      if (root.modelData.isMenuOnly) {
+        root.openAttachedMenu();
+      } else {
+        root.modelData.activate();
+        root.requestClose();
+      }
+    } else if (ev.button === Qt.MiddleButton) {
+      if (root.modelData.isMenuOnly)
+        return;
+      root.modelData.secondaryActivate();
+      root.requestClose();
+    } else if (ev.button === Qt.RightButton) {
+      root.openAttachedMenu();
+    }
+  }
 
-	Image {
-		id: trayItemIcon
-		visible: false
-		anchors.centerIn: parent
+  onModelDataChanged: {
+    if (!modelData)
+      root.requestClose();
+  }
 
-		asynchronous: true
-		width: parent.width - root.padding * 2
-		height: parent.height - root.padding * 2
+  Image {
+    id: trayItemIcon
+    visible: false
+    anchors.centerIn: parent
 
-		source: root.modelData.iconUrl
-	}
+    asynchronous: true
+    width: parent.width - root.padding * 2
+    height: parent.height - root.padding * 2
 
-	MultiEffect {
-		source: trayItemIcon
-		anchors.fill: trayItemIcon
-		colorization: 0.5
-		colorizationColor: Colors.secondary
-		contrast: -0.1
-		brightness: 0.1
-	}
+    source: root.modelData.iconUrl
+  }
+
+  MultiEffect {
+    source: trayItemIcon
+    anchors.fill: trayItemIcon
+    colorization: 1
+    colorizationColor: root.isUrgent ? Colors.accent : (root.isActive ? Colors.secondary : Colors.primary)
+    contrast: 0.5
+    brightness: 0.1
+  }
 }

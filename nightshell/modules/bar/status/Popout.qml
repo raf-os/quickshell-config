@@ -34,7 +34,7 @@ Item {
       if (cur && root.hasPopout) {
         root.currentName = cur.name;
         const pos = cur.mapToItem(root.context.content, cur.width / 2, cur.height);
-        root.x = pos.x;
+        root.x = Math.round(pos.x);
         // root.y = pos.y;
         if (root.hasPopout) {
           root.openPopout(cur.popoutComponent);
@@ -66,6 +66,7 @@ Item {
   MouseArea {
     id: content
 
+    property int padding: Styles.padding_lg
     property real bufferedWidth: 320
     enabled: root.hasPopout
 
@@ -75,13 +76,13 @@ Item {
     }
 
     implicitWidth: bufferedWidth
-    implicitHeight: stack.currentItem ? Math.max(64, stack.currentItem.implicitHeight) : 0
+    implicitHeight: stack.currentItem ? Math.max(64, stack.currentItem.implicitHeight + content.padding * 2) : 0
 
     clip: true
 
     Behavior on implicitHeight {
       NAnim {
-        duration: 600
+        duration: 300
       }
     }
 
@@ -100,7 +101,7 @@ Item {
     }
 
     Rectangle {
-      anchors.fill: stack
+      anchors.fill: content
       color: Colors.primaryContent
       border.width: 1
       border.color: Colors.primary
@@ -110,6 +111,7 @@ Item {
       id: stack
 
       anchors.fill: parent
+      anchors.margins: content.padding
 
       replaceEnter: Transition {
         NumberAnimation {

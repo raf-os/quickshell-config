@@ -1,5 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import qs.components
 import qs.utils
+import qs.services
 
 import org.nightshell.Components
 import org.nightshell.Configs
@@ -55,12 +58,6 @@ Item {
       leftMargin: Styles.spacing_md
     }
 
-    SimpleGlowEffect {
-      source: titleRect
-      anchors.fill: titleRect
-      shadowColor: Colors.primary
-    }
-
     ChamferRect {
       id: titleRect
       anchors.fill: parent
@@ -105,6 +102,11 @@ Item {
       font: titleMetrics.font
 
       verticalAlignment: Text.AlignVCenter
+
+      layer.enabled: !GameMode.isActive
+      layer.effect: SimpleGlowEffect {
+        shadowColor: toplevelTitle.color
+      }
     }
   }
 }

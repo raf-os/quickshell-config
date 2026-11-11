@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import qs.components
+import qs.components.animations
 import qs.modules as Modules
 
 import org.nightshell.Configs
@@ -11,125 +12,161 @@ import QtQuick
 import QtQuick.Controls
 
 Item {
-	id: root
+  id: root
 
-	required property SystemTray systemTray
-	required property Modules.Content content
+  required property SystemTray systemTray
+  required property Modules.Content content
 
-	readonly property int padding: Styles.padding_sm
-	readonly property int popoutWidth: 240
-	readonly property int animDuration: 300
+  readonly property int padding: Styles.padding_sm
+  readonly property int popoutWidth: 240
+  readonly property int animDuration: 300
+  readonly property int animFlickerDuration: 500
 
-	property bool enableMovementAnim: false
+  readonly property int yOffset: Styles.spacing_sm
 
-	focus: true
+  property bool enableMovementAnim: false
 
-	signal exitAnimationFinished
+  signal exitAnimationFinished
 
-	function pushIndex(index: var, depth: int, statusItem: StatusNotifierItem) {
-		popoutCurrent.push(submenuComponent, {
-			statusItem: statusItem,
-			depth: depth + 1,
-			rootIndex: index
-		});
-	}
+  function pushIndex(index: var, depth: int, statusItem: StatusNotifierItem) {
+    popoutCurrent.push(submenuComponent, {
+      statusItem: statusItem,
+      depth: depth + 1,
+      rootIndex: index
+    });
+  }
 
-	Behavior on x {
-		enabled: root.enableMovementAnim
-		NAnim {
-			duration: root.animDuration
-		}
-	}
+  Behavior on x {
+    enabled: root.enableMovementAnim
+    NAnim {
+      duration: root.animDuration
+    }
+  }
 
-	Behavior on y {
-		enabled: root.enableMovementAnim
-		NAnim {
-			duration: root.animDuration
-		}
-	}
+  Behavior on y {
+    enabled: root.enableMovementAnim
+    NAnim {
+      duration: root.animDuration
+    }
+  }
 
-	Connections {
-		target: root.systemTray
-		function onCurrentChanged() {
-			if (!root.systemTray.current) {
-				root.enableMovementAnim = false;
-				return;
-			}
+  Connections {
+    target: root.systemTray
+    function onCurrentChanged() {
+      if (!root.systemTray.current) {
+        root.enableMovementAnim = false;
+        return;
+      }
 
-			const cur = root.systemTray.current;
-			const newPos = cur.mapToItem(root.content, cur.width / 2, cur.height);
-			root.x = newPos.x;
-			root.y = newPos.y;
-			root.enableMovementAnim = true;
-		}
-	}
+      const cur = root.systemTray.current;
+      const newPos = cur.mapToItem(root.content, cur.width / 2, cur.height + root.yOffset);
+      root.x = newPos.x;
+      root.y = newPos.y;
+      root.enableMovementAnim = true;
+    }
+  }
 
-	FocusGrabber {
-		id: focusGrab
-		active: root.systemTray.current !== null
+  FocusGrabber {
+    id: focusGrab
+    active: root.systemTray.current !== null
 
-		onFocusLost: {
-			root.systemTray.closePopup();
-		}
-	}
+    onFocusLost: {
+      root.systemTray.closePopup();
+    }
+  }
 
-	Item {
-		id: popoutContent
+  MouseArea {
+    id: popoutContent
 
-		anchors {
-			top: parent.bottom
-			horizontalCenter: parent.horizontalCenter
-		}
+    readonly property int padding: Styles.padding_md
 
-		implicitWidth: root.popoutWidth
-		implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight : 0
+    anchors {
+      top: parent.bottom
+      horizontalCenter: parent.horizontalCenter
+    }
 
-		opacity: root.systemTray.current ? 1 : 0
+    implicitWidth: root.popoutWidth
+    implicitHeight: popoutCurrent.currentItem ? popoutCurrent.currentItem.implicitHeight + padding * 2 : 0
 
-		StackView {
-			id: popoutCurrent
+    Behavior on implicitHeight {
+      NAnim {
+        duration: root.animDuration
+      }
+    }
 
-			anchors.fill: parent
-			clip: true
+    // opacity: root.systemTray.current ? 1 : 0
 
-			Connections {
-				target: root.systemTray
+    Rectangle {
+      anchors.fill: parent
+      color: Colors.primaryContent
+      border.width: 1
+      border.color: Colors.primary
+    }
 
-				function onCurrentChanged() {
-					if (root.systemTray.current) {
-						popoutCurrent.replace(submenuComponent, {
-							statusItem: root.systemTray.current.modelData,
-							rootIndex: root.systemTray.current.modelData.menuHandle.rootIndex,
-							depth: 0
-						});
-					} else {
-						popoutCurrent.clear(StackView.PopTransition);
-					}
-				}
-			}
-		}
-	}
+    StackView {
+      id: popoutCurrent
 
-	Component {
-		id: submenuComponent
-		Submenu {
-			implicitWidth: StackView.view ? StackView.view.width : 0
+      anchors.fill: parent
+      anchors.margins: popoutContent.padding
+      clip: true
 
-			onNavigateToIndex: (index, statusItem) => {
-				root.pushIndex(index, depth, statusItem);
-			}
+      popExit: ExitTransition {}
 
-			onNavigateBack: {
-				if (popoutCurrent.depth > 1) {
-					popoutCurrent.popCurrentItem();
-				} else {
-					popoutCurrent.clear(StackView.PopTransition);
-				}
-			}
+      replaceEnter: Transition {
+        FlickerPopIn {
+          duration: root.animFlickerDuration
+        }
+      }
 
-			onRequestClose: {
-				root.systemTray.closePopup();
-			}
-		}
-	}
+      replaceExit: ExitTransition {}
+
+      Connections {
+        target: root.systemTray
+
+        function onCurrentChanged() {
+          if (root.systemTray.current) {
+            popoutCurrent.replace(submenuComponent, {
+              statusItem: root.systemTray.current.modelData,
+              rootIndex: root.systemTray.current.modelData.menuHandle.rootIndex,
+              depth: 0
+            }, StackView.ReplaceTransition);
+          } else {
+            popoutCurrent.clear(StackView.PopTransition);
+          }
+        }
+      }
+    }
+  }
+
+  Component {
+    id: submenuComponent
+    Submenu {
+      implicitWidth: StackView.view ? StackView.view.width : 0
+
+      onNavigateToIndex: (index, statusItem) => {
+        root.pushIndex(index, depth, statusItem);
+      }
+
+      onNavigateBack: {
+        if (popoutCurrent.depth > 1) {
+          popoutCurrent.popCurrentItem();
+        } else {
+          popoutCurrent.clear(StackView.PopTransition);
+        }
+      }
+
+      onRequestClose: {
+        root.systemTray.closePopup();
+      }
+    }
+  }
+
+  component ExitTransition: Transition {
+    NumberAnimation {
+      property: "opacity"
+      from: 1
+      to: 0
+      duration: 200
+    }
+  }
 }

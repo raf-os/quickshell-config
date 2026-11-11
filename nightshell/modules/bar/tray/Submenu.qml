@@ -4,199 +4,217 @@ import qs.components
 import org.nightshell.Configs
 import org.nightshell.DBusMenu
 import org.nightshell.SystemTray
+
 import QtQuick
+import QtQuick.Layouts
 
 Item {
-	id: root
+  id: root
 
-	required property StatusNotifierItem statusItem
-	required property var rootIndex
-	required property int depth
-	readonly property int padding: Styles.padding_sm
+  required property StatusNotifierItem statusItem
+  required property var rootIndex
+  required property int depth
+  readonly property int padding: Styles.padding_sm
 
-	signal requestClose
-	signal navigateBack
-	signal navigateToIndex(index: var, statusItem: StatusNotifierItem)
+  signal requestClose
+  signal navigateBack
+  signal navigateToIndex(index: var, statusItem: StatusNotifierItem)
 
-	implicitHeight: Math.min(listView.contentHeight + returnComponentLoader.height + root.padding * 2, 1024)
-	focus: true
+  implicitHeight: Math.min(listView.contentHeight + returnComponentLoader.height, 1024)
 
-	ScopedDBusMenuView {
-		id: scope
-		model: root.statusItem.menuHandle
-		modelIndex: root.statusItem.menuHandle.rootIndex
-	}
+  ScopedDBusMenuView {
+    id: scope
+    model: root.statusItem.menuHandle
+    modelIndex: root.statusItem.menuHandle.rootIndex
+  }
 
-	DelegateModel {
-		id: itemModel
-		model: root.statusItem.menuHandle
-		rootIndex: root.rootIndex
+  DelegateModel {
+    id: itemModel
+    model: root.statusItem.menuHandle
+    rootIndex: root.rootIndex
 
-		onCountChanged: {
-			if (count === 0)
-				root.navigateBack();
-		}
+    onCountChanged: {
+      if (count === 0)
+        root.navigateBack();
+    }
 
-		delegate: Item {
-			id: itemDelegate
-			required property int index
-			required property var selfIndex
-			required property DBusMenuModelItem modelData
+    delegate: Item {
+      id: itemDelegate
+      required property int index
+      required property var selfIndex
+      required property DBusMenuModelItem modelData
 
-			readonly property int spacing: Styles.spacing_sm
+      readonly property int spacing: Styles.spacing_sm
 
-			implicitWidth: ListView.view ? ListView.view.width : 0
-			implicitHeight: childrenRect.height
+      implicitWidth: ListView.view ? ListView.view.width : 0
+      implicitHeight: childrenRect.height
 
-			visible: modelData.isVisible
+      visible: modelData.isVisible
 
-			Loader {
-				active: !itemDelegate.modelData.isSeparator
-				anchors {
-					left: parent.left
-					right: parent.right
-				}
-				sourceComponent: MouseArea {
-					id: menuItem
+      Loader {
+        id: nonSepLoader
+        active: !itemDelegate.modelData.isSeparator && itemDelegate.modelData.isVisible
+        anchors {
+          left: parent.left
+          right: parent.right
+        }
+        sourceComponent: MouseArea {
+          id: menuItem
 
-					enabled: itemDelegate.modelData.isEnabled
-					cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-					hoverEnabled: true
+          enabled: itemDelegate.modelData.isEnabled
+          cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+          hoverEnabled: true
 
-					implicitHeight: labelText.height > 0 ? (labelText.height + Styles.padding_sm * 2) : 0
+          implicitHeight: labelText.height > 0 ? (labelText.height) : 0
 
-					onClicked: {
-						if (itemDelegate.modelData.hasChildren) {
-							root.navigateToIndex(itemDelegate.selfIndex, root.statusItem);
-						} else {
-							itemDelegate.modelData.trigger();
-							root.requestClose();
-						}
-					}
+          onClicked: {
+            if (itemDelegate.modelData.hasChildren) {
+              root.navigateToIndex(itemDelegate.selfIndex, root.statusItem);
+            } else {
+              itemDelegate.modelData.trigger();
+              root.requestClose();
+            }
+          }
 
-					Loader {
-						id: itemIconLoader
-						active: itemDelegate.modelData.iconUrl !== ""
-						anchors {
-							left: parent.left
-							leftMargin: Styles.padding_sm
-							top: parent.top
-							bottom: parent.bottom
-							margins: 1
-						}
-						sourceComponent: Item {
-							implicitWidth: height
+          Loader {
+            id: itemIconLoader
+            active: itemDelegate.modelData.iconUrl !== ""
+            anchors {
+              left: parent.left
+              // leftMargin: Styles.padding_sm
+              top: parent.top
+              bottom: parent.bottom
+              margins: 1
+            }
+            sourceComponent: Item {
+              implicitWidth: height
 
-							Image {
-								asynchronous: true
-								source: itemDelegate.modelData.iconUrl
-								width: parent.width
-								height: parent.height
-							}
-						}
-					}
+              Image {
+                readonly property int size: Math.min(parent.width, parent.height)
+                scale: size / 24
+                anchors.fill: parent
+                asynchronous: true
+                source: itemDelegate.modelData.iconUrl
+                // width: size
+                // height: size
+                sourceSize.width: 24
+                sourceSize.height: 24
 
-					StyledText {
-						id: labelText
-						anchors {
-							left: itemIconLoader.right
-							leftMargin: itemIconLoader.active ? itemDelegate.spacing : 0
-							right: expandIconLoader.left
-							rightMargin: expandIconLoader.active ? itemDelegate.spacing : 0
-							verticalCenter: parent.verticalCenter
-						}
+                horizontalAlignment: Image.AlignHCenter
+                verticalAlignment: Image.AlignVCenter
+              }
+            }
+          }
 
-						text: itemDelegate.modelData.text
-						elide: Text.ElideRight
+          StyledText {
+            id: labelText
+            anchors {
+              left: itemIconLoader.right
+              right: expandIconLoader.left
+              verticalCenter: parent.verticalCenter
+            }
 
-						font.pointSize: Styles.text_sm
-						opacity: parent.enabled ? 1 : 0.5
-					}
+            text: itemDelegate.modelData.text !== "" ? itemDelegate.modelData.text : "???"
+            elide: Text.ElideRight
 
-					Loader {
-						id: expandIconLoader
-						active: itemDelegate.modelData.hasChildren
-						anchors {
-							right: parent.right
-							rightMargin: Styles.padding_sm
-							verticalCenter: parent.verticalCenter
-						}
-						sourceComponent: StyledText {
-							text: ">"
-						}
-					}
-				}
-			}
+            leftPadding: itemIconLoader.active ? itemDelegate.spacing : 0
+            rightPadding: expandIconLoader.active ? itemDelegate.spacing : 0
+            topPadding: Styles.padding_sm
+            bottomPadding: topPadding
 
-			Loader {
-				active: itemDelegate.modelData.isSeparator
-				anchors {
-					left: parent.left
-					right: parent.right
-				}
-				sourceComponent: Item {
-					implicitHeight: 13
+            color: menuItem.containsMouse ? Colors.secondary : Colors.primary
 
-					Rectangle {
-						anchors {
-							left: parent.left
-							right: parent.right
-							verticalCenter: parent.verticalCenter
-						}
-						implicitHeight: 1
-						color: Colors.primary
-					}
-				}
-			}
-		}
-	}
+            font.pointSize: Styles.text_md
+            font.weight: 500
+            style: Text.Raised
+            opacity: parent.enabled ? 1 : 0.5
+          }
 
-	Loader {
-		id: returnComponentLoader
-		active: root.depth > 0
+          Loader {
+            id: expandIconLoader
+            active: itemDelegate.modelData.hasChildren
+            anchors {
+              right: parent.right
+              rightMargin: Styles.padding_sm
+              verticalCenter: parent.verticalCenter
+            }
+            sourceComponent: StyledText {
+              text: ">"
+            }
+          }
+        }
+      }
 
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: parent.top
-		}
+      Loader {
+        active: itemDelegate.modelData.isSeparator && itemDelegate.modelData.isVisible
+        anchors {
+          left: parent.left
+          right: parent.right
+        }
+        Layout.fillWidth: true
+        sourceComponent: Item {
+          implicitHeight: 13
 
-		sourceComponent: MouseArea {
-			id: returnComponent
+          Rectangle {
+            anchors {
+              left: parent.left
+              right: parent.right
+              verticalCenter: parent.verticalCenter
+            }
+            implicitHeight: 1
+            color: Colors.primary
+          }
+        }
+      }
+    }
+  }
 
-			implicitHeight: returnTextItem.height
+  Loader {
+    id: returnComponentLoader
+    active: root.depth > 0
 
-			onClicked: {
-				root.navigateBack();
-			}
+    anchors {
+      left: parent.left
+      right: parent.right
+      top: parent.top
+    }
 
-			StyledText {
-				id: returnTextItem
+    sourceComponent: MouseArea {
+      id: returnComponent
 
-				anchors {
-					left: parent.left
-					right: parent.right
-					verticalCenter: parent.verticalCenter
-				}
-				padding: Styles.padding_sm
+      implicitHeight: returnTextItem.height
 
-				font.pointSize: Styles.text_sm
-				text: "< return"
-			}
-		}
-	}
+      onClicked: {
+        root.navigateBack();
+      }
 
-	ListView {
-		id: listView
-		acceptedButtons: Qt.NoButton
-		anchors {
-			top: returnComponentLoader.bottom
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
-		}
-		focus: true
-		model: itemModel
-		spacing: 0
-	}
+      StyledText {
+        id: returnTextItem
+
+        anchors {
+          left: parent.left
+          right: parent.right
+          verticalCenter: parent.verticalCenter
+        }
+        padding: Styles.padding_sm
+
+        font.pointSize: Styles.text_sm
+        text: "< return"
+      }
+    }
+  }
+
+  ListView {
+    id: listView
+    acceptedButtons: Qt.NoButton
+    anchors {
+      top: returnComponentLoader.bottom
+      left: parent.left
+      right: parent.right
+      bottom: parent.bottom
+    }
+    focus: true
+    model: itemModel
+    spacing: 0
+  }
 }

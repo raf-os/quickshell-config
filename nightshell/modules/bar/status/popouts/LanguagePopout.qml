@@ -12,11 +12,12 @@ import QtQuick.Layouts
 BasePopout {
   id: root
 
-  readonly property int hPadding: Styles.padding_lg
-  readonly property int vPadding: Styles.padding_lg
+  // readonly property int hPadding: Styles.padding_lg
+  // readonly property int vPadding: Styles.padding_lg
+  readonly property bool isEnabled: !Hyprland.xkbSwitchCooldown
 
   implicitWidth: 240
-  implicitHeight: rootLayout.height + vPadding * 2
+  implicitHeight: rootLayout.height
 
   ColumnLayout {
     id: rootLayout
@@ -27,9 +28,9 @@ BasePopout {
       left: parent.left
       right: parent.right
       top: parent.top
-      leftMargin: root.hPadding
-      rightMargin: root.hPadding
-      topMargin: root.vPadding
+      // leftMargin: root.hPadding
+      // rightMargin: root.hPadding
+      // topMargin: root.vPadding
     }
 
     StyledText {
@@ -52,26 +53,24 @@ BasePopout {
       model: Hyprland.inputConfig.layouts
       delegate: LayoutItem {}
 
-      highlightFollowsCurrentItem: false
       highlight: Item {
         id: lvh
         opacity: langView.currentItem ? 1 : 0
 
-        Binding {
-          when: !!langView.currentItem
-          lvh.x: langView.currentItem.x
-          lvh.y: langView.currentItem.y
-          lvh.width: langView.currentItem.width
-          lvh.height: langView.currentItem.height
-        }
-
         RectangularShadow {
           anchors.fill: parent
           color: Colors.secondary
+          opacity: root.isEnabled ? 1 : 0
         }
         Rectangle {
           anchors.fill: parent
           color: Colors.secondary
+          opacity: root.isEnabled ? 1 : 0.25
+          Behavior on opacity {
+            NAnim {
+              duration: 300
+            }
+          }
         }
       }
 
@@ -92,11 +91,17 @@ BasePopout {
   component LayoutItem: SMouseArea {
     id: layoutItemComp
     required property HyprKeyboardLayout modelData
+    required property int index
 
     readonly property bool isSelected: ListView.isCurrentItem
+    enabled: root.isEnabled
 
     implicitWidth: ListView.view ? ListView.view.width : 0
     implicitHeight: layoutName.height
+
+    onClicked: {
+      Hyprland.switchKeyboardLayout(index);
+    }
 
     StyledText {
       id: layoutName

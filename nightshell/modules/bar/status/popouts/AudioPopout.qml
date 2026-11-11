@@ -15,10 +15,8 @@ import QtQuick.Layouts
 BasePopout {
   id: root
 
-  readonly property int padding: Styles.padding_md
-
   implicitWidth: 320
-  implicitHeight: rootLayout.height + padding * 2
+  implicitHeight: rootLayout.height
 
   PipewireModel {
     id: pipewire
@@ -39,7 +37,6 @@ BasePopout {
       left: parent.left
       right: parent.right
       top: parent.top
-      margins: root.padding
     }
 
     DefaultNodeSettings {
