@@ -8,6 +8,6 @@ NumberAnimation {
   to: 1
 
   easing.type: Easing.InElastic
-  easing.amplitude: 0.2
-  easing.period: 0.25
+  easing.amplitude: 4
+  easing.period: 0.4
 }

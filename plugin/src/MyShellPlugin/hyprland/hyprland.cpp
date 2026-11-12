@@ -4,7 +4,6 @@
 #include <iterator>
 #include <utility>
 
-#include <qbytearrayview.h>
 #include <qcontainerfwd.h>
 #include <qfileinfo.h>
 #include <qhash.h>

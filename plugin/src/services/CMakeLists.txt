@@ -3,6 +3,7 @@ find_program(XMLLINT xmllint)
 
 add_subdirectory(pam)
 add_subdirectory(pipewire/new)
+add_subdirectory(mpris)
 
 if(XMLLINT)
   execute_process(

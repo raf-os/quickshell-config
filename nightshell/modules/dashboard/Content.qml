@@ -16,7 +16,7 @@ MouseArea {
 
   readonly property int desiredWidth: 420
   readonly property int resizeAnimationLength: 500
-  readonly property int fadeAnimationLength: 1000
+  readonly property int fadeAnimationLength: 800
 
   property alias sessionTransform: sessionTransform
 
@@ -59,7 +59,7 @@ MouseArea {
         target: layerWrapper
         from: 0
         to: 1
-        duration: root.fadeAnimationLength * 0.6
+        duration: root.fadeAnimationLength * 0.8
       }
     }
   }
