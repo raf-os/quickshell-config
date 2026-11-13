@@ -4,6 +4,7 @@
 #include <qloggingcategory.h>
 #include <qobject.h>
 
+#include "dbus_bindable_group.h"
 #include "dbus_mpris.h"
 #include "ns_mpris_debug.h"
 
@@ -18,5 +19,7 @@ MprisPlayer::MprisPlayer(const QString &service, QObject *parent)
         << "Unable to create mpris object for address" << service;
     return;
   }
+
+  DBUS_BINDABLE_MEMBER.setInterface(m_player);
 }
 } // namespace ns::mpris
