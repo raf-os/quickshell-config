@@ -4,13 +4,24 @@ qt6_add_library(nightshell_mpris SHARED)
 
 set_source_files_properties(
   org.mpris.MediaPlayer2.xml
-  PROPERTIES CLASSNAME DBusMprisMediaPlayer
+  PROPERTIES CLASSNAME DBusMprisMediaPlayer NO_NAMESPACE TRUE
 )
 
 qt6_add_dbus_interface(
   MPRIS_DBUS_INTERFACES
   org.mpris.MediaPlayer2.xml
   dbus_mpris
+)
+
+set_source_files_properties(
+  org.mpris.MediaPlayer2.Player.xml
+  PROPERTIES CLASSNAME DBusMprisMediaPlayerControls NO_NAMESPACE TRUE
+)
+
+qt6_add_dbus_interface(
+  MPRIS_DBUS_INTERFACES
+  org.mpris.MediaPlayer2.Player.xml
+  dbus_mpris_player
 )
 
 target_include_directories(
@@ -21,7 +32,12 @@ target_include_directories(
 
 target_sources(
   nightshell_mpris
-  PRIVATE mpris_service_watcher.cpp mpris_player.cpp ${MPRIS_DBUS_INTERFACES}
+  PRIVATE
+    mpris_service_watcher.cpp
+    mpris_player.cpp
+    mpris_player_controls.cpp
+    qml_mpris_singleton.cpp
+    ${MPRIS_DBUS_INTERFACES}
 )
 
 qt_declare_logging_category(

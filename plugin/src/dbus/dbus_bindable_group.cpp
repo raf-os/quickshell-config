@@ -17,12 +17,10 @@
 #include "ns_dbus_debug.h"
 
 namespace ns::dbus {
-DBusBindableGroup::DBusBindableGroup(
-    const QList<QString> &properties, QObject *parent)
-    : QObject(parent), m_parent(parent) {}
-
-DBusBindableGroup::DBusBindableGroup(QObject *parent)
-    : DBusBindableGroup({}, parent) {}
+DBusBindableGroup::DBusBindableGroup(QObject *parent) : QObject(parent) {
+  m_parent = parent;
+  qCDebug(NS_LOG_DBUS) << "Creating DBusBindableGroup" << this;
+}
 
 void DBusBindableGroup::write(DBusBindablePropertyBase *prop) {
   if (!prop || !m_interface) return;
@@ -39,7 +37,7 @@ void DBusBindableGroup::write(DBusBindablePropertyBase *prop) {
 
   auto  pending      = m_propertiesInterface->Set(m_interface->interface(),
       prop->propertyNameStr(), QDBusVariant(prop->toVariant()));
-  auto *call         = new QDBusPendingCallWatcher(pending, prop);
+  auto *call         = new QDBusPendingCallWatcher(pending, this);
   prop->writeWatcher = call;
 
   auto cb = [prop](QDBusPendingCallWatcher *watcher) {
@@ -53,7 +51,7 @@ void DBusBindableGroup::write(DBusBindablePropertyBase *prop) {
     delete watcher;
   };
 
-  QObject::connect(call, &QDBusPendingCallWatcher::finished, prop, cb);
+  QObject::connect(call, &QDBusPendingCallWatcher::finished, this, cb);
 }
 
 void DBusBindableGroup::read(DBusBindablePropertyBase *prop) {
@@ -65,7 +63,7 @@ void DBusBindableGroup::read(DBusBindablePropertyBase *prop) {
 
   auto pending = m_propertiesInterface->Get(
       m_interface->interface(), prop->propertyNameStr());
-  auto *call        = new QDBusPendingCallWatcher(pending, prop);
+  auto *call        = new QDBusPendingCallWatcher(pending, this);
   prop->readWatcher = call;
 
   auto cb = [prop](QDBusPendingCallWatcher *watcher) {
@@ -81,6 +79,8 @@ void DBusBindableGroup::read(DBusBindablePropertyBase *prop) {
 
     delete watcher;
   };
+
+  QObject::connect(call, &QDBusPendingCallWatcher::finished, this, cb);
 }
 
 void DBusBindableGroup::attachProperty(DBusBindablePropertyBase *prop) {
@@ -88,6 +88,7 @@ void DBusBindableGroup::attachProperty(DBusBindablePropertyBase *prop) {
 }
 
 void DBusBindableGroup::getAll() {
+  qCDebug(NS_LOG_DBUS) << "Calling getAll";
   if (!m_interface) {
     qCFatal(NS_LOG_DBUS) << "Called getAll() with out an attached interface.";
   }
@@ -124,12 +125,15 @@ void DBusBindableGroup::onGetAllFinished(QDBusPendingCallWatcher *watcher) {
   }
 
   updateProperties(reply.value());
+  emit getAllDone();
 }
 
 void DBusBindableGroup::updateProperties(const QVariantMap &properties) {
   for (const auto &[key, value] : properties.asKeyValueRange()) {
     auto it = m_properties.find(key);
     if (it == m_properties.end()) continue;
+
+    qCDebug(NS_LOG_DBUS) << "Found property:" << it.value();
 
     it.value()->serialize(value);
   }
@@ -154,8 +158,6 @@ void DBusBindableGroup::setInterface(QDBusAbstractInterface *interface) {
     QObject::connect(m_propertiesInterface,
         &DBusIntrospectionProperties::PropertiesChanged, this,
         &DBusBindableGroup::onPropertiesChanged);
-
-    getAll();
   }
 }
 

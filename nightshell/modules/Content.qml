@@ -1,5 +1,6 @@
 import qs.utils
 import qs.modules.bar
+import qs.modules.mpris as MPRIS
 import qs.modules.bar.status as STATUS
 import qs.modules.notifications as NOTIFICATIONS
 import qs.modules.launcher as LAUNCHER
@@ -25,6 +26,10 @@ Item {
   property alias notificationsOverlay: notificationsOverlay
   property alias launcherWrapper: launcherWrapper
   property alias dashboardWrapper: dashboardWrapper
+
+  MPRIS.Wrapper {
+    id: mprisDisplay
+  }
 
   TrayItemPopout {
     id: trayPopout
