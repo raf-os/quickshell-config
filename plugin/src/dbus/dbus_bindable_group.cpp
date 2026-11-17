@@ -19,7 +19,6 @@
 namespace ns::dbus {
 DBusBindableGroup::DBusBindableGroup(QObject *parent) : QObject(parent) {
   m_parent = parent;
-  qCDebug(NS_LOG_DBUS) << "Creating DBusBindableGroup" << this;
 }
 
 void DBusBindableGroup::write(DBusBindablePropertyBase *prop) {

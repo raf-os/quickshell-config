@@ -53,8 +53,21 @@ public:
   QPointer<QDBusPendingCallWatcher> writeWatcher = nullptr;
 };
 
-template <typename T, TString16 Name, auto bindablePtr, auto groupPtr,
-    auto offsetPtr>
+template <typename Class, typename T, auto Offset, auto Signal = nullptr>
+class DBusBindable : public DBusBindablePropertyBase {
+  using this_type = DBusBindable<Class, T, Offset, Signal>;
+  static bool constexpr has_signal =
+      !std::is_same_v<decltype(Signal), std::nullptr_t>;
+
+private:
+  [[nodiscard]] Class *owner() {
+    auto *self = std::bit_cast<char *>(this);
+    return std::bit_cast<Class *>(self - Offset());
+  }
+};
+
+template <typename Class, typename T, TString16 Name, auto bindablePtr,
+    auto groupPtr, auto offsetPtr>
 class DBusBindableProperty : public DBusBindablePropertyBase {
   using ptr_meta   = MetaMember<decltype(bindablePtr)>;
   using owner_t    = ptr_meta::Class;
@@ -93,9 +106,9 @@ public:
 private:
   DBusBindableMeta m_meta;
 
-  [[nodiscard]] constexpr owner_t *owner() const {
+  [[nodiscard]] constexpr Class *owner() const {
     auto *self = std::bit_cast<char *>(this);
-    return std::bit_cast<owner_t *>(self - offsetPtr());
+    return std::bit_cast<Class *>(self - offsetPtr());
   }
 
   [[nodiscard]] constexpr DBusBindableGroup *group() const {
@@ -155,10 +168,10 @@ private:
 private:                                                                       \
   QT_OBJECT_BINDABLE_PROPERTY_3(Class, Type, bi_##Property)                    \
   static constexpr size_t _ns_dbus_property_##Property##_internal_offset() {   \
-    return offsetof(Class, bi_##Property);                                     \
+    return offsetof(Class, Name);                                              \
   }                                                                            \
-  ns::dbus::DBusBindableProperty<Type, u## #Name, &Class::bi_##Property,       \
-      &Class::_dbus_bindableGroup,                                             \
+  ns::dbus::DBusBindableProperty<Class, Type, u## #Name,                       \
+      &Class::bi_##Property, &Class::_dbus_bindableGroup,                      \
       &Class::_ns_dbus_property_##Property##_internal_offset>                  \
       Name{Meta};
 
@@ -185,11 +198,11 @@ public:                                                                        \
                                                                                \
 private:                                                                       \
   QT_OBJECT_BINDABLE_PROPERTY_4(                                               \
-      Class, Type, b_##Property, &Class::Property##Changed);                   \
+      Class, Type, b_##Property, &Class::Property##Changed)                    \
   static constexpr size_t _ns_dbus_property_##Property##_offset() {            \
-    return offsetof(Class, b_##Property);                                      \
+    return offsetof(Class, Name);                                              \
   }                                                                            \
-  ns::dbus::DBusBindableProperty<Type, u## #Name, &Class::b_##Property,        \
+  ns::dbus::DBusBindableProperty<Class, Type, u## #Name, &Class::b_##Property, \
       &Class::_dbus_bindableGroup,                                             \
       &Class::_ns_dbus_property_##Property##_offset>                           \
       Name{Meta};
