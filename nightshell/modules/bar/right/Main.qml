@@ -5,27 +5,29 @@ import QtQuick
 import QtQuick.Layouts
 
 Item {
-	id: root
+  id: root
 
-	property alias systemTray: systemTray
-	property alias statusItems: statusItems
+  property alias systemTray: systemTray
+  property alias statusItems: statusItems
 
-	RowLayout {
-		id: mainLayout
+  RowLayout {
+    id: mainLayout
 
-		anchors.fill: parent
+    anchors.fill: parent
 
-		Item {
-			Layout.fillWidth: true
-			Layout.fillHeight: true
-		}
+    Item {
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+    }
 
-		STATUS.Main {
-			id: statusItems
-		}
-		SystemTray {
-			id: systemTray
-		}
-		TimeWidget {}
-	}
+    MprisWidget {}
+
+    STATUS.Main {
+      id: statusItems
+    }
+    SystemTray {
+      id: systemTray
+    }
+    TimeWidget {}
+  }
 }

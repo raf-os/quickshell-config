@@ -477,7 +477,7 @@ def main():
       if not args.noclang:
         print(f"Runing clang++...")
         this_dir = Path(__file__)
-        utils_dir = this_dir.parent.parent.parent / "utils"
+        utils_dir = this_dir.parent.parent / "utils"
 
         result = subprocess.run(
           [

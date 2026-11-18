@@ -10,6 +10,7 @@ __rootnode__ = Node(
         BoolProperty(name="notifications", defaultValue=True),
         BoolProperty(name="gamemode", defaultValue=True),
         BoolProperty(name="weather", defaultValue=True),
+        BoolProperty(name="mpris", defaultValue=True),
       ],
     ),
     Node(
@@ -19,5 +20,6 @@ __rootnode__ = Node(
         FloatProperty(name="longitude", defaultValue=0.0),
       ],
     ),
+    Node(name="Mpris", props=[StrProperty(name="position", defaultValue="TopLeft")]),
   ],
 )

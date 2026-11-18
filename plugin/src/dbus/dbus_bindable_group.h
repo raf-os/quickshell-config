@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 #include <utility>
-#include <vector>
 
 #include <bit>
 #include <qbytearrayview.h>
@@ -69,7 +69,7 @@ private:
 template <typename Class, typename T, TString16 Name, auto bindablePtr,
     auto groupPtr, auto offsetPtr>
 class DBusBindableProperty : public DBusBindablePropertyBase {
-  using ptr_meta   = MetaMember<decltype(bindablePtr)>;
+  using ptr_meta   = MemberTraits<decltype(bindablePtr)>;
   using owner_t    = ptr_meta::Class;
   using Bindable   = ptr_meta::Type;
   using bindable_t = BindableType<Bindable>::Type;
@@ -164,15 +164,17 @@ private:
 
 #define DBUS_BINDABLE_MEMBER _dbus_bindableGroup
 
+// This variant does not include a change signal, and member variables have a
+// bi_ prefix
 #define DBUS_BINDABLE_PROPERTY_INTERNAL_P(Class, Type, Property, Name, Meta)   \
 private:                                                                       \
   QT_OBJECT_BINDABLE_PROPERTY_3(Class, Type, bi_##Property)                    \
-  static constexpr size_t _ns_dbus_property_##Property##_internal_offset() {   \
+  static constexpr size_t _ns_dbus_property_i_##Property##_offset() {          \
     return offsetof(Class, Name);                                              \
   }                                                                            \
   ns::dbus::DBusBindableProperty<Class, Type, u## #Name,                       \
       &Class::bi_##Property, &Class::_dbus_bindableGroup,                      \
-      &Class::_ns_dbus_property_##Property##_internal_offset>                  \
+      &Class::_ns_dbus_property_i_##Property##_offset>                         \
       Name{Meta};
 
 #define DBUS_BINDABLE_PROPERTY_INTERNAL_5(Class, Type, Property, Name, Meta)   \
@@ -215,6 +217,24 @@ private:                                                                       \
 
 #define DBUS_BINDABLE_PROPERTY(...)                                            \
   QT_WARNING_PUSH QT_WARNING_DISABLE_INVALID_OFFSETOF QT_OVERLOADED_MACRO(     \
-      DBUS_BINDABLE_PROPERTY, __VA_ARGS__) QT_WARNING_POP
+      DBUS_BINDABLE_PROPERTY, __VA_ARGS__)                                     \
+  QT_WARNING_POP
 
+// Qt property notifiers must not have any parameters. It does accept anything
+// with a () operator, thus, this small wrapper is necessary. Basically, a less
+// robust lightweight lambda.
+template <auto fnPtr>
+  requires std::is_member_function_pointer_v<decltype(fnPtr)>
+struct FunctorCallback {
+  using meta    = MemberTraits<decltype(fnPtr)>;
+  using class_t = meta::Class;
+  using type_t  = meta::Type;
+
+  explicit FunctorCallback(class_t *obj) : obj(obj) {}
+  FunctorCallback()  = delete;
+  ~FunctorCallback() = default;
+
+  void     operator()() { (obj->*fnPtr)(); }
+  class_t *obj;
+};
 } // namespace ns::dbus

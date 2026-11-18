@@ -17,6 +17,7 @@ target_sources(
     chamferrectshader.cpp
     chamferrectmaterial.cpp
     chamferrect.cpp
+    debounced_properties.cpp
     stooltip.cpp
     tooltip_provider.cpp
 )

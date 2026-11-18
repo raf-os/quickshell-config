@@ -87,9 +87,8 @@ void DBusBindableGroup::attachProperty(DBusBindablePropertyBase *prop) {
 }
 
 void DBusBindableGroup::getAll() {
-  qCDebug(NS_LOG_DBUS) << "Calling getAll";
   if (!m_interface) {
-    qCFatal(NS_LOG_DBUS) << "Called getAll() with out an attached interface.";
+    qCFatal(NS_LOG_DBUS) << "Called getAll() without an attached interface.";
   }
 
   if (m_pending) {
@@ -131,8 +130,6 @@ void DBusBindableGroup::updateProperties(const QVariantMap &properties) {
   for (const auto &[key, value] : properties.asKeyValueRange()) {
     auto it = m_properties.find(key);
     if (it == m_properties.end()) continue;
-
-    qCDebug(NS_LOG_DBUS) << "Found property:" << it.value();
 
     it.value()->serialize(value);
   }

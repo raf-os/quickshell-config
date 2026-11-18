@@ -12,6 +12,8 @@ QBindable<bool> EnabledModules::bindableGamemode() const { return &b_gamemode; }
 void EnabledModules::resetGamemode() { b_gamemode = true; }
 QBindable<bool> EnabledModules::bindableWeather() const { return &b_weather; }
 void EnabledModules::resetWeather() { b_weather = true; }
+QBindable<bool> EnabledModules::bindableMpris() const { return &b_mpris; }
+void EnabledModules::resetMpris() { b_mpris = true; }
 
 Weather::Weather(const QString &className, QObject *root, QObject *parent) : SerializableObject(className, root, parent) {}
 
@@ -20,8 +22,14 @@ void Weather::resetLatitude() { b_latitude = 0.0; }
 QBindable<qreal> Weather::bindableLongitude() const { return &b_longitude; }
 void Weather::resetLongitude() { b_longitude = 0.0; }
 
+Mpris::Mpris(const QString &className, QObject *root, QObject *parent) : SerializableObject(className, root, parent) {}
+
+QBindable<QString> Mpris::bindablePosition() const { return &b_position; }
+void Mpris::resetPosition() { b_position = "TopLeft"; }
+
 ModulesConfig::ModulesConfig(const QString &className, QObject *root, QObject *parent) : SerializableObject(className, root, parent) {}
 
 EnabledModules *ModulesConfig::enabledModules() { return &m_enabledModules; }
 Weather *ModulesConfig::weather() { return &m_weather; }
+Mpris *ModulesConfig::mpris() { return &m_mpris; }
 } // namespace ns::configs

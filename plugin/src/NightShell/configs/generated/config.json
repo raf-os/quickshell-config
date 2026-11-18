@@ -4,11 +4,15 @@
 			"background": true,
 			"notifications": true,
 			"gamemode": true,
-			"weather": true
+			"weather": true,
+			"mpris": true
 		},
 		"Weather": {
 			"latitude": 0.0,
 			"longitude": 0.0
+		},
+		"Mpris": {
+			"position": "TopLeft"
 		}
 	},
 	"appearance": {

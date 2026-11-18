@@ -94,16 +94,16 @@ MprisServiceWatcher::MprisServiceWatcher(QObject *parent)
     return;
   }
 
+  m_watcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration |
+                         QDBusServiceWatcher::WatchForRegistration);
+
+  m_watcher.addWatchedService("org.mpris.MediaPlayer2*");
+  m_watcher.setConnection(bus);
+
   QObject::connect(&m_watcher, &QDBusServiceWatcher::serviceRegistered, this,
       &MprisServiceWatcher::onServiceRegistered);
   QObject::connect(&m_watcher, &QDBusServiceWatcher::serviceUnregistered, this,
       &MprisServiceWatcher::onServiceUnregistered);
-
-  m_watcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration |
-                         QDBusServiceWatcher::WatchForRegistration);
-
-  m_watcher.addWatchedService("org.mpris.MediaPlayer2");
-  m_watcher.setConnection(bus);
 
   const QStringList &existingList = bus.interface()->registeredServiceNames();
   for (const QString &service : existingList) {
@@ -156,17 +156,23 @@ void MprisServiceWatcher::onPlayerReady() {
 
 void MprisServiceWatcher::onServiceRegistered(const QString &service) {
   if (service.startsWith("org.mpris.MediaPlayer2")) {
+    qCDebug(NS_LOG_MPRIS) << "Registering mpris service:" << service;
     registerPlayer(service);
+  } else {
+    qCWarning(NS_LOG_MPRIS)
+        << "Caught untracked service registration:" << service;
   }
 }
 
 void MprisServiceWatcher::onServiceUnregistered(const QString &service) {
   auto it = m_players.find(service);
   if (it != m_players.end()) {
+    qCDebug(NS_LOG_MPRIS) << "Unregistering mpris service:" << service;
     auto player = it.value();
-    QObject::disconnect(player, nullptr, this, nullptr);
     m_players.erase(it);
     player->deleteLater();
+  } else {
+    qCWarning(NS_LOG_MPRIS) << "Untracked service unregistered:" << service;
   }
 }
 } // namespace ns::mpris

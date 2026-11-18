@@ -34,3 +34,10 @@ template <std::size_t N> struct TString16 {
     return QStringView(qCharPtr(), static_cast<qsizetype>(N - 1));
   };
 };
+
+template <typename T> struct MemberTraits;
+
+template <typename T, typename C> struct MemberTraits<T C::*> {
+  using Class = C;
+  using Type  = T;
+};
