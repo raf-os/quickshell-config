@@ -24,9 +24,12 @@ class MprisPlayer : public QObject {
   Q_PROPERTY(bool canControl READ canControl NOTIFY canControlChanged)
   Q_PROPERTY(ns::mpris::PlaybackState::Enum playbackState READ playbackState
           NOTIFY playbackStateChanged)
+  Q_PROPERTY(ns::mpris::LoopState::Enum loopState READ loopState NOTIFY
+          loopStateChanged)
   Q_PROPERTY(QString trackTitle READ trackTitle NOTIFY trackTitleChanged)
   Q_PROPERTY(QString artUrl READ artUrl NOTIFY artUrlChanged)
   Q_PROPERTY(QString albumName READ albumName NOTIFY albumNameChanged)
+  Q_PROPERTY(bool shuffle READ shuffle NOTIFY shuffleChanged)
 
   AUTO_BINDABLE(MprisPlayer, bool, canReadPosition)
   AUTO_BINDABLE(MprisPlayer, bool, canGoPrevious)
@@ -43,14 +46,18 @@ public:
   Q_INVOKABLE void fullscreen(bool state);
 
   Q_INVOKABLE void togglePlay();
+  Q_INVOKABLE void toggleShuffle();
   Q_INVOKABLE void goNext();
   Q_INVOKABLE void goPrevious();
 
-  [[nodiscard]] bool                canControl() const;
   [[nodiscard]] PlaybackState::Enum playbackState() const;
-  [[nodiscard]] QString             trackTitle() const;
-  [[nodiscard]] QString             artUrl() const;
-  [[nodiscard]] QString             albumName() const;
+  [[nodiscard]] LoopState::Enum     loopState() const;
+
+  [[nodiscard]] bool    canControl() const;
+  [[nodiscard]] QString trackTitle() const;
+  [[nodiscard]] QString artUrl() const;
+  [[nodiscard]] QString albumName() const;
+  [[nodiscard]] bool    shuffle() const;
 
   [[nodiscard]] bool                 isValid() const;
   [[nodiscard]] MprisPlayerControls *controls();
@@ -59,10 +66,12 @@ signals:
   void ready();
   void canControlChanged();
   void playbackStateChanged();
+  void loopStateChanged();
   void trackTitleChanged();
   void artUrlChanged();
   void albumNameChanged();
   void positionChanged();
+  void shuffleChanged();
 
 private slots:
   void onPositionChanged();

@@ -20,6 +20,6 @@ __rootnode__ = Node(
         FloatProperty(name="longitude", defaultValue=0.0),
       ],
     ),
-    Node(name="Mpris", props=[StrProperty(name="position", defaultValue="TopLeft")]),
+    Node(name="Mpris", props=[StrProperty(name="position", defaultValue="BottomLeft")]),
   ],
 )

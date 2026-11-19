@@ -26,6 +26,7 @@ Item {
   property alias notificationsOverlay: notificationsOverlay
   property alias launcherWrapper: launcherWrapper
   property alias dashboardWrapper: dashboardWrapper
+  property alias mprisOverlay: mprisDisplay
 
   MPRIS.Wrapper {
     id: mprisDisplay

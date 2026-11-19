@@ -25,7 +25,7 @@ void Weather::resetLongitude() { b_longitude = 0.0; }
 Mpris::Mpris(const QString &className, QObject *root, QObject *parent) : SerializableObject(className, root, parent) {}
 
 QBindable<QString> Mpris::bindablePosition() const { return &b_position; }
-void Mpris::resetPosition() { b_position = "TopLeft"; }
+void Mpris::resetPosition() { b_position = "BottomLeft"; }
 
 ModulesConfig::ModulesConfig(const QString &className, QObject *root, QObject *parent) : SerializableObject(className, root, parent) {}
 

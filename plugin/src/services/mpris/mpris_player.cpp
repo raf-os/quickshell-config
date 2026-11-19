@@ -50,6 +50,8 @@ MprisPlayer::MprisPlayer(const QString &service, QObject *parent)
 
     QObject::connect(m_controls, &MprisPlayerControls::playbackStateChanged,
         this, &MprisPlayer::playbackStateChanged);
+    QObject::connect(m_controls, &MprisPlayerControls::loopStateChanged, this,
+        &MprisPlayer::loopStateChanged);
     QObject::connect(m_controls, &MprisPlayerControls::canControlChanged, this,
         &MprisPlayer::canControlChanged);
     QObject::connect(m_controls, &MprisPlayerControls::trackTitleChanged, this,
@@ -60,6 +62,8 @@ MprisPlayer::MprisPlayer(const QString &service, QObject *parent)
         &MprisPlayer::artUrlChanged);
     QObject::connect(m_controls, &MprisPlayerControls::albumNameChanged, this,
         &MprisPlayer::albumNameChanged);
+    QObject::connect(m_controls, &MprisPlayerControls::shuffleChanged, this,
+        &MprisPlayer::shuffleChanged);
 
     onTrackLengthChanged();
   }
@@ -121,6 +125,19 @@ void MprisPlayer::fullscreen(bool state) {
   Fullscreen.set(state);
 }
 
+void MprisPlayer::toggleShuffle() {
+  if (!m_controls) return;
+
+  if (!m_controls->bindableCanControl().value()) {
+    qmlWarning(this)
+        << "Unable to set shuffle state: mpris object cannot be controlled.";
+    return;
+  }
+
+  const auto currentValue = m_controls->bindableShuffle().value();
+  m_controls->Shuffle.set(!currentValue);
+}
+
 void MprisPlayer::togglePlay() {
   if (!m_controls) {
     qmlWarning(this)
@@ -170,6 +187,11 @@ PlaybackState::Enum MprisPlayer::playbackState() const {
   return m_controls->bindable_playbackState().value();
 }
 
+LoopState::Enum MprisPlayer::loopState() const {
+  if (!m_controls) return LoopState::None;
+  return m_controls->bindable_loopState().value();
+}
+
 QString MprisPlayer::trackTitle() const {
   const auto t = m_controls->bindable_trackTitle().value();
   if (t.isEmpty()) return QStringLiteral("Unknown Title");
@@ -184,6 +206,11 @@ QString MprisPlayer::artUrl() const {
 QString MprisPlayer::albumName() const {
   if (!m_controls) return {};
   return m_controls->bindable_albumName().value();
+}
+
+bool MprisPlayer::shuffle() const {
+  if (!m_controls) return {};
+  return m_controls->bindableShuffle().value();
 }
 
 bool MprisPlayer::isValid() const { return m_player->isValid(); }

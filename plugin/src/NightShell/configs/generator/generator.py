@@ -477,7 +477,10 @@ def main():
       if not args.noclang:
         print(f"Runing clang++...")
         this_dir = Path(__file__)
-        utils_dir = this_dir.parent.parent / "utils"
+        utils_dir = this_dir.parent.parent.parent / "utils"
+
+        root_dir = this_dir.parent.parent.parent.parent.parent.parent
+        utils_build_dir = root_dir / "build" / "plugin" / "src" / "NightShell" / "utils"
 
         result = subprocess.run(
           [
@@ -489,6 +492,7 @@ def main():
             "-I/usr/include/qt6/QtQml",
             "-I/usr/include/qt6/QtQmlIntegration",
             f"-I{utils_dir.absolute()}/",
+            f"-I{utils_build_dir.absolute()}/",
             f"{(_GENERATED_LOCATION / f'{fileName}.cpp').absolute()}",
           ]
         )

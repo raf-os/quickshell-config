@@ -89,7 +89,7 @@ signals:
 	void positionChanged();
 
 private:
-	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(Mpris, QString, b_position, "TopLeft", &Mpris::positionChanged)
+	Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(Mpris, QString, b_position, "BottomLeft", &Mpris::positionChanged)
 };
 
 class ModulesConfig : public utils::SerializableObject {

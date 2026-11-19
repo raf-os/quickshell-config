@@ -35,6 +35,10 @@ Region {
     surface: root.content.notificationsOverlay
   }
 
+  ContentRegion {
+    surface: root.content.mprisOverlay
+  }
+
   component ContentRegion: Region {
     required property Item surface
 
