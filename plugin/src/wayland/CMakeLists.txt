@@ -61,11 +61,13 @@ target_link_libraries(
     myshell_interfaces
 )
 
+add_subdirectory(common)
 add_subdirectory(wlr)
 add_subdirectory(toplevels)
 add_subdirectory(screencopy)
 add_subdirectory(input-inhibit)
 add_subdirectory(session-lock)
+add_subdirectory(workspaces)
 
 qt6_add_library(nightshell_wayland SHARED)
 
@@ -109,6 +111,8 @@ target_link_libraries(
     nightshell_wayland_screencopy
     nightshell_wayland_buffer
     nightshell_wayland_toplevels
+    nightshell_wayland_workspaces
+    nightshell_wayland_workspacesplugin
     nightshell_wayland_wlr
     nightshell_wayland_sessionlock
     nightshell_hyprland
