@@ -1,7 +1,15 @@
 find_package(
   Qt6
   REQUIRED
-  COMPONENTS Core Qml Gui GuiPrivate Quick QuickPrivate
+  COMPONENTS
+    Core
+    Qml
+    Gui
+    GuiPrivate
+    Quick
+    QuickPrivate
+    WaylandClient
+    WaylandClientPrivate
 )
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
@@ -68,6 +76,8 @@ add_subdirectory(screencopy)
 add_subdirectory(input-inhibit)
 add_subdirectory(session-lock)
 add_subdirectory(workspaces)
+add_subdirectory(xdg-activation)
+add_subdirectory(layer-shell)
 
 qt6_add_library(nightshell_wayland SHARED)
 
@@ -112,7 +122,7 @@ target_link_libraries(
     nightshell_wayland_buffer
     nightshell_wayland_toplevels
     nightshell_wayland_workspaces
-    nightshell_wayland_workspacesplugin
+    # nightshell_wayland_workspacesplugin
     nightshell_wayland_wlr
     nightshell_wayland_sessionlock
     nightshell_hyprland

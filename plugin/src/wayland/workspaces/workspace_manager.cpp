@@ -1,8 +1,10 @@
 #include "workspace_manager.h"
 
+#include <qloggingcategory.h>
 #include <qobject.h>
 #include <qwaylandclientextension.h>
 
+#include "compositor_support.h"
 #include "workspace_handle.h"
 
 namespace ns::wayland::workspaces {

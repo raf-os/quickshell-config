@@ -8,7 +8,6 @@
 #include <qtmetamacros.h>
 
 #include "compositor_support.h"
-#include "iworkspace_data.h"
 #include "ns_wayland_workspaces_export.h"
 #include "qwayland-ext-workspace-v1.h"
 
@@ -47,6 +46,13 @@ class NS_WAYLAND_WORKSPACES_EXPORT WorkspaceHandle
       public QtWayland::ext_workspace_handle_v1 {
   Q_OBJECT
 
+  Q_PROPERTY(QString id READ default NOTIFY idChanged BINDABLE bindableId)
+  Q_PROPERTY(QString name READ default NOTIFY nameChanged BINDABLE bindableName)
+  Q_PROPERTY(ns::wayland::workspaces::WorkspaceState::Enum state
+          READ default NOTIFY stateChanged BINDABLE bindableState)
+  Q_PROPERTY(ns::wayland::workspaces::WorkspaceCapabilities::Enum capabilities
+          READ default NOTIFY capabilitiesChanged BINDABLE bindableCapabilities)
+
 public:
   explicit WorkspaceHandle(
       CompositorData *compositorData, ::ext_workspace_handle_v1 *object);
@@ -82,7 +88,5 @@ private:
       &WorkspaceHandle::stateChanged)
   Q_OBJECT_BINDABLE_PROPERTY(WorkspaceHandle, WorkspaceCapabilities::Enum,
       b_capabilities, &WorkspaceHandle::capabilitiesChanged)
-
-  IWorkspaceData *m_data = nullptr;
 };
 } // namespace ns::wayland::workspaces

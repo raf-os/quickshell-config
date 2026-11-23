@@ -34,6 +34,8 @@ set(MYSHELL_CONFIG_QML_TARGET_PATH "" CACHE INTERNAL "")
 set(MYSHELL_CONTROL_PANEL_LIBPATH "" CACHE INTERNAL "")
 set(LIBRARIES_RPATH_LIST "" CACHE INTERNAL "")
 
+set(ENABLE_HYPRLAND_SUPPORT ON)
+
 include(FetchContent)
 
 include(GNUInstallDirs)
@@ -97,5 +99,7 @@ add_subdirectory(apps)
 add_subdirectory(assets)
 
 add_subdirectory(ipc)
+
+add_subdirectory(src)
 
 add_subdirectory(tests)

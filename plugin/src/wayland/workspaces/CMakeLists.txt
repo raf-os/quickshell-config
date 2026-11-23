@@ -8,7 +8,7 @@ qt6_add_library(nightshell_wayland_workspaces STATIC)
 
 target_sources(
   nightshell_wayland_workspaces
-  PRIVATE workspace_manager.cpp workspace_handle.cpp workspaces_model.cpp
+  PRIVATE workspace_manager.cpp workspace_handle.cpp
 )
 
 target_include_directories(
