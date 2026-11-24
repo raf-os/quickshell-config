@@ -1,6 +1,6 @@
 ---
 Language:        Cpp
-AlignAfterOpenBracket: false
+AlignAfterOpenBracket: true
 AccessModifierOffset: -2
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments:
@@ -66,7 +66,7 @@ AlignConsecutiveTableGenDefinitionColons:
   AlignFunctionPointers: false
   PadOperators:    false
 AlignEscapedNewlines: Right
-AlignOperands:   Align
+AlignOperands:   AlignAfterOperator
 AlignTrailingComments:
   AlignPPAndNotPP: true
   Kind:            Always
@@ -116,7 +116,7 @@ BraceWrapping:
 BreakAdjacentStringLiterals: true
 BreakAfterAttributes: Leave
 BreakAfterJavaFieldAnnotations: false
-BreakAfterOpenBracketBracedList: false
+BreakAfterOpenBracketBracedList: true
 BreakAfterOpenBracketFunction: false
 BreakAfterOpenBracketIf: false
 BreakAfterOpenBracketLoop: false

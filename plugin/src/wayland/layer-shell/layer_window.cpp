@@ -20,7 +20,7 @@
 
 namespace ns::layershell {
 namespace {
-QMap<QWindow *, LayerWindow *> s_map;
+static QMap<QWindow *, LayerWindow *> s_map;
 }
 
 class LayerWindowPrivate {

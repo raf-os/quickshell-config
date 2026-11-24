@@ -9,7 +9,6 @@
 namespace ns::layershell {
 namespace LayerAnchor {
 Q_NAMESPACE_EXPORT(NS_LAYERSHELL_EXPORT)
-QML_NAMED_ELEMENT(LayerAnchor)
 
 enum Anchor {
   None   = 0,
@@ -25,7 +24,6 @@ Q_FLAG_NS(Anchors)
 
 namespace WlrLayer {
 Q_NAMESPACE_EXPORT(NS_LAYERSHELL_EXPORT)
-QML_NAMED_ELEMENT(WlrLayer)
 
 enum Enum { Background = 0, Bottom = 1, Top = 2, Overlay = 3 };
 
@@ -34,7 +32,6 @@ Q_ENUM_NS(Enum)
 
 namespace KeyboardInteractivity {
 Q_NAMESPACE_EXPORT(NS_LAYERSHELL_EXPORT)
-QML_NAMED_ELEMENT(KeyboardInteractivity)
 
 enum Enum { None = 0, Exclusive = 1, OnDemand = 2 };
 

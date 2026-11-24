@@ -34,7 +34,7 @@ private:                                                                       \
   NS_LW_B(QString, wlrNamespace, )
   NS_LW_B(ns::layershell::LayerAnchor::Anchors, anchors, LayerAnchor::None)
   NS_LW_B(ns::layershell::KeyboardInteractivity::Enum, keyboardInteractivity,
-      KeyboardInteractivity::OnDemand)
+          KeyboardInteractivity::OnDemand)
   NS_LW_B(ns::layershell::WlrLayer::Enum, layer, WlrLayer::Top)
   NS_LW_B(QMargins, margins, )
   NS_LW_B(ns::layershell::LayerAnchor::Anchor, exclusiveEdge, LayerAnchor::None)
@@ -44,6 +44,7 @@ private:                                                                       \
 
 public:
   ~LayerWindow() override;
+  Q_DISABLE_COPY_MOVE(LayerWindow)
 
   static LayerWindow *get(QWindow *window);
   static LayerWindow *qmlAttachedProperties(QObject *object);

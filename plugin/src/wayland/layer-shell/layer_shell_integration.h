@@ -21,11 +21,12 @@ class NS_LAYERSHELL_EXPORT WaylandLayerShellIntegration
 public:
   explicit WaylandLayerShellIntegration();
   ~WaylandLayerShellIntegration() override;
+  Q_DISABLE_COPY_MOVE(WaylandLayerShellIntegration)
 
   wayland::xdg::XdgActivation *activation() const;
 
-  QtWaylandClient::QWaylandShellSurface *createShellSurface(
-      QtWaylandClient::QWaylandWindow *window) override;
+  QtWaylandClient::QWaylandShellSurface *
+  createShellSurface(QtWaylandClient::QWaylandWindow *window) override;
 
 private:
   std::unique_ptr<wayland::xdg::XdgActivation> m_xdgActivation;

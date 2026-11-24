@@ -24,9 +24,10 @@ class NS_LAYERSHELL_EXPORT LayerSurface
   Q_OBJECT
 
 public:
-  explicit LayerSurface(WaylandLayerShellIntegration *shell,
-      QtWaylandClient::QWaylandWindow                *window);
+  explicit LayerSurface(WaylandLayerShellIntegration    *shell,
+                        QtWaylandClient::QWaylandWindow *window);
   ~LayerSurface() override;
+  Q_DISABLE_COPY_MOVE(LayerSurface)
 
   bool isExposed() const override;
   void attachPopup(QtWaylandClient::QWaylandShellSurface *popup) override;
@@ -48,8 +49,8 @@ public:
   void requestXdgActivationToken(quint32 serial) override;
 
 private:
-  void zwlr_layer_surface_v1_configure(
-      uint32_t serial, uint32_t width, uint32_t height) override;
+  void zwlr_layer_surface_v1_configure(uint32_t serial, uint32_t width,
+                                       uint32_t height) override;
   void zwlr_layer_surface_v1_closed() override;
   void sendExpose();
 

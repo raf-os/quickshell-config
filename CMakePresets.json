@@ -17,7 +17,8 @@
       "inherits": "default",
       "cacheVariables": {
         "DEVMODE": "ON",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS_INIT": "-DQT_QML_DEBUG"
       }
     }
   ],

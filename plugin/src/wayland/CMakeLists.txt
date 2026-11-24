@@ -89,6 +89,7 @@ target_sources(
     screencopy/screencopy_qml_view.cpp
     session-lock/qml_session_lock.cpp
     session-lock/qml_lock_surface.cpp
+    layer-shell/qml_layer_window.cpp
 )
 
 target_include_directories(
@@ -96,6 +97,7 @@ target_include_directories(
   PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/screencopy"
     "${CMAKE_CURRENT_SOURCE_DIR}/session-lock"
+    "${CMAKE_CURRENT_SOURCE_DIR}/layer-shell"
 )
 
 qt6_add_qml_module(
@@ -125,6 +127,7 @@ target_link_libraries(
     # nightshell_wayland_workspacesplugin
     nightshell_wayland_wlr
     nightshell_wayland_sessionlock
+    ns_wlr_layer_shell
     nightshell_hyprland
 )
 

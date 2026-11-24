@@ -1,0 +1,14 @@
+FormatStyle: file
+Checks: >
+  bugprone-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-use-enum-class,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-pro-type-static-cast-downcast,
+  modernize-*,
+  -modernize-return-braced-init-list,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  redability-*
