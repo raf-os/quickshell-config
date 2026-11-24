@@ -16,7 +16,7 @@ ScreenObjectRepeater {
     required property var modelData
     screen: modelData
 
-    color: "red"
+    color: "white"
     visible: true
 
     width: 320

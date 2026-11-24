@@ -6,3 +6,5 @@ configure_file(
 qt6_add_library(ns_shell_root STATIC)
 
 qt6_add_qml_module(ns_shell_root URI "ns" VERSION 0.1 QML_FILES Main.qml)
+
+target_link_libraries(ns_shell_root PRIVATE Qt6::Core Qt6::Qml Qt6::Quick)
