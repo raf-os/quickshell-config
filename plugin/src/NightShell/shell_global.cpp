@@ -13,6 +13,7 @@ ShellGlobal::ShellGlobal(QGuiApplication *app, QObject *parent)
   }
 
   s_instance = this;
+  m_screens  = app->screens();
 
   QObject::connect(app, &QGuiApplication::screenAdded, this,
                    &ShellGlobal::onScreenAdded);

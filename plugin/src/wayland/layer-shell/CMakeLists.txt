@@ -8,7 +8,7 @@ gen_wayland_protocol(
   "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-qt6_add_library(ns_wlr_layer_shell SHARED)
+qt6_add_library(ns_wlr_layer_shell STATIC)
 
 set_target_properties(
   ns_wlr_layer_shell

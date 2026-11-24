@@ -16,6 +16,7 @@ ScreenObjectRepeater::ScreenObjectRepeater(QObject *parent)
 
 void ScreenObjectRepeater::updateInstances() {
   if (!delegate()) {
+    qWarning() << "No delegate provided.";
     return;
   }
 
@@ -42,6 +43,8 @@ void ScreenObjectRepeater::updateInstances() {
       qWarning() << delegate()->errorString();
       continue;
     }
+
+    qDebug() << instance;
 
     QQmlEngine::setObjectOwnership(instance, QQmlEngine::CppOwnership);
     instance->setParent(this);

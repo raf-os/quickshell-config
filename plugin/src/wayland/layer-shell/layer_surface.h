@@ -2,13 +2,11 @@
 
 #include <cstdint>
 
+#include <QMargins>
+#include <QSize>
+#include <QtTypes>
 #include <QtWaylandClient/private/qwaylandshellsurface_p.h>
 #include <QtWaylandClient/private/qwaylandwindow_p.h>
-#include <qhashfunctions.h>
-#include <qmargins.h>
-#include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <wayland-client.h>
 
 #include "layer_shell_integration.h"
@@ -29,7 +27,7 @@ public:
   ~LayerSurface() override;
   Q_DISABLE_COPY_MOVE(LayerSurface)
 
-  bool isExposed() const override;
+  [[nodiscard]] bool isExposed() const override;
   void attachPopup(QtWaylandClient::QWaylandShellSurface *popup) override;
 
   void applyConfigure() override;

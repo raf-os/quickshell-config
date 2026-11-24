@@ -4,8 +4,9 @@
 #include <cstdint>
 
 #include <QtWaylandClient/private/qwaylandinputdevice_p.h>
-#include <private/qwaylandshellsurface_p.h>
-#include <private/qwaylandwindow_p.h>
+#include <QtWaylandClient/private/qwaylandscreen_p.h>
+#include <QtWaylandClient/private/qwaylandshellsurface_p.h>
+#include <QtWaylandClient/private/qwaylandwindow_p.h>
 #include <qhashfunctions.h>
 #include <qloggingcategory.h>
 #include <qmargins.h>
@@ -24,15 +25,32 @@
 #include "xdg_activation_token.h"
 
 namespace ns::layershell {
-LayerSurface::LayerSurface(WaylandLayerShellIntegration *shell,
-    QtWaylandClient::QWaylandWindow                     *window)
+LayerSurface::LayerSurface(WaylandLayerShellIntegration    *shell,
+                           QtWaylandClient::QWaylandWindow *window)
     : QtWaylandClient::QWaylandShellSurface(window),
       QtWayland::zwlr_layer_surface_v1(), m_shell(shell),
       m_interface(LayerWindow::get(window->window())), m_window(window) {
   wl_output *output = nullptr;
 
+  QScreen *desiredScreen = m_interface->screen();
+  if (!desiredScreen) {
+    desiredScreen = window->window()->screen();
+  }
+
+  auto waylandScreen =
+      dynamic_cast<QtWaylandClient::QWaylandScreen *>(desiredScreen->handle());
+
+  if (!waylandScreen) {
+    qCWarning(NS_LOG_LAYERSHELL)
+        << "Creating a layer shell for a placeholder screen. Positioning will "
+           "not work correctly.";
+  } else {
+    output = waylandScreen->output();
+  }
+
   init(shell->get_layer_surface(window->waylandSurface()->object(), output,
-      m_interface->layer(), m_interface->wlrNamespace()));
+                                m_interface->layer(),
+                                m_interface->wlrNamespace()));
 
   setAnchor(m_interface->anchors());
   QObject::connect(m_interface, &LayerWindow::anchorsChanged, this, [this] {
@@ -46,15 +64,15 @@ LayerSurface::LayerSurface(WaylandLayerShellIntegration *shell,
 
   setExclusiveZone(m_interface->exclusionZone());
   QObject::connect(m_interface, &LayerWindow::exclusionZoneChanged, this,
-      [this] { setExclusiveZone(m_interface->exclusionZone()); });
+                   [this] { setExclusiveZone(m_interface->exclusionZone()); });
 
   setExclusiveEdge(m_interface->exclusiveEdge());
   QObject::connect(m_interface, &LayerWindow::exclusiveEdgeChanged, this,
-      [this] { setExclusiveZone(m_interface->exclusiveEdge()); });
+                   [this] { setExclusiveZone(m_interface->exclusiveEdge()); });
 
   setMargins(m_interface->margins());
   QObject::connect(m_interface, &LayerWindow::marginsChanged, this,
-      [this] { setMargins(m_interface->margins()); });
+                   [this] { setMargins(m_interface->margins()); });
 
   QObject::connect(m_interface, &LayerWindow::desiredSizeChanged, this, [this] {
     if (!m_interface->desiredSize().isNull()) {
@@ -95,8 +113,9 @@ void LayerSurface::zwlr_layer_surface_v1_closed() {
   window()->window()->close();
 }
 
-void LayerSurface::zwlr_layer_surface_v1_configure(
-    uint32_t serial, uint32_t width, uint32_t height) {
+void LayerSurface::zwlr_layer_surface_v1_configure(uint32_t serial,
+                                                   uint32_t width,
+                                                   uint32_t height) {
   ack_configure(serial);
   m_pendingSize = QSize(width, height);
 
@@ -177,24 +196,24 @@ bool LayerSurface::requestActivate() {
     m_activationToken.clear();
     return true;
   } else if (const auto token = qEnvironmentVariable("XDG_ACTIVATION_TOKEN");
-      !token.isEmpty())
+             !token.isEmpty())
   {
     activation->activate(token, window()->wlSurface());
     qunsetenv("XDG_ACTIVATION_TOKEN");
     return true;
   } else {
     const auto focusWindow = QGuiApplication::focusWindow();
-    const auto wlWindow = focusWindow && focusWindow->handle()
-                              ? static_cast<QtWaylandClient::QWaylandWindow *>(
-                                    focusWindow->handle())
-                              : window();
+    const auto wlWindow    = focusWindow && focusWindow->handle()
+                               ? static_cast<QtWaylandClient::QWaylandWindow *>(
+                                     focusWindow->handle())
+                               : window();
 
     if (const auto seat = wlWindow->display()->lastInputDevice()) {
-      const auto tokenProvider =
-          activation->requestXdgActivationToken(wlWindow->display(),
-              wlWindow->wlSurface(), seat->serial(), QString());
+      const auto tokenProvider = activation->requestXdgActivationToken(
+          wlWindow->display(), wlWindow->wlSurface(), seat->serial(),
+          QString());
       QObject::connect(tokenProvider, &wayland::xdg::XdgActivationToken::done,
-          tokenProvider, &QObject::deleteLater);
+                       tokenProvider, &QObject::deleteLater);
       return true;
     }
   }
@@ -226,11 +245,11 @@ void LayerSurface::requestXdgActivationToken(quint32 serial) {
       window()->display(), window()->wlSurface(), serial, QString());
 
   QObject::connect(tokenProvider, &wayland::xdg::XdgActivationToken::done, this,
-      [this](const QString &token) {
-        emit window() -> xdgActivationTokenCreated(token);
-      });
+                   [this](const QString &token) {
+                     emit window() -> xdgActivationTokenCreated(token);
+                   });
 
   QObject::connect(tokenProvider, &wayland::xdg::XdgActivationToken::done,
-      tokenProvider, &QObject::deleteLater);
+                   tokenProvider, &QObject::deleteLater);
 }
 } // namespace ns::layershell

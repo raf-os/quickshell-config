@@ -1,15 +1,29 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
+import QtQuick.Window
+
 import org.nightshell.Wayland
+import org.nightshell
 
-Window {
+ScreenObjectRepeater {
   id: root
+  screens: ShellGlobal.screens
 
-  color: "red"
-  visible: true
+  Window {
+    id: bwin
 
-  width: 320
-  height: 240
+    required property var modelData
+    screen: modelData
 
-  LayerWindow.layer: WlrLayer.Top
-  LayerWindow.anchors: LayerAnchor.Top
+    color: "red"
+    visible: true
+
+    width: 320
+    height: 240
+
+    LayerWindow.layer: WlrLayer.Top
+    LayerWindow.anchors: LayerAnchor.Top
+    LayerWindow.screen: modelData
+  }
 }
