@@ -44,8 +44,6 @@ void ScreenObjectRepeater::updateInstances() {
       continue;
     }
 
-    qDebug() << instance;
-
     QQmlEngine::setObjectOwnership(instance, QQmlEngine::CppOwnership);
     instance->setParent(this);
 
@@ -53,8 +51,8 @@ void ScreenObjectRepeater::updateInstances() {
   }
 }
 
-QList<QScreen *> ScreenObjectRepeater::screens() const { return m_model; }
-void ScreenObjectRepeater::setScreens(const QList<QScreen *> &value) {
+QList<ScreenInfo *> ScreenObjectRepeater::screens() const { return m_model; }
+void ScreenObjectRepeater::setScreens(const QList<ScreenInfo *> &value) {
   if (m_model == value) return;
 
   m_model = value;

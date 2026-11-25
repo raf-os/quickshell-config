@@ -1,12 +1,15 @@
 #pragma once
 
-#include "compositor_support.h"
+#include <QtPlugin>
 
-namespace ns::wayland::workspaces {
+namespace ns {
 class IWorkspaceData {
 public:
   virtual ~IWorkspaceData() = 0;
 
-  virtual constexpr CompositorSupport compositor() const = 0;
+  [[nodiscard]] virtual int      propCount() const          = 0;
+  [[nodiscard]] virtual QVariant varAt(qsizetype idx) const = 0;
 };
-} // namespace ns::wayland::workspaces
+} // namespace ns
+
+Q_DECLARE_INTERFACE(ns::IWorkspaceData, "org.nightshell.Wayland.IWorkspaceData")

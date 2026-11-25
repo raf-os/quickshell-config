@@ -79,6 +79,8 @@ add_subdirectory(workspaces)
 add_subdirectory(xdg-activation)
 add_subdirectory(layer-shell)
 
+add_subdirectory(compositors)
+
 qt6_add_library(nightshell_wayland SHARED)
 
 target_sources(

@@ -7,6 +7,8 @@
 #include <QQmlParserStatus>
 #include <QScreen>
 
+#include "screen_info.h"
+
 namespace ns {
 class ObjectRepeaterBase : public QObject, public QQmlParserStatus {
   Q_OBJECT
@@ -35,22 +37,22 @@ class ScreenObjectRepeater : public ObjectRepeaterBase {
   Q_OBJECT
   QML_ELEMENT
 
-  Q_PROPERTY(QList<QScreen *> screens READ screens WRITE setScreens NOTIFY
-                 screensChanged)
+  Q_PROPERTY(QList<ns::ScreenInfo *> screens READ screens WRITE setScreens
+                 NOTIFY screensChanged)
 
 public:
   explicit ScreenObjectRepeater(QObject *parent = nullptr);
 
   void updateInstances() override;
 
-  [[nodiscard]] QList<QScreen *> screens() const;
-  void                           setScreens(const QList<QScreen *> &value);
+  [[nodiscard]] QList<ScreenInfo *> screens() const;
+  void setScreens(const QList<ScreenInfo *> &value);
 
 signals:
   void screensChanged();
 
 private:
-  QList<QScreen *>           m_model;
-  QMap<QScreen *, QObject *> m_instances;
+  QList<ScreenInfo *>           m_model;
+  QMap<ScreenInfo *, QObject *> m_instances;
 };
 } // namespace ns

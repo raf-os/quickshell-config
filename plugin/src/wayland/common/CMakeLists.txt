@@ -2,7 +2,11 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt6_add_library(nightshell_wayland_common STATIC)
 
-target_sources(nightshell_wayland_common PRIVATE compositor_support.cpp)
+target_sources(
+  nightshell_wayland_common
+  PRIVATE compositor_support.cpp
+  PUBLIC iscreen_data.h
+)
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/wayland_common_config.h.in"
@@ -13,3 +17,5 @@ target_include_directories(
   nightshell_wayland_common
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+target_link_libraries(nightshell_wayland_common PRIVATE Qt6::Core)

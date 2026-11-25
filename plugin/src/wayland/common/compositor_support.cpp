@@ -1,7 +1,8 @@
 #include "compositor_support.h"
 
 namespace ns::wayland {
-CompositorData::CompositorData() {}
+CompositorData::CompositorData()
+    : m_activeCompositor(CompositorSupport::Hyprland) {}
 
 CompositorData::~CompositorData() = default;
 

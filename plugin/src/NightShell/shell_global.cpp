@@ -3,8 +3,9 @@
 namespace ns {
 static ShellGlobal *s_instance = nullptr;
 
-ShellGlobal::ShellGlobal(QGuiApplication *app, QObject *parent)
-    : QObject(parent), m_app(app) {
+ShellGlobal::ShellGlobal(ns::wayland::CompositorSupport compositor,
+                         QGuiApplication *app, QObject *parent)
+    : QObject(parent), m_app(app), m_compositor(compositor) {
   if (s_instance) {
     qWarning() << "Attempted to create a ShellGlobal instance, yet one already "
                   "exists.";
@@ -13,7 +14,12 @@ ShellGlobal::ShellGlobal(QGuiApplication *app, QObject *parent)
   }
 
   s_instance = this;
-  m_screens  = app->screens();
+  for (auto screen : app->screens()) {
+    auto sInfo = new ScreenInfo(screen);
+    QObject::connect(sInfo, &QObject::destroyed, this,
+                     &ShellGlobal::onScreenDestroyed);
+    m_screenMap.insert(screen, sInfo);
+  }
 
   QObject::connect(app, &QGuiApplication::screenAdded, this,
                    &ShellGlobal::onScreenAdded);
@@ -26,19 +32,27 @@ ShellGlobal::~ShellGlobal() { s_instance = nullptr; }
 ShellGlobal *ShellGlobal::instance() {
   if (!s_instance) {
     auto *app  = QGuiApplication::instance();
-    s_instance = new ShellGlobal(static_cast<QGuiApplication *>(app), nullptr);
+    s_instance = new ShellGlobal(ns::wayland::CompositorSupport::None,
+                                 static_cast<QGuiApplication *>(app), nullptr);
   }
   return s_instance;
 }
 
-QList<QScreen *> ShellGlobal::screens() const { return m_screens; }
+QList<ScreenInfo *> ShellGlobal::screens() const {
+  return m_screenMap.values();
+}
+
+ns::wayland::CompositorSupport ShellGlobal::compositor() const {
+  return m_compositor;
+}
 
 void ShellGlobal::onScreenAdded(QScreen *screen) {
   if (!screen) return;
 
-  if (!m_screens.contains(screen)) {
-    m_screens.append(screen);
-    QObject::connect(screen, &QObject::destroyed, this,
+  if (!m_screenMap.contains(screen)) {
+    auto sInfo = new ScreenInfo(screen);
+    m_screenMap.insert(screen, sInfo);
+    QObject::connect(sInfo, &QObject::destroyed, this,
                      &ShellGlobal::onScreenDestroyed);
 
     emit screensChanged();
@@ -46,20 +60,20 @@ void ShellGlobal::onScreenAdded(QScreen *screen) {
 }
 
 void ShellGlobal::onScreenRemoved(QScreen *screen) {
-  auto idx = m_screens.indexOf(screen);
+  auto it = m_screenMap.find(screen);
+  if (it == m_screenMap.end()) return;
 
-  if (idx != -1) {
-    m_screens.removeAt(idx);
-    QObject::disconnect(screen, &QObject::destroyed, this,
-                        &ShellGlobal::onScreenDestroyed);
+  auto sInfo = it.value();
+  QObject::disconnect(sInfo, &QObject::destroyed, this,
+                      &ShellGlobal::onScreenDestroyed);
+  m_screenMap.erase(it);
 
-    emit screensChanged();
-  }
+  emit screensChanged();
 }
 
 void ShellGlobal::onScreenDestroyed() {
-  auto screen = static_cast<QScreen *>(sender());
+  auto screen = static_cast<ScreenInfo *>(sender());
 
-  if (screen) onScreenRemoved(screen);
+  if (screen) onScreenRemoved(screen->screen());
 }
 } // namespace ns

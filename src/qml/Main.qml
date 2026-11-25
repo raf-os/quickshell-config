@@ -13,8 +13,7 @@ ScreenObjectRepeater {
   Window {
     id: bwin
 
-    required property var modelData
-    screen: modelData
+    required property ShellScreen modelData
 
     color: "white"
     visible: true
@@ -24,6 +23,6 @@ ScreenObjectRepeater {
 
     LayerWindow.layer: WlrLayer.Top
     LayerWindow.anchors: LayerAnchor.Top
-    LayerWindow.screen: modelData
+    LayerWindow.screen: modelData.screen
   }
 }
