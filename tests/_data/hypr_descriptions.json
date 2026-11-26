@@ -1,0 +1,20 @@
+[
+  {
+    "name": "dummy:name",
+    "description": "Dummy variable",
+    "default": "[[EMPTY]]",
+    "current": "[[EMPTY]]"
+  },
+  {
+    "name": "input:kb_layout",
+    "description": "Appropriate XKB keymap parameter",
+    "default": "us",
+    "current": "us,us,fak"
+  },
+  {
+    "name": "input:kb_variant",
+    "description": "Appropriate XKB keymap parameter",
+    "default": "[[EMPTY]]",
+    "current": ",euro"
+  }
+]

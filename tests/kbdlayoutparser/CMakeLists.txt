@@ -4,7 +4,7 @@ qt6_add_executable(kbdlayout_test test_kbdlayoutparser.cpp)
 
 target_compile_definitions(
   kbdlayout_test
-  PRIVATE SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  PRIVATE TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/_data"
 )
 
 add_test(NAME kbdlayout_test COMMAND kbdlayout_test)

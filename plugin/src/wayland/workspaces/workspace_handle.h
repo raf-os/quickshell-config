@@ -1,13 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+#include <optional>
+#include <type_traits>
 
-#include <qobject.h>
-#include <qproperty.h>
-#include <qqmlintegration.h>
-#include <qtmetamacros.h>
+#include <QObject>
+#include <QProperty>
+#include <QtQmlIntegration>
 
 #include "compositor_support.h"
+#include "iworkspace_data.h"
 #include "ns_wayland_workspaces_export.h"
 #include "qwayland-ext-workspace-v1.h"
 
@@ -49,13 +52,14 @@ class NS_WAYLAND_WORKSPACES_EXPORT WorkspaceHandle
   Q_PROPERTY(QString id READ default NOTIFY idChanged BINDABLE bindableId)
   Q_PROPERTY(QString name READ default NOTIFY nameChanged BINDABLE bindableName)
   Q_PROPERTY(ns::wayland::workspaces::WorkspaceState::Enum state
-          READ default NOTIFY stateChanged BINDABLE bindableState)
-  Q_PROPERTY(ns::wayland::workspaces::WorkspaceCapabilities::Enum capabilities
+                 READ default NOTIFY stateChanged BINDABLE bindableState)
+  Q_PROPERTY(
+      ns::wayland::workspaces::WorkspaceCapabilities::Enum capabilities
           READ default NOTIFY capabilitiesChanged BINDABLE bindableCapabilities)
 
 public:
-  explicit WorkspaceHandle(
-      CompositorData *compositorData, ::ext_workspace_handle_v1 *object);
+  explicit WorkspaceHandle(CompositorData            *compositorData,
+                           ::ext_workspace_handle_v1 *object);
 
   [[nodiscard]] QBindable<QString>              bindableId() const;
   [[nodiscard]] QBindable<QString>              bindableName() const;
@@ -70,6 +74,20 @@ public:
   void ext_workspace_handle_v1_capabilities(uint32_t capabilities) override;
   void ext_workspace_handle_v1_removed() override;
 
+  [[nodiscard]] bool            hasData() const;
+  [[nodiscard]] IWorkspaceData *data();
+
+  template <typename T>
+    requires std::is_base_of_v<IWorkspaceData, T>
+  std::optional<T *> getData() {
+    if (!m_data) {
+      m_data = std::make_unique<T>();
+    }
+    T *cast = qobject_cast<T *>(m_data.get());
+    if (!cast) return {};
+    return cast;
+  }
+
 signals:
   void destroying();
   void idChanged();
@@ -80,13 +98,16 @@ signals:
 private:
   CompositorData *m_compositorData;
 
-  Q_OBJECT_BINDABLE_PROPERTY(
-      WorkspaceHandle, QString, b_id, &WorkspaceHandle::idChanged)
-  Q_OBJECT_BINDABLE_PROPERTY(
-      WorkspaceHandle, QString, b_name, &WorkspaceHandle::nameChanged)
+  std::unique_ptr<IWorkspaceData> m_data = nullptr;
+
+  Q_OBJECT_BINDABLE_PROPERTY(WorkspaceHandle, QString, b_id,
+                             &WorkspaceHandle::idChanged)
+  Q_OBJECT_BINDABLE_PROPERTY(WorkspaceHandle, QString, b_name,
+                             &WorkspaceHandle::nameChanged)
   Q_OBJECT_BINDABLE_PROPERTY(WorkspaceHandle, WorkspaceState::Enum, b_state,
-      &WorkspaceHandle::stateChanged)
+                             &WorkspaceHandle::stateChanged)
   Q_OBJECT_BINDABLE_PROPERTY(WorkspaceHandle, WorkspaceCapabilities::Enum,
-      b_capabilities, &WorkspaceHandle::capabilitiesChanged)
+                             b_capabilities,
+                             &WorkspaceHandle::capabilitiesChanged)
 };
 } // namespace ns::wayland::workspaces

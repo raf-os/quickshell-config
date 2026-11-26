@@ -17,8 +17,8 @@ namespace {
 const char *DEFAULT_PATH = "/usr/share/X11/xkb/rules/evdev.xml";
 }
 
-KeyboardLayoutXMLSerializer::KeyboardLayoutXMLSerializer(
-    const char *xmlPath, QObject *parent)
+KeyboardLayoutXMLSerializer::KeyboardLayoutXMLSerializer(const char *xmlPath,
+                                                         QObject    *parent)
     : QObject(parent) {
   QString path{xmlPath};
   if (path.isEmpty()) path = DEFAULT_PATH;
@@ -26,7 +26,11 @@ KeyboardLayoutXMLSerializer::KeyboardLayoutXMLSerializer(
   serialize(path);
 }
 
+bool KeyboardLayoutXMLSerializer::isReady() const { return m_ready; }
+
 bool KeyboardLayoutXMLSerializer::serialize(const QString &path) {
+  m_ready = false;
+
   QFile file{path};
   if (!file.exists()) {
     qCWarning(NS_LOG_UTILS)
@@ -61,6 +65,7 @@ bool KeyboardLayoutXMLSerializer::serialize(const QString &path) {
     return false;
   }
 
+  m_ready = true;
   emit ready();
   return true;
 }
@@ -129,23 +134,25 @@ KConfigTable KeyboardLayoutXMLSerializer::getLayoutTable() const {
   return m_layouts;
 }
 
-const KLayout *KeyboardLayoutXMLSerializer::getLayoutByName(
-    const QString &name) const {
+const KLayout *
+KeyboardLayoutXMLSerializer::getLayoutByName(const QString &name) const {
   auto it = m_layouts.constFind(name);
   if (it == m_layouts.constEnd()) return nullptr;
 
   return &it.value();
 }
 
-std::optional<KLayoutMetadata> KeyboardLayoutXMLSerializer::getConfigItem(
-    const QString &name, const QString &variant) const {
+std::optional<KLayoutMetadata>
+KeyboardLayoutXMLSerializer::getConfigItem(const QString &name,
+                                           const QString &variant) const {
   auto it = m_layouts.constFind(name);
   if (it == m_layouts.constEnd()) return {};
 
   const auto      main = it.value();
-  KLayoutMetadata meta{.name = main.item.name,
-      .description           = main.item.description,
-      .shortDescription      = main.item.shortDescription};
+  KLayoutMetadata meta{
+      .name             = main.item.name,
+      .description      = main.item.description,
+      .shortDescription = main.item.shortDescription};
 
   if (variant.isEmpty()) {
     return meta;

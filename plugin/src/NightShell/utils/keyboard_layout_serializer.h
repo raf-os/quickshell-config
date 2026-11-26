@@ -35,13 +35,14 @@ class KeyboardLayoutXMLSerializer : public QObject {
   Q_OBJECT
 
 public:
-  explicit KeyboardLayoutXMLSerializer(
-      const char *xmlPath = nullptr, QObject *parent = nullptr);
+  explicit KeyboardLayoutXMLSerializer(const char *xmlPath = nullptr,
+                                       QObject    *parent  = nullptr);
 
+  [[nodiscard]] bool           isReady() const;
   [[nodiscard]] KConfigTable   getLayoutTable() const;
   [[nodiscard]] const KLayout *getLayoutByName(const QString &name) const;
-  [[nodiscard]] std::optional<KLayoutMetadata> getConfigItem(
-      const QString &name, const QString &variant = {}) const;
+  [[nodiscard]] std::optional<KLayoutMetadata>
+  getConfigItem(const QString &name, const QString &variant = {}) const;
 
 public slots:
   bool serialize(const QString &path);
@@ -55,5 +56,6 @@ private:
   KConfigItem readConfigItem(QXmlStreamReader &xml);
 
   KConfigTable m_layouts;
+  bool         m_ready = false;
 };
 } // namespace ns::utils

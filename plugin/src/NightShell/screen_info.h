@@ -28,8 +28,9 @@ public:
   [[nodiscard]] QString model() const;
   [[nodiscard]] QString serial() const;
 
-  [[nodiscard]] QScreen *screen();
-  [[nodiscard]] bool     hasData() const;
+  [[nodiscard]] QScreen     *screen();
+  [[nodiscard]] bool         hasData() const;
+  [[nodiscard]] IScreenData *data();
 
   template <typename T>
     requires std::is_base_of_v<IScreenData, T>

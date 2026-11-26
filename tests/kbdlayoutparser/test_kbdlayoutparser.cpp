@@ -21,8 +21,9 @@ private:
   KbdLayoutsModel             *m_model      = nullptr;
 
 private slots:
+
   void initTestCase() {
-    QString sourceDir{SOURCE_DIR};
+    QString sourceDir{TEST_DATA_DIR};
     evdevFile = sourceDir + "/evdev.xml";
     QFile evdev{evdevFile};
 

@@ -1,6 +1,7 @@
 FormatStyle: file
 Checks: >
   bugprone-*,
+  -bugprone-easily-swappable-parameters,
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-use-enum-class,
@@ -12,4 +13,5 @@ Checks: >
   -modernize-return-braced-init-list,
   -modernize-use-trailing-return-type,
   performance-*,
+  -performance-enum-size,
   redability-*

@@ -16,7 +16,7 @@ namespace ns {
 namespace WlCompositorQML {
 Q_NAMESPACE
 QML_NAMED_ELEMENT(WlCompositor)
-QML_FOREIGN_NAMESPACE(ns::wayland::Compositor::Enum)
+QML_FOREIGN_NAMESPACE(ns::wayland::Compositor)
 }; // namespace WlCompositorQML
 
 class ShellGlobal : public QObject {

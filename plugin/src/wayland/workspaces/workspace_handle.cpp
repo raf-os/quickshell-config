@@ -3,8 +3,8 @@
 #include "wayland-ext-workspace-v1-client-protocol.h"
 
 namespace ns::wayland::workspaces {
-WorkspaceHandle::WorkspaceHandle(
-    CompositorData *compositorData, ::ext_workspace_handle_v1 *object)
+WorkspaceHandle::WorkspaceHandle(CompositorData            *compositorData,
+                                 ::ext_workspace_handle_v1 *object)
     : QtWayland::ext_workspace_handle_v1(object),
       m_compositorData(compositorData) {}
 
@@ -33,4 +33,8 @@ void WorkspaceHandle::ext_workspace_handle_v1_removed() {
 
   deleteLater();
 }
+
+bool WorkspaceHandle::hasData() const { return m_data.get() != nullptr; }
+
+IWorkspaceData *WorkspaceHandle::data() { return m_data.get(); }
 } // namespace ns::wayland::workspaces
