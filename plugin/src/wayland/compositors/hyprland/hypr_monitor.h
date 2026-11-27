@@ -24,8 +24,9 @@ public:
   [[nodiscard]] int      propCount() const override;
   [[nodiscard]] QVariant varAt(qsizetype idx) const override;
 
-  [[nodiscard]] QBindable<int>     bindableId() const { return &b_id; }
-  [[nodiscard]] QBindable<QString> bindableActiveWorkspaceId() const {
+  [[nodiscard]] QBindable<int> bindableId() { return &b_id; }
+
+  [[nodiscard]] QBindable<QString> bindableActiveWorkspaceId() {
     return &b_activeWorkspaceId;
   }
 

@@ -1,0 +1,36 @@
+{
+  "mice": [],
+  "keyboards": [
+    {
+      "address": "0x0",
+      "name": "dummy-keyboard-active",
+      "rules": "",
+      "model": "",
+      "layout": "us,us,fak",
+      "variant": ",euro,",
+      "options": "",
+      "active_layout_index": 1,
+      "active_keymap": "English (US, euro on 5)",
+      "capsLock": false,
+      "numLock": false,
+      "main": true
+    },
+    {
+      "address": "0x1",
+      "name": "dummy-keyboard-inactive",
+      "rules": "",
+      "model": "",
+      "layout": "us,us,fak",
+      "variant": ",euro,",
+      "options": "",
+      "active_layout_index": 1,
+      "active_keymap": "English (US, euro on 5)",
+      "capsLock": false,
+      "numLock": false,
+      "main": false
+    }
+  ],
+  "tablets": [],
+  "touch": [],
+  "switches": []
+}

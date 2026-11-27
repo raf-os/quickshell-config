@@ -35,10 +35,10 @@ void Hyprctl::call(QObject *context, const QByteArray &request,
   auto onError = [=](QLocalSocket::LocalSocketError error) {
     qCWarning(NS_LOG_HYPRLAND)
         << "Error making hyprland request:" << error << ", request:" << request;
-    requestSocket->deleteLater();
     if (callback) {
-      callback(false, {});
+      callback(false, requestSocket->errorString().toUtf8());
     }
+    requestSocket->deleteLater();
   };
 
   QObject::connect(requestSocket, &QLocalSocket::connected, this, onConnected);

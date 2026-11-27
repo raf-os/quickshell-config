@@ -16,7 +16,7 @@ class HyprEvents : public QObject {
 
 public:
   explicit HyprEvents(QObject *parent = nullptr);
-  ~HyprEvents();
+  ~HyprEvents() override;
 
   [[nodiscard]] bool isConnected() const;
 

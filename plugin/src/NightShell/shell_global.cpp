@@ -1,9 +1,11 @@
 #include "shell_global.h"
 
+#include "workspace_manager.h"
+
 namespace ns {
 static ShellGlobal *s_instance = nullptr;
 
-ShellGlobal::ShellGlobal(ns::wayland::CompositorSupport compositor,
+ShellGlobal::ShellGlobal(ns::wayland::CompositorData compositor,
                          QGuiApplication *app, QObject *parent)
     : QObject(parent), m_app(app), m_compositor(compositor) {
   if (s_instance) {
@@ -32,7 +34,7 @@ ShellGlobal::~ShellGlobal() { s_instance = nullptr; }
 ShellGlobal *ShellGlobal::instance() {
   if (!s_instance) {
     auto *app  = QGuiApplication::instance();
-    s_instance = new ShellGlobal(ns::wayland::CompositorSupport::None,
+    s_instance = new ShellGlobal(ns::wayland::CompositorData(),
                                  static_cast<QGuiApplication *>(app), nullptr);
   }
   return s_instance;
@@ -42,8 +44,14 @@ QList<ScreenInfo *> ShellGlobal::screens() const {
   return m_screenMap.values();
 }
 
-ns::wayland::CompositorSupport ShellGlobal::compositor() const {
-  return m_compositor;
+ns::wayland::CompositorData *ShellGlobal::compositor() { return &m_compositor; }
+
+ns::wayland::workspaces::WorkspaceManager *ShellGlobal::workspaceManager() {
+  if (!m_workspaceManager) {
+    m_workspaceManager =
+        new ns::wayland::workspaces::WorkspaceManager(&m_compositor, this);
+  }
+  return m_workspaceManager;
 }
 
 void ShellGlobal::onScreenAdded(QScreen *screen) {

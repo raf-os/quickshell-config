@@ -13,14 +13,26 @@
 
 #include "hypr_configs.h"
 #include "hyprctl.h"
+#include "hyprevents.h"
 
-namespace ns::wayland::workspaces {
+// Forward declaring all dependency injections
+namespace ns {
+namespace utils {
+class KeyboardLayoutXMLSerializer;
+}
+
+namespace wayland::workspaces {
 class WorkspaceManager;
 }
 
+class ShellGlobal;
+} // namespace ns
+
 namespace ns::wayland::hyprland {
 struct HyprlandDependencies {
-  workspaces::WorkspaceManager *workspaceManager = nullptr;
+  ns::ShellGlobal                           *shellGlobal              = nullptr;
+  ns::wayland::workspaces::WorkspaceManager *workspaceManager         = nullptr;
+  ns::utils::KeyboardLayoutXMLSerializer *keyboardLayoutXMLSerializer = nullptr;
 };
 
 class HyprlandPrivate;
@@ -61,6 +73,7 @@ signals:
 
 private slots:
   void onWorkspacesChanged();
+  void queryMonitors();
 
 private:
   using pending_bitset_t =
@@ -75,6 +88,7 @@ private:
   QTimer  m_kbdCooldownTimer;
 
   Hyprctl     *m_hyprctl     = nullptr;
+  HyprEvents  *m_events      = nullptr;
   HyprConfigs *m_hyprConfigs = nullptr;
 
   pending_bitset_t m_pendingCalls;

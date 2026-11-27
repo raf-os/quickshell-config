@@ -13,7 +13,11 @@ target_include_directories(ns_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_sources(
   ns_core
-  PRIVATE shell_global.cpp object_repeater.cpp screen_info.cpp
+  PRIVATE
+    shell_global.cpp
+    object_repeater.cpp
+    screen_info.cpp
+    workspace_model.cpp
 )
 
 qt6_add_qml_module(
@@ -25,6 +29,6 @@ qt6_add_qml_module(
 
 target_link_libraries(
   ns_core
-  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml
+  PRIVATE Qt6::Core Qt6::Gui Qt6::Qml nightshell_wayland_workspaces
   PUBLIC nightshell_wayland_common
 )

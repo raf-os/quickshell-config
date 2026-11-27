@@ -77,6 +77,25 @@ private slots:
     QVERIFY(thirdLayout == thirdCompare);
   }
 
+  void checkActiveDevice() {
+    QFile devicesFile{QStringLiteral(TEST_DATA_DIR "/hypr_devices.json")};
+
+    QVERIFY(devicesFile.exists() && devicesFile.open(QIODevice::ReadOnly));
+
+    auto data = devicesFile.readAll();
+
+    m_hyprConfigs->processDeviceData(data);
+
+    QVERIFY(m_hyprConfigs->m_kbdIdx == 1);
+
+    HyprKeyboardLayout activeLayoutTest{
+        .layout      = "us",
+        .variant     = "euro",
+        .description = "English (US, euro on 5)"};
+
+    QVERIFY(m_hyprConfigs->activeKeyboardLayout() == activeLayoutTest);
+  }
+
   // TODO: benchmark parser
 };
 

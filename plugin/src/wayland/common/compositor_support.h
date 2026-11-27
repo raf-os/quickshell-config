@@ -21,7 +21,6 @@ using CompositorSupport = Compositor::Enum;
 class CompositorData {
 public:
   explicit CompositorData();
-  virtual ~CompositorData();
 
   [[nodiscard]] CompositorSupport current() const;
 

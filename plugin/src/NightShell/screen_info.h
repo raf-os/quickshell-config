@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 
 #include <QObject>
 #include <QScreen>
@@ -32,14 +31,15 @@ public:
   [[nodiscard]] bool         hasData() const;
   [[nodiscard]] IScreenData *data();
 
+  // MAY BE NULL!
   template <typename T>
     requires std::is_base_of_v<IScreenData, T>
-  std::optional<T *> getData() {
+  T *getData() {
     if (!m_data) {
       m_data = std::make_unique<T>();
     }
     T *cast = qobject_cast<T *>(m_data.get());
-    if (!cast) return {};
+    if (!cast) return nullptr;
     return cast;
   };
 

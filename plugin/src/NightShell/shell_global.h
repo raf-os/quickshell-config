@@ -12,6 +12,10 @@
 #include "compositor_support.h"
 #include "screen_info.h"
 
+namespace ns::wayland::workspaces {
+class WorkspaceManager;
+}
+
 namespace ns {
 namespace WlCompositorQML {
 Q_NAMESPACE
@@ -29,15 +33,17 @@ class ShellGlobal : public QObject {
   Q_PROPERTY(ns::wayland::Compositor::Enum compositor READ compositor CONSTANT)
 
 public:
-  explicit ShellGlobal(ns::wayland::CompositorSupport compositor,
+  explicit ShellGlobal(ns::wayland::CompositorData compositor,
                        QGuiApplication *app, QObject *parent = nullptr);
   ~ShellGlobal() override;
   Q_DISABLE_COPY_MOVE(ShellGlobal)
 
   static ShellGlobal *instance();
 
-  [[nodiscard]] QList<ScreenInfo *>            screens() const;
-  [[nodiscard]] ns::wayland::CompositorSupport compositor() const;
+  [[nodiscard]] QList<ScreenInfo *>          screens() const;
+  [[nodiscard]] ns::wayland::CompositorData *compositor();
+
+  ns::wayland::workspaces::WorkspaceManager *workspaceManager();
 
 signals:
   void screensChanged();
@@ -50,7 +56,9 @@ private slots:
 private:
   QGuiApplication *m_app;
 
-  QMap<QScreen *, ScreenInfo *>  m_screenMap;
-  ns::wayland::CompositorSupport m_compositor;
+  QMap<QScreen *, ScreenInfo *> m_screenMap;
+  ns::wayland::CompositorData   m_compositor;
+
+  ns::wayland::workspaces::WorkspaceManager *m_workspaceManager = nullptr;
 };
 } // namespace ns

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QtQmlIntegration>
+#include <QtTypes>
 
 class HyprConfigsTest;
 
@@ -40,6 +41,8 @@ class HyprConfigs : public QObject {
 
   Q_PROPERTY(QList<ns::wayland::hyprland::HyprKeyboardLayout> keyboardLayouts
                  READ keyboardLayouts NOTIFY keyboardLayoutsChanged)
+  Q_PROPERTY(ns::wayland::hyprland::HyprKeyboardLayout activeKeyboardLayout READ
+                 activeKeyboardLayout NOTIFY activeKeyboardLayoutChanged)
 
   friend class ::HyprConfigsTest;
 
@@ -50,22 +53,34 @@ public:
       QObject                            *parent = nullptr);
 
   [[nodiscard]] QList<HyprKeyboardLayout> keyboardLayouts() const;
+  [[nodiscard]] HyprKeyboardLayout        activeKeyboardLayout() const;
+
+  void setActiveLayoutIndex(qint64 index);
 
 public slots:
   void queryConfigs();
+  void queryDevices();
+  void onActiveLayoutChanged(const QString &keyboardName,
+                             const QString &layoutName);
 
 signals:
   void keyboardLayoutsChanged();
+  void activeKeyboardLayoutChanged();
 
 private:
   Hyprctl                            *m_hyprctl;
   utils::KeyboardLayoutXMLSerializer *m_keyboardXmlSerializer;
 
-  bool m_pending = false;
-  bool m_queued  = false;
+  qint64 m_kbdIdx = 0;
+
+  bool m_descriptionsPending = false;
+  bool m_descriptionsQueued  = false;
+
+  bool m_devicesPending = false;
 
   QList<HyprKeyboardLayout> m_keyboardLayouts;
 
   void processConfigData(const QByteArray &data);
+  void processDeviceData(const QByteArray &data);
 };
 } // namespace ns::wayland::hyprland

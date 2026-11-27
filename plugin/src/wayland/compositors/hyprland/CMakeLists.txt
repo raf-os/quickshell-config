@@ -7,6 +7,7 @@ target_sources(
   PRIVATE
     hyprland.cpp
     hyprctl.cpp
+    hyprevents.cpp
     hypr_monitor.cpp
     hypr_workspace.cpp
     hypr_configs.cpp
@@ -34,5 +35,6 @@ target_link_libraries(
     Qt6::Network
     nightshell_wayland_workspaces
     nightshell_utils
+    ns_core
   PUBLIC nightshell_wayland_common
 )

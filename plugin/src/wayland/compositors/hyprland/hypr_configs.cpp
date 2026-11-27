@@ -58,23 +58,68 @@ QList<HyprKeyboardLayout> HyprConfigs::keyboardLayouts() const {
   return m_keyboardLayouts;
 }
 
+HyprKeyboardLayout HyprConfigs::activeKeyboardLayout() const {
+  if (m_kbdIdx < 0 || m_kbdIdx > m_keyboardLayouts.size()) {
+    return HyprKeyboardLayout{.layout = "??", .variant = "", .description = ""};
+  }
+
+  return m_keyboardLayouts.at(m_kbdIdx);
+}
+
+void HyprConfigs::setActiveLayoutIndex(qint64 index) {
+  if (m_kbdIdx == index) return;
+
+  m_kbdIdx = index;
+  emit activeKeyboardLayoutChanged();
+}
+
 void HyprConfigs::queryConfigs() {
   if (!m_hyprctl) return;
 
-  if (m_pending) {
-    m_queued = true;
+  if (m_descriptionsPending) {
+    m_descriptionsQueued = true;
     return;
   }
 
-  m_pending = true;
+  m_descriptionsPending = true;
   m_hyprctl->call(this, "j/descriptions",
                   [this](auto success, const QByteArray &result) {
+                    m_descriptionsPending = false;
+
                     if (!success) {
                       return;
                     }
 
                     this->processConfigData(result);
                   });
+}
+
+void HyprConfigs::queryDevices() {
+  if (!m_hyprctl || m_devicesPending) return;
+
+  m_devicesPending = true;
+  m_hyprctl->call(this, "j/devices", [this](auto success, const auto &result) {
+    m_devicesPending = false;
+
+    if (!success) return;
+
+    this->processDeviceData(result);
+  });
+}
+
+void HyprConfigs::onActiveLayoutChanged(const QString &keyboardName,
+                                        const QString &layoutName) {
+  Q_UNUSED(keyboardName)
+
+  for (auto i = 0; i < m_keyboardLayouts.size(); i++) {
+    if (m_keyboardLayouts.at(i).description == layoutName) {
+      setActiveLayoutIndex(i);
+      break;
+    }
+  }
+
+  // In case it is not found
+  setActiveLayoutIndex(-1);
 }
 
 void HyprConfigs::processConfigData(const QByteArray &data) {
@@ -139,7 +184,7 @@ void HyprConfigs::processConfigData(const QByteArray &data) {
       lData.variant = variants.takeFirst();
     }
 
-    if (m_keyboardXmlSerializer->isReady()) {
+    if (m_keyboardXmlSerializer && m_keyboardXmlSerializer->isReady()) {
       auto opt =
           m_keyboardXmlSerializer->getConfigItem(lData.layout, lData.variant);
       if (opt.has_value()) {
@@ -152,7 +197,45 @@ void HyprConfigs::processConfigData(const QByteArray &data) {
     m_keyboardLayouts.append(std::move(lData));
   }
 
-  if (m_keyboardXmlSerializer->isReady()) emit keyboardLayoutsChanged();
+  if (m_keyboardXmlSerializer && m_keyboardXmlSerializer->isReady())
+    emit keyboardLayoutsChanged();
+}
+
+void HyprConfigs::processDeviceData(const QByteArray &data) {
+  if (data.isEmpty()) return;
+
+  QJsonParseError error;
+  auto            rootDoc = QJsonDocument::fromJson(data, &error);
+
+  if (error.error != QJsonParseError::NoError) {
+    qCWarning(NS_LOG_HYPRLAND)
+        << "Error parsing j/devices:" << error.errorString();
+    return;
+  }
+
+  if (!rootDoc.isObject()) {
+    qCWarning(NS_LOG_HYPRLAND)
+        << "Received invalid data from j/devices. Unable to parse.";
+    return;
+  }
+
+  auto arr = rootDoc.object().value("keyboards");
+  if (!arr.isArray()) return;
+  auto keyboardsArray = arr.toArray();
+
+  for (auto k : keyboardsArray) {
+    if (!k.isObject()) continue;
+
+    auto       keyboard = k.toObject();
+    const auto isMain   = keyboard.value("main").toBool(false);
+
+    if (!isMain) continue;
+
+    const auto layoutIndex = keyboard.value("active_layout_index").toInteger(0);
+
+    setActiveLayoutIndex(layoutIndex);
+    break;
+  }
 }
 
 } // namespace ns::wayland::hyprland

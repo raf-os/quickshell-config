@@ -11,6 +11,8 @@ class Hyprctl : public QObject {
   Q_OBJECT
 
 public:
+  using hyprctl_callback_t = std::function<void(bool, QByteArray)>;
+
   explicit Hyprctl(QString socketPath, QObject *parent = nullptr);
 
   void call(QObject *context, const QByteArray &request,
